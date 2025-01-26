@@ -13,9 +13,7 @@ const OUTPUT_PATH = path.join(CWD, 'website/src/content/api');
 async function buildApiDocs(): Promise<void> {
   // An array of tuples where the first element is the package's name and
   // the second element is the relative path to the package's entry point
-  const packageJsonFiles = globSync(
-    workspacePackageJson.workspaces.map(f => `${f}/package.json`),
-  );
+  const packageJsonFiles = globSync(workspacePackageJson.workspaces.map(f => `${f}/package.json`));
   const modules: Array<[string, string]> = [];
 
   for (const packageJsonPath of packageJsonFiles) {
@@ -38,7 +36,7 @@ async function buildApiDocs(): Promise<void> {
 
   // Delete existing docs directory
   await fsPromises.rm(OUTPUT_PATH, { recursive: true }).catch(() => null);
-  console.log('🧹 ', styleText('green','Deleted existing docs directory'), OUTPUT_PATH);
+  console.log('🧹 ', styleText('green', 'Deleted existing docs directory'), OUTPUT_PATH);
   // Initialize TypeDoc
   const typeDoc = await Application.bootstrapWithPlugins(
     {

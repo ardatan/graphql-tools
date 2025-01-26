@@ -1,7 +1,7 @@
 import { existsSync, promises as fsPromises, readFileSync } from 'fs';
 import { isAbsolute, resolve } from 'path';
 import { env, cwd as processCwd } from 'process';
-import { glob, globSync, GlobOptions } from 'tinyglobby';
+import { glob, GlobOptions, globSync } from 'tinyglobby';
 import unixify from 'unixify';
 import { processImport } from '@graphql-tools/import';
 import {

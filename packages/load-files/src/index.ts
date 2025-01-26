@@ -2,8 +2,8 @@ import { promises as fsPromises, readFileSync, statSync } from 'fs';
 import { createRequire } from 'module';
 import { extname, join } from 'path';
 import { cwd } from 'process';
-import { glob, globSync, GlobOptions } from 'tinyglobby';
 import { DocumentNode, parse } from 'graphql';
+import { glob, GlobOptions, globSync } from 'tinyglobby';
 import unixify from 'unixify';
 
 const { readFile, stat } = fsPromises;

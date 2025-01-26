@@ -2,8 +2,8 @@ import { existsSync, promises as fsPromises, readFileSync } from 'fs';
 import { createRequire } from 'module';
 import { isAbsolute, resolve } from 'path';
 import { cwd, env } from 'process';
-import { glob, globSync, type GlobOptions } from 'tinyglobby';
 import { DocumentNode, GraphQLSchema, isSchema, parse } from 'graphql';
+import { glob, globSync, type GlobOptions } from 'tinyglobby';
 import unixify from 'unixify';
 import {
   gqlPluckFromCodeString,
