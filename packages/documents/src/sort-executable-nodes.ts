@@ -8,7 +8,6 @@ import {
   type SelectionNode,
   type VariableDefinitionNode,
 } from 'graphql';
-import sortBy from 'lodash.sortby';
 import { normalizeWhiteSpace } from './normalize-whitespace.js';
 
 // Cache the sorted nodes to avoid sorting the same nodes multiple times
@@ -44,39 +43,52 @@ export function sortExecutableNodes(
     }
 
     if (isOfKindList<DirectiveNode>(nodes, Kind.DIRECTIVE)) {
-      return cacheResult(sortBy(nodes as any, 'name.value'));
+      return cacheResult(nodes.sort((a, b) => a.name.value.localeCompare(b.name.value)));
     }
 
     if (isOfKindList<VariableDefinitionNode>(nodes, Kind.VARIABLE_DEFINITION)) {
-      return cacheResult(sortBy(nodes as any, 'variable.name.value'));
+      return cacheResult(nodes.sort((a, b) => a.variable.name.value.localeCompare(b.variable.name.value)));
     }
 
     if (isOfKindList<ArgumentNode>(nodes, Kind.ARGUMENT)) {
-      return cacheResult(sortBy(nodes as any, 'name.value'));
+      return cacheResult(nodes.sort((a, b) => a.name.value.localeCompare(b.name.value)));
     }
 
     if (
       isOfKindList<SelectionNode>(nodes, [Kind.FIELD, Kind.FRAGMENT_SPREAD, Kind.INLINE_FRAGMENT])
     ) {
       return cacheResult(
-        sortBy(nodes as any, node => {
+       nodes.sort((a, b) => {
+        const getSortKey = (node: SelectionNode) => {
           if (node.kind === Kind.FIELD) {
             return sortPrefixField + node.name.value;
           } else if (node.kind === Kind.FRAGMENT_SPREAD) {
             return sortPrefixFragmentSpread + node.name.value;
           } else {
             const typeCondition = node.typeCondition?.name.value ?? '';
-            // if you have a better idea, send a PR :)
-            const sortedNodes = buildInlineFragmentSelectionSetKey(
-              cacheResult(sortExecutableNodes(node.selectionSet.selections)),
+            const sortedSelections = buildInlineFragmentSelectionSetKey(
+              cacheResult(sortExecutableNodes(node.selectionSet.selections))
             );
-            return sortPrefixInlineFragmentNode + typeCondition + sortedNodes;
+            return sortPrefixInlineFragmentNode + typeCondition + sortedSelections;
           }
+        };
+
+        return getSortKey(a).localeCompare(getSortKey(b));
         }),
       );
     }
 
-    return cacheResult(sortBy(nodes as any, 'kind', 'name.value'));
+    return cacheResult(nodes.toSorted((nodeA, nodeB) => {
+      const kindComparison = nodeA.kind.localeCompare(nodeB.kind);
+      if (kindComparison !== 0) {
+        return kindComparison;
+      }
+
+      const nameA = (nodeA as any).name?.value ?? '';
+      const nameB = (nodeB as any).name?.value ?? '';
+
+      return nameA.localeCompare(nameB);
+    }));
   }
 }
 
