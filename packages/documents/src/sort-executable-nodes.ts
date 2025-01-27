@@ -79,7 +79,7 @@ export function sortExecutableNodes(
         }),
       );
     }
-    const _nodes = nodes as ASTNode[]
+    const _nodes = nodes as ASTNode[];
     return cacheResult(
       _nodes.sort((nodeA, nodeB) => {
         const kindComparison = nodeA.kind.localeCompare(nodeB.kind);
