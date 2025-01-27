@@ -116,7 +116,7 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
       !asArray(options.ignore || []).length &&
       !options['includeSources']
     )
-      return [glob]; // bypass globby when no glob character, can be loaded, no ignores and source not requested. Fixes problem with pkg and passes ci tests
+      return [path]; // bypass globby when no glob character, can be loaded, no ignores and source not requested. Fixes problem with pkg and passes ci tests
     const globs = this._buildGlobs(path, options);
     const result = await glob(globs, createGlobbyOptions(options));
     return result;
