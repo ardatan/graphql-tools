@@ -83,9 +83,7 @@ export function sortExecutableNodes(
     return cacheResult(
       _nodes.sort((nodeA, nodeB) => {
         const kindComparison = nodeA.kind.localeCompare(nodeB.kind);
-        if (kindComparison !== 0) {
-          return kindComparison;
-        }
+        if (kindComparison !== 0) return kindComparison;
 
         const nameA = (nodeA as any).name?.value ?? '';
         const nameB = (nodeB as any).name?.value ?? '';
