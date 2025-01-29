@@ -16,6 +16,14 @@ const { readFile, access } = fsPromises;
 
 const FILE_EXTENSIONS = ['.json'];
 
+function unixifyWithDriveLetter(path: string): string {
+  if (path.match(/^[A-Z]:\\/)) {
+    const driveLetter = path[0];
+    return `${driveLetter}:${unixify(path)}`;
+  }
+  return unixify(path);
+}
+
 /**
  * Additional options for loading from a JSON file
  */
@@ -83,7 +91,10 @@ export class JsonFileLoader implements Loader {
 
   private _buildGlobs(glob: string, options: JsonFileLoaderOptions) {
     const ignores = asArray(options.ignore || []);
-    const globs = [unixify(glob), ...ignores.map(v => buildIgnoreGlob(unixify(v)))];
+    const globs = [
+      unixifyWithDriveLetter(glob),
+      ...ignores.map(v => buildIgnoreGlob(unixifyWithDriveLetter(v))),
+    ];
     return globs;
   }
 

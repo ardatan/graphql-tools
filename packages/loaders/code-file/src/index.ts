@@ -23,6 +23,14 @@ import { tryToLoadFromExport, tryToLoadFromExportSync } from './load-from-module
 
 const { readFile, access } = fsPromises;
 
+function unixifyWithDriveLetter(path: string): string {
+  if (path.match(/^[A-Z]:\\/)) {
+    const driveLetter = path[0];
+    return `${driveLetter}:${unixify(path)}`;
+  }
+  return unixify(path);
+}
+
 export type CodeFileLoaderConfig = {
   pluckConfig?: GraphQLTagPluckOptions;
   noPluck?: boolean;
@@ -130,7 +138,10 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
 
   private _buildGlobs(glob: string, options: CodeFileLoaderOptions) {
     const ignores = asArray(options.ignore || []);
-    const globs = [unixify(glob), ...ignores.map(v => buildIgnoreGlob(unixify(v)))];
+    const globs = [
+      unixifyWithDriveLetter(glob),
+      ...ignores.map(v => buildIgnoreGlob(unixifyWithDriveLetter(v))),
+    ];
     return globs;
   }
 

@@ -8,6 +8,14 @@ import unixify from 'unixify';
 
 const { readFile, stat } = fsPromises;
 
+function unixifyWithDriveLetter(path: string): string {
+  if (path.match(/^[A-Z]:\\/)) {
+    const driveLetter = path[0];
+    return `${driveLetter}:${unixify(path)}`;
+  }
+  return unixify(path);
+}
+
 const DEFAULT_IGNORED_EXTENSIONS = ['spec', 'test', 'd', 'map'];
 const DEFAULT_EXTENSIONS = ['gql', 'graphql', 'graphqls', 'ts', 'js'];
 const DEFAULT_EXPORT_NAMES = ['schema', 'typeDef', 'typeDefs', 'resolver', 'resolvers'];
@@ -138,12 +146,12 @@ export function loadFilesSync<T = any>(
     asArray(pattern).map(path =>
       isDirectorySync(path)
         ? buildGlob(
-            unixify(path),
+            unixifyWithDriveLetter(path),
             execOptions.extensions,
             execOptions.ignoredExtensions,
             execOptions.recursive,
           )
-        : unixify(path),
+        : unixifyWithDriveLetter(path),
     ),
     options.globOptions,
   );
@@ -237,12 +245,12 @@ export async function loadFiles(
       asArray(pattern).map(async path =>
         (await isDirectory(path))
           ? buildGlob(
-              unixify(path),
+              unixifyWithDriveLetter(path),
               execOptions.extensions,
               execOptions.ignoredExtensions,
               execOptions.recursive,
             )
-          : unixify(path),
+          : unixifyWithDriveLetter(path),
       ),
     ),
     options.globOptions,
