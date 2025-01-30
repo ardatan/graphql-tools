@@ -57,8 +57,7 @@ describe('isUrl', () => {
       // Mock URL.canParse
       URL.canParse = jest.fn((url: string) => {
         try {
-          new URL(url);
-          return true;
+          return !!new URL(url);
         } catch {
           return false;
         }
