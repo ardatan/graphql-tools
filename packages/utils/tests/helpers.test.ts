@@ -43,9 +43,10 @@ describe('isUrl', () => {
       expect(isUrl(url)).toBe(true);
     });
 
-    it.each(['not-a-url', 'invalid://host', 'http://[invalid]'])(
+    it.each(['not-a-url', 'invalid://host', 'http://[invalid]', 1, false, {}])(
       'should reject invalid URL: %s',
       url => {
+        // @ts-expect-error - Testing
         expect(isUrl(url)).toBe(false);
       },
     );
@@ -76,7 +77,7 @@ describe('isUrl', () => {
 
     beforeAll(() => {
       // @ts-expect-error - Remove URL.canParse
-      delete URL.canParse;
+      URL.canParse = undefined;
     });
 
     afterAll(() => {
