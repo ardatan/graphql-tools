@@ -38,7 +38,7 @@ const invalidDocRegex = /\.[a-z0-9]+$/i;
  * - Excludes URLs
  * - Attempts to parse the string as a GraphQL document
  *
- * @throws {Error} If the document fails to parse and contains non-comment content
+ * @throws {Error} If the document fails to parse and is empty except GraphQL comments
  */
 export function isDocumentString(str: any): boolean {
   if (typeof str !== 'string') {
