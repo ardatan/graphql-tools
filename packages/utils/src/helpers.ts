@@ -1,5 +1,7 @@
 import { ASTNode, parse } from 'graphql';
 
+const URL_REGEXP = /^(https?|wss?|file):\/\//;
+
 /**
  * Checks if the given string is a valid URL.
  *
@@ -11,6 +13,12 @@ import { ASTNode, parse } from 'graphql';
  * If not, it falls back to creating a new `URL` object to validate the string.
  */
 export function isUrl(str: string): boolean {
+  if (typeof str !== 'string') {
+    return false;
+  }
+  if (!URL_REGEXP.test(str)) {
+    return false;
+  }
   if (URL.canParse) {
     return URL.canParse(str);
   }

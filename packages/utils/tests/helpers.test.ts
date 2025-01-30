@@ -1,4 +1,4 @@
-import { isValidPath } from '../src/helpers';
+import { isUrl, isValidPath } from '../src/helpers';
 
 describe('helpers', () => {
   it.each([
@@ -30,4 +30,60 @@ describe('helpers', () => {
       expect(isValidPath(str)).toBeTruthy();
     },
   );
+});
+
+describe('isUrl', () => {
+  function testCases() {
+    it.each([
+      'https://example.com',
+      'http://localhost:3000',
+      'file:///path/to/file',
+      'http://user:pass@host.com:8080/path?query=string#hash',
+    ])('should validate valid URL: %s', url => {
+      expect(isUrl(url)).toBe(true);
+    });
+
+    it.each(['not-a-url', 'invalid://host', 'http://[invalid]'])(
+      'should reject invalid URL: %s',
+      url => {
+        expect(isUrl(url)).toBe(false);
+      },
+    );
+  }
+  describe('when URL.canParse is available', () => {
+    const originalCanParse = URL.canParse;
+
+    beforeAll(() => {
+      // Mock URL.canParse
+      URL.canParse = jest.fn((url: string) => {
+        try {
+          new URL(url);
+          return true;
+        } catch {
+          return false;
+        }
+      });
+    });
+
+    afterAll(() => {
+      // Restore original URL.canParse
+      URL.canParse = originalCanParse;
+    });
+    testCases();
+  });
+
+  describe('when URL.canParse is not available', () => {
+    const originalCanParse = URL.canParse;
+
+    beforeAll(() => {
+      // @ts-expect-error - Remove URL.canParse
+      delete URL.canParse;
+    });
+
+    afterAll(() => {
+      // Restore URL.canParse
+      URL.canParse = originalCanParse;
+    });
+    testCases();
+  });
 });
