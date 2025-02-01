@@ -4,7 +4,6 @@ import { isAbsolute, resolve } from 'path';
 import { cwd, env } from 'process';
 import { DocumentNode, GraphQLSchema, isSchema, parse } from 'graphql';
 import { glob, globSync, type GlobOptions } from 'tinyglobby';
-import unixify from 'unixify';
 import {
   gqlPluckFromCodeString,
   gqlPluckFromCodeStringSync,
@@ -18,18 +17,12 @@ import {
   Loader,
   parseGraphQLSDL,
   Source,
+  unixifyWithDriveLetter,
 } from '@graphql-tools/utils';
 import { tryToLoadFromExport, tryToLoadFromExportSync } from './load-from-module.js';
 
 const { readFile, access } = fsPromises;
 
-function unixifyWithDriveLetter(path: string): string {
-  if (path.match(/^[A-Z]:\\/)) {
-    const driveLetter = path[0];
-    return `${driveLetter}:${unixify(path)}`;
-  }
-  return unixify(path);
-}
 
 export type CodeFileLoaderConfig = {
   pluckConfig?: GraphQLTagPluckOptions;

@@ -2,7 +2,6 @@ import { existsSync, promises as fsPromises, readFileSync } from 'fs';
 import { isAbsolute, resolve } from 'path';
 import { env, cwd as processCwd } from 'process';
 import { glob, GlobOptions, globSync } from 'tinyglobby';
-import unixify from 'unixify';
 import {
   asArray,
   BaseLoaderOptions,
@@ -10,19 +9,13 @@ import {
   Loader,
   parseGraphQLJSON,
   Source,
+  unixifyWithDriveLetter,
 } from '@graphql-tools/utils';
 
 const { readFile, access } = fsPromises;
 
 const FILE_EXTENSIONS = ['.json'];
 
-function unixifyWithDriveLetter(path: string): string {
-  if (path.match(/^[A-Z]:\\/)) {
-    const driveLetter = path[0];
-    return `${driveLetter}:${unixify(path)}`;
-  }
-  return unixify(path);
-}
 
 /**
  * Additional options for loading from a JSON file

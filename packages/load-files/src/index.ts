@@ -4,17 +4,11 @@ import { extname, join } from 'path';
 import { cwd } from 'process';
 import { DocumentNode, parse } from 'graphql';
 import { glob, GlobOptions, globSync } from 'tinyglobby';
-import unixify from 'unixify';
+import { unixifyWithDriveLetter } from '@graphql-tools/utils';
 
 const { readFile, stat } = fsPromises;
 
-function unixifyWithDriveLetter(path: string): string {
-  if (path.match(/^[A-Z]:\\/)) {
-    const driveLetter = path[0];
-    return `${driveLetter}:${unixify(path)}`;
-  }
-  return unixify(path);
-}
+
 
 const DEFAULT_IGNORED_EXTENSIONS = ['spec', 'test', 'd', 'map'];
 const DEFAULT_EXTENSIONS = ['gql', 'graphql', 'graphqls', 'ts', 'js'];
