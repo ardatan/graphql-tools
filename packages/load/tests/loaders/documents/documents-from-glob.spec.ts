@@ -20,7 +20,7 @@ describe('documentsFromGlob', () => {
         loaders: [new GraphQLFileLoader()],
       });
       expect(result).toHaveLength(1);
-      const expectedFiles = globSync(glob);
+      const expectedFiles = globSync(glob.replace(/\\/g, '/'));
       for (const expectedFileName of expectedFiles) {
         const fileNameResult = result?.find(({ location }) => location === expectedFileName);
         if (fileNameResult) {
@@ -38,7 +38,7 @@ describe('documentsFromGlob', () => {
         loaders: [new GraphQLFileLoader()],
       });
       expect(result).toHaveLength(2);
-      const expectedFiles = globSync(glob);
+      const expectedFiles = globSync(glob.replace(/\\/g, '/'));
       for (const expectedFileName of expectedFiles) {
         const fileNameResult = result?.find(({ location }) => location === expectedFileName);
         if (fileNameResult) {
