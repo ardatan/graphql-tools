@@ -59,4 +59,4 @@ export * from './map-maybe-promise.js';
 export * from './fakePromise.js';
 export * from './createDeferred.js';
 export * from './registerAbortSignalListener.js';
-export * from './unixifyWithDriveLetter.js'
+export * from './unixifyWithDriveLetter.js';

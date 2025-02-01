@@ -8,8 +8,6 @@ import { unixifyWithDriveLetter } from '@graphql-tools/utils';
 
 const { readFile, stat } = fsPromises;
 
-
-
 const DEFAULT_IGNORED_EXTENSIONS = ['spec', 'test', 'd', 'map'];
 const DEFAULT_EXTENSIONS = ['gql', 'graphql', 'graphqls', 'ts', 'js'];
 const DEFAULT_EXPORT_NAMES = ['schema', 'typeDef', 'typeDefs', 'resolver', 'resolvers'];

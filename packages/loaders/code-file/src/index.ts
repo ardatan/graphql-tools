@@ -23,7 +23,6 @@ import { tryToLoadFromExport, tryToLoadFromExportSync } from './load-from-module
 
 const { readFile, access } = fsPromises;
 
-
 export type CodeFileLoaderConfig = {
   pluckConfig?: GraphQLTagPluckOptions;
   noPluck?: boolean;

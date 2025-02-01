@@ -16,7 +16,6 @@ const { readFile, access } = fsPromises;
 
 const FILE_EXTENSIONS = ['.json'];
 
-
 /**
  * Additional options for loading from a JSON file
  */
