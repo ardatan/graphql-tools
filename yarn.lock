@@ -4863,9 +4863,9 @@ content-disposition@0.5.4:
     safe-buffer "5.2.1"
 
 content-tag@^3.0.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/content-tag/-/content-tag-3.1.0.tgz#1a7ca7e36d85422808b8d426e2bdca95a98bcd75"
-  integrity sha512-gSESx+fia81/vKjorui0V6wY7IBpuitd84LcQnaPVF9Xe9ctLAf4saHwbUi3SAhYfi9kxs5ODfAVnm5MmjojCQ==
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/content-tag/-/content-tag-3.1.1.tgz#4613e1dc58e310570c4d53f036dfd21d1c3b00bf"
+  integrity sha512-94puwVk6X8oJcbRIEY03UM80zWzA3dYgGkOiRJzeY1vXgwrFUh3OolDDi/D7YBa6Vsx+CgAvuk4uXlB8loZ1FA==
 
 content-type@~1.0.4, content-type@~1.0.5:
   version "1.0.5"
