@@ -1617,15 +1617,15 @@
     "@envelop/core" "^5.0.2"
     "@graphql-tools/utils" "^10.7.0"
 
-"@graphql-tools/executor-graphql-ws@^1.3.2":
-  version "1.3.7"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-graphql-ws/-/executor-graphql-ws-1.3.7.tgz#ecdf9e0a3ea6e12a5bc9df8fb8bb477a17711678"
-  integrity sha512-9KUrlpil5nBgcb+XRUIxNQGI+c237LAfDBqYCdLGuYT+/oZz1b4rRIe6HuRk09vuxrbaMTzm7xHhn/iuwWW4eg==
+"@graphql-tools/executor-graphql-ws@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-graphql-ws/-/executor-graphql-ws-2.0.0.tgz#996cf9bf2e139c4a276f283eaa365851f7f25bb4"
+  integrity sha512-zFQAIhIueFcbW+8qnVQ6RCkoa1GlOAGskJVi+vgLwUhyt4WDVcRggsk1cXWl2y7QeGk0pDEaXdstmPBKd52X2w==
   dependencies:
     "@graphql-tools/executor-common" "^0.0.1"
     "@graphql-tools/utils" "^10.7.0"
     "@whatwg-node/disposablestack" "^0.0.5"
-    graphql-ws "^5.14.0"
+    graphql-ws "^6.0.3"
     isomorphic-ws "^5.0.0"
     tslib "^2.8.1"
     ws "^8.17.1"
@@ -6802,10 +6802,10 @@ graphql-upload@17.0.0:
     http-errors "^2.0.0"
     object-path "^0.11.8"
 
-graphql-ws@^5.14.0:
-  version "5.16.2"
-  resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-5.16.2.tgz#7b0306c1bdb0e97a05e800ccd523f46fb212e37c"
-  integrity sha512-E1uccsZxt/96jH/OwmLPuXMACILs76pKF2i3W861LpKBCYtGIyPQGtWLuBLkND4ox1KHns70e83PS4te50nvPQ==
+graphql-ws@^6.0.3:
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-6.0.3.tgz#8f20ee60f900650411be476f507bda5ff9b0844e"
+  integrity sha512-mvLRHihMg0llF74vo16063HufZHMGaiMxAjzyj0ARYueIikGzj1khlbPNl7vUc2h9rxbq9pGpQYbqypgq1fAXA==
 
 graphql-yoga@5.10.11, graphql-yoga@^5.0.0:
   version "5.10.11"
