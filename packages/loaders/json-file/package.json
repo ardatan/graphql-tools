@@ -52,9 +52,8 @@
   },
   "dependencies": {
     "@graphql-tools/utils": "^10.7.2",
-    "globby": "^11.0.3",
-    "tslib": "^2.4.0",
-    "unixify": "^1.0.0"
+    "tinyglobby": "^0.2.10",
+    "tslib": "^2.4.0"
   },
   "publishConfig": {
     "directory": "dist",

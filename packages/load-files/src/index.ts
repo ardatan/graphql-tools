@@ -2,9 +2,9 @@ import { promises as fsPromises, readFileSync, statSync } from 'fs';
 import { createRequire } from 'module';
 import { extname, join } from 'path';
 import { cwd } from 'process';
-import globby, { GlobbyOptions, sync as globbySync } from 'globby';
 import { DocumentNode, parse } from 'graphql';
-import unixify from 'unixify';
+import { glob, GlobOptions, globSync } from 'tinyglobby';
+import { unixifyWithDriveLetter } from '@graphql-tools/utils';
 
 const { readFile, stat } = fsPromises;
 
@@ -63,8 +63,8 @@ async function isDirectory(path: string) {
   }
 }
 
-function scanForFilesSync(globStr: string | string[], globOptions: GlobbyOptions = {}): string[] {
-  return globbySync(globStr, { absolute: true, ...globOptions });
+function scanForFilesSync(globStr: string | string[], globOptions: GlobOptions = {}): string[] {
+  return globSync(globStr, { absolute: true, ...globOptions });
 }
 
 function formatExtension(extension: string): string {
@@ -99,7 +99,7 @@ export interface LoadFilesOptions {
   // An alternative to `require` to use if `require` would be used to load a file
   requireMethod?: any;
   // Additional options to pass to globby
-  globOptions?: GlobbyOptions;
+  globOptions?: GlobOptions;
   // Named exports to extract from each file. Defaults to ['typeDefs', 'schema']
   exportNames?: string[];
   // Load files from nested directories. Set to `false` to only search the top-level directory.
@@ -138,12 +138,12 @@ export function loadFilesSync<T = any>(
     asArray(pattern).map(path =>
       isDirectorySync(path)
         ? buildGlob(
-            unixify(path),
+            unixifyWithDriveLetter(path),
             execOptions.extensions,
             execOptions.ignoredExtensions,
             execOptions.recursive,
           )
-        : unixify(path),
+        : unixifyWithDriveLetter(path),
     ),
     options.globOptions,
   );
@@ -183,9 +183,9 @@ export function loadFilesSync<T = any>(
 
 async function scanForFiles(
   globStr: string | string[],
-  globOptions: GlobbyOptions = {},
+  globOptions: GlobOptions = {},
 ): Promise<string[]> {
-  return globby(globStr, { absolute: true, ...globOptions });
+  return glob(globStr, { absolute: true, ...globOptions });
 }
 
 const checkExtension = (
@@ -237,12 +237,12 @@ export async function loadFiles(
       asArray(pattern).map(async path =>
         (await isDirectory(path))
           ? buildGlob(
-              unixify(path),
+              unixifyWithDriveLetter(path),
               execOptions.extensions,
               execOptions.ignoredExtensions,
               execOptions.recursive,
             )
-          : unixify(path),
+          : unixifyWithDriveLetter(path),
       ),
     ),
     options.globOptions,

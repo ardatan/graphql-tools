@@ -50,12 +50,9 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "lodash.sortby": "^4.7.0",
     "tslib": "^2.4.0"
   },
-  "devDependencies": {
-    "@types/lodash.sortby": "^4.7.7"
-  },
+  "devDependencies": {},
   "publishConfig": {
     "directory": "dist",
     "access": "public"

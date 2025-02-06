@@ -40,7 +40,8 @@
     "@graphql-typed-document-node/core": "^3.1.1",
     "cross-inspect": "1.0.1",
     "dset": "^3.1.4",
-    "tslib": "^2.4.0"
+    "tslib": "^2.4.0",
+    "unixify": "^1.0.0"
   },
   "devDependencies": {
     "@graphql-tools/stitch": "^9.3.4",

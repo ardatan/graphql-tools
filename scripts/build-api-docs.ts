@@ -1,7 +1,7 @@
 import fs, { promises as fsPromises } from 'node:fs';
 import path from 'node:path';
-import chalk from 'chalk';
-import globby from 'globby';
+import { styleText } from 'node:util';
+import { globSync } from 'tinyglobby';
 import { Application, TSConfigReader } from 'typedoc';
 import workspacePackageJson from '../package.json';
 
@@ -13,9 +13,7 @@ const OUTPUT_PATH = path.join(CWD, 'website/src/content/api');
 async function buildApiDocs(): Promise<void> {
   // An array of tuples where the first element is the package's name and
   // the second element is the relative path to the package's entry point
-  const packageJsonFiles = globby.sync(
-    workspacePackageJson.workspaces.map(f => `${f}/package.json`),
-  );
+  const packageJsonFiles = globSync(workspacePackageJson.workspaces.map(f => `${f}/package.json`));
   const modules: Array<[string, string]> = [];
 
   for (const packageJsonPath of packageJsonFiles) {
@@ -38,7 +36,7 @@ async function buildApiDocs(): Promise<void> {
 
   // Delete existing docs directory
   await fsPromises.rm(OUTPUT_PATH, { recursive: true }).catch(() => null);
-  console.log('🧹 ', chalk.green('Deleted existing docs directory'), OUTPUT_PATH);
+  console.log('🧹 ', styleText('green', 'Deleted existing docs directory'), OUTPUT_PATH);
   // Initialize TypeDoc
   const typeDoc = await Application.bootstrapWithPlugins(
     {
@@ -82,7 +80,7 @@ async function buildApiDocs(): Promise<void> {
     const relativePath = path.relative(CWD, filePath);
     const newFileName = relativePath.toLowerCase();
     await fsPromises.rename(filePath, newFileName);
-    console.log('✅ ', chalk.green(newFileName));
+    console.log('✅ ', styleText('green', newFileName));
   }
 
   async function visitMarkdownFile(filePath: string): Promise<void> {
