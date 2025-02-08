@@ -322,6 +322,13 @@
     "@babel/helper-create-class-features-plugin" "^7.18.6"
     "@babel/helper-plugin-utils" "^7.18.6"
 
+"@babel/plugin-proposal-explicit-resource-management@7.25.9":
+  version "7.25.9"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-explicit-resource-management/-/plugin-proposal-explicit-resource-management-7.25.9.tgz#d4efc3cac38daaa16bb5f9f5dcdfef7440471c39"
+  integrity sha512-EbtfSvb6s4lZwef1nH52nw4DTUAvHY6bl1mbLgEHUkR6L8j4WY70mM/InB8Ozgdlok/7etbiSW+Wc88ZebZAKQ==
+  dependencies:
+    "@babel/helper-plugin-utils" "^7.25.9"
+
 "@babel/plugin-proposal-object-rest-spread@^7.0.0":
   version "7.20.7"
   resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-object-rest-spread/-/plugin-proposal-object-rest-spread-7.20.7.tgz#aa662940ef425779c75534a5c41e9d936edc390a"
@@ -3821,9 +3828,9 @@
     tslib "^2.6.3"
 
 "@whatwg-node/server@^0.9.64":
-  version "0.9.65"
-  resolved "https://registry.yarnpkg.com/@whatwg-node/server/-/server-0.9.65.tgz#abba6a790bfe7cf9a7ea1301c1e12743504f8c83"
-  integrity sha512-CnYTFEUJkbbAcuBXnXirVIgKBfs2YA6sSGjxeq07AUiyXuoQ0fbvTIQoteMglmn09QeGzcH/l0B7nIml83xvVw==
+  version "0.9.66"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/server/-/server-0.9.66.tgz#0a724eaa592c1e22980683c50b186d7e77bdf2a4"
+  integrity sha512-9bRgQTXfxWrYIyeUvuZ9FzQSxUE3uNyxh0C3NnHeYs6Vx+1+dBlNSujI9WEZolY/dvGuFq+oVePn6k67iblHIA==
   dependencies:
     "@whatwg-node/disposablestack" "^0.0.5"
     "@whatwg-node/fetch" "^0.10.0"
@@ -12129,7 +12136,7 @@ v8-to-istanbul@^9.0.1:
     "@types/istanbul-lib-coverage" "^2.0.1"
     convert-source-map "^2.0.0"
 
-value-or-promise@^1.0.11, value-or-promise@^1.0.12:
+value-or-promise@^1.0.12:
   version "1.0.12"
   resolved "https://registry.yarnpkg.com/value-or-promise/-/value-or-promise-1.0.12.tgz#0e5abfeec70148c78460a849f6b003ea7986f15c"
   integrity sha512-Z6Uz+TYwEqE7ZN50gwn+1LCVo9ZVrpxRPOhOLnncYkY1ZzOYtrX8Fwf/rFktZ8R5mJms6EZf5TqNOMeZmnPq9Q==

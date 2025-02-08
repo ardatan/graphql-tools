@@ -67,7 +67,7 @@ describe('Apollo Link', () => {
   });
 
   afterAll(async () => {
-    await executor[DisposableSymbols.asyncDispose]?.();
+    await executor[DisposableSymbols.asyncDispose]();
     client.stop();
     await client.clearStore();
   });

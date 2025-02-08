@@ -61,7 +61,6 @@
     "isomorphic-ws": "^5.0.0",
     "sync-fetch": "0.6.0-2",
     "tslib": "^2.4.0",
-    "value-or-promise": "^1.0.11",
     "ws": "^8.17.1"
   },
   "devDependencies": {

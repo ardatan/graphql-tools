@@ -578,17 +578,18 @@ describe('Schema URL Loader', () => {
     expect(result?.data?.['foo']?.bar?.[0]?.id).toBe('BAR');
   });
   it('should return errors correctly if fetch fails', async () => {
-    const executor = loader.getExecutorAsync('http://127.0.0.1:9777/graphql');
+    const executor = loader.getExecutorAsync('http://localhost:12321/graphql');
 
-    const result = (await executor({
+    const result = await executor({
       document: parse(/* GraphQL */ `
         query TestQuery {
           a
         }
       `),
-    })) as ExecutionResult;
-    expect(result.data).toBeUndefined();
-    expect(result.errors).toBeDefined();
+    });
+    expect(result).toEqual({
+      errors: expect.any(Array),
+    });
   });
   it('should not accept invalid protocols', async () => {
     const testUrl = 'myprotocol://localhost:8081/graphql';
