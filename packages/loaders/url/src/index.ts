@@ -16,6 +16,7 @@ import {
   ExecutionRequest,
   Executor,
   getOperationASTFromRequest,
+  isUrl,
   Loader,
   mapMaybePromise,
   MaybePromise,
@@ -106,7 +107,7 @@ const acceptableProtocols = ['http:', 'https:', 'ws:', 'wss:'];
 
 function isCompatibleUri(uri: string): boolean {
   if (acceptableProtocols.some(protocol => uri.startsWith(protocol))) {
-    return URL.canParse(uri);
+    return isUrl(uri);
   }
   return false;
 }

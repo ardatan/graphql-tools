@@ -3819,9 +3819,9 @@
     urlpattern-polyfill "^10.0.0"
 
 "@whatwg-node/node-fetch@^0.7.7":
-  version "0.7.7"
-  resolved "https://registry.yarnpkg.com/@whatwg-node/node-fetch/-/node-fetch-0.7.7.tgz#6c1752e2e16cfac93fdef2ef4f852b7a50dd15ed"
-  integrity sha512-BDbIMOenThOTFDBLh1WscgBNAxfDAdAdd9sMG8Ff83hYxApJVbqEct38bUAj+zn8bTsfBx/lyfnVOTyq5xUlvg==
+  version "0.7.8"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/node-fetch/-/node-fetch-0.7.8.tgz#6344bae3fa8d2680e3637cb75aa4357048fadc94"
+  integrity sha512-Pbv72nbu3AgL9ZaAwdzYcqoMhYGhSBxo49CC+Nt+tlhdDuMZXcf3+41qGghsGJykkxhgfgFcPLwtt2HPEjk57w==
   dependencies:
     "@whatwg-node/disposablestack" "^0.0.5"
     busboy "^1.6.0"

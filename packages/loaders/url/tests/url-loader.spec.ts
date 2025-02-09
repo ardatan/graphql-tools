@@ -578,7 +578,7 @@ describe('Schema URL Loader', () => {
     expect(result?.data?.['foo']?.bar?.[0]?.id).toBe('BAR');
   });
   it('should return errors correctly if fetch fails', async () => {
-    const executor = loader.getExecutorAsync('http://localhost:12321/graphql');
+    const executor = loader.getExecutorAsync('http://test.test/graphql');
 
     const result = await executor({
       document: parse(/* GraphQL */ `
