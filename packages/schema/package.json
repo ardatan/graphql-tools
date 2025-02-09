@@ -52,8 +52,7 @@
   "dependencies": {
     "@graphql-tools/merge": "^9.0.17",
     "@graphql-tools/utils": "^10.7.2",
-    "tslib": "^2.4.0",
-    "value-or-promise": "^1.0.12"
+    "tslib": "^2.4.0"
   },
   "devDependencies": {
     "graphql-scalars": "1.24.1"
