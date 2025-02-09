@@ -6,7 +6,7 @@
 
     "target": "es2022",
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "lib": ["esnext"],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,

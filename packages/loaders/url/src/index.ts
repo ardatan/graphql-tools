@@ -163,11 +163,12 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       https: 'wss',
       http: 'ws',
     });
-    return buildGraphQLWSExecutor({
+    const opts = {
       url: WS_URL,
       webSocketImpl,
       connectionParams,
-    });
+    };
+    return buildGraphQLWSExecutor(opts);
   }
 
   buildWSLegacyExecutor(

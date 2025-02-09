@@ -8,9 +8,9 @@ import {
   print,
 } from 'graphql';
 import { createHandler } from 'graphql-sse/lib/use/http';
-import { useServer } from 'graphql-ws/lib/use/ws';
+import { useServer } from 'graphql-ws/use/ws';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
-import { Server as WSServer } from 'ws';
+import { WebSocketServer } from 'ws';
 import { execute, isIncrementalResult, subscribe } from '@graphql-tools/executor';
 import type { AsyncFetchFn } from '@graphql-tools/executor-http';
 import { loadSchema } from '@graphql-tools/load';
@@ -366,7 +366,7 @@ describe('Schema URL Loader', () => {
       res.end();
     });
 
-    const wsServer = new WSServer({
+    const wsServer = new WebSocketServer({
       server: httpServer,
       path: '/graphql',
     });
