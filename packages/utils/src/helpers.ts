@@ -1,6 +1,24 @@
 import { ASTNode, parse } from 'graphql';
 
+const URL_REGEXP = /^(https?|wss?|file):\/\//;
+
+/**
+ * Checks if the given string is a valid URL.
+ *
+ * @param str - The string to validate as a URL
+ * @returns A boolean indicating whether the string is a valid URL
+ *
+ * @remarks
+ * This function first attempts to use the `URL.canParse` method if available.
+ * If not, it falls back to creating a new `URL` object to validate the string.
+ */
 export function isUrl(str: string): boolean {
+  if (typeof str !== 'string') {
+    return false;
+  }
+  if (!URL_REGEXP.test(str)) {
+    return false;
+  }
   if (URL.canParse) {
     return URL.canParse(str);
   }
@@ -15,6 +33,21 @@ export function isUrl(str: string): boolean {
 export const asArray = <T>(fns: T | T[]) => (Array.isArray(fns) ? fns : fns ? [fns] : []);
 
 const invalidDocRegex = /\.[a-z0-9]+$/i;
+/**
+ * Determines if a given input is a valid GraphQL document string.
+ *
+ * @param str - The input to validate as a GraphQL document
+ * @returns A boolean indicating whether the input is a valid GraphQL document string
+ *
+ * @remarks
+ * This function performs several validation checks:
+ * - Ensures the input is a string
+ * - Filters out strings with invalid document extensions
+ * - Excludes URLs
+ * - Attempts to parse the string as a GraphQL document
+ *
+ * @throws {Error} If the document fails to parse and is empty except GraphQL comments
+ */
 export function isDocumentString(str: any): boolean {
   if (typeof str !== 'string') {
     return false;
