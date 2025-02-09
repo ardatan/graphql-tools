@@ -1,6 +1,9 @@
 import { ASTNode, parse } from 'graphql';
 
-function isURL(str: string): boolean {
+export function isUrl(str: string): boolean {
+  if (URL.canParse) {
+    return URL.canParse(str);
+  }
   try {
     const url = new URL(str);
     return !!url;
@@ -22,7 +25,7 @@ export function isDocumentString(str: any): boolean {
   // this why checking the extension is fast enough
   // and prevent from parsing the string in order to find out
   // if the string is a SDL
-  if (invalidDocRegex.test(str) || isURL(str)) {
+  if (invalidDocRegex.test(str) || isUrl(str)) {
     return false;
   }
 

@@ -1,5 +1,5 @@
 import { setTimeout } from 'timers/promises';
-import { createSchema, createYoga } from 'graphql-yoga';
+import { createSchema, createYoga, DisposableSymbols } from 'graphql-yoga';
 import { pipe, toObservable } from 'wonka';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import { ExecutionResult } from '@graphql-tools/utils';
@@ -49,19 +49,18 @@ describe('URQL Yoga Exchange', () => {
     }),
   });
 
+  const executor = buildHTTPExecutor({
+    endpoint: 'http://localhost:4000/graphql',
+    fetch: yoga.fetch,
+    File: yoga.fetchAPI.File,
+    FormData: yoga.fetchAPI.FormData,
+  });
   const client = createClient({
     url: 'http://localhost:4000/graphql',
-    exchanges: [
-      executorExchange(
-        buildHTTPExecutor({
-          endpoint: 'http://localhost:4000/graphql',
-          fetch: yoga.fetch,
-          File: yoga.fetchAPI.File,
-          FormData: yoga.fetchAPI.FormData,
-        }),
-      ),
-    ],
+    exchanges: [executorExchange(executor)],
   });
+
+  afterAll(() => executor[DisposableSymbols.asyncDispose]());
 
   it('should handle queries correctly', async () => {
     const result = await client

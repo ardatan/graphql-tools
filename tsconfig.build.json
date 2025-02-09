@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "moduleResolution": "node"
+  },
+  "exclude": [
+    "**/node_modules",
+    "**/dist",
+    "**/scripts",
+    "**/test/*.ts",
+    "**/tests/*.ts",
+    "**/test-files",
+    "*.spec.ts",
+    "*.test.ts"
+  ]
+}
