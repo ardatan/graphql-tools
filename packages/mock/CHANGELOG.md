@@ -1,5 +1,14 @@
 # @graphql-tools/mock
 
+## 9.0.17
+
+### Patch Changes
+
+- Updated dependencies
+  [[`651a5dc`](https://github.com/ardatan/graphql-tools/commit/651a5dccb466b04f7fd16561cd264acd306e0711)]:
+  - @graphql-tools/utils@10.8.1
+  - @graphql-tools/schema@10.0.18
+
 ## 9.0.16
 
 ### Patch Changes
