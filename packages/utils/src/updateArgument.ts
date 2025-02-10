@@ -57,7 +57,7 @@ export function createVariableNameGenerator(
   return (argName: string): string => {
     let varName: string;
     do {
-      varName = `_v${(varCounter++).toString()}_${argName}`;
+      varName = varCounter === 0 ? argName : `_v${(varCounter++).toString()}_${argName}`;
     } while (varName in variableDefinitionMap);
     return varName;
   };
