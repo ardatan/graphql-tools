@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/graphql-tag-pluck",
-  "version": "8.3.12",
+  "version": "8.3.13",
   "type": "module",
   "description": "Pluck graphql-tag template literals",
   "repository": {
@@ -55,7 +55,7 @@
     "@babel/plugin-syntax-import-assertions": "^7.20.0",
     "@babel/traverse": "^7.16.8",
     "@babel/types": "^7.16.8",
-    "@graphql-tools/utils": "^10.7.2",
+    "@graphql-tools/utils": "^10.8.0",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
