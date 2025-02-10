@@ -30,6 +30,7 @@ export * from './renameType.js';
 export * from './transformInputValue.js';
 export * from './mapAsyncIterator.js';
 export * from './updateArgument.js';
+export * from './astFromType.js';
 export * from './implementsAbstractType.js';
 export * from './errors.js';
 export * from './observableToAsyncIterable.js';
