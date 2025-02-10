@@ -1,5 +1,21 @@
 # @graphql-tools/schema
 
+## 10.0.17
+
+### Patch Changes
+
+- [#6921](https://github.com/ardatan/graphql-tools/pull/6921)
+  [`357b2ee`](https://github.com/ardatan/graphql-tools/commit/357b2ee6eef5e1f3b2b067728e9b167b1c2f82e5)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Removed dependency
+    [`value-or-promise@^1.0.12` ↗︎](https://www.npmjs.com/package/value-or-promise/v/1.0.12) (from
+    `dependencies`)
+- Updated dependencies
+  [[`0a3e193`](https://github.com/ardatan/graphql-tools/commit/0a3e193e1ed70bd744375bfb4a10e515ecf59019),
+  [`357b2ee`](https://github.com/ardatan/graphql-tools/commit/357b2ee6eef5e1f3b2b067728e9b167b1c2f82e5)]:
+  - @graphql-tools/utils@10.8.0
+  - @graphql-tools/merge@9.0.18
+
 ## 10.0.16
 
 ### Patch Changes

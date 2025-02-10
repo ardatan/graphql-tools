@@ -1,5 +1,20 @@
 # @graphql-tools/utils
 
+## 10.8.0
+
+### Minor Changes
+
+- [#6921](https://github.com/ardatan/graphql-tools/pull/6921)
+  [`357b2ee`](https://github.com/ardatan/graphql-tools/commit/357b2ee6eef5e1f3b2b067728e9b167b1c2f82e5)
+  Thanks [@renovate](https://github.com/apps/renovate)! - New `isUrl` helper, and it uses
+  `URL.canParse` if available
+
+### Patch Changes
+
+- [`0a3e193`](https://github.com/ardatan/graphql-tools/commit/0a3e193e1ed70bd744375bfb4a10e515ecf59019)
+  Thanks [@ardatan](https://github.com/ardatan)! - Do not add `_v` prefix if there is only one
+  argument/variable
+
 ## 10.7.2
 
 ### Patch Changes
@@ -1094,8 +1109,8 @@
 
 ### Patch Changes
 
-- e53f97b3: fix(utils): provide `{ done: true }` from iterator when complete is called on observer in
-  observableToAsyncIterable
+- e53f97b3: fix(utils): provide `{ done: true }` from iterator when complete is called on observer
+  in observableToAsyncIterable
 
 ## 7.2.5
 
