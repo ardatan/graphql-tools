@@ -1,5 +1,12 @@
 # @graphql-tools/utils
 
+## 10.8.1
+
+### Patch Changes
+
+- [`651a5dc`](https://github.com/ardatan/graphql-tools/commit/651a5dccb466b04f7fd16561cd264acd306e0711)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fix the regression on var counting
+
 ## 10.8.0
 
 ### Minor Changes
