@@ -1578,13 +1578,21 @@
     "@envelop/core" "^5.0.2"
     "@graphql-tools/utils" "^10.7.0"
 
-"@graphql-tools/executor-graphql-ws@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-graphql-ws/-/executor-graphql-ws-2.0.1.tgz#ab6111d6c0eebb0b991e931c8c71daa28594ea84"
-  integrity sha512-TqdNLuDuLgaB8xOe+H4+3Sx9jyhRMpEwJTA+5MOvrMRPIPYW4P7w4KYouClS1zAmn4193pNRSt11lZptjIoLPw==
+"@graphql-tools/executor-common@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-common/-/executor-common-0.0.2.tgz#8991744048973d4f574cbfd434d084f80e9191c3"
+  integrity sha512-FD3QYYzypurGESKJ9vjKXmsmC3UuZEghHcADSGGW8NcZB66vNN557zdJ3+lwVSdYuIjiyXhyLVp1mn59w2eMQQ==
   dependencies:
-    "@graphql-tools/executor-common" "^0.0.1"
-    "@graphql-tools/utils" "^10.7.0"
+    "@envelop/core" "^5.0.2"
+    "@graphql-tools/utils" "^10.8.1"
+
+"@graphql-tools/executor-graphql-ws@^2.0.1":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-graphql-ws/-/executor-graphql-ws-2.0.2.tgz#53483431208f8fb0fba866673dd2b6f733f2e79d"
+  integrity sha512-P5Z8K9h4H/eNMgMMZ9gQmRDYCb2yMERc+Eaag3EJ0ifeBXZS54uhAFB3All/YzY6zy0B8BUzjHb+w+/Zan6XOg==
+  dependencies:
+    "@graphql-tools/executor-common" "^0.0.2"
+    "@graphql-tools/utils" "^10.8.1"
     "@whatwg-node/disposablestack" "^0.0.5"
     graphql-ws "^6.0.3"
     isomorphic-ws "^5.0.0"
@@ -3357,10 +3365,10 @@
     "@types/node" "*"
     form-data "^4.0.0"
 
-"@types/node@*", "@types/node@22.13.1":
-  version "22.13.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.13.1.tgz#a2a3fefbdeb7ba6b89f40371842162fac0934f33"
-  integrity sha512-jK8uzQlrvXqEU91UxiK5J7pKHyzgnI1Qnl0QDHIgVGuolJhRb9EEl28Cj9b3rGR8B2lhFCtvIm5os8lFnO/1Ew==
+"@types/node@*", "@types/node@22.13.2":
+  version "22.13.2"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.13.2.tgz#6f401c5ccadac75354f5652128e9fcc3b0cf23b7"
+  integrity sha512-Z+r8y3XL9ZpI2EY52YYygAFmo2/oWfNSj4BCpAXE2McAexDk8VcnBMGC9Djn9gTKt4d2T/hhXqmPzo4hfIXtTg==
   dependencies:
     undici-types "~6.20.0"
 
