@@ -50,7 +50,7 @@
     "@babel/plugin-proposal-explicit-resource-management": "7.25.9",
     "@babel/preset-env": "7.26.9",
     "@babel/preset-typescript": "7.26.0",
-    "@changesets/changelog-github": "0.5.0",
+    "@changesets/changelog-github": "0.5.1",
     "@changesets/cli": "2.27.12",
     "@theguild/prettier-config": "3.0.0",
     "@types/jest": "29.5.14",
