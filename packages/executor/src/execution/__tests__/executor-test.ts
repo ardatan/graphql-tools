@@ -1110,7 +1110,7 @@ describe('Execute: Handles basic execution tasks', () => {
       },
       errors: [
         {
-          message: 'Expected value of type "SpecialType" but got: { value: "bar" }.',
+          message: `Expected value of type "SpecialType" but got: NotSpecial { value: 'bar' }.`,
           locations: [{ line: 1, column: 3 }],
           path: ['specials', 1],
         },
@@ -1152,7 +1152,7 @@ describe('Execute: Handles basic execution tasks', () => {
       errors: [
         {
           message:
-            'Expected `CustomScalar.serialize("CUSTOM_VALUE")` to return non-nullable value, returned: undefined',
+            "Expected `CustomScalar.serialize('CUSTOM_VALUE')` to return non-nullable value, returned: undefined",
           locations: [{ line: 1, column: 3 }],
           path: ['customScalar'],
         },

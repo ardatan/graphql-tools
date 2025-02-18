@@ -1193,7 +1193,7 @@ function completeLeafValue(returnType: GraphQLLeafType, result: unknown): unknow
 
   if (serializedResult == null) {
     throw new Error(
-      `Expected \`${inspect(returnType)}.serialize(${inspect(result)})\` to ` +
+      `Expected \`${returnType}.serialize(${inspect(result)})\` to ` +
         `return non-nullable value, returned: ${inspect(serializedResult)}`,
     );
   }

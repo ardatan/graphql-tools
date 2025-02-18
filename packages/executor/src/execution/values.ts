@@ -10,7 +10,7 @@ import {
   valueFromAST,
   VariableDefinitionNode,
 } from 'graphql';
-import { createGraphQLError, hasOwnProperty, inspect, printPathArray } from '@graphql-tools/utils';
+import { createGraphQLError, inspect, printPathArray } from '@graphql-tools/utils';
 
 type CoercedVariableValues =
   | { errors: ReadonlyArray<GraphQLError>; coerced?: never }
@@ -76,14 +76,13 @@ function coerceVariableValues(
       continue;
     }
 
-    if (!hasOwnProperty(inputs, varName)) {
+    if (inputs[varName] === undefined) {
       if (varDefNode.defaultValue) {
         coercedValues[varName] = valueFromAST(varDefNode.defaultValue, varType);
       } else if (isNonNullType(varType)) {
-        const varTypeStr = inspect(varType);
         onError(
           createGraphQLError(
-            `Variable "$${varName}" of required type "${varTypeStr}" was not provided.`,
+            `Variable "$${varName}" of required type "${varType}" was not provided.`,
             {
               nodes: varDefNode,
             },
@@ -95,10 +94,9 @@ function coerceVariableValues(
 
     const value = inputs[varName];
     if (value === null && isNonNullType(varType)) {
-      const varTypeStr = inspect(varType);
       onError(
         createGraphQLError(
-          `Variable "$${varName}" of non-null type "${varTypeStr}" must not be null.`,
+          `Variable "$${varName}" of non-null type "${varType}" must not be null.`,
           {
             nodes: varDefNode,
           },

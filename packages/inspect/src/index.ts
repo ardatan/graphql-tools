@@ -2,20 +2,45 @@
 // https://github.com/graphql/graphql-js/blob/main/src/jsutils/inspect.ts
 const MAX_RECURSIVE_DEPTH = 3;
 
+const nodeInspectModuleName = 'node:util';
+let nodeInspect: typeof import('util').inspect;
+let nodeInspectChecked = false;
+
+function checkNodeInspect() {
+  if (!nodeInspectChecked) {
+    nodeInspectChecked = true;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      nodeInspect = require(nodeInspectModuleName).inspect;
+    } catch {
+      
+    }
+  }
+  
+}
+
 /**
  * Used to print values in error messages.
  */
 export function inspect(value: unknown): string {
+  checkNodeInspect();
+  if (nodeInspect) {
+    return nodeInspect(value, { depth: MAX_RECURSIVE_DEPTH, colors: false, compact: true });
+  }
   return formatValue(value, []);
 }
 
 function formatValue(value: unknown, seenValues: ReadonlyArray<unknown>): string {
   switch (typeof value) {
-    case 'string':
+    case 'string': {
       return JSON.stringify(value);
+    }
     case 'function':
       return value.name ? `[function ${value.name}]` : '[function]';
     case 'object':
+      if (value != null && Symbol.for('nodejs.util.inspect.custom') in value) {
+        return value[Symbol.for('nodejs.util.inspect.custom')]();
+      }
       return formatObjectValue(value, seenValues);
     default:
       return String(value);
@@ -103,7 +128,7 @@ function formatArray(array: ReadonlyArray<unknown>, seenValues: ReadonlyArray<un
     items.push(formatValue(array[i], seenValues));
   }
 
-  return '[' + items.join(', ') + ']';
+  return '[ ' + items.join(', ') + ' ]';
 }
 
 function getObjectTag(object: object): string {

@@ -452,7 +452,7 @@ describe('Subscription Initialization Phase', () => {
     const expectedResult = {
       errors: [
         {
-          message: 'Subscription field must return Async Iterable. Received: "test".',
+          message: `Subscription field must return Async Iterable. Received: 'test'.`,
           locations: [{ line: 1, column: 16 }],
           path: ['foo'],
         },
@@ -532,7 +532,7 @@ describe('Subscription Initialization Phase', () => {
       errors: [
         {
           message:
-            'Variable "$arg" got invalid value "meow"; Int cannot represent non-integer value: "meow"',
+            'Variable "$arg" got invalid value \'meow\'; Int cannot represent non-integer value: "meow"',
           locations: [{ line: 2, column: 21 }],
         },
       ],

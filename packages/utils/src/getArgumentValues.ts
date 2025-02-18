@@ -1,4 +1,3 @@
-import { inspect } from 'cross-inspect';
 import {
   ArgumentNode,
   DirectiveNode,
@@ -45,7 +44,7 @@ export function getArgumentValues(
         coercedValues[name] = defaultValue;
       } else if (isNonNullType(argType)) {
         throw createGraphQLError(
-          `Argument "${name}" of required type "${inspect(argType)}" ` + 'was not provided.',
+          `Argument "${name}" of required type "${argType}" ` + 'was not provided.',
           {
             nodes: [node],
           },
@@ -64,7 +63,7 @@ export function getArgumentValues(
           coercedValues[name] = defaultValue;
         } else if (isNonNullType(argType)) {
           throw createGraphQLError(
-            `Argument "${name}" of required type "${inspect(argType)}" ` +
+            `Argument "${name}" of required type "${argType}" ` +
               `was provided the variable "$${variableName}" which was not provided a runtime value.`,
             {
               nodes: [valueNode],
@@ -78,7 +77,7 @@ export function getArgumentValues(
 
     if (isNull && isNonNullType(argType)) {
       throw createGraphQLError(
-        `Argument "${name}" of non-null type "${inspect(argType)}" ` + 'must not be null.',
+        `Argument "${name}" of non-null type "${argType}" ` + 'must not be null.',
         {
           nodes: [valueNode],
         },
