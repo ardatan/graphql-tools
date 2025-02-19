@@ -1275,10 +1275,10 @@
     "@envelop/types" "^5.1.0"
     tslib "^2.5.0"
 
-"@envelop/live-query@7.0.0":
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/@envelop/live-query/-/live-query-7.0.0.tgz#10df5e9bdee0115ef2c2fb588fcd0e8184a19ec5"
-  integrity sha512-rLnSN1B+5zcy3FsWE+16/CMiqjD/LXXcRUXJ0RaXRjzHClpQxgSzrAixNeOmx1vXLff4AgkjOZANJl39rD4dwQ==
+"@envelop/live-query@8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@envelop/live-query/-/live-query-8.0.0.tgz#22df0b0a8357213ac198eea1871eeb6d5652fa9d"
+  integrity sha512-pqeD1jgPdja0ymEUXnzNMcdSrZmL+32WuVG/KDGxjK5JrRj5ew8xGV+ullCAHNqboPfB9ti3xmJphh1znH0cTw==
   dependencies:
     "@graphql-tools/utils" "^10.0.0"
     "@n1ru4l/graphql-live-query" "^0.10.0"
