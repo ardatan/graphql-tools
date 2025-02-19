@@ -1,5 +1,13 @@
 # @graphql-tools/executor
 
+## 1.4.0
+
+### Minor Changes
+
+- [#6868](https://github.com/ardatan/graphql-tools/pull/6868)
+  [`b53941c`](https://github.com/ardatan/graphql-tools/commit/b53941cb16065dec2e721ebbad3247eea9dcfce4)
+  Thanks [@ardatan](https://github.com/ardatan)! - Use `extensions.code` to specify errors
+
 ## 1.3.14
 
 ### Patch Changes
