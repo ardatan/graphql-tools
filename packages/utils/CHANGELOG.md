@@ -1,5 +1,12 @@
 # @graphql-tools/utils
 
+## 10.8.2
+
+### Patch Changes
+
+- [`3547bba`](https://github.com/ardatan/graphql-tools/commit/3547bbadd3ad4fa01a950fd685345f7c9c934e2f)
+  Thanks [@ardatan](https://github.com/ardatan)! - Relax `extensions` type
+
 ## 10.8.1
 
 ### Patch Changes
