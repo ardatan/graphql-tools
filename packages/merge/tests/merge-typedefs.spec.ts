@@ -1704,17 +1704,37 @@ describe('Merge TypeDefs', () => {
     });
     expect(reformulatedGraphQL).toBeSimilarString(schemaWithDescription);
   });
+
   it('merges the directives with the same name and same arguments', () => {
-    const directive = parse(/* GraphQL */ `
-      directive @link(
-        url: String!
-        as: String
-        import: [link__Import]
-        for: link__Purpose
-      ) on SCHEMA
+    const schema1 = parse(/* GraphQL */ `
+      extend schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.3"
+          import: ["@composeDirective", "@external", "@foo"]
+        )
     `);
-    const typeDefs = [directive, directive];
+
+    const schema2 = parse(/* GraphQL */ `
+      extend schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.3"
+          import: ["@composeDirective", "@external"]
+        )
+        @link(url: "file://foo.org/trackable/v2.3", import: ["@trackable"])
+    `);
+    const typeDefs = [schema1, schema2];
     const merged = mergeTypeDefs(typeDefs);
-    expect(print(merged)).toBeSimilarString(print(directive));
+    const prettyOutput = print(merged);
+    const prettyExpected = print(
+      parse(/* GraphQL */ `
+        extend schema
+          @link(
+            url: "https://specs.apollo.dev/federation/v2.3"
+            import: ["@composeDirective", "@external", "@foo"]
+          )
+          @link(url: "file://foo.org/trackable/v2.3", import: ["@trackable"]) # unique to schema 2
+      `),
+    );
+    expect(prettyOutput).toBeSimilarString(prettyExpected);
   });
 });
