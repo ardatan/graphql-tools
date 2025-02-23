@@ -1267,7 +1267,7 @@
   dependencies:
     tslib "^2.4.0"
 
-"@envelop/core@5.1.0", "@envelop/core@^5.0.2":
+"@envelop/core@5.1.0", "@envelop/core@^5.0.2", "@envelop/core@^5.1.0":
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/@envelop/core/-/core-5.1.0.tgz#36ba35fd6663d291c81534ac4ec6ca120dc6eb8f"
   integrity sha512-tH5bntVdGaV9ZKFI0a2U4bn6HgtkBscCPdvLqZRlXR2XRWKe+AAUjkYo4vQ4iZTAzBaKJlRe/hVWuad/vcftPw==
@@ -1570,12 +1570,20 @@
     "@envelop/core" "^5.0.2"
     "@graphql-tools/utils" "^10.8.1"
 
-"@graphql-tools/executor-graphql-ws@^2.0.1":
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-graphql-ws/-/executor-graphql-ws-2.0.2.tgz#53483431208f8fb0fba866673dd2b6f733f2e79d"
-  integrity sha512-P5Z8K9h4H/eNMgMMZ9gQmRDYCb2yMERc+Eaag3EJ0ifeBXZS54uhAFB3All/YzY6zy0B8BUzjHb+w+/Zan6XOg==
+"@graphql-tools/executor-common@^0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-common/-/executor-common-0.0.3.tgz#f8a25a7d8f3f9cb21935817bc99f2bf84e6b870b"
+  integrity sha512-DKp6Ut4WXVB6FJIey2ajacQO1yTv4sbLtvTRxdytCunFFWFSF3NNtfGWoULE6pNBAVYUY4a981u+X0A70mK1ew==
   dependencies:
-    "@graphql-tools/executor-common" "^0.0.2"
+    "@envelop/core" "^5.1.0"
+    "@graphql-tools/utils" "^10.8.1"
+
+"@graphql-tools/executor-graphql-ws@^2.0.1":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-graphql-ws/-/executor-graphql-ws-2.0.3.tgz#894cafea1ad622932d6d27476f59c0a6b6320e5a"
+  integrity sha512-IIhENlCZ/5MdpoRSOM30z4hlBT4uOT1J2n6VI67/N1PI2zjxu7RWXlG2ZvmHl83XlVHu3yce5vE02RpS7Y+c4g==
+  dependencies:
+    "@graphql-tools/executor-common" "^0.0.3"
     "@graphql-tools/utils" "^10.8.1"
     "@whatwg-node/disposablestack" "^0.0.5"
     graphql-ws "^6.0.3"
