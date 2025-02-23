@@ -1562,14 +1562,6 @@
     dset "^3.1.2"
     tslib "^2.8.1"
 
-"@graphql-tools/executor-common@^0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-common/-/executor-common-0.0.2.tgz#8991744048973d4f574cbfd434d084f80e9191c3"
-  integrity sha512-FD3QYYzypurGESKJ9vjKXmsmC3UuZEghHcADSGGW8NcZB66vNN557zdJ3+lwVSdYuIjiyXhyLVp1mn59w2eMQQ==
-  dependencies:
-    "@envelop/core" "^5.0.2"
-    "@graphql-tools/utils" "^10.8.1"
-
 "@graphql-tools/executor-common@^0.0.3":
   version "0.0.3"
   resolved "https://registry.yarnpkg.com/@graphql-tools/executor-common/-/executor-common-0.0.3.tgz#f8a25a7d8f3f9cb21935817bc99f2bf84e6b870b"
@@ -1592,15 +1584,15 @@
     ws "^8.17.1"
 
 "@graphql-tools/executor-http@^1.1.9":
-  version "1.2.7"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-http/-/executor-http-1.2.7.tgz#8658f054abd850e2e5367c139f5569ff42933b76"
-  integrity sha512-2zPcin33Ea3GlU2p6enn2ByGh1+nfivbI2+TJLROUByjfseTH6IuAiBK0R7p0ajQevysYQw2Gh+749i4RFA3WA==
+  version "1.2.8"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-http/-/executor-http-1.2.8.tgz#e00784960224c7b5262775e5d4fd137a15eb25e7"
+  integrity sha512-hrlNqBm7M13HEVouNeJ8D9aPNMtoq8YlbiDdkQYq4LbNOTMpuFB13fRR9+6158l3VHKSHm9pRXDWFwfVZ3r1Xg==
   dependencies:
-    "@graphql-tools/executor-common" "^0.0.2"
+    "@graphql-tools/executor-common" "^0.0.3"
     "@graphql-tools/utils" "^10.8.1"
     "@repeaterjs/repeater" "^3.0.4"
     "@whatwg-node/disposablestack" "^0.0.5"
-    "@whatwg-node/fetch" "^0.10.1"
+    "@whatwg-node/fetch" "^0.10.4"
     extract-files "^11.0.0"
     meros "^1.2.1"
     tslib "^2.8.1"
@@ -3759,7 +3751,7 @@
   dependencies:
     tslib "^2.6.3"
 
-"@whatwg-node/fetch@^0.10.0", "@whatwg-node/fetch@^0.10.1":
+"@whatwg-node/fetch@^0.10.0", "@whatwg-node/fetch@^0.10.1", "@whatwg-node/fetch@^0.10.4":
   version "0.10.4"
   resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.10.4.tgz#c661a63e658706688357852bf76c2b1c93cdf844"
   integrity sha512-rCycAF+bNJFuyY2w9JdMOaIc/VIwnBFG+skXfKaF/I9u91LpQD7qMrI6ZiKByIiQFttwsAUDLtFGBHeZ6UHC3Q==
