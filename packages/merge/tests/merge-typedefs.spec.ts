@@ -1749,6 +1749,40 @@ describe('Merge TypeDefs', () => {
     expect(reformulatedGraphQL).toBeSimilarString(schemaWithDescription);
   });
 
+  it('merges the directives with the same name and same arguments (@link)', () => {
+    const schema1 = parse(/* GraphQL */ `
+      extend schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.3"
+          import: ["@composeDirective", "@external", "@foo"]
+        )
+    `);
+
+    const schema2 = parse(/* GraphQL */ `
+      extend schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.3"
+          import: ["@composeDirective", "@external"]
+        )
+        @link(url: "file://foo.org/trackable/v2.3", import: ["@trackable"])
+    `);
+    const typeDefs = [schema1, schema2];
+    const merged = mergeTypeDefs(typeDefs);
+    const prettyOutput = print(merged);
+    const prettyExpected = print(
+      parse(/* GraphQL */ `
+        extend schema
+          @link(
+            url: "https://specs.apollo.dev/federation/v2.3"
+            import: ["@composeDirective", "@external", "@foo"]
+          )
+          @link(url: "file://foo.org/trackable/v2.3", import: ["@trackable"]) # unique to schema 2
+      `),
+    );
+    expect(prettyOutput).toBeSimilarString(prettyExpected);
+  });
+
+
   it('merges the directives with the same name and same arguments', () => {
     const directive = parse(/* GraphQL */ `
       directive @link(
@@ -1762,7 +1796,6 @@ describe('Merge TypeDefs', () => {
     const merged = mergeTypeDefs(typeDefs);
     expect(print(merged)).toBeSimilarString(print(directive));
   });
-
   it('does not merge repeatable Federation directives without the same arguments', () => {
     const ast = parse(/* GraphQL */ `
       extend schema
