@@ -18,12 +18,13 @@ const getLinkDirectiveURL = (directive: DirectiveNode): string | undefined => {
 };
 
 /**
- * Directives are considered distinct if they have different names, or, if they
- * are link directives with different URLs.
+ * Directives by default do not carry distinctual metadata, thus are not
+ * considered distinct by default by this function. However @link directives are
+ * only considered distinct if they have different URLs.
  */
 const isDirectiveMetadataDistinct = (directiveA: DirectiveNode, directiveB: DirectiveNode) => {
   const isLinkPair = isLinkDirective(directiveA) && isLinkDirective(directiveB);
-  return isLinkPair ? getLinkDirectiveURL(directiveA) !== getLinkDirectiveURL(directiveB) : true;
+  return isLinkPair ? getLinkDirectiveURL(directiveA) !== getLinkDirectiveURL(directiveB) : false;
 };
 
 const isMatchingDirective = (a: DirectiveNode, b: DirectiveNode) => a.name.value === b.name.value;
