@@ -1,5 +1,6 @@
 import '../../../testing/to-be-similar-gql-doc';
 import http from 'http';
+import { AddressInfo } from 'net';
 import {
   getIntrospectionQuery,
   getOperationAST,
@@ -473,19 +474,21 @@ describe('Schema URL Loader', () => {
     subscriptionServer.close();
   });
   it('should handle subscriptions - graphql-sse', async () => {
-    const testUrl = 'http://localhost:8081/graphql';
+    httpServer = http.createServer(
+      createHandler({
+        schema: testSchema,
+      }),
+    );
+    await new Promise<void>(resolve => httpServer.listen(0, resolve));
+
+    const port = (httpServer.address() as AddressInfo).port;
+
+    const testUrl = `http://localhost:${port}/graphql`;
     const customFetch: AsyncFetchFn = async (url, options) => {
       if (String(options?.body).includes('IntrospectionQuery')) {
-        return new Response(
-          JSON.stringify({
-            data: introspectionFromSchema(testSchema),
-          }),
-          {
-            headers: {
-              'content-type': 'application/json',
-            },
-          },
-        );
+        return Response.json({
+          data: introspectionFromSchema(testSchema),
+        });
       }
       return defaultAsyncFetch(url, options);
     };
@@ -494,14 +497,6 @@ describe('Schema URL Loader', () => {
       customFetch,
       subscriptionsProtocol: SubscriptionProtocol.GRAPHQL_SSE,
     });
-
-    httpServer = http.createServer(
-      createHandler({
-        schema: testSchema,
-      }),
-    );
-    await new Promise<void>(resolve => httpServer.listen(8081, resolve));
-
     assertNonMaybe(schema);
     const asyncIterable = (await subscribe({
       schema,

@@ -110,6 +110,7 @@ export const testResolvers = {
     testMessage: {
       subscribe: async function* () {
         for (let i = 0; i < 3; i++) {
+          await sleep(100);
           yield { number: i };
         }
       },
