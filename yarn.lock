@@ -1641,10 +1641,10 @@
   dependencies:
     tslib "^2.8.1"
 
-"@graphql-yoga/plugin-defer-stream@3.12.0":
-  version "3.12.0"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-3.12.0.tgz#b530743da59259cc22053246537e993b13fa2989"
-  integrity sha512-5oOezaZliCQ21uI3UmhwAMJs3fJFmbimLL64w7BhnwN1Gd0RgyzHv3GVJ6MeOiBUb9Jrx0KLoz9CGFfL3TFlIA==
+"@graphql-yoga/plugin-defer-stream@3.12.1":
+  version "3.12.1"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-3.12.1.tgz#31db3308f96345443804d4e338bf600a10f46a34"
+  integrity sha512-MaAo98aP/5Rgec9DgqOFKxUccUFfOXicYDKso3u+DS6YGu55HN7tOG88BcRXilJmlPzZr6zgO9IRaFUmK6PM1g==
   dependencies:
     "@graphql-tools/utils" "^10.6.1"
 
@@ -3751,7 +3751,7 @@
   dependencies:
     tslib "^2.6.3"
 
-"@whatwg-node/fetch@^0.10.0", "@whatwg-node/fetch@^0.10.1", "@whatwg-node/fetch@^0.10.4":
+"@whatwg-node/fetch@^0.10.0", "@whatwg-node/fetch@^0.10.4", "@whatwg-node/fetch@^0.10.5":
   version "0.10.5"
   resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.10.5.tgz#8537e50d32bac0f2e9cecff206588ca41d836df5"
   integrity sha512-+yFJU3hmXPAHJULwx0VzCIsvr/H0lvbPvbOH3areOH3NAuCxCwaJsQ8w6/MwwMcvEWIynSsmAxoyaH04KeosPg==
@@ -3768,13 +3768,13 @@
     busboy "^1.6.0"
     tslib "^2.6.3"
 
-"@whatwg-node/server@^0.9.64":
-  version "0.9.68"
-  resolved "https://registry.yarnpkg.com/@whatwg-node/server/-/server-0.9.68.tgz#44910b58587d0a7c2a09075258335a3b5edc4001"
-  integrity sha512-0Ibl8Q6pUrO36g5xllshsccYVzsaybZqyQ+vAqewWtIeHCmkB0dpyzmux/xcOO5C+mLPy12g4yaNHsBRTJ0YOw==
+"@whatwg-node/server@^0.9.69":
+  version "0.9.69"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/server/-/server-0.9.69.tgz#ed1755ce8e12b4711c1bbae0dc46341dd1e3876c"
+  integrity sha512-zXqJrC7gM4fdxD/W2v7H+x5/6jveHlso5sfNs3dLpgGnXLbto5hH4i+J009U3YBLw4Y3Pximkv4Y7UYV49UWqg==
   dependencies:
     "@whatwg-node/disposablestack" "^0.0.5"
-    "@whatwg-node/fetch" "^0.10.4"
+    "@whatwg-node/fetch" "^0.10.5"
     tslib "^2.6.3"
 
 "@wry/caches@^1.0.0":
@@ -4561,10 +4561,10 @@ chrome-trace-event@^1.0.2:
   resolved "https://registry.yarnpkg.com/chrome-trace-event/-/chrome-trace-event-1.0.4.tgz#05bffd7ff928465093314708c93bdfa9bd1f0f5b"
   integrity sha512-rNjApaLzuwaOTjCiT8lSDdGN1APCiqkChLMJxJPWLunPAt5fy8xgU9/jNOchV84wfIxrA0lRQB7oCT8jrn/wrQ==
 
-chromium-bidi@1.3.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/chromium-bidi/-/chromium-bidi-1.3.0.tgz#59051cae1532444f2642e612f917100ce720a90f"
-  integrity sha512-G3x1bkST13kmbL7+dT/oRkNH/7C4UqG+0YQpmySrzXspyOhYgDNc6lhSGpj3cuexvH25WTENhTYq2Tt9JRXtbw==
+chromium-bidi@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/chromium-bidi/-/chromium-bidi-2.0.0.tgz#f2f59a0c89cd1b2965e89e36b82c9e18e847deed"
+  integrity sha512-8VmyVj0ewSY4pstZV0Y3rCUUwpomam8uWgHZf1XavRxJEP4vU9/dcpNuoyB+u4AQxPo96CASXz5CHPvdH+dSeQ==
   dependencies:
     mitt "^3.0.1"
     zod "^3.24.1"
@@ -6703,10 +6703,10 @@ graphql-ws@^6.0.3:
   resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-6.0.4.tgz#f0376170965f9535576b2d3e897db38b463a31f0"
   integrity sha512-8b4OZtNOvv8+NZva8HXamrc0y1jluYC0+13gdh7198FKjVzXyTvVc95DCwGzaKEfn3YuWZxUqjJlHe3qKM/F2g==
 
-graphql-yoga@5.12.0, graphql-yoga@^5.0.0:
-  version "5.12.0"
-  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-5.12.0.tgz#880d59db0216f4fbeaf71b310ca921f7ddc4e8d2"
-  integrity sha512-JKsGnXlrqoF2wdnE99EvETqBbvkPa6aa6T+PqMbegnTFpYrVNuhCXpzGgSEFroqR1VGHMlFrsmHYdHPZb/TbAA==
+graphql-yoga@5.12.1, graphql-yoga@^5.0.0:
+  version "5.12.1"
+  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-5.12.1.tgz#9e34bb7f46334262c53c718e2a96a7878f06d792"
+  integrity sha512-5XI+SNkwJQoACoSWDKzBjHpbd6V32tZZ68lpJZ/7uvAq5kzTLPmsi1V7trOA/k1GDf+XYaeUnpl8dqWDtohdeg==
   dependencies:
     "@envelop/core" "^5.0.2"
     "@graphql-tools/executor" "^1.4.0"
@@ -6714,8 +6714,8 @@ graphql-yoga@5.12.0, graphql-yoga@^5.0.0:
     "@graphql-tools/utils" "^10.6.2"
     "@graphql-yoga/logger" "^2.0.1"
     "@graphql-yoga/subscription" "^5.0.3"
-    "@whatwg-node/fetch" "^0.10.1"
-    "@whatwg-node/server" "^0.9.64"
+    "@whatwg-node/fetch" "^0.10.5"
+    "@whatwg-node/server" "^0.9.69"
     dset "^3.1.4"
     lru-cache "^10.0.0"
     tslib "^2.8.1"
@@ -10135,28 +10135,28 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.1.tgz#027422e2faec0b25e1549c3e1bd8309b9133b6e5"
   integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
 
-puppeteer-core@24.2.1:
-  version "24.2.1"
-  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-24.2.1.tgz#a7a3a82902452094d746e483404767f0e16fed98"
-  integrity sha512-bCypUh3WXzETafv1TCFAjIUnI8BiQ/d+XvEfEXDLcIMm9CAvROqnBmbt79yBjwasoDZsgfXnUmIJU7Y27AalVQ==
+puppeteer-core@24.3.0:
+  version "24.3.0"
+  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-24.3.0.tgz#7fe2e8b69923825640d1452b1083f90d2f21619e"
+  integrity sha512-x8kQRP/xxtiFav6wWuLzrctO0HWRpSQy+JjaHbqIl+d5U2lmRh2pY9vh5AzDFN0EtOXW2pzngi9RrryY1vZGig==
   dependencies:
     "@puppeteer/browsers" "2.7.1"
-    chromium-bidi "1.3.0"
+    chromium-bidi "2.0.0"
     debug "^4.4.0"
     devtools-protocol "0.0.1402036"
     typed-query-selector "^2.12.0"
-    ws "^8.18.0"
+    ws "^8.18.1"
 
-puppeteer@24.2.1:
-  version "24.2.1"
-  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-24.2.1.tgz#e2e0370d84b788a12dcfc1cff6a970ce37ecc2e8"
-  integrity sha512-Euno62ou0cd0dTkOYTNioSOsFF4VpSnz4ldD38hi9ov9xCNtr8DbhmoJRUx+V9OuPgecueZbKOohRrnrhkbg3Q==
+puppeteer@24.3.0:
+  version "24.3.0"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-24.3.0.tgz#27b58257053df2cec590ec0bc4874017a90157e6"
+  integrity sha512-wYEx+NnEM1T6ncHB+IsTovUgx+JlZ0pv0sRGTb8IzoTeOILvyUcdU2h34bYEQ1iG5maz1VQA5eI4kzIyAVh90A==
   dependencies:
     "@puppeteer/browsers" "2.7.1"
-    chromium-bidi "1.3.0"
+    chromium-bidi "2.0.0"
     cosmiconfig "^9.0.0"
     devtools-protocol "0.0.1402036"
-    puppeteer-core "24.2.1"
+    puppeteer-core "24.3.0"
     typed-query-selector "^2.12.0"
 
 pure-rand@^6.0.0:
@@ -11372,10 +11372,10 @@ svelte2tsx@0.7.34:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@5.20.2:
-  version "5.20.2"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.20.2.tgz#b08c003e982a32c588dcbbf24c1ac8606c0654dd"
-  integrity sha512-aYXJreNUiyTob0QOzRZeBXZMGeFZDch6SrSRV8QTncZb6zj0O3BEdUzPpojuHQ1pTvk+KX7I6rZCXPUf8pTPxA==
+svelte@5.20.4:
+  version "5.20.4"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.20.4.tgz#defab12c01a5c6502d04f2028a81923269860e0d"
+  integrity sha512-2Mo/AfObaw9zuD0u1JJ7sOVzRCGcpETEyDkLbtkcctWpCMCIyT0iz83xD8JT29SR7O4SgswuPRIDYReYF/607A==
   dependencies:
     "@ampproject/remapping" "^2.3.0"
     "@jridgewell/sourcemap-codec" "^1.5.0"
@@ -12339,7 +12339,7 @@ write-file-atomic@^4.0.2:
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.5.10.tgz#58b5c20dc281633f6c19113f39b349bd8bd558d9"
   integrity sha512-+dbF1tHwZpXcbOJdVOkzLDxZP1ailvSxM6ZweXTegylPny803bFhA+vqBYw4s31NSAk4S2Qz+AKXK9a4wkdjcQ==
 
-ws@^8.17.1, ws@^8.18.0:
+ws@^8.17.1, ws@^8.18.1:
   version "8.18.1"
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.18.1.tgz#ea131d3784e1dfdff91adb0a4a116b127515e3cb"
   integrity sha512-RKW2aJZMXeMxVpnZ6bck+RswznaxmzdULiBr6KY7XkTnW8uvt0iT9H5DkHUChXrc+uurzwa0rVI16n/Xzjdz1w==
