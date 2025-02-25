@@ -1,5 +1,30 @@
 # @graphql-tools/executor
 
+## 1.4.2
+
+### Patch Changes
+
+- [#6971](https://github.com/ardatan/graphql-tools/pull/6971)
+  [`4a2eb14`](https://github.com/ardatan/graphql-tools/commit/4a2eb14d0e3394d3dfbb3d83856500c5fb548285)
+  Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+
+  - Added dependency
+    [`@whatwg-node/promise-helpers@^1.0.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/promise-helpers/v/1.0.0)
+    (to `dependencies`)
+  - Removed dependency
+    [`value-or-promise@^1.0.12` ↗︎](https://www.npmjs.com/package/value-or-promise/v/1.0.12) (from
+    `dependencies`)
+
+- [#6972](https://github.com/ardatan/graphql-tools/pull/6972)
+  [`68effb5`](https://github.com/ardatan/graphql-tools/commit/68effb5793299d25dde1d8644092d36bc8d391ef)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@whatwg-node/disposablestack@^0.0.6` ↗︎](https://www.npmjs.com/package/@whatwg-node/disposablestack/v/0.0.6)
+    (from `^0.0.5`, in `dependencies`)
+- Updated dependencies
+  [[`4a2eb14`](https://github.com/ardatan/graphql-tools/commit/4a2eb14d0e3394d3dfbb3d83856500c5fb548285)]:
+  - @graphql-tools/utils@10.8.3
+
 ## 1.4.1
 
 ### Patch Changes

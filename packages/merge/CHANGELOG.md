@@ -1,5 +1,13 @@
 # @graphql-tools/merge
 
+## 9.0.21
+
+### Patch Changes
+
+- Updated dependencies
+  [[`4a2eb14`](https://github.com/ardatan/graphql-tools/commit/4a2eb14d0e3394d3dfbb3d83856500c5fb548285)]:
+  - @graphql-tools/utils@10.8.3
+
 ## 9.0.20
 
 ### Patch Changes
