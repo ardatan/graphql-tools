@@ -18,13 +18,13 @@ import {
   getOperationASTFromRequest,
   isUrl,
   Loader,
-  mapMaybePromise,
   MaybePromise,
   parseGraphQLSDL,
   Source,
   SyncExecutor,
 } from '@graphql-tools/utils';
 import { schemaFromExecutor, wrapSchema } from '@graphql-tools/wrap';
+import { handleMaybePromise } from '@whatwg-node/promise-helpers';
 import { defaultAsyncFetch } from './defaultAsyncFetch.js';
 import { defaultSyncFetch } from './defaultSyncFetch.js';
 
@@ -198,8 +198,9 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     if (customFetch) {
       if (typeof customFetch === 'string') {
         const [moduleName, fetchFnName] = customFetch.split('#');
-        return mapMaybePromise(importFn(moduleName), module =>
-          fetchFnName ? (module as Record<string, any>)[fetchFnName] : module,
+        return handleMaybePromise(
+          () => importFn(moduleName),
+          module => (fetchFnName ? (module as Record<string, any>)[fetchFnName] : module),
         );
       } else if (typeof customFetch === 'function') {
         return customFetch;
@@ -235,8 +236,9 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
   ): typeof WebSocket | PromiseLike<typeof WebSocket> {
     if (typeof options?.webSocketImpl === 'string') {
       const [moduleName, webSocketImplName] = options.webSocketImpl.split('#');
-      return mapMaybePromise(importFn(moduleName), importedModule =>
-        webSocketImplName ? importedModule[webSocketImplName] : importedModule,
+      return handleMaybePromise(
+        () => importFn(moduleName),
+        importedModule => (webSocketImplName ? importedModule[webSocketImplName] : importedModule),
       );
     } else {
       const websocketImpl = options?.webSocketImpl || WebSocket;
@@ -274,18 +276,25 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       }
       return this.buildHTTPExecutor(subscriptionsEndpoint, fetch as AsyncFetchFn, options);
     } else {
-      const executor$ = mapMaybePromise(this.getWebSocketImpl(importFn, options), webSocketImpl => {
-        if (options?.subscriptionsProtocol === SubscriptionProtocol.LEGACY_WS) {
-          return this.buildWSLegacyExecutor(subscriptionsEndpoint, webSocketImpl, options);
-        } else {
-          return this.buildWSExecutor(
-            subscriptionsEndpoint,
-            webSocketImpl,
-            options?.connectionParams,
-          );
-        }
-      });
-      return request => mapMaybePromise(executor$, executor => executor(request));
+      return request =>
+        handleMaybePromise(
+          () =>
+            handleMaybePromise(
+              () => this.getWebSocketImpl(importFn, options),
+              webSocketImpl => {
+                if (options?.subscriptionsProtocol === SubscriptionProtocol.LEGACY_WS) {
+                  return this.buildWSLegacyExecutor(subscriptionsEndpoint, webSocketImpl, options);
+                } else {
+                  return this.buildWSExecutor(
+                    subscriptionsEndpoint,
+                    webSocketImpl,
+                    options?.connectionParams,
+                  );
+                }
+              },
+            ),
+          executor => executor(request),
+        );
     }
   }
 
@@ -306,20 +315,28 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     importFn: AsyncImportFn | SyncImportFn,
     options?: Omit<LoadFromUrlOptions, 'endpoint'>,
   ): Executor {
-    const fetch$ = this.getFetch(options?.customFetch, importFn);
+    let fetch$: MaybePromise<ReturnType<typeof this.getFetch>> | undefined;
+    const getHttpExecutor = () => {
+      return handleMaybePromise(
+        () => (fetch$ ||= this.getFetch(options?.customFetch, importFn)),
+        fetch => this.buildHTTPExecutor(endpoint, fetch, options),
+      );
+    };
+    const getSetHttpExecutor$ = () => (httpExecutor$ ||= getHttpExecutor());
 
-    const httpExecutor$ = mapMaybePromise(fetch$, fetch =>
-      this.buildHTTPExecutor(endpoint, fetch, options),
-    );
+    let httpExecutor$: ReturnType<typeof getHttpExecutor> | undefined;
 
     if (
       options?.subscriptionsEndpoint != null ||
       options?.subscriptionsProtocol !== SubscriptionProtocol.SSE
     ) {
-      const subscriptionExecutor$ = mapMaybePromise(fetch$, fetch => {
-        const subscriptionsEndpoint = options?.subscriptionsEndpoint || endpoint;
-        return this.buildSubscriptionExecutor(subscriptionsEndpoint, fetch, importFn, options);
-      });
+      const subscriptionExecutor$ = handleMaybePromise(
+        () => (fetch$ ||= this.getFetch(options?.customFetch, importFn)),
+        fetch => {
+          const subscriptionsEndpoint = options?.subscriptionsEndpoint || endpoint;
+          return this.buildSubscriptionExecutor(subscriptionsEndpoint, fetch, importFn, options);
+        },
+      );
 
       function getExecutorByRequest(request: ExecutionRequest<any>): MaybePromise<Executor> {
         request.operationType =
@@ -333,14 +350,17 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         if (request.operationType === 'subscription') {
           return subscriptionExecutor$;
         } else {
-          return httpExecutor$;
+          return getSetHttpExecutor$();
         }
       }
 
       return request =>
-        mapMaybePromise(getExecutorByRequest(request), executor => executor(request));
+        handleMaybePromise(
+          () => getExecutorByRequest(request),
+          executor => executor(request),
+        );
     } else {
-      return request => mapMaybePromise(httpExecutor$, executor => executor(request));
+      return request => handleMaybePromise(getSetHttpExecutor$, executor => executor(request));
     }
   }
 
@@ -359,14 +379,16 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
   handleSDL(pointer: string, fetch: AsyncFetchFn, options: LoadFromUrlOptions): Promise<Source>;
   handleSDL(pointer: string, fetch: FetchFn, options: LoadFromUrlOptions): MaybePromise<Source> {
     const defaultMethod = this.getDefaultMethodFromOptions(options?.method, 'GET');
-    return mapMaybePromise(
-      fetch(pointer, {
-        method: defaultMethod,
-        headers: typeof options?.headers === 'function' ? options.headers() : options?.headers,
-      }),
+    return handleMaybePromise(
+      () =>
+        fetch(pointer, {
+          method: defaultMethod,
+          headers: typeof options?.headers === 'function' ? options.headers() : options?.headers,
+        }),
       res =>
-        mapMaybePromise(res.text(), schemaString =>
-          parseGraphQLSDL(pointer, schemaString, options),
+        handleMaybePromise(
+          () => res.text(),
+          schemaString => parseGraphQLSDL(pointer, schemaString, options),
         ),
     );
   }

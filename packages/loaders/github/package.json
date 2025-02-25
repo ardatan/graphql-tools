@@ -55,6 +55,7 @@
     "@graphql-tools/graphql-tag-pluck": "^8.3.15",
     "@graphql-tools/utils": "^10.8.2",
     "@whatwg-node/fetch": "^0.10.0",
+    "@whatwg-node/promise-helpers": "^1.0.0",
     "sync-fetch": "0.6.0-2",
     "tslib": "^2.4.0"
   },
