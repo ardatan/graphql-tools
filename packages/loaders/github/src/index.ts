@@ -8,13 +8,13 @@ import {
 import {
   BaseLoaderOptions,
   Loader,
-  mapMaybePromise,
   MaybePromise,
   parseGraphQLJSON,
   parseGraphQLSDL,
   Source,
 } from '@graphql-tools/utils';
 import { fetch as asyncFetch } from '@whatwg-node/fetch';
+import { handleMaybePromise } from '@whatwg-node/promise-helpers';
 
 // github:owner/name#ref:path/to/file
 function extractData(pointer: string): {
@@ -96,21 +96,23 @@ export class GithubLoader implements Loader<GithubLoaderOptions> {
       return [];
     }
     const { owner, name, ref, path } = extractData(pointer);
-    return mapMaybePromise(
-      mapMaybePromise(
-        fetchFn(
-          'https://api.github.com/graphql',
-          this.prepareRequest({ owner, ref, path, name, options }),
+    return handleMaybePromise(
+      () =>
+        handleMaybePromise(
+          () =>
+            fetchFn(
+              'https://api.github.com/graphql',
+              this.prepareRequest({ owner, ref, path, name, options }),
+            ),
+          response => {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              return response.json();
+            } else {
+              return response.text();
+            }
+          },
         ),
-        response => {
-          const contentType = response.headers.get('content-type');
-          if (contentType && contentType.includes('application/json')) {
-            return response.json();
-          } else {
-            return response.text();
-          }
-        },
-      ),
       response => {
         const status = response.status;
         return this.handleResponse({ pointer, path, options, response, status });
