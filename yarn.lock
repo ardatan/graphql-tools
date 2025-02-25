@@ -3779,9 +3779,9 @@
     tslib "^2.6.3"
 
 "@whatwg-node/promise-helpers@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@whatwg-node/promise-helpers/-/promise-helpers-1.0.0.tgz#f50a2f64f88db491e07899e6748c9497e10a0040"
-  integrity sha512-6cJoRLP6/0Bf4k2i36R1f9lisId6fIYEOQ5CUHSPRCmiJfo+HGAm8P/5Qoy28lvYngw3SKBLJ5YqtGWjUaMA6g==
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/promise-helpers/-/promise-helpers-1.2.1.tgz#835006411e6f656159bc1ecc7e2475721feb5307"
+  integrity sha512-+faGtJlS4U8NSaSzRVN37xAprPdhoobYzUSUo4DgH8APtfFyizmNxp0ckwKcURoL8cy2B+bKxOWU/VIH2nFeLg==
   dependencies:
     tslib "^2.6.3"
 
