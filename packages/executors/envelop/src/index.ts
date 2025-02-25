@@ -7,7 +7,7 @@ type GraphQLSchema = any;
 export interface ExecutorPluginContext {
   schema$?: MaybePromise<GraphQLSchema>;
   schema?: GraphQLSchema;
-  schemaSetPromise$?: PromiseLike<void>;
+  schemaSetPromise$?: Promise<void>;
   skipIntrospection: boolean;
 }
 
@@ -97,7 +97,6 @@ export function useExecutor<TPluginContext extends Record<string, any>>(
         pluginCtx.schema$ = pluginCtx.schema;
       }
       ensureSchema(args.contextValue);
-      // @ts-expect-error - Typings are wrong
       return mapMaybePromise(pluginCtx.schemaSetPromise$, () => {
         setExecuteFn(executorToExecuteFn);
       });
@@ -108,7 +107,6 @@ export function useExecutor<TPluginContext extends Record<string, any>>(
         pluginCtx.schema$ = pluginCtx.schema;
       }
       ensureSchema(args.contextValue);
-      // @ts-expect-error - Typings are wrong
       return mapMaybePromise(pluginCtx.schemaSetPromise$, () => {
         setSubscribeFn(executorToExecuteFn);
       });
