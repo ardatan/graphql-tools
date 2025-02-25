@@ -1,4 +1,4 @@
-import { fakePromise } from './fakePromise.js';
+import { fakePromise, fakeRejectPromise } from '@whatwg-node/promise-helpers';
 
 export interface Observer<T> {
   next: (value: T) => void;
@@ -93,7 +93,7 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
     },
     throw(error) {
       emptyQueue();
-      return Promise.reject(error);
+      return fakeRejectPromise(error);
     },
     [Symbol.asyncIterator]() {
       return this;

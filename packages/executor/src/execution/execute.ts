@@ -28,7 +28,6 @@ import {
   TypeNameMetaFieldDef,
   versionInfo,
 } from 'graphql';
-import { ValueOrPromise } from 'value-or-promise';
 import {
   collectSubFields as _collectSubfields,
   addPath,
@@ -57,6 +56,7 @@ import {
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
+import { handleMaybePromise } from '@whatwg-node/promise-helpers';
 import { coerceError } from './coerceError.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import { invariant } from './invariant.js';
@@ -305,36 +305,33 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
   // Errors from sub-fields of a NonNull type may propagate to the top level,
   // at which point we still log the error and null the parent field, which
   // in this case is the entire response.
-  const result = new ValueOrPromise(() => executeOperation<TData, TVariables, TContext>(exeContext))
-    .then(
-      data => {
-        const initialResult = buildResponse(data, exeContext.errors);
-        if (exeContext.subsequentPayloads.size > 0) {
-          return {
-            initialResult: {
-              ...initialResult,
-              hasNext: true,
-            },
-            subsequentResults: yieldSubsequentPayloads(exeContext),
-          };
-        }
+  return handleMaybePromise(
+    () => executeOperation<TData, TVariables, TContext>(exeContext),
+    data => {
+      const initialResult = buildResponse(data, exeContext.errors);
+      if (exeContext.subsequentPayloads.size > 0) {
+        return {
+          initialResult: {
+            ...initialResult,
+            hasNext: true,
+          },
+          subsequentResults: yieldSubsequentPayloads(exeContext),
+        };
+      }
 
-        return initialResult;
-      },
-      (error: any) => {
-        exeContext.signal?.throwIfAborted();
+      return initialResult;
+    },
+    (error: any) => {
+      exeContext.signal?.throwIfAborted();
 
-        if (error.errors) {
-          exeContext.errors.push(...error.errors);
-        } else {
-          exeContext.errors.push(error);
-        }
-        return buildResponse<TData>(null, exeContext.errors);
-      },
-    )
-    .resolve()!;
-
-  return result;
+      if (error.errors) {
+        exeContext.errors.push(...error.errors);
+      } else {
+        exeContext.errors.push(error);
+      }
+      return buildResponse<TData>(null, exeContext.errors);
+    },
+  );
 }
 
 /**
@@ -575,20 +572,21 @@ function executeFieldsSerially<TData>(
       const fieldPath = addPath(path, responseName, parentType.name);
       exeContext.signal?.throwIfAborted();
 
-      return new ValueOrPromise(() =>
-        executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath),
-      ).then(result => {
-        if (result === undefined) {
+      return handleMaybePromise(
+        () => executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath),
+        result => {
+          if (result === undefined) {
+            return results;
+          }
+
+          results[responseName] = result;
+
           return results;
-        }
-
-        results[responseName] = result;
-
-        return results;
-      });
+        },
+      );
     },
     Object.create(null),
-  ).resolve();
+  );
 }
 
 /**
@@ -1570,6 +1568,12 @@ export function subscribe<TData = any, TVariables = any, TContext = any>(
   }
 
   return mapSourceToResponse(exeContext, resultOrStream);
+}
+
+export function isIncrementalResults<TData>(
+  results: any,
+): results is IncrementalExecutionResults<TData> {
+  return results?.initialResult;
 }
 
 export function flattenIncrementalResults<TData>(

@@ -150,7 +150,7 @@ describe('Abort Signal', () => {
             didInvokeFirstFn = true;
             return true;
           },
-          second() {
+          async second() {
             didInvokeSecondFn = true;
             controller.abort();
             return true;

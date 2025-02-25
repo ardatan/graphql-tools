@@ -59,8 +59,8 @@
     "@graphql-typed-document-node/core": "^3.2.0",
     "@repeaterjs/repeater": "^3.0.4",
     "@whatwg-node/disposablestack": "^0.0.6",
-    "tslib": "^2.4.0",
-    "value-or-promise": "^1.0.12"
+    "@whatwg-node/promise-helpers": "^1.0.0",
+    "tslib": "^2.4.0"
   },
   "devDependencies": {
     "cross-inspect": "1.0.1",
