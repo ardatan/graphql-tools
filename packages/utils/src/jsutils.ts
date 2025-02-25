@@ -1,4 +1,4 @@
-import { handleMaybePromise, isPromise, MaybePromise } from '@whatwg-node/promise-helpers';
+import { handleMaybePromise, isPromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 
 export function isIterableObject(value: unknown): value is Iterable<unknown> {
   return value != null && typeof value === 'object' && Symbol.iterator in value;

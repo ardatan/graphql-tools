@@ -1,7 +1,7 @@
-import { MaybePromise } from '@whatwg-node/promise-helpers';
+import type { MaybePromise } from '@whatwg-node/promise-helpers';
 import { ExecutionRequest, ExecutionResult } from './Interfaces.js';
 
-export { MaybePromise } from '@whatwg-node/promise-helpers';
+export type { MaybePromise } from '@whatwg-node/promise-helpers';
 
 export type MaybeAsyncIterable<T> = AsyncIterable<T> | T;
 
