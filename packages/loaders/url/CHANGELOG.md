@@ -1,5 +1,20 @@
 # @graphql-tools/url-loader
 
+## 8.0.28
+
+### Patch Changes
+
+- [#6971](https://github.com/ardatan/graphql-tools/pull/6971)
+  [`4a2eb14`](https://github.com/ardatan/graphql-tools/commit/4a2eb14d0e3394d3dfbb3d83856500c5fb548285)
+  Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+  - Added dependency
+    [`@whatwg-node/promise-helpers@^1.0.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/promise-helpers/v/1.0.0)
+    (to `dependencies`)
+- Updated dependencies
+  [[`4a2eb14`](https://github.com/ardatan/graphql-tools/commit/4a2eb14d0e3394d3dfbb3d83856500c5fb548285)]:
+  - @graphql-tools/utils@10.8.3
+  - @graphql-tools/executor-legacy-ws@1.1.14
+
 ## 8.0.27
 
 ### Patch Changes
