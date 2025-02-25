@@ -1267,18 +1267,19 @@
   dependencies:
     tslib "^2.4.0"
 
-"@envelop/core@5.1.0", "@envelop/core@^5.0.2", "@envelop/core@^5.1.0":
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/@envelop/core/-/core-5.1.0.tgz#36ba35fd6663d291c81534ac4ec6ca120dc6eb8f"
-  integrity sha512-tH5bntVdGaV9ZKFI0a2U4bn6HgtkBscCPdvLqZRlXR2XRWKe+AAUjkYo4vQ4iZTAzBaKJlRe/hVWuad/vcftPw==
+"@envelop/core@5.1.1", "@envelop/core@^5.0.2", "@envelop/core@^5.1.0":
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/@envelop/core/-/core-5.1.1.tgz#b41a7fb1d6c13a2c1a04d86f55d96fa57dc47776"
+  integrity sha512-6+OukzuNsm33DtLnOats3e7VnnHndqINJbp/vlIyIlSGBc/wtgQiTAijNWwHhnozHc7WmCKzTsPSrGObvkJazg==
   dependencies:
-    "@envelop/types" "^5.1.0"
+    "@envelop/types" "^5.1.1"
+    "@whatwg-node/promise-helpers" "^1.0.0"
     tslib "^2.5.0"
 
-"@envelop/live-query@8.0.0":
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/@envelop/live-query/-/live-query-8.0.0.tgz#22df0b0a8357213ac198eea1871eeb6d5652fa9d"
-  integrity sha512-pqeD1jgPdja0ymEUXnzNMcdSrZmL+32WuVG/KDGxjK5JrRj5ew8xGV+ullCAHNqboPfB9ti3xmJphh1znH0cTw==
+"@envelop/live-query@8.0.1":
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/@envelop/live-query/-/live-query-8.0.1.tgz#5c8cdb8a5a3d7aaf3238136ed3559556cacc5a55"
+  integrity sha512-puguVcm9wBQb9A7HiwbuPOBVSX7sTjQhUoxl4aY5KU0A4LEnVRVyUhA9mTnPYI2JwLgAowC6gAwstGBC9f1ylQ==
   dependencies:
     "@graphql-tools/utils" "^10.0.0"
     "@n1ru4l/graphql-live-query" "^0.10.0"
@@ -1286,11 +1287,12 @@
     "@n1ru4l/in-memory-live-query-store" "^0.10.0"
     tslib "^2.5.0"
 
-"@envelop/types@^5.1.0":
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/@envelop/types/-/types-5.1.0.tgz#bf495ab9bed499a33a3cbfea3e38f204990e41c9"
-  integrity sha512-E6axHyHK8RALJ7+GRVQ3wQ44rP9enVaRc5JiYHIkyfKWKPeHGmTz6Pe/kbtHC5fjuD2QwYCVcCfCoUlw3Xf4xw==
+"@envelop/types@^5.1.1":
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/@envelop/types/-/types-5.1.1.tgz#eff02f70a2e313ab968c277f31d2faac175a45f1"
+  integrity sha512-uJyCPQRSqxH/4q8/TTTY2fMYIK/Tgv1IhOm6aFUUxuE/EI7muJM/UI85iv9Qo1OCpaafthwRLWzufRp20FyXaA==
   dependencies:
+    "@whatwg-node/promise-helpers" "^1.0.0"
     tslib "^2.5.0"
 
 "@esbuild/aix-ppc64@0.25.0":
