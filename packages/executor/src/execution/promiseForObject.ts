@@ -1,5 +1,4 @@
-import { getAbortPromise, isPromise, MaybePromise } from '@graphql-tools/utils';
-import { handleMaybePromise } from '@whatwg-node/promise-helpers';
+import { handleMaybePromise, MaybePromise, isPromise } from '@whatwg-node/promise-helpers';
 
 type ResolvedObject<TData> = {
   [TKey in keyof TData]: TData[TKey] extends Promise<infer TValue> ? TValue : TData[TKey];
@@ -15,7 +14,9 @@ type ResolvedObject<TData> = {
 export function promiseForObject<TData>(
   object: TData,
   signal?: AbortSignal,
+  signalPromise?: Promise<never>,
 ): MaybePromise<ResolvedObject<TData>> {
+  signal?.throwIfAborted();
   const resolvedObject = Object.create(null);
   const promises: Promise<void>[] = [];
   for (const key in object) {
@@ -33,9 +34,8 @@ export function promiseForObject<TData>(
     return resolvedObject;
   }
   const promiseAll = promises.length === 1 ? promises[0] : Promise.all(promises);
-  if (signal) {
-    const abortPromise = getAbortPromise(signal);
-    return Promise.race([abortPromise, promiseAll]).then(() => resolvedObject);
+  if (signalPromise) {
+    return Promise.race([signalPromise, promiseAll]).then(() => resolvedObject);
   }
   return promiseAll.then(() => resolvedObject);
 }

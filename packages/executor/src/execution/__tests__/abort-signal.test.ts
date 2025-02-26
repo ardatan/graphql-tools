@@ -34,7 +34,7 @@ describe('Abort Signal', () => {
             subscribe() {
               return new Repeater(async (push, stop) => {
                 let i = 0;
-                stop.then(() => {
+                stop.finally(() => {
                   stopped = true;
                 });
 
@@ -150,7 +150,7 @@ describe('Abort Signal', () => {
             didInvokeFirstFn = true;
             return true;
           },
-          async second() {
+          second() {
             didInvokeSecondFn = true;
             controller.abort();
             return true;
@@ -162,18 +162,21 @@ describe('Abort Signal', () => {
         },
       },
     });
-    const result$ = normalizedExecutor({
-      schema,
-      document: parse(/* GraphQL */ `
-        mutation {
-          first
-          second
-          third
-        }
-      `),
-      signal: controller.signal,
-    });
-    expect(result$).rejects.toBeInstanceOf(DOMException);
+    await expect(
+      Promise.resolve().then(() =>
+        normalizedExecutor({
+          schema,
+          document: parse(/* GraphQL */ `
+            mutation {
+              first
+              second
+              third
+            }
+          `),
+          signal: controller.signal,
+        }),
+      ),
+    ).rejects.toBeInstanceOf(DOMException);
     expect(didInvokeFirstFn).toBe(true);
     expect(didInvokeSecondFn).toBe(true);
     expect(didInvokeThirdFn).toBe(false);
