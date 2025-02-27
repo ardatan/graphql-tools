@@ -70,7 +70,7 @@
     "@graphql-yoga/plugin-defer-stream": "3.12.1",
     "@types/express": "5.0.0",
     "@types/valid-url": "1.0.7",
-    "babel-loader": "9.2.1",
+    "babel-loader": "10.0.0",
     "express": "4.21.2",
     "graphql-sse": "2.5.4",
     "graphql-upload": "17.0.0",
