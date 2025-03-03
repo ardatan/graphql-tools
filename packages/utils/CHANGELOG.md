@@ -1,5 +1,13 @@
 # @graphql-tools/utils
 
+## 10.8.4
+
+### Patch Changes
+
+- [`155944b`](https://github.com/ardatan/graphql-tools/commit/155944b11e7ff1d8816ba3e9a4e4aa035c81f645)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fix breaking change by adding
+  `PromiseWithResolvers` back
+
 ## 10.8.3
 
 ### Patch Changes
