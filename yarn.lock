@@ -1643,10 +1643,10 @@
   dependencies:
     tslib "^2.8.1"
 
-"@graphql-yoga/plugin-defer-stream@3.12.1":
-  version "3.12.1"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-3.12.1.tgz#31db3308f96345443804d4e338bf600a10f46a34"
-  integrity sha512-MaAo98aP/5Rgec9DgqOFKxUccUFfOXicYDKso3u+DS6YGu55HN7tOG88BcRXilJmlPzZr6zgO9IRaFUmK6PM1g==
+"@graphql-yoga/plugin-defer-stream@3.12.2":
+  version "3.12.2"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-3.12.2.tgz#5cb23eedd4e628930b1b46328fb728d1ed6985eb"
+  integrity sha512-1PYZuh8L+a5x+6/FPGuZndCiT//MwVl5SwlXd6m6LMBlrVYupCcx5osiSfgCnwfaA5YCwXifNfF4AW8o2Tp8AQ==
   dependencies:
     "@graphql-tools/utils" "^10.6.1"
 
@@ -3779,21 +3779,21 @@
     busboy "^1.6.0"
     tslib "^2.6.3"
 
-"@whatwg-node/promise-helpers@^1.0.0":
+"@whatwg-node/promise-helpers@^1.0.0", "@whatwg-node/promise-helpers@^1.2.2":
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/@whatwg-node/promise-helpers/-/promise-helpers-1.2.2.tgz#9e26073385086975e65609d6c9b27f9d7f92280d"
   integrity sha512-aPVTGCs/QEYkSTnYcLKE1wyYZykbGjaXsEwXHc0FKbSlojIpdw72BQMJx9aJXzkCs6qy9WfDV0jhV9C2qIYYOA==
   dependencies:
     tslib "^2.6.3"
 
-"@whatwg-node/server@^0.9.69":
-  version "0.9.70"
-  resolved "https://registry.yarnpkg.com/@whatwg-node/server/-/server-0.9.70.tgz#531f64522964637f60f0e6a78612732a8065214f"
-  integrity sha512-YjZgF5E29R8QwtYo5WWIERXA0Hn7TSmrpVsIGYZpJDSQNE0gFpcsijmzxpviYtSm69Ayu8B9xOg+EFVk+sVtgA==
+"@whatwg-node/server@^0.9.71":
+  version "0.9.71"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/server/-/server-0.9.71.tgz#5715011b58ab8a0a8abb25759a426ff50d2dce4b"
+  integrity sha512-ueFCcIPaMgtuYDS9u0qlUoEvj6GiSsKrwnOLPp9SshqjtcRaR1IEHRjoReq3sXNydsF5i0ZnmuYgXq9dV53t0g==
   dependencies:
     "@whatwg-node/disposablestack" "^0.0.6"
     "@whatwg-node/fetch" "^0.10.5"
-    "@whatwg-node/promise-helpers" "^1.0.0"
+    "@whatwg-node/promise-helpers" "^1.2.2"
     tslib "^2.6.3"
 
 "@wry/caches@^1.0.0":
@@ -6702,10 +6702,10 @@ graphql-ws@^6.0.3:
   resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-6.0.4.tgz#f0376170965f9535576b2d3e897db38b463a31f0"
   integrity sha512-8b4OZtNOvv8+NZva8HXamrc0y1jluYC0+13gdh7198FKjVzXyTvVc95DCwGzaKEfn3YuWZxUqjJlHe3qKM/F2g==
 
-graphql-yoga@5.12.1, graphql-yoga@^5.0.0:
-  version "5.12.1"
-  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-5.12.1.tgz#9e34bb7f46334262c53c718e2a96a7878f06d792"
-  integrity sha512-5XI+SNkwJQoACoSWDKzBjHpbd6V32tZZ68lpJZ/7uvAq5kzTLPmsi1V7trOA/k1GDf+XYaeUnpl8dqWDtohdeg==
+graphql-yoga@5.12.2, graphql-yoga@^5.0.0:
+  version "5.12.2"
+  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-5.12.2.tgz#d8f8d85451885a663d11cb4e52e16bc332862b4c"
+  integrity sha512-gDWd9+F8kqG/yPI6I/bPWivZt5pPeCA0kz//SeLzn7jsiqXJfcpwfpqT+KHXgi6Dci9P80sSTl4vl7Mje+rj3w==
   dependencies:
     "@envelop/core" "^5.0.2"
     "@graphql-tools/executor" "^1.4.0"
@@ -6714,7 +6714,7 @@ graphql-yoga@5.12.1, graphql-yoga@^5.0.0:
     "@graphql-yoga/logger" "^2.0.1"
     "@graphql-yoga/subscription" "^5.0.3"
     "@whatwg-node/fetch" "^0.10.5"
-    "@whatwg-node/server" "^0.9.69"
+    "@whatwg-node/server" "^0.9.71"
     dset "^3.1.4"
     lru-cache "^10.0.0"
     tslib "^2.8.1"
@@ -10020,10 +10020,10 @@ prettier-plugin-tailwindcss@0.6.11:
   resolved "https://registry.yarnpkg.com/prettier-plugin-tailwindcss/-/prettier-plugin-tailwindcss-0.6.11.tgz#cfacd60c4f81997353ee913e589037f796df0f5f"
   integrity sha512-YxaYSIvZPAqhrrEpRtonnrXdghZg1irNg4qrjboCXrpybLWVs55cW2N3juhspVJiO0JBvYJT8SYsJpc8OQSnsA==
 
-prettier@3.5.2:
-  version "3.5.2"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.5.2.tgz#d066c6053200da0234bf8fa1ef45168abed8b914"
-  integrity sha512-lc6npv5PH7hVqozBR7lkBNOGXV9vMwROAPlumdBkX0wTbbzPu/U1hk5yL8p2pt4Xoc+2mkT8t/sow2YrV/M5qg==
+prettier@3.5.3:
+  version "3.5.3"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.5.3.tgz#4fc2ce0d657e7a02e602549f053b239cb7dfe1b5"
+  integrity sha512-QQtaxnoDJeAkDvDKWCLiwIXkTgRhwYDEQCghU9Z6q03iyek/rxRh/2lC3HB7P8sWT2xC/y5JDctPLBIGzHKbhw==
 
 prettier@^2.7.1:
   version "2.8.8"
