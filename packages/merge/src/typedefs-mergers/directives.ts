@@ -8,11 +8,35 @@ import {
 import { isSome } from '@graphql-tools/utils';
 import { Config } from './merge-typedefs.js';
 
+const isLinkDirective = (directive: DirectiveNode): boolean => directive.name.value === 'link';
+
+const getLinkDirectiveURL = (directive: DirectiveNode): string | undefined => {
+  const stringValue = isLinkDirective(directive)
+    ? directive.arguments?.find(arg => arg.name.value === 'url')?.value
+    : undefined;
+  return stringValue?.kind === 'StringValue' ? stringValue.value : undefined;
+};
+
+/**
+ * Directives by default do not carry arguments that make them distinct, thus
+ * are not considered distinct by default by this function. However @link
+ * directives are only considered distinct if they have different URLs.
+ */
+const isDirectiveDistinctByArguments = (directiveA: DirectiveNode, directiveB: DirectiveNode) => {
+  const isLinkPair = isLinkDirective(directiveA) && isLinkDirective(directiveB);
+  return isLinkPair ? getLinkDirectiveURL(directiveA) !== getLinkDirectiveURL(directiveB) : false;
+};
+
+const isMatchingDirective = (a: DirectiveNode, b: DirectiveNode) => a.name.value === b.name.value;
+
 function directiveAlreadyExists(
   directivesArr: ReadonlyArray<DirectiveNode>,
   otherDirective: DirectiveNode,
 ): boolean {
-  return !!directivesArr.find(directive => directive.name.value === otherDirective.name.value);
+  return !!directivesArr.find(directive => {
+    const isDirectiveNameMatching = directive.name.value === otherDirective.name.value;
+    return isDirectiveNameMatching && !isDirectiveDistinctByArguments(directive, otherDirective);
+  });
 }
 
 function isRepeatableDirective(
@@ -98,7 +122,7 @@ export function mergeDirectives(
       directiveAlreadyExists(result, directive) &&
       !isRepeatableDirective(directive, directives)
     ) {
-      const existingDirectiveIndex = result.findIndex(d => d.name.value === directive.name.value);
+      const existingDirectiveIndex = result.findIndex(it => isMatchingDirective(it, directive));
       const existingDirective = result[existingDirectiveIndex];
       (result[existingDirectiveIndex] as any).arguments = mergeArguments(
         directive.arguments || [],
