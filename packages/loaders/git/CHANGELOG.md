@@ -1,5 +1,14 @@
 # @graphql-tools/git-loader
 
+## 8.0.22
+
+### Patch Changes
+
+- Updated dependencies
+  [[`155944b`](https://github.com/ardatan/graphql-tools/commit/155944b11e7ff1d8816ba3e9a4e4aa035c81f645)]:
+  - @graphql-tools/utils@10.8.4
+  - @graphql-tools/graphql-tag-pluck@8.3.17
+
 ## 8.0.21
 
 ### Patch Changes
