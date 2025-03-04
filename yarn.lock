@@ -1267,19 +1267,28 @@
   dependencies:
     tslib "^2.4.0"
 
-"@envelop/core@5.1.1", "@envelop/core@^5.0.2", "@envelop/core@^5.1.0":
-  version "5.1.1"
-  resolved "https://registry.yarnpkg.com/@envelop/core/-/core-5.1.1.tgz#b41a7fb1d6c13a2c1a04d86f55d96fa57dc47776"
-  integrity sha512-6+OukzuNsm33DtLnOats3e7VnnHndqINJbp/vlIyIlSGBc/wtgQiTAijNWwHhnozHc7WmCKzTsPSrGObvkJazg==
+"@envelop/core@5.2.0", "@envelop/core@^5.0.2", "@envelop/core@^5.1.0":
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/@envelop/core/-/core-5.2.0.tgz#f12532217f92c9b675b6ec07f225b48b12ab76b0"
+  integrity sha512-JMrISsiZ4XQXMtJhs5K4MtM64zFfPHAmpWrkLt+d7d3UC4W39rQu9+4ba3kTV9MyohNr39+wfjBdTa13rKTbjA==
   dependencies:
-    "@envelop/types" "^5.1.1"
+    "@envelop/instruments" "^1.0.0"
+    "@envelop/types" "^5.2.0"
     "@whatwg-node/promise-helpers" "^1.0.0"
     tslib "^2.5.0"
 
-"@envelop/live-query@8.0.1":
-  version "8.0.1"
-  resolved "https://registry.yarnpkg.com/@envelop/live-query/-/live-query-8.0.1.tgz#5c8cdb8a5a3d7aaf3238136ed3559556cacc5a55"
-  integrity sha512-puguVcm9wBQb9A7HiwbuPOBVSX7sTjQhUoxl4aY5KU0A4LEnVRVyUhA9mTnPYI2JwLgAowC6gAwstGBC9f1ylQ==
+"@envelop/instruments@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@envelop/instruments/-/instruments-1.0.0.tgz#7e36926b6212048258ce1939bcf5a52e2a5dbe4d"
+  integrity sha512-f4lHoti7QgUIluIGTM0mG9Wf9/w6zc1mosYmyFkrApeHSP2PIUC6a8fMoqkdk6pgVOps39kLdIhOPF8pIKS8/A==
+  dependencies:
+    "@whatwg-node/promise-helpers" "^1.2.1"
+    tslib "^2.5.0"
+
+"@envelop/live-query@8.1.0":
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/@envelop/live-query/-/live-query-8.1.0.tgz#88ec37c9f01b5561fc98b5e3616f0bdd7978d788"
+  integrity sha512-G6JAOuW0sgtcxif4aeojlydBOVlm7UDejnNEzbJa+QvWdqxfiHZbd0sQ/G98Zyj74l5lA0+P9TVW23NNWN/l6A==
   dependencies:
     "@graphql-tools/utils" "^10.0.0"
     "@n1ru4l/graphql-live-query" "^0.10.0"
@@ -1287,10 +1296,10 @@
     "@n1ru4l/in-memory-live-query-store" "^0.10.0"
     tslib "^2.5.0"
 
-"@envelop/types@^5.1.1":
-  version "5.1.1"
-  resolved "https://registry.yarnpkg.com/@envelop/types/-/types-5.1.1.tgz#eff02f70a2e313ab968c277f31d2faac175a45f1"
-  integrity sha512-uJyCPQRSqxH/4q8/TTTY2fMYIK/Tgv1IhOm6aFUUxuE/EI7muJM/UI85iv9Qo1OCpaafthwRLWzufRp20FyXaA==
+"@envelop/types@^5.2.0":
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/@envelop/types/-/types-5.2.0.tgz#a485749ddc846343a26b16ebff5436fb5ca3a6fa"
+  integrity sha512-vCJY6URc8bK1O6p4zVRFpv/ASdyXvLM+Iqn2HP44UfTgEUQLyN4buwLawlkAv/KtzAL7VOeefpF2eKPWk7rHjg==
   dependencies:
     "@whatwg-node/promise-helpers" "^1.0.0"
     tslib "^2.5.0"
@@ -3779,7 +3788,7 @@
     busboy "^1.6.0"
     tslib "^2.6.3"
 
-"@whatwg-node/promise-helpers@^1.0.0", "@whatwg-node/promise-helpers@^1.2.2":
+"@whatwg-node/promise-helpers@^1.0.0", "@whatwg-node/promise-helpers@^1.2.1", "@whatwg-node/promise-helpers@^1.2.2":
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/@whatwg-node/promise-helpers/-/promise-helpers-1.2.2.tgz#9e26073385086975e65609d6c9b27f9d7f92280d"
   integrity sha512-aPVTGCs/QEYkSTnYcLKE1wyYZykbGjaXsEwXHc0FKbSlojIpdw72BQMJx9aJXzkCs6qy9WfDV0jhV9C2qIYYOA==
@@ -11360,10 +11369,10 @@ svelte2tsx@0.7.34:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@5.21.0:
-  version "5.21.0"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.21.0.tgz#974ee093c7c470d829b74d119a82fd3192b4168b"
-  integrity sha512-+pUFl4d0cu2KoxTtwjzByneCXbUzsNlGc4zMDDT/r2usp3VowYEGu1mFvbjcxmWTkwoy3tyhOg7fsz5aJo0wHw==
+svelte@5.22.0:
+  version "5.22.0"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.22.0.tgz#b3fd3237cd1bea11cd5573473a2f8bff9189d3d3"
+  integrity sha512-Av/1qn4JEhuLB5xHMoiaKhxnBgf4NfDarvCh7mplaNqwXWpNq+3IPCDAHS31HGsRaclexhYLb3y4vxdgkrN0JQ==
   dependencies:
     "@ampproject/remapping" "^2.3.0"
     "@jridgewell/sourcemap-codec" "^1.5.0"

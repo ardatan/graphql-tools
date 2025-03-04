@@ -65,8 +65,8 @@
     "ws": "^8.17.1"
   },
   "devDependencies": {
-    "@envelop/core": "5.1.1",
-    "@envelop/live-query": "8.0.1",
+    "@envelop/core": "5.2.0",
+    "@envelop/live-query": "8.1.0",
     "@graphql-yoga/plugin-defer-stream": "3.12.2",
     "@types/express": "5.0.0",
     "@types/valid-url": "1.0.7",
