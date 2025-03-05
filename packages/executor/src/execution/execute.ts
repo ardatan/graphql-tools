@@ -628,9 +628,15 @@ function executeFields(
   } catch (error) {
     if (containsPromise) {
       // Ensure that any promises returned by other fields are handled, as they may also reject.
-      return promiseForObject(results, exeContext.signal).finally(() => {
-        throw error;
-      });
+      return handleMaybePromise(
+        () => promiseForObject(results, exeContext.signal),
+        () => {
+          throw error;
+        },
+        () => {
+          throw error;
+        },
+      );
     }
     throw error;
   }
