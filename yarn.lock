@@ -1267,7 +1267,7 @@
   dependencies:
     tslib "^2.4.0"
 
-"@envelop/core@5.2.1", "@envelop/core@^5.0.2", "@envelop/core@^5.1.0":
+"@envelop/core@5.2.1", "@envelop/core@^5.1.0", "@envelop/core@^5.2.1":
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/@envelop/core/-/core-5.2.1.tgz#c7e27112523c5f5560aaf48f9d6806adba924b94"
   integrity sha512-iH/GUc7WNEukD2TKszx+e5MWuCpUuVfc1eS4mSvDpQ2ROA2lCJGqac6PxAC3A171bLqNk7IWlNOXxJ4qUPU1WA==
@@ -1277,7 +1277,7 @@
     "@whatwg-node/promise-helpers" "^1.2.1"
     tslib "^2.5.0"
 
-"@envelop/instruments@^1.0.0":
+"@envelop/instruments@1.0.0", "@envelop/instruments@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@envelop/instruments/-/instruments-1.0.0.tgz#7e36926b6212048258ce1939bcf5a52e2a5dbe4d"
   integrity sha512-f4lHoti7QgUIluIGTM0mG9Wf9/w6zc1mosYmyFkrApeHSP2PIUC6a8fMoqkdk6pgVOps39kLdIhOPF8pIKS8/A==
@@ -1652,10 +1652,10 @@
   dependencies:
     tslib "^2.8.1"
 
-"@graphql-yoga/plugin-defer-stream@3.12.2":
-  version "3.12.2"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-3.12.2.tgz#5cb23eedd4e628930b1b46328fb728d1ed6985eb"
-  integrity sha512-1PYZuh8L+a5x+6/FPGuZndCiT//MwVl5SwlXd6m6LMBlrVYupCcx5osiSfgCnwfaA5YCwXifNfF4AW8o2Tp8AQ==
+"@graphql-yoga/plugin-defer-stream@3.13.0":
+  version "3.13.0"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-3.13.0.tgz#3422ba1fc699364e8ec810417e6c2187cd25e6f4"
+  integrity sha512-kkmd+ev1Hkd52ROfv3il3ikECS0HYCu2IkQFp/KOOdm5UWA4nkuvB+LtjW2+GXFiQEA/WgH1M2OqlcJnuO6OXw==
   dependencies:
     "@graphql-tools/utils" "^10.6.1"
 
@@ -3793,21 +3793,22 @@
     busboy "^1.6.0"
     tslib "^2.6.3"
 
-"@whatwg-node/promise-helpers@^1.0.0", "@whatwg-node/promise-helpers@^1.2.1", "@whatwg-node/promise-helpers@^1.2.2":
+"@whatwg-node/promise-helpers@^1.0.0", "@whatwg-node/promise-helpers@^1.2.1", "@whatwg-node/promise-helpers@^1.2.3", "@whatwg-node/promise-helpers@^1.2.4":
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/@whatwg-node/promise-helpers/-/promise-helpers-1.2.4.tgz#4f62d48e27059e8e655add21faa82d177abf5a0c"
   integrity sha512-daEUfaHbaMuAcor+FPAVK+pOCSzsAYhK6LN1y81EcakdqQEPQvjm74PTmfwfv8POg8pw4RyCv9LXB1e+mQDwqg==
   dependencies:
     tslib "^2.6.3"
 
-"@whatwg-node/server@^0.9.71":
-  version "0.9.71"
-  resolved "https://registry.yarnpkg.com/@whatwg-node/server/-/server-0.9.71.tgz#5715011b58ab8a0a8abb25759a426ff50d2dce4b"
-  integrity sha512-ueFCcIPaMgtuYDS9u0qlUoEvj6GiSsKrwnOLPp9SshqjtcRaR1IEHRjoReq3sXNydsF5i0ZnmuYgXq9dV53t0g==
+"@whatwg-node/server@^0.10.0":
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/server/-/server-0.10.0.tgz#a4f91a588dd2c543a76b20fefb05283419122655"
+  integrity sha512-o+FrEtUgozt6d2Dw4WB5t8I4gx6wAmhsznYcg6UAOy1FUutJcs4+KCLKhUv/L2bt+A9On9jPAtLtrvj3hAj+iQ==
   dependencies:
+    "@envelop/instruments" "1.0.0"
     "@whatwg-node/disposablestack" "^0.0.6"
     "@whatwg-node/fetch" "^0.10.5"
-    "@whatwg-node/promise-helpers" "^1.2.2"
+    "@whatwg-node/promise-helpers" "^1.2.3"
     tslib "^2.6.3"
 
 "@wry/caches@^1.0.0":
@@ -6709,19 +6710,21 @@ graphql-ws@^6.0.3:
   resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-6.0.4.tgz#f0376170965f9535576b2d3e897db38b463a31f0"
   integrity sha512-8b4OZtNOvv8+NZva8HXamrc0y1jluYC0+13gdh7198FKjVzXyTvVc95DCwGzaKEfn3YuWZxUqjJlHe3qKM/F2g==
 
-graphql-yoga@5.12.2, graphql-yoga@^5.0.0:
-  version "5.12.2"
-  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-5.12.2.tgz#d8f8d85451885a663d11cb4e52e16bc332862b4c"
-  integrity sha512-gDWd9+F8kqG/yPI6I/bPWivZt5pPeCA0kz//SeLzn7jsiqXJfcpwfpqT+KHXgi6Dci9P80sSTl4vl7Mje+rj3w==
+graphql-yoga@5.13.0, graphql-yoga@^5.0.0:
+  version "5.13.0"
+  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-5.13.0.tgz#f4a97fd57026120d5a1e711485c165debf81c153"
+  integrity sha512-O9pdML91COjqltKOgtiKsSt9bs4d9QVRd7kVP6mQiVJyIGaoaX875YA8mFYLAwYJOfFev4+RDLphCHmEIY/isw==
   dependencies:
-    "@envelop/core" "^5.0.2"
+    "@envelop/core" "^5.2.1"
+    "@envelop/instruments" "^1.0.0"
     "@graphql-tools/executor" "^1.4.0"
     "@graphql-tools/schema" "^10.0.11"
     "@graphql-tools/utils" "^10.6.2"
     "@graphql-yoga/logger" "^2.0.1"
     "@graphql-yoga/subscription" "^5.0.3"
     "@whatwg-node/fetch" "^0.10.5"
-    "@whatwg-node/server" "^0.9.71"
+    "@whatwg-node/promise-helpers" "^1.2.4"
+    "@whatwg-node/server" "^0.10.0"
     dset "^3.1.4"
     lru-cache "^10.0.0"
     tslib "^2.8.1"
@@ -11360,10 +11363,10 @@ svelte2tsx@0.7.34:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@5.22.3:
-  version "5.22.3"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.22.3.tgz#13b159a479920fb26411860524c070b619bdeb15"
-  integrity sha512-CNaAriQ75Kqw0Pv+Ey2cgbHv+RUkzXySW/g6nK4QbgoWQIVDYHQNv1+GeVPb6cIDshJ58Ub5dD1S31MWpuf/nw==
+svelte@5.22.4:
+  version "5.22.4"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.22.4.tgz#f7d805cc58ef8496798100b6d75999879bbdca33"
+  integrity sha512-JnRiF/MvaSO94bUdSBbfsaKEFHEPhKcuZUMcQ7eqWr1OxeNpsxajH/57eV/twVVDo5OFjRLTj9zqF71ts49kaQ==
   dependencies:
     "@ampproject/remapping" "^2.3.0"
     "@jridgewell/sourcemap-codec" "^1.5.0"
