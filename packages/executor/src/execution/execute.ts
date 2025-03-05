@@ -1660,8 +1660,11 @@ function mapSourceToResponse(
   return flattenAsyncIterable(
     mapAsyncIterator(
       resultOrStream,
-      async (payload: unknown) =>
-        ensureAsyncIterable(await executeImpl(buildPerEventExecutionContext(exeContext, payload))),
+      (payload: unknown) =>
+        handleMaybePromise(
+          () => executeImpl(buildPerEventExecutionContext(exeContext, payload)),
+          ensureAsyncIterable,
+        ),
       (error: Error) => {
         if (error instanceof AggregateError) {
           throw new AggregateError(
