@@ -13,6 +13,7 @@ export interface ExecutorPluginContext {
 
 export type ExecutorPluginOpts = Parameters<typeof schemaFromExecutor>[2] & {
   polling?: number;
+  logWarn?(...args: any[]): void;
 };
 
 export interface ExecutorPluginExtras {
@@ -25,6 +26,7 @@ export function useExecutor<TPluginContext extends Record<string, any>>(
   executor: Executor,
   opts?: ExecutorPluginOpts,
 ): Plugin<TPluginContext> & ExecutorPluginExtras {
+  const logWarn = opts?.logWarn || (message => console.warn(message));
   const EMPTY_ARRAY = Object.freeze([]);
   function executorToExecuteFn(executionArgs: ExecutionArgs) {
     return executor({
@@ -60,10 +62,7 @@ export function useExecutor<TPluginContext extends Record<string, any>>(
               pluginCtx.schema = newSchema;
             }) as Promise<void>
           ).catch?.(err => {
-            console.warn(
-              `Introspection failed, skipping introspection due to the following errors;\n`,
-              err,
-            );
+            logWarn(`Introspection failed, skipping introspection due to the errors`, err);
             pluginCtx.skipIntrospection = true;
           });
         } else {
@@ -72,10 +71,7 @@ export function useExecutor<TPluginContext extends Record<string, any>>(
       }
     } catch (err) {
       pluginCtx.skipIntrospection = true;
-      console.warn(
-        `Introspection failed, skipping introspection due to the following errors;\n`,
-        err,
-      );
+      logWarn(`Introspection failed, skipping introspection due to the following errors`, err);
     }
   }
   return {

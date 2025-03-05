@@ -628,9 +628,15 @@ function executeFields(
   } catch (error) {
     if (containsPromise) {
       // Ensure that any promises returned by other fields are handled, as they may also reject.
-      return promiseForObject(results, exeContext.signal).finally(() => {
-        throw error;
-      });
+      return handleMaybePromise(
+        () => promiseForObject(results, exeContext.signal),
+        () => {
+          throw error;
+        },
+        () => {
+          throw error;
+        },
+      );
     }
     throw error;
   }
@@ -1660,8 +1666,11 @@ function mapSourceToResponse(
   return flattenAsyncIterable(
     mapAsyncIterator(
       resultOrStream,
-      async (payload: unknown) =>
-        ensureAsyncIterable(await executeImpl(buildPerEventExecutionContext(exeContext, payload))),
+      (payload: unknown) =>
+        handleMaybePromise(
+          () => executeImpl(buildPerEventExecutionContext(exeContext, payload)),
+          ensureAsyncIterable,
+        ),
       (error: Error) => {
         if (error instanceof AggregateError) {
           throw new AggregateError(
