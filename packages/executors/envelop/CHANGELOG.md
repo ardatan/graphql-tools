@@ -1,5 +1,14 @@
 # @graphql-tools/executor-envelop
 
+## 3.0.25
+
+### Patch Changes
+
+- [#7001](https://github.com/ardatan/graphql-tools/pull/7001)
+  [`746358f`](https://github.com/ardatan/graphql-tools/commit/746358f68e81c9a3cf1ccf4b1a599ae6eae404ca)
+  Thanks [@renovate](https://github.com/apps/renovate)! - Improve logging the warning about
+  introspection failure
+
 ## 3.0.24
 
 ### Patch Changes

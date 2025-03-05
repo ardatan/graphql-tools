@@ -1,5 +1,13 @@
 # @graphql-tools/executor
 
+## 1.4.4
+
+### Patch Changes
+
+- [#7001](https://github.com/ardatan/graphql-tools/pull/7001)
+  [`746358f`](https://github.com/ardatan/graphql-tools/commit/746358f68e81c9a3cf1ccf4b1a599ae6eae404ca)
+  Thanks [@renovate](https://github.com/apps/renovate)! - Improve promise helpers usage
+
 ## 1.4.3
 
 ### Patch Changes
