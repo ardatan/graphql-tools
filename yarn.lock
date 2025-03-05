@@ -1267,14 +1267,14 @@
   dependencies:
     tslib "^2.4.0"
 
-"@envelop/core@5.2.0", "@envelop/core@^5.0.2", "@envelop/core@^5.1.0":
-  version "5.2.0"
-  resolved "https://registry.yarnpkg.com/@envelop/core/-/core-5.2.0.tgz#f12532217f92c9b675b6ec07f225b48b12ab76b0"
-  integrity sha512-JMrISsiZ4XQXMtJhs5K4MtM64zFfPHAmpWrkLt+d7d3UC4W39rQu9+4ba3kTV9MyohNr39+wfjBdTa13rKTbjA==
+"@envelop/core@5.2.1", "@envelop/core@^5.0.2", "@envelop/core@^5.1.0":
+  version "5.2.1"
+  resolved "https://registry.yarnpkg.com/@envelop/core/-/core-5.2.1.tgz#c7e27112523c5f5560aaf48f9d6806adba924b94"
+  integrity sha512-iH/GUc7WNEukD2TKszx+e5MWuCpUuVfc1eS4mSvDpQ2ROA2lCJGqac6PxAC3A171bLqNk7IWlNOXxJ4qUPU1WA==
   dependencies:
     "@envelop/instruments" "^1.0.0"
     "@envelop/types" "^5.2.0"
-    "@whatwg-node/promise-helpers" "^1.0.0"
+    "@whatwg-node/promise-helpers" "^1.2.1"
     tslib "^2.5.0"
 
 "@envelop/instruments@^1.0.0":
@@ -1285,10 +1285,10 @@
     "@whatwg-node/promise-helpers" "^1.2.1"
     tslib "^2.5.0"
 
-"@envelop/live-query@8.1.0":
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/@envelop/live-query/-/live-query-8.1.0.tgz#88ec37c9f01b5561fc98b5e3616f0bdd7978d788"
-  integrity sha512-G6JAOuW0sgtcxif4aeojlydBOVlm7UDejnNEzbJa+QvWdqxfiHZbd0sQ/G98Zyj74l5lA0+P9TVW23NNWN/l6A==
+"@envelop/live-query@8.1.1":
+  version "8.1.1"
+  resolved "https://registry.yarnpkg.com/@envelop/live-query/-/live-query-8.1.1.tgz#a549a13770b58c6dcd58d4b88df6fd917399543b"
+  integrity sha512-XViuCZvWXJ5DkJx7xaehUaf7geH2DQnBcaIkdxOTX3A0cpuKRgifo3oO/POwOgBIX4yxCKW1ZzqQEJCVFk183Q==
   dependencies:
     "@graphql-tools/utils" "^10.0.0"
     "@n1ru4l/graphql-live-query" "^0.10.0"
@@ -11360,10 +11360,10 @@ svelte2tsx@0.7.34:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@5.22.2:
-  version "5.22.2"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.22.2.tgz#34eec2966108ebb0d9daee4bd68a77c3686d8251"
-  integrity sha512-LsJ5lfDiQusPXT+m12yEWhilBKlZGKhhs9oFLmPQUJdEHvIrPNQKgzoUobfQJH0/Fuf9D16pTB/su0cuk5FCfQ==
+svelte@5.22.3:
+  version "5.22.3"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.22.3.tgz#13b159a479920fb26411860524c070b619bdeb15"
+  integrity sha512-CNaAriQ75Kqw0Pv+Ey2cgbHv+RUkzXySW/g6nK4QbgoWQIVDYHQNv1+GeVPb6cIDshJ58Ub5dD1S31MWpuf/nw==
   dependencies:
     "@ampproject/remapping" "^2.3.0"
     "@jridgewell/sourcemap-codec" "^1.5.0"
