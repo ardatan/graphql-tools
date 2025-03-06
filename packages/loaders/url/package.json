@@ -65,8 +65,8 @@
     "ws": "^8.17.1"
   },
   "devDependencies": {
-    "@envelop/core": "5.2.1",
-    "@envelop/live-query": "8.1.1",
+    "@envelop/core": "5.2.2",
+    "@envelop/live-query": "8.1.2",
     "@graphql-yoga/plugin-defer-stream": "3.13.0",
     "@types/express": "5.0.0",
     "@types/valid-url": "1.0.7",
@@ -75,7 +75,7 @@
     "graphql-sse": "2.5.4",
     "graphql-upload": "17.0.0",
     "graphql-yoga": "5.13.0",
-    "puppeteer": "24.3.1",
+    "puppeteer": "24.4.0",
     "subscriptions-transport-ws": "0.11.0",
     "webpack": "5.98.0"
   },
