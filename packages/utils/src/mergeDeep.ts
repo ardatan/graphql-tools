@@ -12,6 +12,12 @@ export function mergeDeep<S extends any[]>(
   respectArrays = false,
   respectArrayLength = false,
 ): UnboxIntersection<UnionToIntersection<BoxedTupleTypes<S>>> & any {
+  if (sources.length === 0) {
+    return;
+  }
+  if (sources.length === 1) {
+    return sources[0];
+  }
   let expectedLength: number | undefined;
   let allArrays = true;
   const areArraysInTheSameLength = sources.every(source => {
@@ -46,14 +52,17 @@ export function mergeDeep<S extends any[]>(
   let firstObjectSource: any;
   if (respectPrototype) {
     firstObjectSource = sources.find(source => isObject(source));
-    if (output == null) {
-      output = {};
-    }
     if (firstObjectSource) {
+      if (output == null) {
+        output = {};
+      }
       Object.setPrototypeOf(output, Object.create(Object.getPrototypeOf(firstObjectSource)));
     }
   }
   for (const source of sources) {
+    if (source == null) {
+      continue;
+    }
     if (isObject(source)) {
       if (firstObjectSource) {
         const outputPrototype = Object.getPrototypeOf(output);
