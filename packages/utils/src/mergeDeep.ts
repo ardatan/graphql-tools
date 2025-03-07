@@ -52,10 +52,10 @@ export function mergeDeep<S extends any[]>(
   let firstObjectSource: any;
   if (respectPrototype) {
     firstObjectSource = sources.find(source => isObject(source));
-    if (output == null) {
-      output = {};
-    }
     if (firstObjectSource) {
+      if (output == null) {
+        output = {};
+      }
       Object.setPrototypeOf(output, Object.create(Object.getPrototypeOf(firstObjectSource)));
     }
   }
