@@ -63,7 +63,7 @@
     "chalk": "5.4.1",
     "concurrently": "9.1.2",
     "cross-env": "7.0.3",
-    "eslint": "9.21.0",
+    "eslint": "9.22.0",
     "eslint-config-prettier": "10.1.1",
     "eslint-config-standard": "17.1.0",
     "eslint-plugin-import": "2.31.0",
