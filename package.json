@@ -59,7 +59,7 @@
     "@typescript-eslint/parser": "8.26.1",
     "babel-jest": "29.7.0",
     "bob-the-bundler": "7.0.1",
-    "bun": "^1.1.43",
+    "bun": "1.2.5",
     "chalk": "5.4.1",
     "concurrently": "9.1.2",
     "cross-env": "7.0.3",

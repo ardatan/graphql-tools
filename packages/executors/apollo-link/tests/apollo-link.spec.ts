@@ -86,37 +86,34 @@ describe('Apollo Link', () => {
       hello: 'Hello Apollo Client!',
     });
   });
-  testIf(!process.env['LEAK_TEST'] && !globalThis.Bun)(
-    'should handle subscriptions correctly',
-    async () => {
-      expect.assertions(5);
-      const observable = client.subscribe({
-        query: parse(/* GraphQL */ `
-          subscription Time {
-            time
-          }
-        `),
-      });
-      const collectedValues: string[] = [];
-      let i = 0;
-      await new Promise<void>((resolve, reject) => {
-        const subscription = observable.subscribe((result: FetchResult) => {
-          collectedValues.push(result.data?.['time']);
-          i++;
-          if (i > 2) {
-            subscription.unsubscribe();
-            resolve();
-          }
-        }, reject);
-      });
-      expect(collectedValues.length).toBe(3);
-      expect(i).toBe(3);
-      const now = new Date();
-      for (const value of collectedValues) {
-        expect(new Date(value).getFullYear()).toBe(now.getFullYear());
-      }
-    },
-  );
+  testIf(!process.env['LEAK_TEST'])('should handle subscriptions correctly', async () => {
+    expect.assertions(5);
+    const observable = client.subscribe({
+      query: parse(/* GraphQL */ `
+        subscription Time {
+          time
+        }
+      `),
+    });
+    const collectedValues: string[] = [];
+    let i = 0;
+    await new Promise<void>((resolve, reject) => {
+      const subscription = observable.subscribe((result: FetchResult) => {
+        collectedValues.push(result.data?.['time']);
+        i++;
+        if (i > 2) {
+          subscription.unsubscribe();
+          resolve();
+        }
+      }, reject);
+    });
+    expect(collectedValues.length).toBe(3);
+    expect(i).toBe(3);
+    const now = new Date();
+    for (const value of collectedValues) {
+      expect(new Date(value).getFullYear()).toBe(now.getFullYear());
+    }
+  });
   it('should handle file uploads correctly', async () => {
     const result = await client.mutate({
       mutation: parse(/* GraphQL */ `
