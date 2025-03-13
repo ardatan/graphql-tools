@@ -25,11 +25,16 @@ function createApolloRequestHandler(executor: Executor): apolloImport.RequestHan
         if (disposed) return;
 
         if (isAsyncIterable(results)) {
+          const asyncIterator = results[Symbol.asyncIterator]();
           dispose = () => {
-            results[Symbol.asyncIterator]().return?.();
+            asyncIterator.return?.();
           };
-          for await (const result of results) {
-            observer.next(result);
+          try {
+            for await (const result of { [Symbol.asyncIterator]: () => asyncIterator }) {
+              observer.next(result);
+            }
+          } catch (e) {
+            observer.error(e);
           }
         } else {
           observer.next(results);
