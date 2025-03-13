@@ -1,5 +1,18 @@
 # @graphql-tools/merge
 
+## 9.0.23
+
+### Patch Changes
+
+- [#7028](https://github.com/ardatan/graphql-tools/pull/7028)
+  [`4899c62`](https://github.com/ardatan/graphql-tools/commit/4899c62ee4365c518df7f8cd2a897c6132f09f45)
+  Thanks [@ardatan](https://github.com/ardatan)! - Prevent prototype polluting assignment
+
+- Updated dependencies
+  [[`90a717e`](https://github.com/ardatan/graphql-tools/commit/90a717e35a7e4e51da4fe747cb73544f24698fb7),
+  [`26518de`](https://github.com/ardatan/graphql-tools/commit/26518debfcb668e8feb5fb146271a13da92b778a)]:
+  - @graphql-tools/utils@10.8.5
+
 ## 9.0.22
 
 ### Patch Changes

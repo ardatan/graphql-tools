@@ -1,5 +1,19 @@
 # @graphql-tools/mock
 
+## 9.0.21
+
+### Patch Changes
+
+- [#7026](https://github.com/ardatan/graphql-tools/pull/7026)
+  [`ece7732`](https://github.com/ardatan/graphql-tools/commit/ece7732308b355972190f21372371ba3ae3a6296)
+  Thanks [@ardatan](https://github.com/ardatan)! - Prevent prototype polluting assignment
+
+- Updated dependencies
+  [[`90a717e`](https://github.com/ardatan/graphql-tools/commit/90a717e35a7e4e51da4fe747cb73544f24698fb7),
+  [`26518de`](https://github.com/ardatan/graphql-tools/commit/26518debfcb668e8feb5fb146271a13da92b778a)]:
+  - @graphql-tools/utils@10.8.5
+  - @graphql-tools/schema@10.0.22
+
 ## 9.0.20
 
 ### Patch Changes

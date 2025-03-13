@@ -1,5 +1,19 @@
 # @graphql-tools/utils
 
+## 10.8.5
+
+### Patch Changes
+
+- [#6977](https://github.com/ardatan/graphql-tools/pull/6977)
+  [`90a717e`](https://github.com/ardatan/graphql-tools/commit/90a717e35a7e4e51da4fe747cb73544f24698fb7)
+  Thanks [@ardatan](https://github.com/ardatan)! - In executor, do not use leaking
+  `registerAbortSignalListener`, and handle listeners inside the execution context
+
+- [#7025](https://github.com/ardatan/graphql-tools/pull/7025)
+  [`26518de`](https://github.com/ardatan/graphql-tools/commit/26518debfcb668e8feb5fb146271a13da92b778a)
+  Thanks [@ardatan](https://github.com/ardatan)! - Better handling for field name handling in
+  `buildOperationForField`
+
 ## 10.8.4
 
 ### Patch Changes
