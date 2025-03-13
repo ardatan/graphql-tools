@@ -583,9 +583,7 @@ describe('Execute: stream directive', () => {
         ],
         hasNext: true,
       },
-      {
-        hasNext: false,
-      },
+      { hasNext: false },
     ]);
   });
 
