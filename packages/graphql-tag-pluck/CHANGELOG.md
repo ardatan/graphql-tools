@@ -1,5 +1,32 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 8.3.18
+
+### Patch Changes
+
+- [#7023](https://github.com/ardatan/graphql-tools/pull/7023)
+  [`6bb35f4`](https://github.com/ardatan/graphql-tools/commit/6bb35f44d67638e222af9ec68f16a1762d373b0f)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@babel/core@^7.26.10` ↗︎](https://www.npmjs.com/package/@babel/core/v/7.26.10) (from
+    `^7.22.9`, in `dependencies`)
+  - Updated dependency
+    [`@babel/parser@^7.26.10` ↗︎](https://www.npmjs.com/package/@babel/parser/v/7.26.10) (from
+    `^7.16.8`, in `dependencies`)
+  - Updated dependency
+    [`@babel/plugin-syntax-import-assertions@^7.26.0` ↗︎](https://www.npmjs.com/package/@babel/plugin-syntax-import-assertions/v/7.26.0)
+    (from `^7.20.0`, in `dependencies`)
+  - Updated dependency
+    [`@babel/traverse@^7.26.10` ↗︎](https://www.npmjs.com/package/@babel/traverse/v/7.26.10) (from
+    `^7.16.8`, in `dependencies`)
+  - Updated dependency
+    [`@babel/types@^7.26.10` ↗︎](https://www.npmjs.com/package/@babel/types/v/7.26.10) (from
+    `^7.16.8`, in `dependencies`)
+- Updated dependencies
+  [[`90a717e`](https://github.com/ardatan/graphql-tools/commit/90a717e35a7e4e51da4fe747cb73544f24698fb7),
+  [`26518de`](https://github.com/ardatan/graphql-tools/commit/26518debfcb668e8feb5fb146271a13da92b778a)]:
+  - @graphql-tools/utils@10.8.5
+
 ## 8.3.17
 
 ### Patch Changes
