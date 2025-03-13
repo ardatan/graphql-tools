@@ -263,6 +263,9 @@ export class MockStore implements IMockStore {
       value = deepResolveMockList(value);
     }
 
+    if (typeName === '__proto__' || typeName === 'constructor' || typeName === 'prototype') {
+      throw new Error(`Invalid typeName: ${typeName}`);
+    }
     if (this.store[typeName] === undefined) {
       this.store[typeName] = {};
     }
