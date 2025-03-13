@@ -34,7 +34,6 @@ import {
   collectFields,
   createGraphQLError,
   fakePromise,
-  getAbortPromise,
   getArgumentValues,
   getDefinedRootType,
   GraphQLResolveInfo,
@@ -52,11 +51,10 @@ import {
   Path,
   pathToArray,
   promiseReduce,
-  registerAbortSignalListener,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
-import { handleMaybePromise } from '@whatwg-node/promise-helpers';
+import { createDeferredPromise, handleMaybePromise } from '@whatwg-node/promise-helpers';
 import { coerceError } from './coerceError.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import { invariant } from './invariant.js';
@@ -127,6 +125,8 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   errors: Array<GraphQLError>;
   subsequentPayloads: Set<AsyncPayloadRecord>;
   signal?: AbortSignal;
+  onSignalAbort?(handler: () => void): void;
+  signalPromise?: Promise<never>;
 }
 
 export interface FormattedExecutionResult<
@@ -421,6 +421,8 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     signal,
   } = args;
 
+  signal?.throwIfAborted();
+
   // If the schema used for execution is invalid, throw an error.
   assertValidSchema(schema);
 
@@ -489,6 +491,31 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     return coercedVariableValues.errors;
   }
 
+  signal?.throwIfAborted();
+
+  let onSignalAbort: ExecutionContext['onSignalAbort'];
+  let signalPromise: ExecutionContext['signalPromise'];
+
+  if (signal) {
+    const listeners = new Set<() => void>();
+    const signalDeferred = createDeferredPromise<never>();
+    signalPromise = signalDeferred.promise;
+    const sharedListener = () => {
+      signalDeferred.reject(signal.reason);
+      signal.removeEventListener('abort', sharedListener);
+    };
+    signal.addEventListener('abort', sharedListener, { once: true });
+    signalPromise.catch(() => {
+      for (const listener of listeners) {
+        listener();
+      }
+      listeners.clear();
+    });
+    onSignalAbort = handler => {
+      listeners.add(handler);
+    };
+  }
+
   return {
     schema,
     fragments,
@@ -502,6 +529,8 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     subsequentPayloads: new Set(),
     errors: [],
     signal,
+    onSignalAbort,
+    signalPromise,
   };
 }
 
@@ -626,7 +655,7 @@ function executeFields(
       }
     }
   } catch (error) {
-    if (containsPromise) {
+    if (error !== exeContext.signal?.reason && containsPromise) {
       // Ensure that any promises returned by other fields are handled, as they may also reject.
       return handleMaybePromise(
         () => promiseForObject(results, exeContext.signal),
@@ -649,7 +678,7 @@ function executeFields(
   // Otherwise, results is a map from field name to the result of resolving that
   // field, which is possibly a promise. Return a promise that will return this
   // same map, but with any promises replaced with the values they resolved to.
-  return promiseForObject(results, exeContext.signal);
+  return promiseForObject(results, exeContext.signal, exeContext.signalPromise);
 }
 
 /**
@@ -679,6 +708,7 @@ function executeField(
 
   // Get the resolve function, regardless of if its result is normal or abrupt (error).
   try {
+    exeContext.signal?.throwIfAborted();
     // Build a JS object of arguments from the field.arguments AST, using the
     // variables scope to fulfill any variable references.
     // TODO: find a way to memoize, in case this field is within a List type.
@@ -973,8 +1003,9 @@ async function completeAsyncIteratorValue(
   iterator: AsyncIterator<unknown>,
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): Promise<ReadonlyArray<unknown>> {
-  if (exeContext.signal && iterator.return) {
-    registerAbortSignalListener(exeContext.signal, () => {
+  exeContext.signal?.throwIfAborted();
+  if (iterator.return) {
+    exeContext.onSignalAbort?.(() => {
       iterator.return?.();
     });
   }
@@ -1755,18 +1786,25 @@ function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIt
     const result = resolveFn(rootValue, args, contextValue, info);
 
     if (isPromise(result)) {
-      return result.then(assertEventStream).then(undefined, error => {
-        throw locatedError(error, fieldNodes, pathToArray(path));
-      });
+      return result
+        .then(result => assertEventStream(result, exeContext.signal, exeContext.onSignalAbort))
+        .then(undefined, error => {
+          throw locatedError(error, fieldNodes, pathToArray(path));
+        });
     }
 
-    return assertEventStream(result, exeContext.signal);
+    return assertEventStream(result, exeContext.signal, exeContext.onSignalAbort);
   } catch (error) {
     throw locatedError(error, fieldNodes, pathToArray(path));
   }
 }
 
-function assertEventStream(result: unknown, signal?: AbortSignal): AsyncIterable<unknown> {
+function assertEventStream(
+  result: unknown,
+  signal?: AbortSignal,
+  onSignalAbort?: (handler: () => void) => void,
+): AsyncIterable<unknown> {
+  signal?.throwIfAborted();
   if (result instanceof Error) {
     throw result;
   }
@@ -1777,13 +1815,13 @@ function assertEventStream(result: unknown, signal?: AbortSignal): AsyncIterable
       'Subscription field must return Async Iterable. ' + `Received: ${inspect(result)}.`,
     );
   }
-  if (signal) {
+  if (onSignalAbort) {
     return {
       [Symbol.asyncIterator]() {
         const asyncIterator = result[Symbol.asyncIterator]();
 
         if (asyncIterator.return) {
-          registerAbortSignalListener(signal, () => {
+          onSignalAbort?.(() => {
             asyncIterator.return?.();
           });
         }
@@ -2110,8 +2148,6 @@ function yieldSubsequentPayloads(
 ): AsyncGenerator<SubsequentIncrementalExecutionResult, void, void> {
   let isDone = false;
 
-  const abortPromise = exeContext.signal ? getAbortPromise(exeContext.signal) : undefined;
-
   async function next(): Promise<IteratorResult<SubsequentIncrementalExecutionResult, void>> {
     if (isDone) {
       return { value: undefined, done: true };
@@ -2121,8 +2157,8 @@ function yieldSubsequentPayloads(
       record => record.promise,
     );
 
-    if (abortPromise) {
-      await Promise.race([abortPromise, ...subSequentPayloadPromises]);
+    if (exeContext.signalPromise) {
+      await Promise.race([exeContext.signalPromise, ...subSequentPayloadPromises]);
     } else {
       await Promise.race(subSequentPayloadPromises);
     }
