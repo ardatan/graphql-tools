@@ -1,5 +1,12 @@
 # @graphql-tools/utils
 
+## 10.8.6
+
+### Patch Changes
+
+- [`d123e26`](https://github.com/ardatan/graphql-tools/commit/d123e26b30b4febbbe1780bd32773b60e614dbf0)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fix incomplete string escaping/encoding
+
 ## 10.8.5
 
 ### Patch Changes
