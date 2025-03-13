@@ -72,7 +72,10 @@ export function mergeResolvers<TSource, TContext>(
   if (options?.exclusions) {
     for (const exclusion of options.exclusions) {
       const [typeName, fieldName] = exclusion.split('.');
-      if (['__proto__', 'constructor', 'prototype'].includes(typeName) || ['__proto__', 'constructor', 'prototype'].includes(fieldName)) {
+      if (
+        ['__proto__', 'constructor', 'prototype'].includes(typeName) ||
+        ['__proto__', 'constructor', 'prototype'].includes(fieldName)
+      ) {
         continue;
       }
       if (!fieldName || fieldName === '*') {
