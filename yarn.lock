@@ -52,7 +52,7 @@
     tslib "^2.3.0"
     zen-observable-ts "^1.2.5"
 
-"@ardatan/relay-compiler@^12.0.1":
+"@ardatan/relay-compiler@^12.0.3":
   version "12.0.3"
   resolved "https://registry.yarnpkg.com/@ardatan/relay-compiler/-/relay-compiler-12.0.3.tgz#a60824672da7f7cef2a3879ed833b120d292fa08"
   integrity sha512-mBDFOGvAoVlWaWqs3hm1AciGHSQE1rqFc/liZTyYz/Oek9yZdT5H26pH2zAFuEiTiBVPPyMuqf5VjOFPI2DGsQ==
