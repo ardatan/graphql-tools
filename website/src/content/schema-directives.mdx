@@ -770,6 +770,32 @@ let schema = makeExecutableSchema({
 schema = uniqueIDDirectiveTransformer(schema)
 ```
 
+### GraphQL modules usage
+
+If you create your application with GraphQL modules please use the `schemaBuilder` parameter in
+`createApplication()` to apply the directive implementation:
+
+```ts
+import { anyDirective } from 'any-directive-package'
+import { makeExecutableSchema } from '@graphql-tools/schema'
+
+const application = createApplication({
+    ...
+    schemaBuilder: ({ typeDefs, resolvers }) => {
+        // Build the schema from modules
+        let schema = makeExecutableSchema({
+            typeDefs,
+            resolvers: resolvers
+        })
+
+        // Apply the directive transformer, i.e. rename directive
+        const patchedSchema = anyDirective('rename')(schema);
+
+        return patchedSchema;
+    }
+})
+```
+
 ## Declaring Schema Directives
 
 SDL syntax requires declaring the names, argument types, default argument values, and permissible
