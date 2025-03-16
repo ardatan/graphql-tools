@@ -11792,10 +11792,10 @@ typedoc-plugin-markdown@3.17.1:
   dependencies:
     handlebars "^4.7.7"
 
-typedoc-plugin-rename-defaults@0.7.2:
-  version "0.7.2"
-  resolved "https://registry.yarnpkg.com/typedoc-plugin-rename-defaults/-/typedoc-plugin-rename-defaults-0.7.2.tgz#376b701f8b73fd62dbf083d5c6eab8e057f0a92c"
-  integrity sha512-9oa1CsMN4p/xuVR2JW2YDD6xE7JcrIth3KAfjR8YBi6NnrDk2Q72o4lbArybLDjxKAkOzk7N1uUdGwJlooLEOg==
+typedoc-plugin-rename-defaults@0.7.3:
+  version "0.7.3"
+  resolved "https://registry.yarnpkg.com/typedoc-plugin-rename-defaults/-/typedoc-plugin-rename-defaults-0.7.3.tgz#3c046730de2c9dcb6003ddb8861ff2b87b9e82ca"
+  integrity sha512-fDtrWZ9NcDfdGdlL865GW7uIGQXlthPscURPOhDkKUe4DBQSRRFUf33fhWw41FLlsz8ZTeSxzvvuNmh54MynFA==
   dependencies:
     camelcase "^8.0.0"
 

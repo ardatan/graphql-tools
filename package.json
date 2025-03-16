@@ -86,7 +86,7 @@
     "tsx": "4.19.3",
     "typedoc": "0.25.13",
     "typedoc-plugin-markdown": "3.17.1",
-    "typedoc-plugin-rename-defaults": "0.7.2",
+    "typedoc-plugin-rename-defaults": "0.7.3",
     "typescript": "5.8.2",
     "wonka": "6.3.5"
   },
