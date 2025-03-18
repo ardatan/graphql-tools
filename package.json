@@ -91,7 +91,7 @@
     "wonka": "6.3.5"
   },
   "resolutions": {
-    "cookie": "1.0.0",
+    "cookie": "1.0.2",
     "esbuild": "0.25.1",
     "graphql": "16.10.0"
   },
