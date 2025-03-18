@@ -83,7 +83,7 @@ jobs:
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Cache Jest
-        uses: actions/cache@v4
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
         with:
           path: .cache/jest
           key:
@@ -94,13 +94,13 @@ jobs:
       - name: Build
         run: yarn build
       - name: Unit Tests
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3
         with:
           timeout_minutes: 10
           max_attempts: 5
           command: yarn test --ci
       - name: Leak Tests
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -131,13 +131,13 @@ jobs:
       - name: Build
         run: yarn build
       - name: Unit Tests
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3
         with:
           timeout_minutes: 10
           max_attempts: 5
           command: yarn test:bun --ci --reporter=junit --reporter-outfile=./junit.xml
       - name: Publish Test Report
-        uses: mikepenz/action-junit-report@v5
+        uses: mikepenz/action-junit-report@97744eca465b8df9e6e33271cb155003f85327f1 # v5
         if: success() || failure() # always run even if the previous step fails
         with:
           report_paths: './junit.xml'
