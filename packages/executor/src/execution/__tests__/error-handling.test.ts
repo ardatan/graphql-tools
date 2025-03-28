@@ -48,6 +48,7 @@ describe('Error Handling', () => {
           return resolve();
         }
         server.close(err => (err ? reject(err) : resolve()));
+        server = undefined;
       });
     });
     it('handles undici fetch JSON parsing errors', async () => {
@@ -128,13 +129,31 @@ describe('Error Handling', () => {
     if (isAsyncIterable(result)) {
       throw new Error('Expected a result, but got an async iterable');
     }
-    expect(result).toEqual({
+    expect(JSON.parse(JSON.stringify(result))).toEqual({
       data: {
         throwMe: null,
       },
       errors: [
-        createGraphQLError('This is an error', {}),
-        createGraphQLError('This is another error', {}),
+        {
+          locations: [
+            {
+              column: 11,
+              line: 3,
+            },
+          ],
+          message: 'This is an error',
+          path: ['throwMe'],
+        },
+        {
+          locations: [
+            {
+              column: 11,
+              line: 3,
+            },
+          ],
+          message: 'This is another error',
+          path: ['throwMe'],
+        },
       ],
     });
   });
