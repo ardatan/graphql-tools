@@ -137,7 +137,7 @@ jobs:
           max_attempts: 5
           command: yarn test:bun --ci --reporter=junit --reporter-outfile=./junit.xml
       - name: Publish Test Report
-        uses: mikepenz/action-junit-report@97744eca465b8df9e6e33271cb155003f85327f1 # v5
+        uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857 # v5
         if: success() || failure() # always run even if the previous step fails
         with:
           report_paths: './junit.xml'
