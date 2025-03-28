@@ -2,7 +2,7 @@ import { createServer, Server } from 'http';
 import { AddressInfo } from 'net';
 import { parse } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { createGraphQLError, isAsyncIterable } from '@graphql-tools/utils';
+import { isAsyncIterable } from '@graphql-tools/utils';
 import { normalizedExecutor } from '../normalizedExecutor';
 
 describe('Error Handling', () => {
