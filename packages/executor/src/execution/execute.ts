@@ -743,15 +743,14 @@ function executeField(
       // to take a second callback for the error case.
       return completed.then(undefined, rawError => {
         if (rawError instanceof AggregateError) {
-          return new AggregateError(
-            rawError.errors.map(rawErrorItem => {
-              rawErrorItem = coerceError(rawErrorItem);
-              const error = locatedError(rawErrorItem, fieldNodes, pathToArray(path));
-              const handledError = handleFieldError(error, returnType, errors);
-              filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
-              return handledError;
-            }),
-          );
+          let result: unknown;
+          for (let rawErrorItem of rawError.errors) {
+            rawErrorItem = coerceError(rawErrorItem);
+            const error = locatedError(rawErrorItem, fieldNodes, pathToArray(path));
+            result = handleFieldError(error, returnType, errors);
+            filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
+          }
+          return result;
         }
         rawError = coerceError(rawError);
         const error = locatedError(rawError, fieldNodes, pathToArray(path));
@@ -763,13 +762,14 @@ function executeField(
     return completed;
   } catch (rawError) {
     if (rawError instanceof AggregateError) {
-      return new AggregateError(
-        rawError.errors.map(rawErrorItem => {
-          const coercedError = coerceError(rawErrorItem);
-          const error = locatedError(coercedError, fieldNodes, pathToArray(path));
-          return handleFieldError(error, returnType, errors);
-        }),
-      );
+      let result: unknown;
+      for (let rawErrorItem of rawError.errors) {
+        rawErrorItem = coerceError(rawErrorItem);
+        const error = locatedError(rawErrorItem, fieldNodes, pathToArray(path));
+        result = handleFieldError(error, returnType, errors);
+        filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
+      }
+      return result;
     }
     const coercedError = coerceError(rawError);
     const error = locatedError(coercedError, fieldNodes, pathToArray(path));

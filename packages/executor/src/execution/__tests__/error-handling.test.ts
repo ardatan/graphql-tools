@@ -2,7 +2,7 @@ import { createServer, Server } from 'http';
 import { AddressInfo } from 'net';
 import { parse } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { isAsyncIterable } from '@graphql-tools/utils';
+import { createGraphQLError, isAsyncIterable } from '@graphql-tools/utils';
 import { normalizedExecutor } from '../normalizedExecutor';
 
 describe('Error Handling', () => {
@@ -35,15 +35,18 @@ describe('Error Handling', () => {
     expect(result.errors?.[0]?.message).toBe('This is not an error instance');
   });
   if (globalThis.fetch != null) {
-    let server: Server;
+    let server: Server | undefined;
     afterEach(async () => {
-      if (!server) {
+      if (!server?.listening) {
         return;
       }
       if (!globalThis.Bun) {
         server.closeAllConnections();
       }
       await new Promise<void>((resolve, reject) => {
+        if (!server) {
+          return resolve();
+        }
         server.close(err => (err ? reject(err) : resolve()));
       });
     });
@@ -52,6 +55,9 @@ describe('Error Handling', () => {
         res.end('{ "myData": "foo"');
       });
       await new Promise<void>(resolve => {
+        if (!server) {
+          throw new Error('Server is not initialized');
+        }
         server.listen(0, resolve);
       });
       const serverPort = (server.address() as AddressInfo).port;
@@ -94,4 +100,42 @@ describe('Error Handling', () => {
       }
     });
   }
+  it('handles aggregated errors', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          throwMe: String
+        }
+      `,
+      resolvers: {
+        Query: {
+          throwMe: () =>
+            new AggregateError(
+              [new Error('This is an error'), new Error('This is another error')],
+              'This is an aggregated error',
+            ),
+        },
+      },
+    });
+    const result = await normalizedExecutor({
+      schema,
+      document: parse(/* GraphQL */ `
+        query {
+          throwMe
+        }
+      `),
+    });
+    if (isAsyncIterable(result)) {
+      throw new Error('Expected a result, but got an async iterable');
+    }
+    expect(result).toEqual({
+      data: {
+        throwMe: null,
+      },
+      errors: [
+        createGraphQLError('This is an error', {}),
+        createGraphQLError('This is another error', {}),
+      ],
+    });
+  });
 });
