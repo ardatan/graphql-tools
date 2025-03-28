@@ -1,5 +1,12 @@
 # @graphql-tools/executor
 
+## 1.4.7
+
+### Patch Changes
+
+- [`cb864ad`](https://github.com/ardatan/graphql-tools/commit/cb864adc8f936c92a11e1e948d123f984e3b97fb)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fix handling of AggregateError
+
 ## 1.4.6
 
 ### Patch Changes
