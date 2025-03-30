@@ -92,7 +92,7 @@
   },
   "resolutions": {
     "cookie": "1.0.2",
-    "esbuild": "0.25.1",
+    "esbuild": "0.25.2",
     "graphql": "16.10.0"
   },
   "lint-staged": {
