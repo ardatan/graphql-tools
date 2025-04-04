@@ -71,7 +71,7 @@
     "@types/express": "5.0.1",
     "@types/valid-url": "1.0.7",
     "babel-loader": "10.0.0",
-    "express": "4.21.2",
+    "express": "5.1.0",
     "graphql-sse": "2.5.4",
     "graphql-upload": "17.0.0",
     "graphql-yoga": "5.13.2",
