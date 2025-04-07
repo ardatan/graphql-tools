@@ -1262,30 +1262,30 @@
   resolved "https://registry.yarnpkg.com/@cloudflare/unenv-preset/-/unenv-preset-2.3.1.tgz#63c6af2b92adf904f25a10e3957df0db7f161622"
   integrity sha512-Xq57Qd+ADpt6hibcVBO0uLG9zzRgyRhfCUgBT9s+g3+3Ivg5zDyVgLFy40ES1VdNcu8rPNSivm9A+kGP5IVaPg==
 
-"@cloudflare/workerd-darwin-64@1.20250404.0":
-  version "1.20250404.0"
-  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-darwin-64/-/workerd-darwin-64-1.20250404.0.tgz#fb78e5e84c770eca3ef99853268a8ff7e83052f3"
-  integrity sha512-+z67wjimn7pZDJI5Ibt2TtNxreFJdFPd5dBMmQqtIfkwrlIsL4PkjHYdiffO7guFP9UygomThuKUaBOU4JA15Q==
+"@cloudflare/workerd-darwin-64@1.20250405.0":
+  version "1.20250405.0"
+  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-darwin-64/-/workerd-darwin-64-1.20250405.0.tgz#faabbfc100260b6dfedecd8d50705b1b403a14b9"
+  integrity sha512-K3izJ+H6S+U/fIaYwArz5J3t55D//YTWV2XBz55j67tK0CkBQwnCR6vVVM4kA39GhtknrhXrYq45g0uP0rnE+A==
 
-"@cloudflare/workerd-darwin-arm64@1.20250404.0":
-  version "1.20250404.0"
-  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-darwin-arm64/-/workerd-darwin-arm64-1.20250404.0.tgz#de9156260dee9698a8189ca1f5c9634f2a782dae"
-  integrity sha512-MxFuWqR5bMcc92khreSlYOJxr0OIlJxABdrWQsaogWsxI6p7Df9gV1T36pqg+ERa9fVhkkGERkalt9DJYyYicA==
+"@cloudflare/workerd-darwin-arm64@1.20250405.0":
+  version "1.20250405.0"
+  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-darwin-arm64/-/workerd-darwin-arm64-1.20250405.0.tgz#ae69e0be981e9f6c887a644691437c3016cb3467"
+  integrity sha512-iSYQRBGnWMamCTMqlb0Oho0T8S/y85FsggcI1S9bbHaGqkVdFA1LxLo6WOjtiDT+EYoFcAKCz13OXoFZzIufkQ==
 
-"@cloudflare/workerd-linux-64@1.20250404.0":
-  version "1.20250404.0"
-  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-linux-64/-/workerd-linux-64-1.20250404.0.tgz#5553020bafef50a40f5cbc3f7b2f124cb7dcb50c"
-  integrity sha512-f4rNJ45376vGB6WHmxxiZ50nmxMws337EvWthhNAZTyeoTYmJUbZjjWCaHR8clWXN8LLK1Tu1bkjsih730X41g==
+"@cloudflare/workerd-linux-64@1.20250405.0":
+  version "1.20250405.0"
+  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-linux-64/-/workerd-linux-64-1.20250405.0.tgz#4a767e31796deb1347191624e187976d838a7e0d"
+  integrity sha512-JxU5RFe9daw1eWDAah1g/sAbOHBFx5zrmx4Rxgkji6slYO4/ZpIspd+Qm+H6PQidtaFewjA6t+VqL9qurhXfSg==
 
-"@cloudflare/workerd-linux-arm64@1.20250404.0":
-  version "1.20250404.0"
-  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-linux-arm64/-/workerd-linux-arm64-1.20250404.0.tgz#577ceda923314d11f083b35925afd21f60fb1e64"
-  integrity sha512-UW54a/vZG6W1oiA9PUSatQ0LLWrxnwAX7rN/bCFLiT6n51PP8KgpM1LzrIvQM80WjH/ufqopZJe/TSgrrSss6Q==
+"@cloudflare/workerd-linux-arm64@1.20250405.0":
+  version "1.20250405.0"
+  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-linux-arm64/-/workerd-linux-arm64-1.20250405.0.tgz#19112d441291e54ffd802b57ca0d932cba293687"
+  integrity sha512-bgZMhX+tZVYS4Ck2lgJhywWeP4NG29uMyccj+FulVYdEY+p+F3wi/q47ZjVq+U90CjhcfcAuoER4i6zrsUxXmQ==
 
-"@cloudflare/workerd-windows-64@1.20250404.0":
-  version "1.20250404.0"
-  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-windows-64/-/workerd-windows-64-1.20250404.0.tgz#e66ee5f9674b91d86324b6d1777e94a1ab88a7b5"
-  integrity sha512-AJJP8vjJ6ioBzqUxVyByv5tE74z5LZ7G5To7w7dtYjWvKZzFo39bZZwGCGryHmH4yaOylXubFv72YVH8+Y4GSQ==
+"@cloudflare/workerd-windows-64@1.20250405.0":
+  version "1.20250405.0"
+  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-windows-64/-/workerd-windows-64-1.20250405.0.tgz#361ccf3dabc27b3ad960927d1b3901f2844fa849"
+  integrity sha512-UmXGt1p+3O84E40tSPeC9l6o03gcf1n2BKFg18R+cNlpw1mbPD0iROLMMgPXCP53EJqtQGjbXuoM5ndrkCL2ww==
 
 "@corex/deepmerge@^4.0.43":
   version "4.0.43"
@@ -1606,12 +1606,12 @@
   resolved "https://registry.yarnpkg.com/@graphql-hive/signal/-/signal-1.0.0.tgz#6e2193660a47c925abadbe72293dfc9430e24f8f"
   integrity sha512-RiwLMc89lTjvyLEivZ/qxAC5nBHoS2CtsWFSOsN35sxG9zoo5Z+JsFHM8MlvmO9yt+MJNIyC5MLE1rsbOphlag==
 
-"@graphql-tools/batch-delegate@^9.0.34":
-  version "9.0.34"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/batch-delegate/-/batch-delegate-9.0.34.tgz#3cbf85ffbc71e2033dd05e804be9d5ad4b0a1829"
-  integrity sha512-CeknIh28STWElTnugnoiuJx8nGGreeG5GhnkR4JMZ1+x5/H1vzENE8K4pLpEk4CclUAajHn3b21g3pCj9+OOjQ==
+"@graphql-tools/batch-delegate@^9.0.35":
+  version "9.0.35"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/batch-delegate/-/batch-delegate-9.0.35.tgz#1445820b673f457de80d46fd1149e355d316d981"
+  integrity sha512-Q+5JJuau9qbutbxKNmuyVnWChL2it/MZeo7e5Zb5TjWVWEuQxhQhPBI7YGidsTOU74z8EIC1MeD4WQV5EsqQTg==
   dependencies:
-    "@graphql-tools/delegate" "^10.2.16"
+    "@graphql-tools/delegate" "^10.2.17"
     "@graphql-tools/utils" "^10.8.1"
     "@whatwg-node/promise-helpers" "^1.3.0"
     dataloader "^2.2.3"
@@ -1627,13 +1627,13 @@
     dataloader "^2.2.3"
     tslib "^2.8.1"
 
-"@graphql-tools/delegate@^10.1.2", "@graphql-tools/delegate@^10.2.16":
-  version "10.2.16"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/delegate/-/delegate-10.2.16.tgz#c23ba0fb9c47a16b551525a86ccf8a188b486405"
-  integrity sha512-nSsp1T2tLxy1H9FFRUfLs6rGrD880A4ClaMxGrxEPG9kKfT2vgG7YjgVFdLeE9PnaNTFKgXB3FP/2z6Va/Cfaw==
+"@graphql-tools/delegate@^10.1.2", "@graphql-tools/delegate@^10.2.17":
+  version "10.2.17"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/delegate/-/delegate-10.2.17.tgz#e245d18c5772608822108283491e24b4b1268747"
+  integrity sha512-z+LpZrTQCEXA4fbdJcSsvhaMqT4xi/O8B0mP30ENGyTbSfa20QamOQx9jgCiw2ii/ucwxfGMhygwlpZG36EU4w==
   dependencies:
     "@graphql-tools/batch-execute" "^9.0.15"
-    "@graphql-tools/executor" "^1.3.10"
+    "@graphql-tools/executor" "^1.4.7"
     "@graphql-tools/schema" "^10.0.11"
     "@graphql-tools/utils" "^10.8.1"
     "@repeaterjs/repeater" "^3.0.6"
@@ -1664,9 +1664,9 @@
     ws "^8.17.1"
 
 "@graphql-tools/executor-http@^1.1.9":
-  version "1.3.2"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-http/-/executor-http-1.3.2.tgz#1e626c7e1edbe5b9afcf85b28d8924771a5d00a4"
-  integrity sha512-G2MUd4WoeU0lH2reB8vPmid867gwU0p5V01Dq0vaTHAFYPrbQgOKbD3D0aS5Hb5ClvoZiVaepGLv9g7ApmnRUg==
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-http/-/executor-http-1.3.3.tgz#057de79ebc90edbd242259cccb1268d37ee6c579"
+  integrity sha512-LIy+l08/Ivl8f8sMiHW2ebyck59JzyzO/yF9SFS4NH6MJZUezA1xThUXCDIKhHiD56h/gPojbkpcFvM2CbNE7A==
   dependencies:
     "@graphql-hive/signal" "^1.0.0"
     "@graphql-tools/executor-common" "^0.0.4"
@@ -1679,17 +1679,17 @@
     tslib "^2.8.1"
 
 "@graphql-tools/stitch@^9.3.4":
-  version "9.4.21"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/stitch/-/stitch-9.4.21.tgz#c7d4eb68768d9fda1cb055ebd2ed4613c2251f8f"
-  integrity sha512-EA2wWNGB8sSYxpaqMmDi/3agbugvWdHPq+kYU7W1w5B3sRF229NsDhjd2GsUygqHWHnGjOxkTlUGMAjFZdCxEw==
+  version "9.4.22"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/stitch/-/stitch-9.4.22.tgz#c46122fd1c90cdc353a4d99dc11266ccb07eae2e"
+  integrity sha512-+eQuU1WQ6JXIOA+GjRH5BF+XKFIjpzcBg6qMMUMmqDmvDHKv2sH2w5uOvxghhm46YOgD36dzBetkauTyGy9U1Q==
   dependencies:
-    "@graphql-tools/batch-delegate" "^9.0.34"
-    "@graphql-tools/delegate" "^10.2.16"
-    "@graphql-tools/executor" "^1.3.10"
+    "@graphql-tools/batch-delegate" "^9.0.35"
+    "@graphql-tools/delegate" "^10.2.17"
+    "@graphql-tools/executor" "^1.4.7"
     "@graphql-tools/merge" "^9.0.12"
     "@graphql-tools/schema" "^10.0.11"
     "@graphql-tools/utils" "^10.8.1"
-    "@graphql-tools/wrap" "^10.0.34"
+    "@graphql-tools/wrap" "^10.0.35"
     "@whatwg-node/promise-helpers" "^1.3.0"
     tslib "^2.8.1"
 
@@ -1700,12 +1700,12 @@
   dependencies:
     tslib "^2.4.0"
 
-"@graphql-tools/wrap@^10.0.16", "@graphql-tools/wrap@^10.0.34":
-  version "10.0.34"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/wrap/-/wrap-10.0.34.tgz#e7aa286493418a2a5e35ac69510b5d2f86b4c55d"
-  integrity sha512-3IZr+o23XFQYP1+rwhLWNniANmEQW3aRhGtGXiGT//+naGcPKCmtLoPpOIcQ2UTjVOZCWuTbUhQJQxjuc3Xv8g==
+"@graphql-tools/wrap@^10.0.16", "@graphql-tools/wrap@^10.0.35":
+  version "10.0.35"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/wrap/-/wrap-10.0.35.tgz#02cf9054a8d42d6d21d74530e80c41443962539b"
+  integrity sha512-qBga3wo7+GqY+ClGexiyRz9xgy1RWozZryTuGX8usGWPa4wKi/tJS4rKWQQesgB3Fh//SZUCRA5u2nwZaZQw1Q==
   dependencies:
-    "@graphql-tools/delegate" "^10.2.16"
+    "@graphql-tools/delegate" "^10.2.17"
     "@graphql-tools/schema" "^10.0.11"
     "@graphql-tools/utils" "^10.8.1"
     "@whatwg-node/promise-helpers" "^1.3.0"
@@ -9246,10 +9246,10 @@ mimic-function@^5.0.0:
   resolved "https://registry.yarnpkg.com/mimic-function/-/mimic-function-5.0.1.tgz#acbe2b3349f99b9deaca7fb70e48b83e94e67076"
   integrity sha512-VP79XUPxV2CigYP3jWwAUFSku2aKqBH7uTAapFWCBqutsbmDo96KY5o8uh6U+/YSIn5OxJnXp73beVkpqMIGhA==
 
-miniflare@4.20250404.0:
-  version "4.20250404.0"
-  resolved "https://registry.yarnpkg.com/miniflare/-/miniflare-4.20250404.0.tgz#b0ee3edf0b94f5c6b8ba7a62df0ea41daa6c1cc4"
-  integrity sha512-OeNnXrOdgSoN5iDA+u1Ue3etOyPY89BJFFizMgGEPJvGTYL+kZhKqeBKeZiZIS7xjjlrfXNqleYGnCyomQ1pDQ==
+miniflare@4.20250405.0:
+  version "4.20250405.0"
+  resolved "https://registry.yarnpkg.com/miniflare/-/miniflare-4.20250405.0.tgz#1a9e0633415b33706a7fe68bea58a0edddf8468a"
+  integrity sha512-HNiuN/5ahPtMUhWWS+ulgN+Wu0OrwUxmmHwHAM8R/sUCxRWyM5kYuhZ99HeU96WPsvSV0mWkl+bxCkxlnIZkwQ==
   dependencies:
     "@cspotcode/source-map-support" "0.8.1"
     acorn "8.14.0"
@@ -9258,7 +9258,7 @@ miniflare@4.20250404.0:
     glob-to-regexp "0.4.1"
     stoppable "1.1.0"
     undici "^5.28.5"
-    workerd "1.20250404.0"
+    workerd "1.20250405.0"
     ws "8.18.0"
     youch "3.3.4"
     zod "3.22.3"
@@ -11521,10 +11521,10 @@ svelte2tsx@0.7.35:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@5.25.7:
-  version "5.25.7"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.25.7.tgz#7685763eeb5d1003170cefa4e28f4128d902d14e"
-  integrity sha512-0fzXbXaKfSvFUs6Wxev2h4CoEhexZotbTF9EJ4+Cg7MHW64ZnZ9+xUedZyEpgj0Tt9HrYGv9aASHkqjn9b/cPw==
+svelte@5.25.8:
+  version "5.25.8"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.25.8.tgz#491826f49ff804020631a2f71665d748b54786e0"
+  integrity sha512-yRmjmT5rgCZUMfCKS5varGlSe/nQyr2oClyIirbBChfTFc00YjVAyVWo1zOH74La3hi5KRSkNJKncyJ04PwIYA==
   dependencies:
     "@ampproject/remapping" "^2.3.0"
     "@jridgewell/sourcemap-codec" "^1.5.0"
@@ -12328,10 +12328,10 @@ webpack-sources@^3.2.3:
   resolved "https://registry.yarnpkg.com/webpack-sources/-/webpack-sources-3.2.3.tgz#2d4daab8451fd4b240cc27055ff6a0c2ccea0cde"
   integrity sha512-/DyMEOrDgLKKIG0fmvtz+4dUX/3Ghozwgm6iPp8KRhvn+eQf9+Q7GWxVNMk3+uCPWfdXYC4ExGBckIXdFEfH1w==
 
-webpack@5.98.0, webpack@^5:
-  version "5.98.0"
-  resolved "https://registry.yarnpkg.com/webpack/-/webpack-5.98.0.tgz#44ae19a8f2ba97537978246072fb89d10d1fbd17"
-  integrity sha512-UFynvx+gM44Gv9qFgj0acCQK2VE1CtdfwFdimkapco3hlPCJ/zeq73n2yVKimVbtm+TnApIugGhLJnkU6gjYXA==
+webpack@5.99.0, webpack@^5:
+  version "5.99.0"
+  resolved "https://registry.yarnpkg.com/webpack/-/webpack-5.99.0.tgz#6ee6499227653538e6c5b7e0bbd021f12d1c8481"
+  integrity sha512-//MpHjkKV7dhKheJ1lJuHkR6tv8ycfYy7YVzVhhIpwKuKCu5/Zty/vGpFi0fV2RRAWTYDuj6oKn4vYyLzRh55g==
   dependencies:
     "@types/eslint-scope" "^3.7.7"
     "@types/estree" "^1.0.6"
@@ -12450,30 +12450,30 @@ wordwrap@^1.0.0:
   resolved "https://registry.yarnpkg.com/wordwrap/-/wordwrap-1.0.0.tgz#27584810891456a4171c8d0226441ade90cbcaeb"
   integrity sha512-gvVzJFlPycKc5dZN4yPkP8w7Dc37BtP1yczEneOb4uq34pXZcvrtRTmWV8W+Ume+XCxKgbjM+nevkyFPMybd4Q==
 
-workerd@1.20250404.0:
-  version "1.20250404.0"
-  resolved "https://registry.yarnpkg.com/workerd/-/workerd-1.20250404.0.tgz#36b38d4727580092bc990b0542f7d7eab87a7f0b"
-  integrity sha512-dvXsRdy49/vd4nPENpTDFjbPvR3XdPa8lJrxcnDKL1XtoioYXflq3ys8ljuu+X71ojqAAjnQj62AzrmmKM095g==
+workerd@1.20250405.0:
+  version "1.20250405.0"
+  resolved "https://registry.yarnpkg.com/workerd/-/workerd-1.20250405.0.tgz#ebd76a649635e7b85cabf4818ef7064cf6305965"
+  integrity sha512-6+bOTz5ErQ8Ry91cAaRdipr/2o/EhNnRJAP69OKLii4nyU1A/EWsNhaZHGjBIPGKhla6qXS1BN41WEhFXUjI2w==
   optionalDependencies:
-    "@cloudflare/workerd-darwin-64" "1.20250404.0"
-    "@cloudflare/workerd-darwin-arm64" "1.20250404.0"
-    "@cloudflare/workerd-linux-64" "1.20250404.0"
-    "@cloudflare/workerd-linux-arm64" "1.20250404.0"
-    "@cloudflare/workerd-windows-64" "1.20250404.0"
+    "@cloudflare/workerd-darwin-64" "1.20250405.0"
+    "@cloudflare/workerd-darwin-arm64" "1.20250405.0"
+    "@cloudflare/workerd-linux-64" "1.20250405.0"
+    "@cloudflare/workerd-linux-arm64" "1.20250405.0"
+    "@cloudflare/workerd-windows-64" "1.20250405.0"
 
-wrangler@4.7.2:
-  version "4.7.2"
-  resolved "https://registry.yarnpkg.com/wrangler/-/wrangler-4.7.2.tgz#737ae5bccfac95f0c31f8380959a75e33ae2a748"
-  integrity sha512-fK9h7PL8wrrdSLCFXVDotoSHOebRmdNdB4VRkUDWOIyiP0Dx54TBfXTt3bXB98EYx7VT+vj6CNVnEC8gSCxt0w==
+wrangler@4.8.0:
+  version "4.8.0"
+  resolved "https://registry.yarnpkg.com/wrangler/-/wrangler-4.8.0.tgz#1bbdb7775a51acedd3dd864734dc60e45c45a276"
+  integrity sha512-wXRXXpBDJCbUWUT2pWNjV1tA7wTEJy8SITQOV1FJ6y1ZCgffI/53z913fa4XN3S6PfAnxBfWi2IcB/ILwHdK6A==
   dependencies:
     "@cloudflare/kv-asset-handler" "0.4.0"
     "@cloudflare/unenv-preset" "2.3.1"
     blake3-wasm "2.1.5"
     esbuild "0.24.2"
-    miniflare "4.20250404.0"
+    miniflare "4.20250405.0"
     path-to-regexp "6.3.0"
     unenv "2.0.0-rc.15"
-    workerd "1.20250404.0"
+    workerd "1.20250405.0"
   optionalDependencies:
     fsevents "~2.3.2"
     sharp "^0.33.5"
