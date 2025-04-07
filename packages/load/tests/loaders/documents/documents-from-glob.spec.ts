@@ -2,7 +2,7 @@ import { join } from 'path';
 import { parse, separateOperations } from 'graphql';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { loadDocuments, loadDocumentsSync } from '@graphql-tools/load';
+import { loadDocuments, loadDocumentsSync, NoDocumentFoundError } from '@graphql-tools/load';
 import { runTests } from '../../../../testing/utils.js';
 import '../../../../testing/to-be-similar-string';
 import { readFileSync } from 'fs';
@@ -93,15 +93,12 @@ describe('documentsFromGlob', () => {
     });
 
     test(`Should throw on empty files and empty result`, async () => {
-      try {
-        const glob = join(__dirname, 'test-files', '*.empty.graphql');
-        await load(glob, {
-          loaders: [new GraphQLFileLoader()],
-        });
-        expect(true).toBeFalsy();
-      } catch (e: any) {
-        expect(e).toBeDefined();
-      }
+      const glob = join(__dirname, 'test-files', '*.empty.graphql');
+      const promise = load(glob, {
+        loaders: [new GraphQLFileLoader()],
+      });
+
+      expect(promise).rejects.toThrow(NoDocumentFoundError);
     });
 
     test(`Should throw on invalid files`, async () => {

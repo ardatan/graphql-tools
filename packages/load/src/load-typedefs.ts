@@ -135,7 +135,7 @@ function prepareResult({
   const pointerList = Object.keys(pointerOptionMap);
 
   if (pointerList.length > 0 && validSources.length === 0) {
-    throw new Error(`
+    throw new NoDocumentFoundError(`
       Unable to find any GraphQL type definitions for the following pointers:
         ${pointerList.map(
           p => `
@@ -150,4 +150,11 @@ function prepareResult({
 
   debugTimerEnd('@graphql-tools/load: prepareResult');
   return sortedResult;
+}
+
+export class NoDocumentFoundError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = 'NoDocumentFoundError';
+  }
 }
