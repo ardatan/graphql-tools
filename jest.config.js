@@ -13,7 +13,7 @@ const ESM_PACKAGES = [
   'apollo-upload-client',
   '@apollo/client',
   'extract-files',
-  'is-plain-obj'
+  'is-plain-obj',
 ];
 
 const modulePathIgnorePatterns = ['dist', 'test-assets', 'test-files', 'fixtures', '.bob'];
@@ -66,6 +66,9 @@ module.exports = {
     '^.+\\.ts?$': 'babel-jest',
     '^.+\\.js$': 'babel-jest',
   },
-  transformIgnorePatterns: [`node_modules/(?!(${ESM_PACKAGES.join('|')})/)`, 'node_modules/apollo-upload-client/!(createUploadLink.mjs)'],
+  transformIgnorePatterns: [
+    `node_modules/(?!(${ESM_PACKAGES.join('|')})/)`,
+    'node_modules/apollo-upload-client/!(createUploadLink.mjs)',
+  ],
   resolver: 'bob-the-bundler/jest-resolver',
 };
