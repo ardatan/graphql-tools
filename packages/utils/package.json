@@ -45,8 +45,8 @@
   },
   "devDependencies": {
     "@graphql-tools/stitch": "^9.3.4",
-    "@types/dateformat": "3.0.1",
-    "dateformat": "4.6.3",
+    "@types/dateformat": "5.0.3",
+    "dateformat": "5.0.3",
     "graphql-scalars": "1.24.2"
   },
   "publishConfig": {
