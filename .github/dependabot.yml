@@ -37,6 +37,7 @@ updates:
           - 'tailwindcss'
           - 'husky'
           - '@pulumi/*'
+          - 'typedoc'
         update-types:
           - 'minor'
           - 'patch'
