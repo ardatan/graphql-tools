@@ -135,13 +135,7 @@ function prepareResult({
   const pointerList = Object.keys(pointerOptionMap);
 
   if (pointerList.length > 0 && validSources.length === 0) {
-    throw new NoDocumentFoundError(`
-      Unable to find any GraphQL type definitions for the following pointers:
-        ${pointerList.map(
-          p => `
-          - ${p}
-          `,
-        )}`);
+    throw new NoTypeDefinitionsFound(pointerList);
   }
 
   const sortedResult = options.sort
@@ -152,9 +146,16 @@ function prepareResult({
   return sortedResult;
 }
 
-export class NoDocumentFoundError extends Error {
-  constructor(message?: string) {
+export class NoTypeDefinitionsFound extends Error {
+  constructor(pointerList: string[]) {
+    const rows: string[] = [];
+    rows.push('Unable to find any GraphQL type definitions for the following pointers:');
+    pointerList.forEach(pointer => {
+      rows.push(`- ${pointer}`);
+    });
+    const message = rows.join('\n');
+
     super(message);
-    this.name = 'NoDocumentFoundError';
+    this.name = 'NoTypeDefinitionsFound';
   }
 }
