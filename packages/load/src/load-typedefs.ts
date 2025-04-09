@@ -135,13 +135,7 @@ function prepareResult({
   const pointerList = Object.keys(pointerOptionMap);
 
   if (pointerList.length > 0 && validSources.length === 0) {
-    throw new Error(`
-      Unable to find any GraphQL type definitions for the following pointers:
-        ${pointerList.map(
-          p => `
-          - ${p}
-          `,
-        )}`);
+    throw new NoTypeDefinitionsFound(pointerList);
   }
 
   const sortedResult = options.sort
@@ -150,4 +144,17 @@ function prepareResult({
 
   debugTimerEnd('@graphql-tools/load: prepareResult');
   return sortedResult;
+}
+
+export class NoTypeDefinitionsFound extends Error {
+  constructor(pointerList: string[]) {
+    super(`
+      Unable to find any GraphQL type definitions for the following pointers:
+      ${pointerList.map(
+        p => `
+        - ${p}
+        `,
+      )}`);
+    this.name = 'NoTypeDefinitionsFound';
+  }
 }
