@@ -148,14 +148,13 @@ function prepareResult({
 
 export class NoTypeDefinitionsFound extends Error {
   constructor(pointerList: string[]) {
-    const rows: string[] = [];
-    rows.push('Unable to find any GraphQL type definitions for the following pointers:');
-    pointerList.forEach(pointer => {
-      rows.push(`- ${pointer}`);
-    });
-    const message = rows.join('\n');
-
-    super(message);
+    super(`
+      Unable to find any GraphQL type definitions for the following pointers:
+      ${pointerList.map(
+        p => `
+        - ${p}
+        `,
+      )}`);
     this.name = 'NoTypeDefinitionsFound';
   }
 }
