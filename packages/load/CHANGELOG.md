@@ -1,5 +1,16 @@
 # @graphql-tools/load
 
+## 8.1.0
+
+### Minor Changes
+
+- [#7093](https://github.com/ardatan/graphql-tools/pull/7093)
+  [`4a33247`](https://github.com/ardatan/graphql-tools/commit/4a33247c159ebb0db27f0746a2b10c2b786ea8d5)
+  Thanks [@eddeee888](https://github.com/eddeee888)! - Throw NoTypeDefinitionsFound when cannot find
+  files, instead of the standard Error
+
+  This helps libraries such as GraphQL Code Generator to handle loading error cases more flexibly.
+
 ## 8.0.19
 
 ### Patch Changes
