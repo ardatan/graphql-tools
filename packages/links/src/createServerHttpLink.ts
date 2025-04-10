@@ -1,4 +1,6 @@
-import { createUploadLink, formDataAppendFile, isExtractableFile } from 'apollo-upload-client';
+import createUploadLink from 'apollo-upload-client/createUploadLink.mjs';
+import formDataAppendFile from 'apollo-upload-client/formDataAppendFile.mjs';
+import isExtractableFile from 'apollo-upload-client/isExtractableFile.mjs';
 import FormData from 'form-data';
 import fetch from 'node-fetch';
 import * as apolloImport from '@apollo/client';
