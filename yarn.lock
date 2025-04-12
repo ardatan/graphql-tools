@@ -4300,10 +4300,10 @@ astring@^1.8.0:
   resolved "https://registry.yarnpkg.com/astring/-/astring-1.9.0.tgz#cc73e6062a7eb03e7d19c22d8b0b3451fd9bfeef"
   integrity sha512-LElXdjswlqjWrPpJFg1Fx4wpkOCxj1TDHlSV4PlaRxHGWko024xICaa97ZkMfs6DRKlCguiAI+rbXv5GWwXIkg==
 
-astrojs-compiler-sync@1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/astrojs-compiler-sync/-/astrojs-compiler-sync-1.1.0.tgz#91f74c5f9b76153cdc100b1470b1a845aeaf9044"
-  integrity sha512-e8gPp8AFYz+4GqDHlxFWv9IpyO0qYyaPZPx+gABXvn4PTqdLqaiyOXUbQcpOWm++Ea8mVwpKuedAeD56yIIrHA==
+astrojs-compiler-sync@1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/astrojs-compiler-sync/-/astrojs-compiler-sync-1.1.1.tgz#c8f053bd8c6f7fe554028b132df7f6b6bc537ea9"
+  integrity sha512-0mKvB9sDQRIZPsEJadw6OaFbGJ92cJPPR++ICca9XEyiUAZqgVuk25jNmzHPT0KF80rI94trSZrUR5iHFXGGOQ==
   dependencies:
     synckit "^0.11.0"
 
@@ -11657,10 +11657,10 @@ svelte2tsx@0.7.35:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@5.26.1:
-  version "5.26.1"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.26.1.tgz#7be1cebf13364b2c397751c2aa0beb8a296b55dd"
-  integrity sha512-Hhhb7cV9il0wMWOjjf+HVyr50XdKSP/tXX6JaO4l25+sV4XsO4lA/bo/vrdbBd0f1qB48IEwJgbebi0u4rA9vA==
+svelte@5.26.2:
+  version "5.26.2"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.26.2.tgz#7f813fc492f97743c1ee5b51865f4a495d606a09"
+  integrity sha512-e2TEcGK2YKVwDWYy5OsptVclYgDvfY1E/8IzPiOq63uG/GDo/j5VUYTC9EinQNraoZalbMWN+5f5TYC1QlAqOw==
   dependencies:
     "@ampproject/remapping" "^2.3.0"
     "@jridgewell/sourcemap-codec" "^1.5.0"
