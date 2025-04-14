@@ -1052,10 +1052,10 @@
     "@changesets/types" "^6.1.0"
     dotenv "^8.1.0"
 
-"@changesets/cli@2.28.1":
-  version "2.28.1"
-  resolved "https://registry.yarnpkg.com/@changesets/cli/-/cli-2.28.1.tgz#b7f27d5e2083ffc296bfe4accdd66124fa0af291"
-  integrity sha512-PiIyGRmSc6JddQJe/W1hRPjiN4VrMvb2VfQ6Uydy2punBioQrsxppyG5WafinKcW1mT0jOe/wU4k9Zy5ff21AA==
+"@changesets/cli@2.29.0":
+  version "2.29.0"
+  resolved "https://registry.yarnpkg.com/@changesets/cli/-/cli-2.29.0.tgz#8217726f0f928823feeb588ebb64aab7581b1c4d"
+  integrity sha512-VQdSo9L/Y+PgX1HbytCSftadmHIOK20Y8mOhORDBwaelgjHccxYtO3YBDDhDdaZEPctcuH1YPmIyodHJADXwZA==
   dependencies:
     "@changesets/apply-release-plan" "^7.0.10"
     "@changesets/assemble-release-plan" "^6.0.6"
