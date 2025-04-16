@@ -1005,14 +1005,14 @@
   resolved "https://registry.yarnpkg.com/@braintree/sanitize-url/-/sanitize-url-7.1.1.tgz#15e19737d946559289b915e5dad3b4c28407735e"
   integrity sha512-i1L7noDNxtFyL5DmZafWy1wRVhGehQmzZaz1HiN5e7iylJMSZR7ekOV7NsIqa5qBldlLrsKv4HbgFUVlQrz8Mw==
 
-"@changesets/apply-release-plan@^7.0.11":
-  version "7.0.11"
-  resolved "https://registry.yarnpkg.com/@changesets/apply-release-plan/-/apply-release-plan-7.0.11.tgz#d105bc1e5e1ba111f6878020a3853249bb5019a3"
-  integrity sha512-0iDv9lXJ6dmQ42yxPJQ3N7bKytxpJ/UL4omozNDe32nU7a5Jm+AtYyEnXaLQzZd/adJdExnhkCtxMyw6jvc9lQ==
+"@changesets/apply-release-plan@^7.0.12":
+  version "7.0.12"
+  resolved "https://registry.yarnpkg.com/@changesets/apply-release-plan/-/apply-release-plan-7.0.12.tgz#8413977f117fa95f6e2db6f0c35479a2eba6960a"
+  integrity sha512-EaET7As5CeuhTzvXTQCRZeBUcisoYPDDcXvgTE/2jmmypKp0RC7LxKj/yzqeh/1qFTZI7oDGFcL1PHRuQuketQ==
   dependencies:
     "@changesets/config" "^3.1.1"
     "@changesets/get-version-range-type" "^0.4.0"
-    "@changesets/git" "^3.0.3"
+    "@changesets/git" "^3.0.4"
     "@changesets/should-skip-package" "^0.1.2"
     "@changesets/types" "^6.1.0"
     "@manypkg/get-packages" "^1.1.3"
@@ -1052,22 +1052,22 @@
     "@changesets/types" "^6.1.0"
     dotenv "^8.1.0"
 
-"@changesets/cli@2.29.1":
-  version "2.29.1"
-  resolved "https://registry.yarnpkg.com/@changesets/cli/-/cli-2.29.1.tgz#28ee9a6dde5d43f7ebcae7a5489dd95c542e7ec4"
-  integrity sha512-Y1Z7pVxM2PzKIONyz8IOhExr24HgUxyUxd7jkBkpUra0D6rTSeHuOAUE/syUIMQzzFg5r+1YFXq+YVlU/xFk/w==
+"@changesets/cli@2.29.2":
+  version "2.29.2"
+  resolved "https://registry.yarnpkg.com/@changesets/cli/-/cli-2.29.2.tgz#0d774d690ffdfa0dcc8970d3e16cb93215d3b32b"
+  integrity sha512-vwDemKjGYMOc0l6WUUTGqyAWH3AmueeyoJa1KmFRtCYiCoY5K3B68ErYpDB6H48T4lLI4czum4IEjh6ildxUeg==
   dependencies:
-    "@changesets/apply-release-plan" "^7.0.11"
+    "@changesets/apply-release-plan" "^7.0.12"
     "@changesets/assemble-release-plan" "^6.0.6"
     "@changesets/changelog-git" "^0.2.1"
     "@changesets/config" "^3.1.1"
     "@changesets/errors" "^0.2.0"
     "@changesets/get-dependents-graph" "^2.1.3"
-    "@changesets/get-release-plan" "^4.0.9"
-    "@changesets/git" "^3.0.3"
+    "@changesets/get-release-plan" "^4.0.10"
+    "@changesets/git" "^3.0.4"
     "@changesets/logger" "^0.1.1"
     "@changesets/pre" "^2.0.2"
-    "@changesets/read" "^0.6.4"
+    "@changesets/read" "^0.6.5"
     "@changesets/should-skip-package" "^0.1.2"
     "@changesets/types" "^6.1.0"
     "@changesets/write" "^0.4.0"
@@ -1124,15 +1124,15 @@
     dataloader "^1.4.0"
     node-fetch "^2.5.0"
 
-"@changesets/get-release-plan@^4.0.9":
-  version "4.0.9"
-  resolved "https://registry.yarnpkg.com/@changesets/get-release-plan/-/get-release-plan-4.0.9.tgz#0ecf0a73ffb496c3d73641a0baf79af8371ed0e4"
-  integrity sha512-fddyWtaq+c63HAMxkclZUHCO9+11w2+qicKoEYKmZdXdrUnLF/WF3GfNGI1E0e6KinO6BVxbs77KFowdhHKG3w==
+"@changesets/get-release-plan@^4.0.10":
+  version "4.0.10"
+  resolved "https://registry.yarnpkg.com/@changesets/get-release-plan/-/get-release-plan-4.0.10.tgz#2e35996232250511fdbc11085620a4f02b9bc123"
+  integrity sha512-CCJ/f3edYaA3MqoEnWvGGuZm0uMEMzNJ97z9hdUR34AOvajSwySwsIzC/bBu3+kuGDsB+cny4FljG8UBWAa7jg==
   dependencies:
     "@changesets/assemble-release-plan" "^6.0.6"
     "@changesets/config" "^3.1.1"
     "@changesets/pre" "^2.0.2"
-    "@changesets/read" "^0.6.4"
+    "@changesets/read" "^0.6.5"
     "@changesets/types" "^6.1.0"
     "@manypkg/get-packages" "^1.1.3"
 
@@ -1141,10 +1141,10 @@
   resolved "https://registry.yarnpkg.com/@changesets/get-version-range-type/-/get-version-range-type-0.4.0.tgz#429a90410eefef4368502c41c63413e291740bf5"
   integrity sha512-hwawtob9DryoGTpixy1D3ZXbGgJu1Rhr+ySH2PvTLHvkZuQ7sRT4oQwMh0hbqZH1weAooedEjRsbrWcGLCeyVQ==
 
-"@changesets/git@^3.0.3":
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/@changesets/git/-/git-3.0.3.tgz#3558840000b88ca5ff3398ca9bd201b47e0b67bf"
-  integrity sha512-YWMBHldVK7+KuMIKl0GZJGDU+UaWaCFh/CSnQwU+rIZ5cH7dDovpOxD+lxXa6a4jdgv/6GnO619N6VidTJbSLw==
+"@changesets/git@^3.0.4":
+  version "3.0.4"
+  resolved "https://registry.yarnpkg.com/@changesets/git/-/git-3.0.4.tgz#75e3811ab407ec010beb51131ceb5c6b3975c914"
+  integrity sha512-BXANzRFkX+XcC1q/d27NKvlJ1yf7PSAgi8JG6dt8EfbHFHi4neau7mufcSca5zRhwOL8j9s6EqsxmT+s+/E6Sw==
   dependencies:
     "@changesets/errors" "^0.2.0"
     "@manypkg/get-packages" "^1.1.3"
@@ -1177,12 +1177,12 @@
     "@manypkg/get-packages" "^1.1.3"
     fs-extra "^7.0.1"
 
-"@changesets/read@^0.6.4":
-  version "0.6.4"
-  resolved "https://registry.yarnpkg.com/@changesets/read/-/read-0.6.4.tgz#ee87725d59e54b8cdf452807ac127f1f408801a7"
-  integrity sha512-XP6rUXTp8gWQ6rI2aSJc07RNuQjNaabhFFJbuhQHG71w9+LYRWK6j79OwWEF8v44cpkfNXLByMrNw1NntGY14w==
+"@changesets/read@^0.6.5":
+  version "0.6.5"
+  resolved "https://registry.yarnpkg.com/@changesets/read/-/read-0.6.5.tgz#7a68457e6356d3df187aa18e388f1b8dba3d2156"
+  integrity sha512-UPzNGhsSjHD3Veb0xO/MwvasGe8eMyNrR/sT9gR8Q3DhOQZirgKhhXv/8hVsI0QpPjR004Z9iFxoJU6in3uGMg==
   dependencies:
-    "@changesets/git" "^3.0.3"
+    "@changesets/git" "^3.0.4"
     "@changesets/logger" "^0.1.1"
     "@changesets/parse" "^0.4.1"
     "@changesets/types" "^6.1.0"
