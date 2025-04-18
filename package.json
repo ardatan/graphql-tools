@@ -45,7 +45,7 @@
     "ts:check": "tsc --noEmit"
   },
   "devDependencies": {
-    "@apollo/client": "3.13.7",
+    "@apollo/client": "3.13.8",
     "@babel/core": "7.26.10",
     "@babel/plugin-proposal-class-properties": "7.18.6",
     "@babel/plugin-proposal-explicit-resource-management": "7.25.9",
@@ -62,7 +62,7 @@
     "@urql/core": "5.1.1",
     "babel-jest": "29.7.0",
     "bob-the-bundler": "7.0.1",
-    "bun": "1.2.9",
+    "bun": "1.2.10",
     "chalk": "5.4.1",
     "concurrently": "9.1.2",
     "cross-env": "7.0.3",
