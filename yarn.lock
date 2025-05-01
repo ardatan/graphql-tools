@@ -68,10 +68,10 @@
     relay-runtime "12.0.0"
     signedsource "^1.0.0"
 
-"@astrojs/compiler@2.11.0":
-  version "2.11.0"
-  resolved "https://registry.yarnpkg.com/@astrojs/compiler/-/compiler-2.11.0.tgz#4f9d92c64848bcf0d2ff6e7fd0dc3ce47caa0cd2"
-  integrity sha512-zZOO7i+JhojO8qmlyR/URui6LyfHJY6m+L9nwyX5GiKD78YoRaZ5tzz6X0fkl+5bD3uwlDHayf6Oe8Fu36RKNg==
+"@astrojs/compiler@2.12.0":
+  version "2.12.0"
+  resolved "https://registry.yarnpkg.com/@astrojs/compiler/-/compiler-2.12.0.tgz#36fa2b6a5214763a995775699b4d18f63de42de6"
+  integrity sha512-7bCjW6tVDpUurQLeKBUN9tZ5kSv5qYrGmcn0sG0IwacL7isR2ZbyyA3AdZ4uxsuUFOS2SlgReTH7wkxO6zpqWA==
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.12.13", "@babel/code-frame@^7.27.1":
   version "7.27.1"
@@ -4985,10 +4985,10 @@ content-disposition@^1.0.0:
   dependencies:
     safe-buffer "5.2.1"
 
-content-tag@3.1.2:
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/content-tag/-/content-tag-3.1.2.tgz#f2d1bcbe92403c1a0d00ad79c11273188e4949e1"
-  integrity sha512-Z+MGhZfnFFKzYC+pUTWXnoDYhfiXP9ojZe3JbwsYufmDuoeq2EvuDyeFAJ/RnKokUwz5s9bQhDOrbvSYRShcrQ==
+content-tag@3.1.3:
+  version "3.1.3"
+  resolved "https://registry.yarnpkg.com/content-tag/-/content-tag-3.1.3.tgz#4ef462f459a81ba73945dd661a8041bf8062cc03"
+  integrity sha512-4Kiv9mEroxuMXfWUNUHcljVJgxThCNk7eEswdHMXdzJnkBBaYDqDwzHkoh3F74JJhfU3taJOsgpR6oEGIDg17g==
 
 content-type@^1.0.5:
   version "1.0.5"
