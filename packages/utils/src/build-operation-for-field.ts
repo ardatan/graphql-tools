@@ -395,6 +395,7 @@ function resolveVariable(arg: GraphQLArgument, name?: string): VariableDefinitio
       },
     },
     type: resolveVariableType(arg.type),
+    defaultValue: (arg.astNode || {}).defaultValue,
   };
 }
 
