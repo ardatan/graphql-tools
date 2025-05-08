@@ -2683,10 +2683,10 @@
   resolved "https://registry.yarnpkg.com/@polka/url/-/url-1.0.0-next.29.tgz#5a40109a1ab5f84d6fd8fc928b19f367cbe7e7b1"
   integrity sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==
 
-"@puppeteer/browsers@2.10.3":
-  version "2.10.3"
-  resolved "https://registry.yarnpkg.com/@puppeteer/browsers/-/browsers-2.10.3.tgz#4d89b3520359da6f7016ff96316c2c243be2b3ee"
-  integrity sha512-iPpnFpX25gKIVsHsqVjHV+/GzW36xPgsscWkCnrrETndcdxNsXLdCrTwhkCJNR/FGWr122dJUBeyV4niz/j3TA==
+"@puppeteer/browsers@2.10.4":
+  version "2.10.4"
+  resolved "https://registry.yarnpkg.com/@puppeteer/browsers/-/browsers-2.10.4.tgz#9f8923b206f7932a06d32271b14bbea3368b38f2"
+  integrity sha512-9DxbZx+XGMNdjBynIs4BRSz+M3iRDeB7qRcAr6UORFLphCIM2x3DXgOucvADiifcqCE4XePFUKcnaAMyGbrDlQ==
   dependencies:
     debug "^4.4.0"
     extract-zip "^2.0.1"
@@ -3579,10 +3579,10 @@
     "@types/node" "*"
     form-data "^4.0.0"
 
-"@types/node@*", "@types/node@22.15.15":
-  version "22.15.15"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.15.15.tgz#8877c05c18e552e738438e477d7ba22c5d73a57c"
-  integrity sha512-R5muMcZob3/Jjchn5LcO8jdKwSCbzqmPB6ruBxMcf9kbxtniZHP327s6C37iOfuw8mbKK3cAQa7sEl7afLrQ8A==
+"@types/node@*", "@types/node@22.15.17":
+  version "22.15.17"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.15.17.tgz#355ccec95f705b664e4332bb64a7f07db30b7055"
+  integrity sha512-wIX2aSZL5FE+MR0JlvF87BNVrtFWf6AE6rxSE9X7OwnVvoyCQjpzSRJ+M87se/4QCkCiebQAqrJ0y6fwIyi7nw==
   dependencies:
     undici-types "~6.21.0"
 
@@ -10414,28 +10414,28 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.1.tgz#027422e2faec0b25e1549c3e1bd8309b9133b6e5"
   integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
 
-puppeteer-core@24.8.1:
-  version "24.8.1"
-  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-24.8.1.tgz#20728f431f4ed2daba23515df1f1a586c663b4ba"
-  integrity sha512-UP/VIxVk/Akrgql3a55ZAIuAIx7+yQevz6qEXFUtSTIynEcgsCJ6tlRdi7uKAAlovmNQG4iNMzq9f8WxZLnGGg==
+puppeteer-core@24.8.2:
+  version "24.8.2"
+  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-24.8.2.tgz#f3e939e39e001d9933e79d980371e380d9e535c1"
+  integrity sha512-wNw5cRZOHiFibWc0vdYCYO92QuKTbJ8frXiUfOq/UGJWMqhPoBThTKkV+dJ99YyWfzJ2CfQQ4T1nhhR0h8FlVw==
   dependencies:
-    "@puppeteer/browsers" "2.10.3"
+    "@puppeteer/browsers" "2.10.4"
     chromium-bidi "5.1.0"
     debug "^4.4.0"
     devtools-protocol "0.0.1439962"
     typed-query-selector "^2.12.0"
     ws "^8.18.2"
 
-puppeteer@24.8.1:
-  version "24.8.1"
-  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-24.8.1.tgz#820ecaec7a793ab5b8fa30269ae5e1b8e7c68cc8"
-  integrity sha512-5OvJCe6tQ09EWf35qqyoH/cr9YGMbLj0ZpoT2pEImF9Ox35JXyAn8kIqj8eBgpDfyzuEwXYIMUwIAIkdgO/gDA==
+puppeteer@24.8.2:
+  version "24.8.2"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-24.8.2.tgz#3ee6cfe74e4cc8dc4dd5cb4b553f4d4416df935f"
+  integrity sha512-Sn6SBPwJ6ASFvQ7knQkR+yG7pcmr4LfXzmoVp3NR0xXyBbPhJa8a8ybtb6fnw1g/DD/2t34//yirubVczko37w==
   dependencies:
-    "@puppeteer/browsers" "2.10.3"
+    "@puppeteer/browsers" "2.10.4"
     chromium-bidi "5.1.0"
     cosmiconfig "^9.0.0"
     devtools-protocol "0.0.1439962"
-    puppeteer-core "24.8.1"
+    puppeteer-core "24.8.2"
     typed-query-selector "^2.12.0"
 
 pure-rand@^6.0.0:
@@ -12649,10 +12649,10 @@ workerd@1.20250507.0:
     "@cloudflare/workerd-linux-arm64" "1.20250507.0"
     "@cloudflare/workerd-windows-64" "1.20250507.0"
 
-wrangler@4.14.3:
-  version "4.14.3"
-  resolved "https://registry.yarnpkg.com/wrangler/-/wrangler-4.14.3.tgz#99266a21bc48ccca5faf6749d748db0279698789"
-  integrity sha512-gY2n3cC8yb8VyaM0aY9fXX5AIah+VkGefmAHltUBgVpJaM4QXun6O85BydtTEljLL67JTyFyBDn/UPyg2WhESQ==
+wrangler@4.14.4:
+  version "4.14.4"
+  resolved "https://registry.yarnpkg.com/wrangler/-/wrangler-4.14.4.tgz#2c81e084babe3e0e8f01d477c9db171156dbb4e0"
+  integrity sha512-HIdOdiMIcJV5ymw80RKsr3Uzen/p1kRX4jnCEmR2XVeoEhV2Qw6GABxS5WMTlSES2/vEX0Y+ezUAdsprcUhJ5g==
   dependencies:
     "@cloudflare/kv-asset-handler" "0.4.0"
     "@cloudflare/unenv-preset" "2.3.1"
