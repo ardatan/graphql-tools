@@ -5000,10 +5000,10 @@ content-disposition@^1.0.0:
   dependencies:
     safe-buffer "5.2.1"
 
-content-tag@3.1.3:
-  version "3.1.3"
-  resolved "https://registry.yarnpkg.com/content-tag/-/content-tag-3.1.3.tgz#4ef462f459a81ba73945dd661a8041bf8062cc03"
-  integrity sha512-4Kiv9mEroxuMXfWUNUHcljVJgxThCNk7eEswdHMXdzJnkBBaYDqDwzHkoh3F74JJhfU3taJOsgpR6oEGIDg17g==
+content-tag@4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/content-tag/-/content-tag-4.0.0.tgz#22336e58901488389c3f8c307ed0f2059c678f07"
+  integrity sha512-qqJiY9nueYAI396MOmfOk+w/0KL6ERKxANQcSKcR0CrNTc38yT//b73l+WHr9brZx57bFHNaW7a/6Yll0bn95w==
 
 content-type@^1.0.5:
   version "1.0.5"
