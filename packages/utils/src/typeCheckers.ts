@@ -8,6 +8,8 @@ import type {
   GraphQLInterfaceType,
   GraphQLLeafType,
   GraphQLList,
+  GraphQLNamedInputType,
+  GraphQLNamedOutputType,
   GraphQLNamedType,
   GraphQLNonNull,
   GraphQLNullableType,
@@ -18,6 +20,7 @@ import type {
   GraphQLType,
   GraphQLUnionType,
 } from 'graphql';
+import type { Maybe } from './types.js';
 
 export function isAbstractType(type: any): type is GraphQLAbstractType {
   return isUnionType(type) || isInterfaceType(type);
@@ -92,8 +95,14 @@ export function isOutputType(type: any): type is GraphQLOutputType {
     isEnumType(namedType)
   );
 }
-
-export function getNamedType(type?: GraphQLType): GraphQLNamedType | undefined {
+export function getNamedType(type: undefined | null): void;
+export function getNamedType(type: GraphQLInputType): GraphQLNamedInputType;
+export function getNamedType(type: GraphQLOutputType): GraphQLNamedOutputType;
+export function getNamedType(type: GraphQLType): GraphQLNamedType;
+export function getNamedType(type: Maybe<GraphQLType>): GraphQLNamedType | undefined;
+export function getNamedType<T extends GraphQLNamedType>(
+  type: T | GraphQLList<T> | GraphQLNonNull<T>,
+): GraphQLNamedType {
   if (type != null) {
     if (isNonNullType(type)) {
       return getNamedType(type.ofType);

@@ -1,6 +1,5 @@
 import {
   ArgumentNode,
-  getNamedType,
   GraphQLArgument,
   GraphQLField,
   GraphQLInputType,
@@ -22,6 +21,7 @@ import {
 } from 'graphql';
 import { getDefinedRootType, getRootTypeNames } from './rootTypes.js';
 import {
+  getNamedType,
   isEnumType,
   isInterfaceType,
   isListType,
