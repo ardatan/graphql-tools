@@ -23,15 +23,6 @@ import {
   InputObjectTypeDefinitionNode,
   InputValueDefinitionNode,
   InterfaceTypeDefinitionNode,
-  isEnumType,
-  isInputObjectType,
-  isInterfaceType,
-  isIntrospectionType,
-  isObjectType,
-  isScalarType,
-  isSpecifiedDirective,
-  isSpecifiedScalarType,
-  isUnionType,
   Kind,
   NamedTypeNode,
   ObjectTypeDefinitionNode,
@@ -55,6 +46,17 @@ import {
 } from './get-directives.js';
 import { isSome } from './helpers.js';
 import { getRootTypeMap } from './rootTypes.js';
+import {
+  isEnumType,
+  isInputObjectType,
+  isInterfaceType,
+  isIntrospectionType,
+  isObjectType,
+  isScalarType,
+  isSpecifiedDirective,
+  isSpecifiedScalarType,
+  isUnionType,
+} from './typeCheckers.js';
 import {
   GetDocumentNodeFromSchemaOptions,
   Maybe,

@@ -1,7 +1,10 @@
+import { getNamedType, GraphQLFieldMap, GraphQLSchema } from 'graphql';
+import { DirectableGraphQLObject } from './get-directives.js';
+import { getImplementingTypes } from './get-implementing-types.js';
+import { MapperKind } from './Interfaces.js';
+import { mapSchema } from './mapSchema.js';
+import { getRootTypes } from './rootTypes.js';
 import {
-  getNamedType,
-  GraphQLFieldMap,
-  GraphQLSchema,
   isEnumType,
   isInputObjectType,
   isInterfaceType,
@@ -9,12 +12,7 @@ import {
   isScalarType,
   isSpecifiedScalarType,
   isUnionType,
-} from 'graphql';
-import { DirectableGraphQLObject } from './get-directives.js';
-import { getImplementingTypes } from './get-implementing-types.js';
-import { MapperKind } from './Interfaces.js';
-import { mapSchema } from './mapSchema.js';
-import { getRootTypes } from './rootTypes.js';
+} from './typeCheckers.js';
 import { PruneSchemaOptions } from './types.js';
 
 /**

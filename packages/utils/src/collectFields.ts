@@ -8,7 +8,6 @@ import {
   GraphQLSchema,
   GraphQLSkipDirective,
   InlineFragmentNode,
-  isAbstractType,
   Kind,
   SelectionSetNode,
   typeFromAST,
@@ -16,6 +15,7 @@ import {
 import { AccumulatorMap } from './AccumulatorMap.js';
 import { GraphQLDeferDirective } from './directives.js';
 import { memoize5 } from './memoize.js';
+import { isAbstractType } from './typeCheckers.js';
 
 export interface PatchFields {
   label: string | undefined;

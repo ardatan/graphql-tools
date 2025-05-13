@@ -1,9 +1,6 @@
 import stringify from 'fast-json-stable-stringify';
+import { getNullableType, GraphQLOutputType, GraphQLSchema, GraphQLString } from 'graphql';
 import {
-  getNullableType,
-  GraphQLOutputType,
-  GraphQLSchema,
-  GraphQLString,
   isAbstractType,
   isCompositeType,
   isEnumType,
@@ -12,7 +9,7 @@ import {
   isNullableType,
   isObjectType,
   isScalarType,
-} from 'graphql';
+} from '@graphql-tools/utils';
 import { deepResolveMockList, isMockList } from './MockList.js';
 import {
   assertIsRef,

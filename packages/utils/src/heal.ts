@@ -11,6 +11,8 @@ import {
   GraphQLSchema,
   GraphQLType,
   GraphQLUnionType,
+} from 'graphql';
+import {
   isInputObjectType,
   isInterfaceType,
   isLeafType,
@@ -19,7 +21,7 @@ import {
   isNonNullType,
   isObjectType,
   isUnionType,
-} from 'graphql';
+} from './typeCheckers.js';
 
 // Update any references to named schema types that disagree with the named
 // types found in schema.getTypeMap().

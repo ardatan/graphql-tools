@@ -10,13 +10,6 @@ import {
   GraphQLObjectType,
   GraphQLSchema,
   InlineFragmentNode,
-  isEnumType,
-  isInterfaceType,
-  isListType,
-  isNonNullType,
-  isObjectType,
-  isScalarType,
-  isUnionType,
   Kind,
   ListTypeNode,
   NonNullTypeNode,
@@ -28,6 +21,15 @@ import {
   VariableDefinitionNode,
 } from 'graphql';
 import { getDefinedRootType, getRootTypeNames } from './rootTypes.js';
+import {
+  isEnumType,
+  isInterfaceType,
+  isListType,
+  isNonNullType,
+  isObjectType,
+  isScalarType,
+  isUnionType,
+} from './typeCheckers.js';
 
 let operationVariables: VariableDefinitionNode[] = [];
 let fieldTypeMap = new Map();

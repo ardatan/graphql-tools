@@ -2,15 +2,20 @@ import {
   coerceInputValue,
   GraphQLError,
   GraphQLSchema,
-  isInputType,
-  isNonNullType,
   NamedTypeNode,
   print,
   typeFromAST,
   valueFromAST,
   VariableDefinitionNode,
 } from 'graphql';
-import { createGraphQLError, hasOwnProperty, inspect, printPathArray } from '@graphql-tools/utils';
+import {
+  createGraphQLError,
+  hasOwnProperty,
+  inspect,
+  isInputType,
+  isNonNullType,
+  printPathArray,
+} from '@graphql-tools/utils';
 
 type CoercedVariableValues =
   | { errors: ReadonlyArray<GraphQLError>; coerced?: never }

@@ -26,15 +26,10 @@
 // enhanceSchema can fill this gap by adding an additional round of rewiring.
 //
 
-import {
-  GraphQLDirective,
-  GraphQLNamedType,
-  GraphQLSchema,
-  isDirective,
-  isNamedType,
-} from 'graphql';
+import { GraphQLDirective, GraphQLNamedType, GraphQLSchema, isDirective } from 'graphql';
 import { getObjectTypeFromTypeMap } from './getObjectTypeFromTypeMap.js';
 import { rewireTypes } from './rewire.js';
+import { isNamedType } from './typeCheckers.js';
 
 export function addTypes(
   schema: GraphQLSchema,

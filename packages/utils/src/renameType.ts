@@ -6,13 +6,15 @@ import {
   GraphQLObjectType,
   GraphQLScalarType,
   GraphQLUnionType,
+} from 'graphql';
+import {
   isEnumType,
   isInputObjectType,
   isInterfaceType,
   isObjectType,
   isScalarType,
   isUnionType,
-} from 'graphql';
+} from './typeCheckers.js';
 
 export function renameType(type: GraphQLObjectType, newTypeName: string): GraphQLObjectType;
 export function renameType(type: GraphQLInterfaceType, newTypeName: string): GraphQLInterfaceType;

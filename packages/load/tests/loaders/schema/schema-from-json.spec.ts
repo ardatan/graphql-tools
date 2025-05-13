@@ -1,8 +1,9 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { isSchema, isSpecifiedScalarType } from 'graphql';
+import { GraphQLSchema } from 'graphql';
 import { JsonFileLoader } from '@graphql-tools/json-file-loader';
 import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
+import { isSpecifiedScalarType } from '@graphql-tools/utils';
 import { runTests, useMonorepo } from '../../../../testing/utils.js';
 
 const monorepo = useMonorepo({
@@ -27,14 +28,14 @@ describe('Schema From Export', () => {
         loaders: [new JsonFileLoader()],
         cwd: __dirname,
       });
-      expect(isSchema(schema)).toBeTruthy();
+      expect(schema).toBeInstanceOf(GraphQLSchema);
     });
     it('should load the schema with correct descriptions', async () => {
       const schema = await load('./test-files/githunt.json', {
         loaders: [new JsonFileLoader()],
         cwd: __dirname,
       });
-      expect(isSchema(schema)).toBeTruthy();
+      expect(schema).toBeInstanceOf(GraphQLSchema);
       for (const typeName in schema.getTypeMap()) {
         const githuntJsonFile = readFileSync(join(__dirname, './test-files/githunt.json'), 'utf-8');
         const introspectionSchema = JSON.parse(githuntJsonFile).__schema;

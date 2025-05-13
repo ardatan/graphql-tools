@@ -1,5 +1,11 @@
-import { getNamedType, GraphQLField, GraphQLSchema, isScalarType } from 'graphql';
-import { forEachField, IResolverValidationOptions, ValidatorBehavior } from '@graphql-tools/utils';
+import { GraphQLField, GraphQLSchema } from 'graphql';
+import {
+  forEachField,
+  getNamedType,
+  IResolverValidationOptions,
+  isScalarType,
+  ValidatorBehavior,
+} from '@graphql-tools/utils';
 
 export function assertResolversPresent(
   schema: GraphQLSchema,

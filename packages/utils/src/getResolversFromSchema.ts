@@ -1,14 +1,13 @@
+import { GraphQLScalarType, GraphQLSchema } from 'graphql';
+import { IResolvers } from './Interfaces.js';
 import {
-  GraphQLScalarType,
-  GraphQLSchema,
   isEnumType,
   isInterfaceType,
   isObjectType,
   isScalarType,
   isSpecifiedScalarType,
   isUnionType,
-} from 'graphql';
-import { IResolvers } from './Interfaces.js';
+} from './typeCheckers.js';
 
 export function getResolversFromSchema(
   schema: GraphQLSchema,

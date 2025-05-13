@@ -6,9 +6,6 @@ import {
   GraphQLObjectType,
   GraphQLOutputType,
   GraphQLSchema,
-  isAbstractType,
-  isListType,
-  isObjectType,
   Kind,
   OperationDefinitionNode,
   SchemaMetaFieldDef,
@@ -18,6 +15,7 @@ import {
 import { collectFields, collectSubFields } from './collectFields.js';
 import { getOperationASTFromRequest } from './getOperationASTFromRequest.js';
 import { ExecutionRequest, ExecutionResult } from './Interfaces.js';
+import { isAbstractType, isListType, isObjectType } from './typeCheckers.js';
 import { Maybe } from './types.js';
 
 export type ValueVisitor = (value: any) => any;
