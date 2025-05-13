@@ -397,7 +397,7 @@ export const getFragmentsFromDocument = memoize1(function getFragmentsFromDocume
   return fragments;
 });
 
-const validateSchemaMemoized = memoize1(validateSchema);
+const validSchemas = new WeakSet<GraphQLSchema>();
 
 /**
  * Constructs a ExecutionContext object from the arguments passed to
@@ -427,9 +427,12 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
   signal?.throwIfAborted();
 
   // If the schema used for execution is invalid, throw an error.
-  const errors = validateSchemaMemoized(schema);
-  if (errors?.length) {
-    return errors;
+  if (!validSchemas.has(schema)) {
+    const validationErrors = validateSchema(schema);
+    if (validationErrors?.length) {
+      return validationErrors;
+    }
+    validSchemas.add(schema);
   }
 
   const fragments: Record<string, FragmentDefinitionNode> = getFragmentsFromDocument(document);
