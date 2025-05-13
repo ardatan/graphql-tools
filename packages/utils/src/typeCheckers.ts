@@ -144,3 +144,10 @@ export function isSpecifiedDirective(type: any) {
 export function isSchema(type: any): type is GraphQLSchema {
   return type?.[Symbol.toStringTag] === 'GraphQLSchema';
 }
+
+export function getNullableType<T extends GraphQLNullableType>(type: GraphQLNonNull<T> | T): T {
+  if (isNonNullType(type)) {
+    return type.ofType;
+  }
+  return type;
+}

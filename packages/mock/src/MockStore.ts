@@ -1,6 +1,7 @@
 import stringify from 'fast-json-stable-stringify';
-import { getNullableType, GraphQLOutputType, GraphQLSchema, GraphQLString } from 'graphql';
+import { GraphQLOutputType, GraphQLSchema, GraphQLString } from 'graphql';
 import {
+  getNullableType,
   isAbstractType,
   isCompositeType,
   isEnumType,
