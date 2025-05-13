@@ -55,20 +55,19 @@ export function isNullableType(type: any): type is GraphQLNullableType {
   return type?.[Symbol.toStringTag] !== 'GraphQLNonNull';
 }
 
-export function isNonNullType(type: GraphQLInputType): type is GraphQLNonNull<GraphQLInputType>;
-export function isNonNullType(type: GraphQLOutputType): type is GraphQLNonNull<GraphQLOutputType>;
-export function isNonNullType(type: unknown): type is GraphQLNonNull<GraphQLType>;
-export function isNonNullType<T extends GraphQLType>(type: any): type is GraphQLNonNull<T> {
+export function isNonNullType<T extends GraphQLType>(
+  type: T | GraphQLNonNull<T>,
+): type is GraphQLNonNull<T> {
   return type?.[Symbol.toStringTag] === 'GraphQLNonNull';
 }
 
 export function isCompositeType(type: any): type is GraphQLCompositeType {
   return isObjectType(type) || isInterfaceType(type) || isUnionType(type);
 }
-export function isListType(type: GraphQLInputType): type is GraphQLList<GraphQLInputType>;
-export function isListType(type: GraphQLOutputType): type is GraphQLList<GraphQLOutputType>;
-export function isListType(type: unknown): type is GraphQLList<GraphQLType>;
-export function isListType<T extends GraphQLType>(type: any): type is GraphQLList<T> {
+
+export function isListType<T extends GraphQLType>(
+  type: T | GraphQLList<T>,
+): type is GraphQLList<T> {
   return type?.[Symbol.toStringTag] === 'GraphQLList';
 }
 
@@ -95,11 +94,13 @@ export function isOutputType(type: any): type is GraphQLOutputType {
 }
 
 export function getNamedType(type?: GraphQLType): GraphQLNamedType | undefined {
-  if (isNonNullType(type)) {
-    return getNamedType(type.ofType);
-  }
-  if (isListType(type)) {
-    return getNamedType(type.ofType);
+  if (type != null) {
+    if (isNonNullType(type)) {
+      return getNamedType(type.ofType);
+    }
+    if (isListType(type)) {
+      return getNamedType(type.ofType);
+    }
   }
   return type;
 }
