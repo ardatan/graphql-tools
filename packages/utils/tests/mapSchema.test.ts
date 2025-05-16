@@ -19,9 +19,6 @@ import {
   GraphQLString,
   graphqlSync,
   GraphQLUnionType,
-  isListType,
-  isNonNullType,
-  isScalarType,
   printSchema,
 } from 'graphql';
 import { addMocksToSchema } from '@graphql-tools/mock';
@@ -30,6 +27,9 @@ import {
   ExecutionResult,
   getDirective,
   getDirectives,
+  isListType,
+  isNonNullType,
+  isScalarType,
   MapperKind,
   mapSchema,
 } from '../src/index.js';
