@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@graphql-tools/executor-graphql-ws": "^2.0.1",
-    "@graphql-tools/executor-http": "^1.1.9",
+    "@graphql-tools/executor-http": "^2.0.1",
     "@graphql-tools/executor-legacy-ws": "^1.1.17",
     "@graphql-tools/utils": "^10.8.6",
     "@graphql-tools/wrap": "^10.0.16",
