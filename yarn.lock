@@ -1255,10 +1255,10 @@
   dependencies:
     mime "^3.0.0"
 
-"@cloudflare/unenv-preset@2.3.1":
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/@cloudflare/unenv-preset/-/unenv-preset-2.3.1.tgz#63c6af2b92adf904f25a10e3957df0db7f161622"
-  integrity sha512-Xq57Qd+ADpt6hibcVBO0uLG9zzRgyRhfCUgBT9s+g3+3Ivg5zDyVgLFy40ES1VdNcu8rPNSivm9A+kGP5IVaPg==
+"@cloudflare/unenv-preset@2.3.2":
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/@cloudflare/unenv-preset/-/unenv-preset-2.3.2.tgz#356a449ac8f45989486e4d121ca35e597d70fbb0"
+  integrity sha512-MtUgNl+QkQyhQvv5bbWP+BpBC1N0me4CHHuP2H4ktmOMKdB/6kkz/lo+zqiA4mEazb4y+1cwyNjVrQ2DWeE4mg==
 
 "@cloudflare/workerd-darwin-64@1.20250508.0":
   version "1.20250508.0"
@@ -2667,16 +2667,16 @@
   resolved "https://registry.yarnpkg.com/@polka/url/-/url-1.0.0-next.29.tgz#5a40109a1ab5f84d6fd8fc928b19f367cbe7e7b1"
   integrity sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==
 
-"@puppeteer/browsers@2.10.4":
-  version "2.10.4"
-  resolved "https://registry.yarnpkg.com/@puppeteer/browsers/-/browsers-2.10.4.tgz#9f8923b206f7932a06d32271b14bbea3368b38f2"
-  integrity sha512-9DxbZx+XGMNdjBynIs4BRSz+M3iRDeB7qRcAr6UORFLphCIM2x3DXgOucvADiifcqCE4XePFUKcnaAMyGbrDlQ==
+"@puppeteer/browsers@2.10.5":
+  version "2.10.5"
+  resolved "https://registry.yarnpkg.com/@puppeteer/browsers/-/browsers-2.10.5.tgz#dddb8f8716ae6364f6f2d31125e76f311dd4a49d"
+  integrity sha512-eifa0o+i8dERnngJwKrfp3dEq7ia5XFyoqB17S4gK8GhsQE4/P8nxOfQSE0zQHxzzLo/cmF+7+ywEQ7wK7Fb+w==
   dependencies:
-    debug "^4.4.0"
+    debug "^4.4.1"
     extract-zip "^2.0.1"
     progress "^2.0.3"
     proxy-agent "^6.5.0"
-    semver "^7.7.1"
+    semver "^7.7.2"
     tar-fs "^3.0.8"
     yargs "^17.7.2"
 
@@ -5451,7 +5451,7 @@ debounce@^1.2.1:
   resolved "https://registry.yarnpkg.com/debounce/-/debounce-1.2.1.tgz#38881d8f4166a5c5848020c11827b834bcb3e0a5"
   integrity sha512-XRRe6Glud4rd/ZGQfiV1ruXSfbvfJedlV9Y6zOlP+2K04vBYiJEte6stfFkCP03aMnY5tsipamumUjL14fofug==
 
-debug@4, debug@^4.0.0, debug@^4.1.0, debug@^4.1.1, debug@^4.3.1, debug@^4.3.2, debug@^4.3.4, debug@^4.3.5, debug@^4.4.0:
+debug@4, debug@^4.0.0, debug@^4.1.0, debug@^4.1.1, debug@^4.3.1, debug@^4.3.2, debug@^4.3.4, debug@^4.3.5, debug@^4.4.0, debug@^4.4.1:
   version "4.4.1"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.4.1.tgz#e5a8bc6cbc4c6cd3e64308b0693a3d4fa550189b"
   integrity sha512-KcKCqiftBJcZr++7ykoDIEwSa3XWowTfNPo92BYxjXiyYEVrUQh2aLyhxBCwww+heortUFxEJYcRzosstTEBYQ==
@@ -9367,16 +9367,17 @@ mimic-function@^5.0.0:
   resolved "https://registry.yarnpkg.com/mimic-function/-/mimic-function-5.0.1.tgz#acbe2b3349f99b9deaca7fb70e48b83e94e67076"
   integrity sha512-VP79XUPxV2CigYP3jWwAUFSku2aKqBH7uTAapFWCBqutsbmDo96KY5o8uh6U+/YSIn5OxJnXp73beVkpqMIGhA==
 
-miniflare@4.20250508.2:
-  version "4.20250508.2"
-  resolved "https://registry.yarnpkg.com/miniflare/-/miniflare-4.20250508.2.tgz#73639519ab2b129a75fdb93118d13a3c4d0e9286"
-  integrity sha512-+2XoHLSbY49LNQgZoAJRX+SyUwC767Cz46pgx4T/j1YGKSrMzAxCOk59b12QoFNnN50Gtd9HkT3ukZn2nzrIVw==
+miniflare@4.20250508.3:
+  version "4.20250508.3"
+  resolved "https://registry.yarnpkg.com/miniflare/-/miniflare-4.20250508.3.tgz#26ac2e636dd9fd6cf9ed71cbf8c40f80a84a4547"
+  integrity sha512-43oTmZ0CCmUcieetI5YDDyX0IiwhOcVIWzdBBCqWXK3F1XgQwg4d3fTqRyJnCmHIoaYx9CE1kTEKZC1UahPQhA==
   dependencies:
     "@cspotcode/source-map-support" "0.8.1"
     acorn "8.14.0"
     acorn-walk "8.3.2"
     exit-hook "2.2.1"
     glob-to-regexp "0.4.1"
+    sharp "^0.33.5"
     stoppable "1.1.0"
     undici "^5.28.5"
     workerd "1.20250508.0"
@@ -10381,28 +10382,28 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.1.tgz#027422e2faec0b25e1549c3e1bd8309b9133b6e5"
   integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
 
-puppeteer-core@24.8.2:
-  version "24.8.2"
-  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-24.8.2.tgz#f3e939e39e001d9933e79d980371e380d9e535c1"
-  integrity sha512-wNw5cRZOHiFibWc0vdYCYO92QuKTbJ8frXiUfOq/UGJWMqhPoBThTKkV+dJ99YyWfzJ2CfQQ4T1nhhR0h8FlVw==
+puppeteer-core@24.9.0:
+  version "24.9.0"
+  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-24.9.0.tgz#fc489e83bf65db1dc72e53a78140ee567efd847e"
+  integrity sha512-HFdCeH/wx6QPz8EncafbCqJBqaCG1ENW75xg3cLFMRUoqZDgByT6HSueiumetT2uClZxwqj0qS4qMVZwLHRHHw==
   dependencies:
-    "@puppeteer/browsers" "2.10.4"
+    "@puppeteer/browsers" "2.10.5"
     chromium-bidi "5.1.0"
-    debug "^4.4.0"
+    debug "^4.4.1"
     devtools-protocol "0.0.1439962"
     typed-query-selector "^2.12.0"
     ws "^8.18.2"
 
-puppeteer@24.8.2:
-  version "24.8.2"
-  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-24.8.2.tgz#3ee6cfe74e4cc8dc4dd5cb4b553f4d4416df935f"
-  integrity sha512-Sn6SBPwJ6ASFvQ7knQkR+yG7pcmr4LfXzmoVp3NR0xXyBbPhJa8a8ybtb6fnw1g/DD/2t34//yirubVczko37w==
+puppeteer@24.9.0:
+  version "24.9.0"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-24.9.0.tgz#1d3f805e0170ca481b637a47c71a09b815594dae"
+  integrity sha512-L0pOtALIx8rgDt24Y+COm8X52v78gNtBOW6EmUcEPci0TYD72SAuaXKqasRIx4JXxmg2Tkw5ySKcpPOwN8xXnQ==
   dependencies:
-    "@puppeteer/browsers" "2.10.4"
+    "@puppeteer/browsers" "2.10.5"
     chromium-bidi "5.1.0"
     cosmiconfig "^9.0.0"
     devtools-protocol "0.0.1439962"
-    puppeteer-core "24.8.2"
+    puppeteer-core "24.9.0"
     typed-query-selector "^2.12.0"
 
 pure-rand@^6.0.0:
@@ -12099,7 +12100,7 @@ ua-parser-js@^1.0.35:
   resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-1.0.40.tgz#ac6aff4fd8ea3e794a6aa743ec9c2fc29e75b675"
   integrity sha512-z6PJ8Lml+v3ichVojCiB8toQJBuwR42ySM4ezjXIqXK3M0HczmKQ3LF4rhU55PfD99KEEXQG6yb7iOMyvYuHew==
 
-ufo@^1.5.4:
+ufo@^1.5.4, ufo@^1.6.1:
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/ufo/-/ufo-1.6.1.tgz#ac2db1d54614d1b22c1d603e3aef44a85d8f146b"
   integrity sha512-9a4/uxlTWJ4+a5i0ooc1rU7C7YOw3wT+UGqdeNNHWnOF9qcMBgLRS+4IYUqbczewFx4mLEig6gawh7X6mFlEkA==
@@ -12131,16 +12132,16 @@ undici@^5.28.5:
   dependencies:
     "@fastify/busboy" "^2.0.0"
 
-unenv@2.0.0-rc.15:
-  version "2.0.0-rc.15"
-  resolved "https://registry.yarnpkg.com/unenv/-/unenv-2.0.0-rc.15.tgz#7fe427b6634f00bda1ade4fecdbc6b2dd7af63be"
-  integrity sha512-J/rEIZU8w6FOfLNz/hNKsnY+fFHWnu9MH4yRbSZF3xbbGHovcetXPs7sD+9p8L6CeNC//I9bhRYAOsBt2u7/OA==
+unenv@2.0.0-rc.17:
+  version "2.0.0-rc.17"
+  resolved "https://registry.yarnpkg.com/unenv/-/unenv-2.0.0-rc.17.tgz#fa9b80d30e16f73e2d4a0be568ca97c0fb76bdac"
+  integrity sha512-B06u0wXkEd+o5gOCMl/ZHl5cfpYbDZKAT+HWTL+Hws6jWu7dCiqBBXXXzMFcFVJb8D4ytAnYmxJA83uwOQRSsg==
   dependencies:
     defu "^6.1.4"
     exsolve "^1.0.4"
     ohash "^2.0.11"
     pathe "^2.0.3"
-    ufo "^1.5.4"
+    ufo "^1.6.1"
 
 unicode-canonical-property-names-ecmascript@^2.0.0:
   version "2.0.1"
@@ -12615,18 +12616,18 @@ workerd@1.20250508.0:
     "@cloudflare/workerd-linux-arm64" "1.20250508.0"
     "@cloudflare/workerd-windows-64" "1.20250508.0"
 
-wrangler@4.15.2:
-  version "4.15.2"
-  resolved "https://registry.yarnpkg.com/wrangler/-/wrangler-4.15.2.tgz#e3cc5f9c7f50aa07733abf4ac28cac126a286ad0"
-  integrity sha512-Rv7zP61DOVzIS3af+/1UzJkRVpqu6VDRi6uIVMiwD1LkXG5Ov08tv94jgnE9bSjVf0paQg3dl0E89h+wQ0x/Bw==
+wrangler@4.16.0:
+  version "4.16.0"
+  resolved "https://registry.yarnpkg.com/wrangler/-/wrangler-4.16.0.tgz#2c88fbe8550231cd138f417840c32c6e78052f5e"
+  integrity sha512-zQojiBJKAWRVG4WdUgTP5/i9N5UcwOixhWljnBrcKxJd+kpqUXVV/L03ytO+0cnr5IhgYUs7qhjd8EWU6UwPfg==
   dependencies:
     "@cloudflare/kv-asset-handler" "0.4.0"
-    "@cloudflare/unenv-preset" "2.3.1"
+    "@cloudflare/unenv-preset" "2.3.2"
     blake3-wasm "2.1.5"
     esbuild "0.25.4"
-    miniflare "4.20250508.2"
+    miniflare "4.20250508.3"
     path-to-regexp "6.3.0"
-    unenv "2.0.0-rc.15"
+    unenv "2.0.0-rc.17"
     workerd "1.20250508.0"
   optionalDependencies:
     fsevents "~2.3.2"
