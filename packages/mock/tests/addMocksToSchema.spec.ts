@@ -1,4 +1,5 @@
 import { buildSchema, graphql } from 'graphql';
+import { addResolversToSchema } from '@graphql-tools/schema';
 import { addMocksToSchema, assertIsRef, createMockStore, isRef } from '../src/index.js';
 
 const typeDefs = /* GraphQL */ `
@@ -208,6 +209,7 @@ describe('addMocksToSchema', () => {
         }
       }
     `;
+
     const store = createMockStore({ schema });
 
     const mockedSchema = addMocksToSchema({ schema, store });
@@ -219,6 +221,72 @@ describe('addMocksToSchema', () => {
     expect(errors).not.toBeDefined();
     expect(data).toBeDefined();
     expect((data!['viewer'] as any)['image']['__typename']).toBeDefined();
+  });
+
+  it('should handle union type with preserveResolvers: true', async () => {
+    const query = /* GraphQL */ `
+      query {
+        viewer {
+          image {
+            __typename
+            ... on UserImageURL {
+              url
+            }
+            ... on UserImageSolidColor {
+              color
+            }
+          }
+        }
+      }
+    `;
+    const schemaWithResolvers = addResolversToSchema({
+      schema,
+      resolvers: {
+        User: {
+          image: () => {
+            return {
+              __typename: 'UserImageURL',
+              url: 'http://localhost:4001/foo.jpg',
+            };
+          },
+        },
+      },
+    });
+    const store = createMockStore({
+      schema: schemaWithResolvers,
+      mocks: {
+        User: {
+          image: () => {
+            return {
+              __typename: 'UserImageSolidColor',
+              color: '#aaaaaa',
+            };
+          },
+        },
+      },
+    });
+    const mockedSchema = addMocksToSchema({
+      schema: schemaWithResolvers,
+      store,
+      preserveResolvers: true,
+    });
+    const { data, errors } = await graphql({
+      schema: mockedSchema,
+      source: query,
+    });
+
+    expect(errors).not.toBeDefined();
+    expect(data).toMatchInlineSnapshot(`
+{
+  "viewer": {
+    "image": {
+      "__typename": "UserImageURL",
+      "url": "http://localhost:4001/foo.jpg",
+    },
+  },
+}
+`);
+    expect((data!['viewer'] as any)['image']['__typename']).toBe('UserImageURL');
   });
 
   it('should handle interface type', async () => {
