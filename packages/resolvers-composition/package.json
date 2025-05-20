@@ -57,7 +57,7 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@types/lodash": "4.17.16",
+    "@types/lodash": "4.17.17",
     "@types/micromatch": "4.0.9"
   },
   "publishConfig": {
