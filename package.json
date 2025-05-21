@@ -56,7 +56,7 @@
     "@envelop/core": "5.2.3",
     "@theguild/prettier-config": "3.0.1",
     "@types/jest": "29.5.14",
-    "@types/node": "22.15.20",
+    "@types/node": "22.15.21",
     "@typescript-eslint/eslint-plugin": "8.32.1",
     "@typescript-eslint/parser": "8.32.1",
     "@urql/core": "5.1.1",
