@@ -1,5 +1,14 @@
 # @graphql-tools/mock
 
+## 9.0.23
+
+### Patch Changes
+
+- [#7210](https://github.com/ardatan/graphql-tools/pull/7210)
+  [`2443c23`](https://github.com/ardatan/graphql-tools/commit/2443c23c613163abe91995e69ae51f3fe86c00e6)
+  Thanks [@jdolle](https://github.com/jdolle)! - preserveResolvers uses resolved type name for
+  abstract types if available
+
 ## 9.0.22
 
 ### Patch Changes
