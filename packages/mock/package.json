@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/mock",
-  "version": "9.0.22",
+  "version": "9.0.23",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
