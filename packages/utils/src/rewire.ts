@@ -13,6 +13,9 @@ import {
   GraphQLScalarType,
   GraphQLType,
   GraphQLUnionType,
+} from 'graphql';
+import { getBuiltInForStub, isNamedStub } from './stub.js';
+import {
   isEnumType,
   isInputObjectType,
   isInterfaceType,
@@ -24,8 +27,7 @@ import {
   isSpecifiedDirective,
   isSpecifiedScalarType,
   isUnionType,
-} from 'graphql';
-import { getBuiltInForStub, isNamedStub } from './stub.js';
+} from './typeCheckers.js';
 
 export function rewireTypes(
   originalTypeMap: Record<string, GraphQLNamedType | null>,

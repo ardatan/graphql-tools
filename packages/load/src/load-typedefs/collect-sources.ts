@@ -1,12 +1,13 @@
 import { createRequire } from 'module';
 import { cwd } from 'process';
-import { isSchema, Kind } from 'graphql';
+import { Kind } from 'graphql';
 import {
   asArray,
   debugTimerEnd,
   debugTimerStart,
   getDocumentNodeFromSchema,
   isDocumentString,
+  isSchema,
   parseGraphQLSDL,
   Source,
 } from '@graphql-tools/utils';
