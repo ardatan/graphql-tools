@@ -1,5 +1,14 @@
 # @graphql-tools/import
 
+## 7.0.19
+
+### Patch Changes
+
+- [#7225](https://github.com/ardatan/graphql-tools/pull/7225)
+  [`99e6faf`](https://github.com/ardatan/graphql-tools/commit/99e6faf036f370db13f52b8f414b4c90f417de7a)
+  Thanks [@jdolle](https://github.com/jdolle)! - Support 'extend schema' syntax and add 'link' to
+  the list of builtins so that it doesnt need a directive definition for federated schemas
+
 ## 7.0.18
 
 ### Patch Changes
