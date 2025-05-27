@@ -467,6 +467,20 @@ describe('importSchema', () => {
     expect(importSchema('./fixtures/directive/g.graphql')).toBeSimilarGqlDoc(expectedSDL);
   });
 
+  test('importSchema: link directive', () => {
+    const expectedSDL = /* GraphQL */ `
+      extend schema @link(url: "https://the-guild.dev/graphql/tools", import: ["@foo"])
+
+      directive @foo on FIELD_DEFINITION
+
+      extend type User @key(fields: "id") {
+        id: ID!
+        email: String @foo
+      }
+    `;
+    expect(importSchema('./fixtures/directive/h.graphql')).toBeSimilarGqlDoc(expectedSDL);
+  });
+
   test('importSchema: interfaces', () => {
     const expectedSDL = /* GraphQL */ `
       type A implements B {

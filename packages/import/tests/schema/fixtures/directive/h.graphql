@@ -1,0 +1,8 @@
+extend schema @link(url: "https://the-guild.dev/graphql/tools", import: ["@foo"])
+
+directive @foo on FIELD_DEFINITION
+
+extend type User @key(fields: "id") {
+  id: ID!
+  email: String @foo
+}
