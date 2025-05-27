@@ -272,6 +272,8 @@ function visitDefinition(
   // TODO: handle queries without names
   if (
     'name' in definition ||
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    /** @ts-ignore: GraphQL 15 type definition does not like schema extension here. But it can be ignored because if unused, then it will not match and work as normal */
     [Kind.SCHEMA_DEFINITION, Kind.SCHEMA_EXTENSION].includes(definition.kind)
   ) {
     const definitionName =
