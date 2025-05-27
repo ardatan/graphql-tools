@@ -30,6 +30,7 @@ import {
   ScalarTypeDefinitionNode,
   ScalarTypeExtensionNode,
   SchemaDefinitionNode,
+  SchemaExtensionNode,
   SelectionNode,
   Source,
   TypeNode,
@@ -53,6 +54,7 @@ const builtinDirectives = [
   'connection',
   'client',
   'specifiedBy',
+  'link',
 ];
 
 const IMPORT_FROM_REGEX = /^import\s+(\*|(.*))\s+from\s+('|")(.*)('|");?$/;
@@ -268,7 +270,10 @@ function visitDefinition(
   dependenciesByDefinitionName: Map<string, Set<string>>,
 ): void {
   // TODO: handle queries without names
-  if ('name' in definition || definition.kind === Kind.SCHEMA_DEFINITION) {
+  if (
+    'name' in definition ||
+    [Kind.SCHEMA_DEFINITION, Kind.SCHEMA_EXTENSION].includes(definition.kind)
+  ) {
     const definitionName =
       'name' in definition && definition.name ? definition.name.value : 'schema';
     if (!definitionsByName.has(definitionName)) {
@@ -312,6 +317,9 @@ function visitDefinition(
         break;
       case Kind.SCHEMA_DEFINITION:
         visitSchemaDefinitionNode(definition, dependencySet);
+        break;
+      case Kind.SCHEMA_EXTENSION:
+        visitSchemaExtensionDefinitionNode(definition, dependencySet);
         break;
       case Kind.OBJECT_TYPE_EXTENSION:
         visitObjectTypeExtensionNode(definition, dependencySet, dependenciesByDefinitionName);
@@ -804,6 +812,14 @@ function visitSchemaDefinitionNode(node: SchemaDefinitionNode, dependencySet: Se
   dependencySet.add('schema');
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.operationTypes.forEach(operationTypeDefinitionNode =>
+    visitOperationTypeDefinitionNode(operationTypeDefinitionNode, dependencySet),
+  );
+}
+
+function visitSchemaExtensionDefinitionNode(node: SchemaExtensionNode, dependencySet: Set<string>) {
+  dependencySet.add('schema');
+  node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
+  node.operationTypes?.forEach(operationTypeDefinitionNode =>
     visitOperationTypeDefinitionNode(operationTypeDefinitionNode, dependencySet),
   );
 }
