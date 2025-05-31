@@ -469,13 +469,17 @@ describe('importSchema', () => {
 
   test('importSchema: link directive', () => {
     const expectedSDL = /* GraphQL */ `
-      extend schema @link(url: "https://the-guild.dev/graphql/tools", import: ["@foo"])
+      extend schema
+        @link(url: "https://specs.apollo.dev/link/v1.0")
+        @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key"])
+        @link(url: "https://the-guild.dev/graphql/tools", import: ["@foo"])
 
       directive @foo on FIELD_DEFINITION
 
       extend type User @key(fields: "id") {
         id: ID!
         email: String @foo
+        ssn: String @federation__tag(name: "private")
       }
     `;
     expect(importSchema('./fixtures/directive/h.graphql')).toBeSimilarGqlDoc(expectedSDL);
