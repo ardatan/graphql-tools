@@ -1,4 +1,4 @@
-import { isSchema } from 'graphql';
+import { GraphQLSchema } from 'graphql';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { runTests, useMonorepo } from '../../../../testing/utils.js';
@@ -28,7 +28,7 @@ describe('Schema From Export', () => {
           cwd: __dirname,
         },
       );
-      expect(isSchema(result)).toBeTruthy();
+      expect(result).toBeInstanceOf(GraphQLSchema);
     });
 
     it('should load the schema (with extend) correctly from module.exports', async () => {
@@ -39,7 +39,7 @@ describe('Schema From Export', () => {
           cwd: __dirname,
         },
       );
-      expect(isSchema(result)).toBeTruthy();
+      expect(result).toBeInstanceOf(GraphQLSchema);
       const QueryType = result.getQueryType();
       assertNonMaybe(QueryType);
       expect(QueryType.getFields()['hello']).toBeDefined();
@@ -53,7 +53,7 @@ describe('Schema From Export', () => {
           cwd: __dirname,
         },
       );
-      expect(isSchema(result)).toBeTruthy();
+      expect(result).toBeInstanceOf(GraphQLSchema);
     });
 
     it('should load the schema correctly from default export', async () => {
@@ -64,7 +64,7 @@ describe('Schema From Export', () => {
           cwd: __dirname,
         },
       );
-      expect(isSchema(result)).toBeTruthy();
+      expect(result).toBeInstanceOf(GraphQLSchema);
     });
 
     if (mode === 'async') {
@@ -76,7 +76,7 @@ describe('Schema From Export', () => {
             cwd: __dirname,
           },
         );
-        expect(isSchema(result)).toBeTruthy();
+        expect(result).toBeInstanceOf(GraphQLSchema);
       });
 
       it('should load the schema correctly from promise export', async () => {
@@ -87,7 +87,7 @@ describe('Schema From Export', () => {
             cwd: __dirname,
           },
         );
-        expect(isSchema(result)).toBeTruthy();
+        expect(result).toBeInstanceOf(GraphQLSchema);
       });
     }
 

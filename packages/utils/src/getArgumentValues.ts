@@ -5,13 +5,13 @@ import {
   FieldNode,
   GraphQLDirective,
   GraphQLField,
-  isNonNullType,
   Kind,
   print,
   valueFromAST,
 } from 'graphql';
 import { createGraphQLError } from './errors.js';
 import { hasOwnProperty } from './jsutils.js';
+import { isNonNullType } from './typeCheckers.js';
 
 /**
  * Prepares an object map of argument values given a list of argument
