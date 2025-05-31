@@ -17,8 +17,10 @@
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
+  "optionalDependencies": {
+    "@img/sharp-libvips-linux-x64": "1.1.0"
+  },
   "devDependencies": {
-    "@img/sharp-libvips-linux-x64": "1.1.0",
     "@theguild/tailwind-config": "0.6.3",
     "@types/node": "22.15.29",
     "@types/react": "19.1.6",
