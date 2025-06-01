@@ -80,7 +80,9 @@ export function withState<
   const { instrumentation, ...hooks } = pluginFactory(getState as any);
 
   const pluginWithState = addStateGetters(hooks);
-  pluginWithState.instrumentation = addStateGetters(instrumentation);
+  if (instrumentation) {
+    pluginWithState.instrumentation = addStateGetters(instrumentation);
+  }
 
   return pluginWithState as P;
 }
