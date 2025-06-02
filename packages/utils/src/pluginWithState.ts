@@ -32,6 +32,9 @@ export function withState<
   }
 
   function getState(payload: Payload) {
+    if (!payload) {
+      return undefined;
+    }
     let { executionRequest, context, request } = payload;
     const state = {};
     const defineState = (scope: keyof typeof states, key: any) =>
@@ -61,15 +64,19 @@ export function withState<
       } else {
         result[hookName] = {
           [hook.name](payload: any, ...args: any[]) {
-            return hook(
-              {
-                ...payload,
-                get state() {
-                  return getState(payload);
+            if (payload && (payload.request || payload.context || payload.executionRequest)) {
+              return hook(
+                {
+                  ...payload,
+                  get state() {
+                    return getState(payload);
+                  },
                 },
-              },
-              ...args,
-            );
+                ...args,
+              );
+            } else {
+              return hook(payload, ...args);
+            }
           },
         }[hook.name];
       }
