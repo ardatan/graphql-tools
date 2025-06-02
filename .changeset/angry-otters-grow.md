@@ -18,7 +18,7 @@ Under the hood, those states are kept in memory using `WeakMap`, which avoid any
 import { defineConfig, GatewayPlugin } from '@graphql-hive/gateway'
 import { withState } from '@graphql-tools/utils'
 
-export const myPlugin = withState<GatewayPlugin, { user: User }>({
+export const myPlugin = withState<GatewayPlugin, { user: User }, { permissions: Permissions }>({
   async onRequestParse({ request, state }) {
     state.forRequest.user = await getUserForRequest(request)
   },
