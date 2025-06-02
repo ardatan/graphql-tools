@@ -51,7 +51,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/executor-http": "^1.1.9",
+    "@graphql-tools/executor-http": "^2.0.2",
     "@graphql-tools/graphql-tag-pluck": "^8.3.19",
     "@graphql-tools/utils": "^10.8.6",
     "@whatwg-node/fetch": "^0.10.0",
