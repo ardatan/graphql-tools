@@ -62,3 +62,4 @@ export {
   createDeferredPromise as createDeferred,
 } from '@whatwg-node/promise-helpers';
 export * from './registerAbortSignalListener.js';
+export * from './pluginWithState.js';
