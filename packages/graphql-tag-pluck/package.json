@@ -59,12 +59,12 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@astrojs/compiler": "2.12.0",
+    "@astrojs/compiler": "2.12.1",
     "@types/babel__traverse": "7.20.7",
     "@vue/compiler-sfc": "3.5.16",
     "astrojs-compiler-sync": "1.1.1",
     "content-tag": "4.0.0",
-    "svelte": "5.33.14",
+    "svelte": "5.33.17",
     "svelte2tsx": "0.7.39"
   },
   "publishConfig": {
