@@ -52,6 +52,7 @@
   },
   "dependencies": {
     "@graphql-tools/utils": "^10.8.6",
+    "@theguild/federation-composition": "^0.16.0",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
