@@ -607,6 +607,26 @@ describe('Merge TypeDefs', () => {
       );
     });
 
+    it('handles repeatable directives on scalars', () => {
+      const merged = mergeTypeDefs(
+        parse(
+          `
+              directive @foo(x: [Int!]!) repeatable on SCALAR
+
+              scalar Foo @foo(x: [1])
+
+              extend scalar Foo @foo(x: 2)
+          `,
+        ),
+      );
+      expect(stripWhitespaces(print(merged))).toBe(
+        stripWhitespaces(/** GraphQL */ `
+          directive @foo(x: [Int!]!) repeatable on SCALAR
+          scalar Foo @foo(x: [1]) @foo(x: 2)
+        `),
+      );
+    });
+
     it('stacks all directives on fields', () => {
       const types = [
         /* GraphQL */ `
