@@ -483,7 +483,7 @@ describe('Merge TypeDefs', () => {
       );
     });
 
-    it('should merge repeatable directives', () => {
+    it('should merge identical, repeatable directives', () => {
       const merged = mergeTypeDefs([
         `
         directive @fields(name: String!, args: [String]) repeatable on INTERFACE
@@ -494,8 +494,8 @@ describe('Merge TypeDefs', () => {
         `,
         `type MyType { id: Int }`,
         `type MyType @fields(name: "id") { id: Int }`,
+        `type MyType @fields(name: "id") { id: Int }`,
         `type MyType @fields(name: "id", args: ["1"]) { id: Int }`,
-        `type MyType @fields(name: "id", args: ["2"]) { id: Int }`,
         `type MyType @fields(name: "name") { name: String }`,
         `type Query { f1: MyType }`,
       ]);
@@ -509,11 +509,7 @@ describe('Merge TypeDefs', () => {
             name: String
           }
 
-          type MyType
-            @fields(name: "id")
-            @fields(name: "id", args: ["1"])
-            @fields(name: "id", args: ["2"])
-            @fields(name: "name") {
+          type MyType @fields(name: "id") @fields(name: "id", args: ["1"]) @fields(name: "name") {
             id: Int
             name: String
           }
@@ -524,6 +520,34 @@ describe('Merge TypeDefs', () => {
 
           schema {
             query: Query
+          }
+        `),
+      );
+    });
+
+    it('should not merge non-identical, repeatable directives', () => {
+      const merged = mergeTypeDefs([
+        `
+        directive @fields(name: String!, args: [String]) repeatable on INTERFACE
+        type CoreType
+          @fields(name: "id")
+          @fields(name: "name")
+        { id: Int, name: String }
+        `,
+        `
+        extend type CoreType {
+          foo: Boolean
+        }`,
+      ]);
+
+      expect(stripWhitespaces(print(merged))).toBe(
+        stripWhitespaces(/* GraphQL */ `
+          directive @fields(name: String!, args: [String]) repeatable on INTERFACE
+
+          type CoreType @fields(name: "id") @fields(name: "name") {
+            id: Int
+            name: String
+            foo: Boolean
           }
         `),
       );
