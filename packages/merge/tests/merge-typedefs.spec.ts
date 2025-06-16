@@ -1717,4 +1717,55 @@ describe('Merge TypeDefs', () => {
     const merged = mergeTypeDefs(typeDefs);
     expect(print(merged)).toBeSimilarString(print(directive));
   });
+
+  it('does not merge directives without the same arguments', () => {
+    const ast = parse(/* GraphQL */ `
+      directive @link(
+        url: String!
+        as: String
+        for: link__Purpose
+        import: [link__Import]
+      ) repeatable on SCHEMA
+      directive @key(
+        fields: federation__FieldSet!
+        resolvable: Boolean = true
+      ) repeatable on OBJECT | INTERFACE
+
+      scalar federation__FieldSet
+
+      extend schema
+        @link(url: "https://specs.apollo.dev/link/v1.0")
+        @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"])
+
+      type Item @key(fields: "id") @key(fields: "id type") {
+        id: ID!
+        type: String!
+      }
+    `);
+    const merged = mergeTypeDefs([ast], { useSchemaDefinition: true });
+    expect(print(merged)).toBeSimilarString(print(ast));
+  });
+
+  it.todo('supports multiple schema extensions');
+  // , () => {
+  //   const ast = parse(/* GraphQL */ `
+  //     directive @link(
+  //       url: String!,
+  //       as: String,
+  //       for: link__Purpose,
+  //       import: [link__Import]
+  //     ) repeatable on SCHEMA
+
+  //     extend schema
+  //       @link(url: "https://specs.apollo.dev/link/v1.0")
+
+  //     extend schema
+  //       @link(
+  //         url: "https://specs.apollo.dev/federation/v2.6"
+  //         import: ["@key"]
+  //       )
+  //   `);
+  //   const merged = mergeTypeDefs([ast]);
+  //   expect(print(merged)).toBeSimilarString(print(ast));
+  // })
 });

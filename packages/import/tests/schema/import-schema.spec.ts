@@ -468,6 +468,9 @@ describe('importSchema', () => {
   });
 
   test('importSchema: link directive', () => {
+    // "importSchema" _WILL_ duplicate directives by its nature.
+    // If this every changes, then the expectedSDL here can have the duplicate
+    // @key instance removed.
     const expectedSDL = /* GraphQL */ `
       extend schema
         @link(url: "https://specs.apollo.dev/link/v1.0")
@@ -476,13 +479,27 @@ describe('importSchema', () => {
 
       directive @foo on FIELD_DEFINITION
 
-      extend type User @key(fields: "id") {
+      extend type User @key(fields: "id") @key(fields: "id") {
         id: ID!
         email: String @foo
         ssn: String @federation__tag(name: "private")
       }
     `;
     expect(importSchema('./fixtures/directive/h.graphql')).toBeSimilarGqlDoc(expectedSDL);
+  });
+
+  test('importSchema: has context for which federated directives are repeatable', () => {
+    const expectedSDL = /* GraphQL */ `
+      extend schema
+        @link(url: "https://specs.apollo.dev/link/v1.0")
+        @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"])
+
+      type Item @key(fields: "id") @key(fields: "id type") {
+        id: ID!
+        type: String!
+      }
+    `;
+    expect(importSchema('./fixtures/directive/i.graphql')).toBeSimilarGqlDoc(expectedSDL);
   });
 
   test('importSchema: interfaces', () => {
