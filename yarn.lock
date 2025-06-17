@@ -3063,9 +3063,9 @@
     unist-util-visit "5.0.0"
 
 "@theguild/federation-composition@^0.18.3":
-  version "0.18.3"
-  resolved "https://registry.yarnpkg.com/@theguild/federation-composition/-/federation-composition-0.18.3.tgz#7e475b7834f4fd0b4e5139f22b31eeaf763fdce8"
-  integrity sha512-UGa3R3JMDHzoKi6k32kq/bB8SbZrkkxLrfinuEPcsv0sU8r1CW+4jwCBbQGC5vnoU9asg+MuCjMYpLZSOJS/dw==
+  version "0.18.4"
+  resolved "https://registry.yarnpkg.com/@theguild/federation-composition/-/federation-composition-0.18.4.tgz#d347198ce60ef9aa1211c5a8f47f7a13f91e41eb"
+  integrity sha512-2hdoeVSVTxp4TkZAy9HJnGWmKMyjoTx20tsWKz8eZ+B6pMA6XqCGLahrr8NPyj1jx+1vyczKAdGNopgvzuDHWw==
   dependencies:
     constant-case "^3.0.4"
     debug "4.4.0"
