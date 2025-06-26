@@ -276,7 +276,7 @@ describe('Merge Nodes', () => {
       `);
       const mergedFn = () => mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
 
-      expect(mergedFn).toThrowError(
+      expect(mergedFn).toThrow(
         'Unable to merge GraphQL type "A": Field "f1" already defined with a different type. Declared as "String", but you tried to override with "Int"',
       );
     });
