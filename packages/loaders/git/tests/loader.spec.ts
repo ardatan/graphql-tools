@@ -116,7 +116,7 @@ describe('GitLoader', () => {
       });
 
       it('should throw when the file does not exist', async () => {
-        await expect(load(getPointer('wrong-filename.graphql'), {})).rejects.toThrowError(
+        await expect(load(getPointer('wrong-filename.graphql'), {})).rejects.toThrow(
           'Unable to load file from git',
         );
       });
