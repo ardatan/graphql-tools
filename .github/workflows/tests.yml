@@ -63,9 +63,11 @@ jobs:
         os: [ubuntu-latest] # remove windows to speed up the tests
         node-version: [18, 22, 24]
         graphql_version:
-          - 15
           - 16
         include:
+          - node-version: 18
+            os: windows-latest
+            graphql_version: 15
           - node-version: 18
             os: windows-latest
             graphql_version: 16
