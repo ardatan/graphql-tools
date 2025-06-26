@@ -1343,10 +1343,10 @@
     "@whatwg-node/promise-helpers" "^1.2.1"
     tslib "^2.5.0"
 
-"@envelop/live-query@8.1.3":
-  version "8.1.3"
-  resolved "https://registry.yarnpkg.com/@envelop/live-query/-/live-query-8.1.3.tgz#955b15f995f25a32464bb2c5410fa0ab1a733170"
-  integrity sha512-GpB24YwbBdFT8cyCsaVq254ujzHs748uVEa8QtgQWhS7A/DVkbBuwIZX0S1aDbbZPMnulJGfo2sXELrXIoCJ6g==
+"@envelop/live-query@9.0.0":
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/@envelop/live-query/-/live-query-9.0.0.tgz#0f04ae4b06190dd4469beffcff4a8254bedd7925"
+  integrity sha512-LLqyx69mN8VezfnL6eo3D4MrD8zwpe0RhlN7Xbh0UjT4W0c+N6woqHz+TBBNJmcBCmd2zupzwfes1z1FW+gUNg==
   dependencies:
     "@graphql-tools/utils" "^10.0.0"
     "@n1ru4l/graphql-live-query" "^0.10.0"
