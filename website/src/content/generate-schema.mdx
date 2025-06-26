@@ -255,7 +255,6 @@ const jsSchema = makeExecutableSchema({
 
 - `resolverValidationOptions` is an optional argument with the following properties, each of which
   can be set to `error`, `warn`, or `ignore`:
-
   - `requireResolversForArgs` will cause `makeExecutableSchema` to throw an error (`error`) or issue
     a warning (`warn`)unless a resolver is defined for every field with arguments. The default is
     `ignore`, causing this validator to be skipped.
