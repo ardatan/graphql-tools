@@ -1,5 +1,14 @@
 # @graphql-tools/graphql-file-loader
 
+## 8.0.21
+
+### Patch Changes
+
+- Updated dependencies
+  [[`a824120`](https://github.com/ardatan/graphql-tools/commit/a8241205862ebcf294a835da6eb782f777e9fdfb),
+  [`a824120`](https://github.com/ardatan/graphql-tools/commit/a8241205862ebcf294a835da6eb782f777e9fdfb)]:
+  - @graphql-tools/import@7.0.20
+
 ## 8.0.20
 
 ### Patch Changes
@@ -550,7 +559,6 @@
   This change was made because the pkg snapshot file system does not support use of globbing.
 
   If you want to use the snapshot facilty with pkg for schema files then:
-
   1. Access your snapshot schema file or files through a \_\_dirname join
   2. Your file or files must be accessed by name without the glob '\*' character.
   3. Do not add ignore files with ! (with or without a glob)
@@ -633,7 +641,6 @@
 ### Major Changes
 
 - af9a78de: BREAKING CHANGE
-
   - Now each loader handles glob patterns internally and returns an array of `Source` object instead
     of single `Source`
 
