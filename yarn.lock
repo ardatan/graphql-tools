@@ -3121,10 +3121,10 @@
     tailwind-merge "^2.5.2"
     unist-util-visit "5.0.0"
 
-"@theguild/federation-composition@^0.18.3":
-  version "0.18.5"
-  resolved "https://registry.yarnpkg.com/@theguild/federation-composition/-/federation-composition-0.18.5.tgz#a0814951b5651a27598e5da510b5029afd4460cd"
-  integrity sha512-3tL689XKObclVOXgLHrAwkDOlo3gTGxhJhV19xb4AHZx5xWLON4RFMtOnphUeOqcfF1IoIu2x1scDH0NEVE5bw==
+"@theguild/federation-composition@^0.19.0":
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/@theguild/federation-composition/-/federation-composition-0.19.0.tgz#e1a39e8106ab1ff89c29a02450999c3d7805c21c"
+  integrity sha512-83mSKIvoQJYNynAkeLF4brQL7216Z2HlGVF5dg18taUn+XW7XHefGFHX7gSoS+1qL1lWgHBwxyW4aGiy7impXg==
   dependencies:
     constant-case "^3.0.4"
     debug "4.4.1"
