@@ -59,7 +59,7 @@
     "@types/node": "22.15.34",
     "@typescript-eslint/eslint-plugin": "8.35.0",
     "@typescript-eslint/parser": "8.35.0",
-    "@urql/core": "5.1.2",
+    "@urql/core": "5.2.0",
     "babel-jest": "30.0.2",
     "bob-the-bundler": "7.0.1",
     "bun": "1.2.17",
