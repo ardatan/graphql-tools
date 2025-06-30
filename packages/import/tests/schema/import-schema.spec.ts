@@ -479,7 +479,7 @@ describe('importSchema', () => {
 
       directive @foo on FIELD_DEFINITION
 
-      extend type User @key(fields: "id") @key(fields: "id") {
+      extend type User @key(fields: "id") {
         id: ID!
         email: String @foo
         ssn: String @federation__tag(name: "private")

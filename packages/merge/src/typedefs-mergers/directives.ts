@@ -7,15 +7,7 @@ import {
   NameNode,
   ValueNode,
 } from 'graphql';
-import { isSome } from '@graphql-tools/utils';
 import { Config } from './merge-typedefs.js';
-
-function directiveAlreadyExists(
-  directivesArr: ReadonlyArray<DirectiveNode>,
-  otherDirective: DirectiveNode,
-): boolean {
-  return !!directivesArr.find(directive => directive.name.value === otherDirective.name.value);
-}
 
 function isRepeatableDirective(
   directive: DirectiveNode,
@@ -33,12 +25,14 @@ function nameAlreadyExists(name: NameNode, namesArr: ReadonlyArray<NameNode>): b
 }
 
 function mergeArguments(a1: readonly ArgumentNode[], a2: readonly ArgumentNode[]): ArgumentNode[] {
-  const result: ArgumentNode[] = [...a2];
+  const result: ArgumentNode[] = [];
 
-  for (const argument of a1) {
+  for (const argument of [...a2, ...a1]) {
     const existingIndex = result.findIndex(a => a.name.value === argument.name.value);
 
-    if (existingIndex > -1) {
+    if (existingIndex === -1) {
+      result.push(argument);
+    } else {
       const existingArg = result[existingIndex];
 
       if (existingArg.value.kind === 'ListValue') {
@@ -46,19 +40,16 @@ function mergeArguments(a1: readonly ArgumentNode[], a2: readonly ArgumentNode[]
         const target = (argument.value as ListValueNode).values;
 
         // merge values of two lists
-        (existingArg.value as any).values = deduplicateLists(
-          source,
-          target,
-          (targetVal, source) => {
+        (existingArg.value as ListValueNode) = {
+          ...existingArg.value,
+          values: deduplicateLists(source, target, (targetVal, source) => {
             const value = (targetVal as any).value;
             return !value || !source.some((sourceVal: any) => sourceVal.value === value);
-          },
-        );
+          }),
+        };
       } else {
         (existingArg as any).value = argument.value;
       }
-    } else {
-      result.push(argument);
     }
   }
 
@@ -109,42 +100,6 @@ const matchDirectives = (a: DirectiveNode, b: DirectiveNode): boolean => {
   return !!matched;
 };
 
-function deduplicateDirectives(
-  directives: ReadonlyArray<DirectiveNode>,
-  definitions?: Record<string, DirectiveDefinitionNode>,
-  repeatableLinkImports?: Set<string>,
-): DirectiveNode[] {
-  return directives
-    .map((directive, i, all) => {
-      if (isRepeatableDirective(directive, definitions, repeatableLinkImports)) {
-        const exactDuplicate = all.find((d, j) => {
-          // don't match on literally the same directive instance
-          if (j !== i) {
-            return matchDirectives(directive, d);
-          }
-          return undefined;
-        });
-        if (exactDuplicate) {
-          return null;
-        }
-      } else {
-        const firstAt = all.findIndex(d => d.name.value === directive.name.value);
-
-        if (firstAt !== i) {
-          const dup = all[firstAt];
-
-          (directive as any).arguments = mergeArguments(
-            directive.arguments as any,
-            dup.arguments as any,
-          );
-          return null;
-        }
-      }
-      return directive;
-    })
-    .filter(isSome);
-}
-
 export function mergeDirectives(
   d1: ReadonlyArray<DirectiveNode> = [],
   d2: ReadonlyArray<DirectiveNode> = [],
@@ -154,21 +109,32 @@ export function mergeDirectives(
   const reverseOrder: boolean | undefined = config && config.reverseDirectives;
   const asNext = reverseOrder ? d1 : d2;
   const asFirst = reverseOrder ? d2 : d1;
-  const result = deduplicateDirectives([...asNext], directives, config?.repeatableLinkImports);
-
-  for (const directive of asFirst) {
-    if (
-      directiveAlreadyExists(result, directive) &&
-      !isRepeatableDirective(directive, directives, config?.repeatableLinkImports)
-    ) {
-      const existingDirectiveIndex = result.findIndex(d => d.name.value === directive.name.value);
-      const existingDirective = result[existingDirectiveIndex];
-      (result[existingDirectiveIndex] as any).arguments = mergeArguments(
-        directive.arguments || [],
-        existingDirective.arguments || [],
-      );
+  const result: DirectiveNode[] = [];
+  for (const directive of [...asNext, ...asFirst]) {
+    if (isRepeatableDirective(directive, directives, config?.repeatableLinkImports)) {
+      // look for repeated, identical directives that come before this instance
+      // if those exist, return null so that this directive gets removed.
+      const exactDuplicate = result.find(d => matchDirectives(directive, d));
+      if (!exactDuplicate) {
+        result.push(directive);
+      }
     } else {
-      result.push(directive);
+      const firstAt = result.findIndex(d => d.name.value === directive.name.value);
+      if (firstAt === -1) {
+        // if did not find a directive with this name on the result set already
+        result.push(directive);
+      } else {
+        // if not repeatable and found directive with the same name already in the result set,
+        // then merge the arguments of the existing directive and the new directive
+        const mergedArguments = mergeArguments(
+          directive.arguments ?? [],
+          result[firstAt].arguments ?? [],
+        );
+        result[firstAt] = {
+          ...result[firstAt],
+          arguments: mergedArguments.length === 0 ? undefined : mergedArguments,
+        };
+      }
     }
   }
 
