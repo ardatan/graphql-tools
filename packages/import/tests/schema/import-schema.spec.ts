@@ -468,9 +468,6 @@ describe('importSchema', () => {
   });
 
   test('importSchema: link directive', () => {
-    // "importSchema" _WILL_ duplicate directives by its nature.
-    // If this every changes, then the expectedSDL here can have the duplicate
-    // @key instance removed.
     const expectedSDL = /* GraphQL */ `
       extend schema
         @link(url: "https://specs.apollo.dev/link/v1.0")
