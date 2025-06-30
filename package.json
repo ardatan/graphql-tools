@@ -84,7 +84,7 @@
     "prettier-plugin-tailwindcss": "0.6.13",
     "ts-jest": "29.4.0",
     "tsx": "4.20.3",
-    "typedoc": "0.25.13",
+    "typedoc": "0.28.7",
     "typedoc-plugin-markdown": "3.17.1",
     "typedoc-plugin-rename-defaults": "0.7.3",
     "typescript": "5.8.3",
