@@ -483,7 +483,7 @@ describe('Merge TypeDefs', () => {
       );
     });
 
-    it('should merge repeatable directives', () => {
+    it('should merge identical, repeatable directives', () => {
       const merged = mergeTypeDefs([
         `
         directive @fields(name: String!, args: [String]) repeatable on INTERFACE
@@ -494,8 +494,8 @@ describe('Merge TypeDefs', () => {
         `,
         `type MyType { id: Int }`,
         `type MyType @fields(name: "id") { id: Int }`,
+        `type MyType @fields(name: "id") { id: Int }`,
         `type MyType @fields(name: "id", args: ["1"]) { id: Int }`,
-        `type MyType @fields(name: "id", args: ["2"]) { id: Int }`,
         `type MyType @fields(name: "name") { name: String }`,
         `type Query { f1: MyType }`,
       ]);
@@ -509,11 +509,7 @@ describe('Merge TypeDefs', () => {
             name: String
           }
 
-          type MyType
-            @fields(name: "id")
-            @fields(name: "id", args: ["1"])
-            @fields(name: "id", args: ["2"])
-            @fields(name: "name") {
+          type MyType @fields(name: "id") @fields(name: "id", args: ["1"]) @fields(name: "name") {
             id: Int
             name: String
           }
@@ -524,6 +520,34 @@ describe('Merge TypeDefs', () => {
 
           schema {
             query: Query
+          }
+        `),
+      );
+    });
+
+    it('should not merge non-identical, repeatable directives', () => {
+      const merged = mergeTypeDefs([
+        `
+        directive @fields(name: String!, args: [String]) repeatable on INTERFACE
+        type CoreType
+          @fields(name: "id")
+          @fields(name: "name")
+        { id: Int, name: String }
+        `,
+        `
+        extend type CoreType {
+          foo: Boolean
+        }`,
+      ]);
+
+      expect(stripWhitespaces(print(merged))).toBe(
+        stripWhitespaces(/* GraphQL */ `
+          directive @fields(name: String!, args: [String]) repeatable on INTERFACE
+
+          type CoreType @fields(name: "id") @fields(name: "name") {
+            id: Int
+            name: String
+            foo: Boolean
           }
         `),
       );
@@ -579,6 +603,26 @@ describe('Merge TypeDefs', () => {
           schema {
             query: Query
           }
+        `),
+      );
+    });
+
+    it('handles repeatable directives on scalars', () => {
+      const merged = mergeTypeDefs(
+        parse(
+          `
+              directive @foo(x: [Int!]!) repeatable on SCALAR
+
+              scalar Foo @foo(x: [1])
+
+              extend scalar Foo @foo(x: 2)
+          `,
+        ),
+      );
+      expect(stripWhitespaces(print(merged))).toBe(
+        stripWhitespaces(/** GraphQL */ `
+          directive @foo(x: [Int!]!) repeatable on SCALAR
+          scalar Foo @foo(x: [1]) @foo(x: 2)
         `),
       );
     });
@@ -1704,6 +1748,7 @@ describe('Merge TypeDefs', () => {
     });
     expect(reformulatedGraphQL).toBeSimilarString(schemaWithDescription);
   });
+
   it('merges the directives with the same name and same arguments', () => {
     const directive = parse(/* GraphQL */ `
       directive @link(
@@ -1717,4 +1762,57 @@ describe('Merge TypeDefs', () => {
     const merged = mergeTypeDefs(typeDefs);
     expect(print(merged)).toBeSimilarString(print(directive));
   });
+
+  it('does not merge repeatable Federation directives without the same arguments', () => {
+    const ast = parse(/* GraphQL */ `
+      extend schema
+        @link(url: "https://specs.apollo.dev/link/v1.0")
+        @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"])
+
+      type Item @key(fields: "id") @key(fields: "id type") {
+        id: ID!
+        type: String!
+      }
+    `);
+    const merged = mergeTypeDefs([ast], { useSchemaDefinition: true });
+    expect(print(merged)).toBeSimilarString(print(ast));
+  });
+
+  it('understands imports if the import comes after the type definition', () => {
+    const ast = parse(/* GraphQL */ `
+      type Item @key(fields: "id") @key(fields: "id type") {
+        id: ID!
+        type: String!
+      }
+
+      extend schema
+        @link(url: "https://specs.apollo.dev/link/v1.0")
+        @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"])
+    `);
+    const merged = mergeTypeDefs([ast]);
+    expect(print(merged)).toBeSimilarString(print(ast));
+  });
+
+  it.todo('supports multiple schema extensions');
+  // , () => {
+  //   const ast = parse(/* GraphQL */ `
+  //     directive @link(
+  //       url: String!,
+  //       as: String,
+  //       for: link__Purpose,
+  //       import: [link__Import]
+  //     ) repeatable on SCHEMA
+
+  //     extend schema
+  //       @link(url: "https://specs.apollo.dev/link/v1.0")
+
+  //     extend schema
+  //       @link(
+  //         url: "https://specs.apollo.dev/federation/v2.6"
+  //         import: ["@key"]
+  //       )
+  //   `);
+  //   const merged = mergeTypeDefs([ast]);
+  //   expect(print(merged)).toBeSimilarString(print(ast));
+  // })
 });
