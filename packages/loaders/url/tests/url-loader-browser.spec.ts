@@ -393,7 +393,7 @@ describeIf(platform() !== 'win32')('[url-loader] webpack bundle compat', () => {
     expect(result).toStrictEqual(sentDatas.slice(0, 2));
 
     // no uncaught errors should be reported (browsers raise errors when canceling requests)
-    expect(pageerrorFn).not.toBeCalled();
+    expect(pageerrorFn).not.toHaveBeenCalled();
   });
   testIf(!globalThis.Bun)('terminates stream correctly', async () => {
     const document = parse(/* GraphQL */ `

@@ -108,7 +108,7 @@ describe('loadFromCodeFileSync', () => {
       const doc = loaded?.document ? loaded?.document : parse(loaded?.rawSDL!);
 
       expect(doc?.kind).toEqual('Document');
-    }).toThrowError('Syntax Error: Unexpected Name "InvalidGetUser"');
+    }).toThrow('Syntax Error: Unexpected Name "InvalidGetUser"');
   });
 
   it('should raise an error when the glob matches valid and invalid schema files with `noSilentErrors` set to true', async () => {

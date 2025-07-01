@@ -63,7 +63,7 @@ describe('JsonFileLoader', () => {
       });
 
       it('should throw when the file content is malformed', async () => {
-        await expect(load(getPointer('failing/malformed.json'), {})).rejects.toThrowError(
+        await expect(load(getPointer('failing/malformed.json'), {})).rejects.toThrow(
           'Unable to read JSON file',
         );
       });

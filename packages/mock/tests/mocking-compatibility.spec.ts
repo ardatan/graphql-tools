@@ -91,11 +91,11 @@ describe('Mock retro-compatibility', () => {
   `;
 
   test('throws an error if you forget to pass schema', () => {
-    expect(() => addMocksToSchema({} as any)).toThrowError('Must provide schema to mock');
+    expect(() => addMocksToSchema({} as any)).toThrow('Must provide schema to mock');
   });
 
   test('throws an error if the property "schema" on the first argument is not of type GraphQLSchema', () => {
-    expect(() => addMocksToSchema({ schema: {} as unknown as GraphQLSchema })).toThrowError(
+    expect(() => addMocksToSchema({ schema: {} as unknown as GraphQLSchema })).toThrow(
       'Value at "schema" must be of type GraphQLSchema',
     );
   });
@@ -107,7 +107,7 @@ describe('Mock retro-compatibility', () => {
         schema: jsSchema,
         mocks: ['a'] as unknown as IMocks,
       }),
-    ).toThrowError('mocks must be of type Object');
+    ).toThrow('mocks must be of type Object');
   });
 
   test('mocks the default types for you', () => {
@@ -1433,7 +1433,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('throws an error if the second argument to MockList is not a function', () => {
-    expect(() => new MockList(5, 'abc' as any)).toThrowError(
+    expect(() => new MockList(5, 'abc' as any)).toThrow(
       'Second argument to MockList must be a function or undefined',
     );
   });

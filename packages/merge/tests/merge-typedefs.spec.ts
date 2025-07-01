@@ -1170,7 +1170,7 @@ describe('Merge TypeDefs', () => {
           }
         `,
         ]);
-      }).toThrowError('Unable to merge GraphQL type');
+      }).toThrow('Unable to merge GraphQL type');
     });
 
     it('should preserve an extend keyword if there is no base', () => {
