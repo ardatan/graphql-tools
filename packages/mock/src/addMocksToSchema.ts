@@ -6,10 +6,9 @@ import {
   GraphQLTypeResolver,
   GraphQLUnionType,
   isSchema,
-  isUnionType,
 } from 'graphql';
 import { addResolversToSchema } from '@graphql-tools/schema';
-import { IResolvers, MapperKind, mapSchema } from '@graphql-tools/utils';
+import { IResolvers, isUnionType, MapperKind, mapSchema } from '@graphql-tools/utils';
 import { createMockStore } from './MockStore.js';
 import { IMocks, IMockStore, isRef, TypePolicy } from './types.js';
 import { copyOwnProps, isObject, isRootType } from './utils.js';
