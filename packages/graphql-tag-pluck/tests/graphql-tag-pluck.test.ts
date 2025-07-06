@@ -1,5 +1,4 @@
 import fs from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
 import { runTests } from '../../testing/utils.js';
 import { gqlPluckFromCodeString, gqlPluckFromCodeStringSync } from '../src/index.js';
@@ -10,6 +9,8 @@ import { freeText } from '../src/utils.js';
 let tmpDir: string;
 
 beforeEach(async () => {
+  // We create temporary directories in the test directory because our test
+  // infrastructure denies writes to the host's tmp directory.
   tmpDir = await fs.mkdtemp(path.join(__dirname, 'tmp-'));
 });
 
