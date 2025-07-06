@@ -158,6 +158,14 @@ function parseWithVue(
   fileData: string,
   filePath: string,
 ) {
+  // Calls to registerTS are idempotent, so it's safe to call it repeatedly like
+  // we are here.
+  //
+  // See https://github.com/ardatan/graphql-tools/pull/7271 for more details.
+  //
+  // eslint-disable-next-line import/no-extraneous-dependencies
+  vueTemplateCompiler.registerTS(() => require('typescript'));
+
   const { descriptor } = vueTemplateCompiler.parse(fileData, { filename: filePath });
 
   return descriptor.script || descriptor.scriptSetup
@@ -397,7 +405,6 @@ const MissingGlimmerCompilerError = new Error(
 
 async function loadVueCompilerAsync() {
   try {
-    // eslint-disable-next-line import/no-extraneous-dependencies
     return await import('@vue/compiler-sfc');
   } catch {
     throw MissingVueTemplateCompilerError;
@@ -406,7 +413,6 @@ async function loadVueCompilerAsync() {
 
 function loadVueCompilerSync() {
   try {
-    // eslint-disable-next-line import/no-extraneous-dependencies
     return require('@vue/compiler-sfc');
   } catch {
     throw MissingVueTemplateCompilerError;
