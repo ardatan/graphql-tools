@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { runTests } from '../../testing/utils.js';
 import { gqlPluckFromCodeString, gqlPluckFromCodeStringSync } from '../src/index.js';
 import { freeText } from '../src/utils.js';
@@ -838,6 +841,55 @@ describe('graphql-tag-pluck', () => {
         </style>
       `),
       );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `),
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .vue 3 setup with compiler macros', async () => {
+      const EXTERNAL_PROPS_SOURCE = freeText(`
+        export type ExternalProps = {
+          foo: string;
+        };
+      `);
+
+      const VUE_SFC_SOURCE = freeText(`
+        <template lang="pug">
+          <div>test</div>
+        </template>
+
+        <script setup lang="ts">
+        import gql from 'graphql-tag';
+
+        const pageQuery = gql\`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+        \`;
+
+        import { ExternalProps } from './ExternalProps';
+        const props = defineProps<ExternalProps>();
+        </script>
+      `);
+
+      const tmpDirectory = fs.mkdtempSync(os.tmpdir());
+      fs.writeFileSync(path.join(tmpDirectory, 'ExternalProps.ts'), EXTERNAL_PROPS_SOURCE);
+      fs.writeFileSync(path.join(tmpDirectory, 'component.vue'), VUE_SFC_SOURCE);
+
+      const sources = await pluck(path.join(tmpDirectory, 'component.vue'), VUE_SFC_SOURCE);
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
         freeText(`
