@@ -855,7 +855,7 @@ describe('graphql-tag-pluck', () => {
       );
     });
 
-    it('should pluck graphql-tag template literals from .vue 3 setup with compiler macros', async () => {
+    it('should pluck graphql-tag template literals from .vue 3 setup with compiler macros and imports', async () => {
       const EXTERNAL_PROPS_SOURCE = freeText(`
         export type ExternalProps = {
           foo: string;
@@ -863,7 +863,7 @@ describe('graphql-tag-pluck', () => {
       `);
 
       const VUE_SFC_SOURCE = freeText(`
-        <template lang="pug">
+        <template>
           <div>test</div>
         </template>
 
@@ -885,6 +885,11 @@ describe('graphql-tag-pluck', () => {
         </script>
       `);
 
+      // We must write the files to disk because this test is specifically
+      // ensuring that imports work in Vue SFC files with compiler macros and
+      // imports are resolved on disk by the typescript runtime.
+      //
+      // See https://github.com/ardatan/graphql-tools/pull/7271 for details.
       const tmpDirectory = fs.mkdtempSync(os.tmpdir());
       fs.writeFileSync(path.join(tmpDirectory, 'ExternalProps.ts'), EXTERNAL_PROPS_SOURCE);
       fs.writeFileSync(path.join(tmpDirectory, 'component.vue'), VUE_SFC_SOURCE);
