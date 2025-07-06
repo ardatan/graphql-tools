@@ -1,9 +1,21 @@
-import fs from 'node:fs';
+import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { runTests } from '../../testing/utils.js';
 import { gqlPluckFromCodeString, gqlPluckFromCodeStringSync } from '../src/index.js';
 import { freeText } from '../src/utils.js';
+
+// A temporary directory unique for each unit test. Cleaned up after each unit
+// test resolves.
+let tmpDir: string;
+
+beforeEach(async () => {
+  tmpDir = await fs.mkdtemp(path.join(__dirname, 'tmp-'));
+});
+
+afterEach(async () => {
+  await fs.rm(tmpDir, { recursive: true });
+});
 
 describe('graphql-tag-pluck', () => {
   runTests({
@@ -890,11 +902,10 @@ describe('graphql-tag-pluck', () => {
       // imports are resolved on disk by the typescript runtime.
       //
       // See https://github.com/ardatan/graphql-tools/pull/7271 for details.
-      const tmpDirectory = fs.mkdtempSync(os.tmpdir());
-      fs.writeFileSync(path.join(tmpDirectory, 'ExternalProps.ts'), EXTERNAL_PROPS_SOURCE);
-      fs.writeFileSync(path.join(tmpDirectory, 'component.vue'), VUE_SFC_SOURCE);
+      await fs.writeFile(path.join(tmpDir, 'ExternalProps.ts'), EXTERNAL_PROPS_SOURCE);
+      await fs.writeFile(path.join(tmpDir, 'component.vue'), VUE_SFC_SOURCE);
 
-      const sources = await pluck(path.join(tmpDirectory, 'component.vue'), VUE_SFC_SOURCE);
+      const sources = await pluck(path.join(tmpDir, 'component.vue'), VUE_SFC_SOURCE);
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
         freeText(`
