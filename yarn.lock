@@ -3131,6 +3131,16 @@
     tailwind-merge "^2.5.2"
     unist-util-visit "5.0.0"
 
+"@theguild/federation-composition@^0.16.0":
+  version "0.16.0"
+  resolved "https://registry.yarnpkg.com/@theguild/federation-composition/-/federation-composition-0.16.0.tgz#d4ac321bfc50115adfe91bde04c6368c37060530"
+  integrity sha512-2JFQWlcmrJnnq1HOcuOgz6mkh2HmgdIxnj7J+VAKtdm+1eJur1yJBkjVFth0SdXkMahfBBfRIQM8tRTBGj7t2A==
+  dependencies:
+    constant-case "^3.0.4"
+    debug "4.3.4"
+    json5 "^2.2.3"
+    lodash.sortby "^4.7.0"
+
 "@theguild/federation-composition@^0.19.0":
   version "0.19.1"
   resolved "https://registry.yarnpkg.com/@theguild/federation-composition/-/federation-composition-0.19.1.tgz#b3907bfcbdbd69d4628a3b1270936615f56b904f"
@@ -5667,6 +5677,13 @@ debug@4, debug@4.4.1, debug@^4.0.0, debug@^4.1.0, debug@^4.1.1, debug@^4.3.1, de
   integrity sha512-KcKCqiftBJcZr++7ykoDIEwSa3XWowTfNPo92BYxjXiyYEVrUQh2aLyhxBCwww+heortUFxEJYcRzosstTEBYQ==
   dependencies:
     ms "^2.1.3"
+
+debug@4.3.4:
+  version "4.3.4"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.4.tgz#1319f6579357f2338d3337d2cdd4914bb5dcc865"
+  integrity sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==
+  dependencies:
+    ms "2.1.2"
 
 debug@^3.2.7:
   version "3.2.7"
@@ -11875,10 +11892,10 @@ svelte2tsx@0.7.40:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@5.35.2:
-  version "5.35.2"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.35.2.tgz#41d8ee80bab1c93ae0e2ff6c4d5f7774b0bef9a5"
-  integrity sha512-uW/rRXYrhZ7Dh4UQNZ0t+oVGL1dEM+95GavCO8afAk1IY2cPq9BcZv9C3um5aLIya2y8lIeLPxLII9ASGg9Dzw==
+svelte@5.35.3:
+  version "5.35.3"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.35.3.tgz#0d87fd114bc4ddc5286dce8d3162ff8487bbaad3"
+  integrity sha512-/eW3yMa+7FECZBlrt5px5pbw7nRY7QcZqUvx4zcodB25tVEBYSoWbTjH8CbAvw8jdU9VoxUzcy5x0UPp/bNJDw==
   dependencies:
     "@ampproject/remapping" "^2.3.0"
     "@jridgewell/sourcemap-codec" "^1.5.0"
