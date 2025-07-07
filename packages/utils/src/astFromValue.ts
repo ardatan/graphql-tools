@@ -1,17 +1,14 @@
 import { inspect } from 'cross-inspect';
+import { Kind, ObjectFieldNode, ValueNode, type GraphQLInputType } from 'graphql';
+import { astFromValueUntyped } from './astFromValueUntyped.js';
+import { isIterableObject, isObjectLike } from './jsutils.js';
 import {
-  GraphQLInputType,
   isEnumType,
   isInputObjectType,
   isLeafType,
   isListType,
   isNonNullType,
-  Kind,
-  ObjectFieldNode,
-  ValueNode,
-} from 'graphql';
-import { astFromValueUntyped } from './astFromValueUntyped.js';
-import { isIterableObject, isObjectLike } from './jsutils.js';
+} from './typeCheckers.js';
 import { Maybe } from './types.js';
 
 /**

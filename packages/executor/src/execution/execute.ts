@@ -15,17 +15,13 @@ import {
   GraphQLOutputType,
   GraphQLSchema,
   GraphQLTypeResolver,
-  isAbstractType,
-  isLeafType,
-  isListType,
-  isNonNullType,
-  isObjectType,
   Kind,
   locatedError,
   OperationDefinitionNode,
   SchemaMetaFieldDef,
   TypeMetaFieldDef,
   TypeNameMetaFieldDef,
+  validateSchema,
   versionInfo,
 } from 'graphql';
 import {
@@ -39,9 +35,14 @@ import {
   GraphQLResolveInfo,
   GraphQLStreamDirective,
   inspect,
+  isAbstractType,
   isAsyncIterable,
   isIterableObject,
+  isLeafType,
+  isListType,
+  isNonNullType,
   isObjectLike,
+  isObjectType,
   isPromise,
   mapAsyncIterator,
   Maybe,
@@ -396,6 +397,8 @@ export const getFragmentsFromDocument = memoize1(function getFragmentsFromDocume
   return fragments;
 });
 
+const validSchemas = new WeakSet<GraphQLSchema>();
+
 /**
  * Constructs a ExecutionContext object from the arguments passed to
  * execute, which we will pass throughout the other execution methods.
@@ -424,7 +427,13 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
   signal?.throwIfAborted();
 
   // If the schema used for execution is invalid, throw an error.
-  assertValidSchema(schema);
+  if (!validSchemas.has(schema)) {
+    const validationErrors = validateSchema(schema);
+    if (validationErrors?.length) {
+      return validationErrors;
+    }
+    validSchemas.add(schema);
+  }
 
   const fragments: Record<string, FragmentDefinitionNode> = getFragmentsFromDocument(document);
 
