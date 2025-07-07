@@ -9,7 +9,7 @@ import {
   isEnumType,
   isInterfaceType,
   isListType,
-  isNullableType,
+  isNonNullType,
   isObjectType,
   isScalarType,
 } from 'graphql';
@@ -335,12 +335,9 @@ export class MockStore implements IMockStore {
     currentValue: unknown,
     onInsertType: (typeName: string, values: { [fieldName: string]: unknown }) => Ref,
   ): unknown {
-    const fieldTypeName = fieldType.toString();
     if (value === null) {
-      if (!isNullableType(fieldType)) {
-        throw new Error(
-          `should not be null because ${fieldTypeName} is not nullable. Received null.`,
-        );
+      if (isNonNullType(fieldType)) {
+        throw new Error(`should not be null because ${fieldType} is not nullable. Received null.`);
       }
       return null;
     }
