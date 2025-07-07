@@ -485,6 +485,20 @@ describe('importSchema', () => {
     expect(importSchema('./fixtures/directive/h.graphql')).toBeSimilarGqlDoc(expectedSDL);
   });
 
+  test('importSchema: has context for which federated directives are repeatable', () => {
+    const expectedSDL = /* GraphQL */ `
+      extend schema
+        @link(url: "https://specs.apollo.dev/link/v1.0")
+        @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"])
+
+      type Item @key(fields: "id") @key(fields: "id type") {
+        id: ID!
+        type: String!
+      }
+    `;
+    expect(importSchema('./fixtures/directive/i.graphql')).toBeSimilarGqlDoc(expectedSDL);
+  });
+
   test('importSchema: interfaces', () => {
     const expectedSDL = /* GraphQL */ `
       type A implements B {
