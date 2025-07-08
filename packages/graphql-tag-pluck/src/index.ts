@@ -153,8 +153,20 @@ const supportedExtensions = [
 ];
 
 // tslint:disable-next-line: no-implicit-dependencies
-function parseWithVue(vueTemplateCompiler: typeof import('@vue/compiler-sfc'), fileData: string) {
-  const { descriptor } = vueTemplateCompiler.parse(fileData);
+function parseWithVue(
+  vueTemplateCompiler: typeof import('@vue/compiler-sfc'),
+  fileData: string,
+  filePath: string,
+) {
+  // Calls to registerTS are idempotent, so it's safe to call it repeatedly like
+  // we are here.
+  //
+  // See https://github.com/ardatan/graphql-tools/pull/7271 for more details.
+  //
+  // eslint-disable-next-line import/no-extraneous-dependencies
+  vueTemplateCompiler.registerTS(() => require('typescript'));
+
+  const { descriptor } = vueTemplateCompiler.parse(fileData, { filename: filePath });
 
   return descriptor.script || descriptor.scriptSetup
     ? vueTemplateCompiler.compileScript(descriptor, { id: Date.now().toString() }).content
@@ -168,7 +180,7 @@ function customBlockFromVue(
   filePath: string,
   blockType: string,
 ): Source | undefined {
-  const { descriptor } = vueTemplateCompiler.parse(fileData);
+  const { descriptor } = vueTemplateCompiler.parse(fileData, { filename: filePath });
 
   const block = descriptor.customBlocks.find(b => b.type === blockType);
   if (block === undefined) {
@@ -232,7 +244,7 @@ export const gqlPluckFromCodeString = async (
     if (options.gqlVueBlock) {
       blockSource = await pluckVueFileCustomBlock(code, filePath, options.gqlVueBlock);
     }
-    code = await pluckVueFileScript(code);
+    code = await pluckVueFileScript(code, filePath);
   } else if (fileExt === '.svelte') {
     code = await pluckSvelteFileScript(code);
   } else if (fileExt === '.astro') {
@@ -273,7 +285,7 @@ export const gqlPluckFromCodeStringSync = (
     if (options.gqlVueBlock) {
       blockSource = pluckVueFileCustomBlockSync(code, filePath, options.gqlVueBlock);
     }
-    code = pluckVueFileScriptSync(code);
+    code = pluckVueFileScriptSync(code, filePath);
   } else if (fileExt === '.svelte') {
     code = pluckSvelteFileScriptSync(code);
   } else if (fileExt === '.astro') {
@@ -393,7 +405,6 @@ const MissingGlimmerCompilerError = new Error(
 
 async function loadVueCompilerAsync() {
   try {
-    // eslint-disable-next-line import/no-extraneous-dependencies
     return await import('@vue/compiler-sfc');
   } catch {
     throw MissingVueTemplateCompilerError;
@@ -402,21 +413,20 @@ async function loadVueCompilerAsync() {
 
 function loadVueCompilerSync() {
   try {
-    // eslint-disable-next-line import/no-extraneous-dependencies
     return require('@vue/compiler-sfc');
   } catch {
     throw MissingVueTemplateCompilerError;
   }
 }
 
-async function pluckVueFileScript(fileData: string) {
+async function pluckVueFileScript(fileData: string, filePath: string) {
   const vueTemplateCompiler = await loadVueCompilerAsync();
-  return parseWithVue(vueTemplateCompiler, fileData);
+  return parseWithVue(vueTemplateCompiler, fileData, filePath);
 }
 
-function pluckVueFileScriptSync(fileData: string) {
+function pluckVueFileScriptSync(fileData: string, filePath: string) {
   const vueTemplateCompiler = loadVueCompilerSync();
-  return parseWithVue(vueTemplateCompiler, fileData);
+  return parseWithVue(vueTemplateCompiler, fileData, filePath);
 }
 
 async function pluckVueFileCustomBlock(fileData: string, filePath: string, blockType: string) {

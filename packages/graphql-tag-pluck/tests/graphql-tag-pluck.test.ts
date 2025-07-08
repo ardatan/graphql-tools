@@ -1,6 +1,22 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { runTests } from '../../testing/utils.js';
 import { gqlPluckFromCodeString, gqlPluckFromCodeStringSync } from '../src/index.js';
 import { freeText } from '../src/utils.js';
+
+// A temporary directory unique for each unit test. Cleaned up after each unit
+// test resolves.
+let tmpDir: string;
+
+beforeEach(async () => {
+  // We create temporary directories in the test directory because our test
+  // infrastructure denies writes to the host's tmp directory.
+  tmpDir = await fs.mkdtemp(path.join(__dirname, 'tmp-'));
+});
+
+afterEach(async () => {
+  await fs.rm(tmpDir, { recursive: true });
+});
 
 describe('graphql-tag-pluck', () => {
   runTests({
@@ -838,6 +854,59 @@ describe('graphql-tag-pluck', () => {
         </style>
       `),
       );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `),
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .vue 3 setup with compiler macros and imports', async () => {
+      const EXTERNAL_PROPS_SOURCE = freeText(`
+        export type ExternalProps = {
+          foo: string;
+        };
+      `);
+
+      const VUE_SFC_SOURCE = freeText(`
+        <template>
+          <div>test</div>
+        </template>
+
+        <script setup lang="ts">
+        import gql from 'graphql-tag';
+
+        const pageQuery = gql\`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+        \`;
+
+        import { ExternalProps } from './ExternalProps';
+        const props = defineProps<ExternalProps>();
+        </script>
+      `);
+
+      // We must write the files to disk because this test is specifically
+      // ensuring that imports work in Vue SFC files with compiler macros and
+      // imports are resolved on disk by the typescript runtime.
+      //
+      // See https://github.com/ardatan/graphql-tools/pull/7271 for details.
+      await fs.writeFile(path.join(tmpDir, 'ExternalProps.ts'), EXTERNAL_PROPS_SOURCE);
+      await fs.writeFile(path.join(tmpDir, 'component.vue'), VUE_SFC_SOURCE);
+
+      const sources = await pluck(path.join(tmpDir, 'component.vue'), VUE_SFC_SOURCE);
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
         freeText(`
