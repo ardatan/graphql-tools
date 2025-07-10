@@ -1,5 +1,12 @@
 # @graphql-tools/load
 
+## 8.1.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/schema@10.0.24
+
 ## 8.1.0
 
 ### Minor Changes
@@ -743,7 +750,6 @@
 ### Major Changes
 
 - af9a78de: BREAKING CHANGE
-
   - Now each loader handles glob patterns internally and returns an array of `Source` object instead
     of single `Source`
 
