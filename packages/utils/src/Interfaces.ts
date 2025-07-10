@@ -89,6 +89,8 @@ export interface ExecutionRequest<
   rootValue?: TRootValue;
   // If the request originates within execution of a parent request, it may contain the parent context and info
   context?: TContext;
+  // If the request originates within a supergraph execution, it may contain the target subgraph name
+  subgraphName?: string;
   info?: GraphQLResolveInfo;
   signal?: AbortSignal;
 }
