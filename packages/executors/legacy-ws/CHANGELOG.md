@@ -1,5 +1,14 @@
 # @graphql-tools/executor-legacy-ws
 
+## 1.1.18
+
+### Patch Changes
+
+- Updated dependencies
+  [[`22af985`](https://github.com/ardatan/graphql-tools/commit/22af98581e983079ec7e53677b905d3d03117524),
+  [`53db005`](https://github.com/ardatan/graphql-tools/commit/53db00540c2549748afdeeb65bb45a6c45ce57d3)]:
+  - @graphql-tools/utils@10.9.0
+
 ## 1.1.17
 
 ### Patch Changes
