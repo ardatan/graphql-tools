@@ -388,17 +388,17 @@ describe('printSchemaWithDirectives', () => {
         },
       },
     } as GraphQLInputObjectTypeConfig);
-    const schema = new GraphQLSchema({
-      query: new GraphQLObjectType({
-        name: 'Query',
-        fields: {},
-      }),
-      types: [oneOfInputType],
-    });
-
-    const output = printSchemaWithDirectives(schema);
     // Only if `isOneOf` is supported, it should print the directive
     if ((oneOfInputType as any).isOneOf) {
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {},
+        }),
+        types: [oneOfInputType],
+      });
+
+      const output = printSchemaWithDirectives(schema);
       expect(output).toContain('input OneOfInput @oneOf');
     }
   });
