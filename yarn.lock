@@ -1691,19 +1691,19 @@
     tslib "^2.8.1"
     ws "^8.17.1"
 
-"@graphql-tools/executor-http@^1.1.9":
-  version "1.3.3"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-http/-/executor-http-1.3.3.tgz#057de79ebc90edbd242259cccb1268d37ee6c579"
-  integrity sha512-LIy+l08/Ivl8f8sMiHW2ebyck59JzyzO/yF9SFS4NH6MJZUezA1xThUXCDIKhHiD56h/gPojbkpcFvM2CbNE7A==
+"@graphql-tools/executor-http@^2.0.3":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-http/-/executor-http-2.0.3.tgz#dda262aae3b9fcc082ea14fa6384b9f1bb257cc4"
+  integrity sha512-zlBu3ka3yQF/SHr3BfafM734RlUG8YifjBcGDpP9aL46yonGEGwIfvcwDU+0V1KviSnXOGiyYaL2ZcG6u8GTSA==
   dependencies:
     "@graphql-hive/signal" "^1.0.0"
     "@graphql-tools/executor-common" "^0.0.4"
     "@graphql-tools/utils" "^10.8.1"
     "@repeaterjs/repeater" "^3.0.4"
     "@whatwg-node/disposablestack" "^0.0.6"
-    "@whatwg-node/fetch" "^0.10.4"
+    "@whatwg-node/fetch" "^0.10.8"
     "@whatwg-node/promise-helpers" "^1.3.0"
-    meros "^1.2.1"
+    meros "^1.3.1"
     tslib "^2.8.1"
 
 "@graphql-tools/stitch@^9.3.4":
@@ -4196,7 +4196,7 @@
   dependencies:
     tslib "^2.6.3"
 
-"@whatwg-node/fetch@^0.10.0", "@whatwg-node/fetch@^0.10.4", "@whatwg-node/fetch@^0.10.6", "@whatwg-node/fetch@^0.10.8":
+"@whatwg-node/fetch@^0.10.0", "@whatwg-node/fetch@^0.10.6", "@whatwg-node/fetch@^0.10.8":
   version "0.10.9"
   resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.10.9.tgz#ac7b5fe966c7df0f124695a40dce8fc63ea97f07"
   integrity sha512-2TaXKmjy53cybNtaAtzbPOzwIPkjXbzvZcimnaJxQwYXKSC8iYnWoZOyT4+CFt8w0KDieg5J5dIMNzUrW/UZ5g==
@@ -9126,7 +9126,7 @@ mermaid@^11.0.0:
     ts-dedent "^2.2.0"
     uuid "^11.1.0"
 
-meros@^1.2.1:
+meros@^1.3.1:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/meros/-/meros-1.3.1.tgz#21a090d59c02afb1e418e40631b78aa37a21ac69"
   integrity sha512-eV7dRObfTrckdmAz4/n7pT1njIsIJXRIZkgCiX43xEsPNy4gjXQzOYYxmGcolAMtF7HyfqRuDBh3Lgs4hmhVEw==
