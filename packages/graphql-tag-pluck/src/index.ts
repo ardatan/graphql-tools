@@ -155,6 +155,7 @@ const supportedExtensions = [
 // tslint:disable-next-line: no-implicit-dependencies
 function parseWithVue(
   vueTemplateCompiler: typeof import('@vue/compiler-sfc'),
+  typescriptPackage: typeof import('typescript'),
   fileData: string,
   filePath: string,
 ) {
@@ -163,8 +164,8 @@ function parseWithVue(
   //
   // See https://github.com/ardatan/graphql-tools/pull/7271 for more details.
   //
-  // eslint-disable-next-line import/no-extraneous-dependencies
-  vueTemplateCompiler.registerTS(() => require('typescript'));
+   
+  vueTemplateCompiler.registerTS(() => typescriptPackage);
 
   const { descriptor } = vueTemplateCompiler.parse(fileData, { filename: filePath });
 
@@ -403,12 +404,34 @@ const MissingGlimmerCompilerError = new Error(
       `),
 );
 
+const MissingTypeScriptPackageError = new Error(
+  freeText(`
+        GraphQL template literals cannot be plucked from a Vue template code without having the "typescript" package installed.
+        Please install it and try again.
+
+        Via NPM:
+            $ npm install typescript
+
+        Via Yarn:
+            $ yarn add typescript
+      `),
+);
+
 async function loadVueCompilerAsync() {
   try {
     // eslint-disable-next-line import/no-extraneous-dependencies
     return await import('@vue/compiler-sfc');
   } catch {
     throw MissingVueTemplateCompilerError;
+  }
+}
+
+async function loadTypeScriptPackageAsync() {
+  try {
+    // eslint-disable-next-line import/no-extraneous-dependencies
+    return await import('typescript');
+  } catch {
+    throw MissingTypeScriptPackageError;
   }
 }
 
@@ -421,14 +444,27 @@ function loadVueCompilerSync() {
   }
 }
 
+function loadTypeScriptPackageSync() {
+  try {
+    // eslint-disable-next-line import/no-extraneous-dependencies
+    return require('typescript');
+  } catch {
+    throw MissingTypeScriptPackageError;
+  }
+}
+
 async function pluckVueFileScript(fileData: string, filePath: string) {
-  const vueTemplateCompiler = await loadVueCompilerAsync();
-  return parseWithVue(vueTemplateCompiler, fileData, filePath);
+  const [typescriptPackage, vueTemplateCompiler] = await Promise.all([
+    loadTypeScriptPackageAsync(),
+    loadVueCompilerAsync(),
+  ]);
+  return parseWithVue(vueTemplateCompiler, typescriptPackage, fileData, filePath);
 }
 
 function pluckVueFileScriptSync(fileData: string, filePath: string) {
   const vueTemplateCompiler = loadVueCompilerSync();
-  return parseWithVue(vueTemplateCompiler, fileData, filePath);
+  const typescriptPackage = loadTypeScriptPackageSync();
+  return parseWithVue(vueTemplateCompiler, typescriptPackage, fileData, filePath);
 }
 
 async function pluckVueFileCustomBlock(fileData: string, filePath: string, blockType: string) {
