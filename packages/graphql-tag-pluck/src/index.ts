@@ -164,7 +164,7 @@ function parseWithVue(
   //
   // See https://github.com/ardatan/graphql-tools/pull/7271 for more details.
   //
-   
+
   vueTemplateCompiler.registerTS(() => typescriptPackage);
 
   const { descriptor } = vueTemplateCompiler.parse(fileData, { filename: filePath });
@@ -410,9 +410,11 @@ const MissingTypeScriptPackageError = new Error(
         Please install it and try again.
 
         Via NPM:
+
             $ npm install typescript
 
         Via Yarn:
+
             $ yarn add typescript
       `),
 );
@@ -468,7 +470,7 @@ function pluckVueFileScriptSync(fileData: string, filePath: string) {
 }
 
 async function pluckVueFileCustomBlock(fileData: string, filePath: string, blockType: string) {
-  const vueTemplateCompiler = await loadVueCompilerSync();
+  const vueTemplateCompiler = await loadVueCompilerAsync();
   return customBlockFromVue(vueTemplateCompiler, fileData, filePath, blockType);
 }
 
