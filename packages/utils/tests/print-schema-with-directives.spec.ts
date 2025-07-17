@@ -376,29 +376,30 @@ describe('printSchemaWithDirectives', () => {
     }
   });
   it(`prints oneOf correctly if they don't have astNode`, () => {
+    const oneOfInputType = new GraphQLInputObjectType({
+      name: 'OneOfInput',
+      isOneOf: true,
+      fields: {
+        a: {
+          type: GraphQLString,
+        },
+        b: {
+          type: GraphQLInt,
+        },
+      },
+    } as GraphQLInputObjectTypeConfig);
     const schema = new GraphQLSchema({
       query: new GraphQLObjectType({
         name: 'Query',
         fields: {},
       }),
-      types: [
-        new GraphQLInputObjectType({
-          name: 'OneOfInput',
-          isOneOf: true,
-          fields: {
-            a: {
-              type: GraphQLString,
-            },
-            b: {
-              type: GraphQLInt,
-            },
-          },
-        } as GraphQLInputObjectTypeConfig),
-      ],
+      types: [oneOfInputType],
     });
 
     const output = printSchemaWithDirectives(schema);
-
-    expect(output).toContain('OneOfInput @oneOf');
+    // Only if `isOneOf` is supported, it should print the directive
+    if (oneOfInputType.isOneOf) {
+      expect(output).toContain('input OneOfInput @oneOf');
+    }
   });
 });
