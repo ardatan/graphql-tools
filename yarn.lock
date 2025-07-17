@@ -11871,18 +11871,18 @@ supports-preserve-symlinks-flag@^1.0.0:
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
-svelte2tsx@0.7.40:
-  version "0.7.40"
-  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.7.40.tgz#b0e7345c7f71187c489c81b0c0c9188253ba704e"
-  integrity sha512-Fgqe2lzC9DWT/kQTIXqN39O2ot9rUqzUu9dqpbuI6EsaEJ6+RSXVmXnxcNYMlKb2LRPDoIg9TVzXYWwi0zhCmQ==
+svelte2tsx@0.7.41:
+  version "0.7.41"
+  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.7.41.tgz#f66df705a2e96138ea7f0b9c0d9af36afe5f99c5"
+  integrity sha512-/TUwpyn/Qc1wcGuayf2GSwvZ7htdAOzpo0JFFm96srKnRXoTD0gy4n06g+XgH8w016S3lPtyFVtFAm+0yJ0BZw==
   dependencies:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@5.36.6:
-  version "5.36.6"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.36.6.tgz#42f4f589dc385fcb0354bf9cef55433394bc55be"
-  integrity sha512-THFCC4RzI45IHXVruiG/9RpyhapGdsMTm0lpd/1NEBkNUszGsuTET0ifiaYLfP2P6Y6Y4LRdrzloRhZGIIzphA==
+svelte@5.36.7:
+  version "5.36.7"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.36.7.tgz#74f92c8dcd549e28fabbbea620a5481fc1b6a01a"
+  integrity sha512-QsaFAxL1PZvo9hwaN+x7Sq2U8oJARmsEuM8TEZVy98nx5D5IKzRi8FKkPvmOx9NXScSYnItDGLErBBn/ieIn2A==
   dependencies:
     "@ampproject/remapping" "^2.3.0"
     "@jridgewell/sourcemap-codec" "^1.5.0"
