@@ -3,10 +3,14 @@ import {
   GraphQLDirective,
   GraphQLEnumType,
   GraphQLID,
+  GraphQLInputObjectType,
+  GraphQLInputObjectTypeConfig,
+  GraphQLInt,
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLSchema,
+  GraphQLString,
   printSchema,
   specifiedDirectives,
 } from 'graphql';
@@ -370,5 +374,31 @@ describe('printSchemaWithDirectives', () => {
     for (const line of printedSchemaLines) {
       expect(printedSchema).toContain(line.trim());
     }
+  });
+  it(`prints oneOf correctly if they don't have astNode`, () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {},
+      }),
+      types: [
+        new GraphQLInputObjectType({
+          name: 'OneOfInput',
+          isOneOf: true,
+          fields: {
+            a: {
+              type: GraphQLString,
+            },
+            b: {
+              type: GraphQLInt,
+            },
+          },
+        } as GraphQLInputObjectTypeConfig),
+      ],
+    });
+
+    const output = printSchemaWithDirectives(schema);
+
+    expect(output).toContain('OneOfInput @oneOf');
   });
 });
