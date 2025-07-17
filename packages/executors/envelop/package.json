@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor-envelop",
-  "version": "3.0.27",
+  "version": "3.0.28",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
@@ -51,7 +51,7 @@
     "@envelop/core": "^3.0.4 || ^4.0.0 || ^5.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^10.8.6",
+    "@graphql-tools/utils": "^10.9.0",
     "@graphql-tools/wrap": "^10.0.16",
     "tslib": "^2.3.1"
   },
