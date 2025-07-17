@@ -1,14 +1,41 @@
 # @graphql-tools/jest-transform
 
+## 2.0.1
+
+### Patch Changes
+
+- [#7243](https://github.com/ardatan/graphql-tools/pull/7243)
+  [`7dcd7a2`](https://github.com/ardatan/graphql-tools/commit/7dcd7a2053c4cc0cf825030b04ba8c3b56f3588d)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@jest/transform@^30.0.0` ↗︎](https://www.npmjs.com/package/@jest/transform/v/30.0.0) (from
+    `^29.0.0`, in `dependencies`)
+  - Updated dependency
+    [`@jest/types@^30.0.0` ↗︎](https://www.npmjs.com/package/@jest/types/v/30.0.0) (from `^29.0.0`,
+    in `dependencies`)
+
+- [#7246](https://github.com/ardatan/graphql-tools/pull/7246)
+  [`76aa1b1`](https://github.com/ardatan/graphql-tools/commit/76aa1b191f6bfef7507ac326cbfcfe5cbb822922)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@jest/transform@^30.0.0` ↗︎](https://www.npmjs.com/package/@jest/transform/v/30.0.0) (from
+    `^29.0.0`, in `dependencies`)
+  - Updated dependency
+    [`@jest/types@^30.0.0` ↗︎](https://www.npmjs.com/package/@jest/types/v/30.0.0) (from `^29.0.0`,
+    in `dependencies`)
+
 ## 2.0.0
 
 ### Major Changes
 
-- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274)
+  [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)
+  Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
 
 ### Patch Changes
 
-- Updated dependencies [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+- Updated dependencies
+  [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
   - @graphql-tools/webpack-loader@7.0.0
 
 ## 1.2.3
@@ -22,18 +49,26 @@
 
 ### Patch Changes
 
-- [#4671](https://github.com/ardatan/graphql-tools/pull/4671) [`96c9e4df`](https://github.com/ardatan/graphql-tools/commit/96c9e4dff2866776661b992b9e481c4eabfcf2a0) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-
-  - Updated dependency [`@jest/transform@^29.0.0` ↗︎](https://www.npmjs.com/package/@jest/transform/v/null) (from `^28.0.0`, in `dependencies`)
-  - Updated dependency [`@jest/types@^29.0.0` ↗︎](https://www.npmjs.com/package/@jest/types/v/null) (from `^28.0.0`, in `dependencies`)
+- [#4671](https://github.com/ardatan/graphql-tools/pull/4671)
+  [`96c9e4df`](https://github.com/ardatan/graphql-tools/commit/96c9e4dff2866776661b992b9e481c4eabfcf2a0)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@jest/transform@^29.0.0` ↗︎](https://www.npmjs.com/package/@jest/transform/v/null) (from
+    `^28.0.0`, in `dependencies`)
+  - Updated dependency [`@jest/types@^29.0.0` ↗︎](https://www.npmjs.com/package/@jest/types/v/null)
+    (from `^28.0.0`, in `dependencies`)
 
 ## 1.2.1
 
 ### Patch Changes
 
-- [#4624](https://github.com/ardatan/graphql-tools/pull/4624) [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67) Thanks [@n1ru4l](https://github.com/n1ru4l)! - Fix CommonJS TypeScript resolution with `moduleResolution` `node16` or `nodenext`
+- [#4624](https://github.com/ardatan/graphql-tools/pull/4624)
+  [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)
+  Thanks [@n1ru4l](https://github.com/n1ru4l)! - Fix CommonJS TypeScript resolution with
+  `moduleResolution` `node16` or `nodenext`
 
-- Updated dependencies [[`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)]:
+- Updated dependencies
+  [[`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)]:
   - @graphql-tools/webpack-loader@6.7.1
 
 ## 1.2.0
