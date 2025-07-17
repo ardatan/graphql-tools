@@ -398,7 +398,7 @@ describe('printSchemaWithDirectives', () => {
 
     const output = printSchemaWithDirectives(schema);
     // Only if `isOneOf` is supported, it should print the directive
-    if (oneOfInputType.isOneOf) {
+    if ((oneOfInputType as any).isOneOf) {
       expect(output).toContain('input OneOfInput @oneOf');
     }
   });
