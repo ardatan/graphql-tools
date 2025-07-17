@@ -6788,9 +6788,9 @@ foreground-child@^3.1.0:
     signal-exit "^4.0.1"
 
 form-data@^4.0.0:
-  version "4.0.3"
-  resolved "https://registry.yarnpkg.com/form-data/-/form-data-4.0.3.tgz#608b1b3f3e28be0fccf5901fc85fb3641e5cf0ae"
-  integrity sha512-qsITQPfmvMOSAdeyZ+12I1c+CKSstAFAwu+97zrnWAbIr5u8wfsExUzCesVLC8NgHuRUqNN4Zy6UPWUTRGslcA==
+  version "4.0.4"
+  resolved "https://registry.yarnpkg.com/form-data/-/form-data-4.0.4.tgz#784cdcce0669a9d68e94d11ac4eea98088edd2c4"
+  integrity sha512-KrGhL9Q4zjj0kiUt5OO4Mr/A/jlI2jDYs5eHBpYHPcBEVSiipAvn2Ko2HnPe20rmcuuvMHNdZFp+4IlGTMF0Ow==
   dependencies:
     asynckit "^0.4.0"
     combined-stream "^1.0.8"
@@ -12863,10 +12863,10 @@ workerd@1.20250712.0:
     "@cloudflare/workerd-linux-arm64" "1.20250712.0"
     "@cloudflare/workerd-windows-64" "1.20250712.0"
 
-wrangler@4.24.4:
-  version "4.24.4"
-  resolved "https://registry.yarnpkg.com/wrangler/-/wrangler-4.24.4.tgz#96e72d2f0aa315081fbd1c1f348eb8f7355c7e94"
-  integrity sha512-qjDdZWt/aiK19YrQbjFjJoa9+y+arsXcUpRomwMdmbccZw/w5QgDsEeXMxoPSisUDQlW9ZX5A68ZPWY1/im54w==
+wrangler@4.25.0:
+  version "4.25.0"
+  resolved "https://registry.yarnpkg.com/wrangler/-/wrangler-4.25.0.tgz#db2089e2585c4a83be4d97a73a4029f9b3b5579e"
+  integrity sha512-SepXQbzWkdp0O7qAx3i0go+fw5I0VkDqLV2G3ewbffO5k8kpvuCkhalS23KO+7+o8+Oa3vfC7x+16IL3rj2n4w==
   dependencies:
     "@cloudflare/kv-asset-handler" "0.4.0"
     "@cloudflare/unenv-preset" "2.3.3"
