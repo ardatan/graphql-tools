@@ -54,7 +54,7 @@
     "@graphql-tools/executor-http": "^1.1.9",
     "@graphql-tools/graphql-tag-pluck": "^8.3.20",
     "@graphql-tools/utils": "^10.9.0",
-    "@whatwg-node/fetch": "^0.10.0",
+    "@whatwg-node/fetch": "^0.10.9",
     "@whatwg-node/promise-helpers": "^1.0.0",
     "sync-fetch": "0.6.0-2",
     "tslib": "^2.4.0"
