@@ -4,7 +4,13 @@
  * that does not provide the same safeguards or functionality, but still can determine the
  * correct name of an linked resource.
  */
-import { ConstArgumentNode, ConstValueNode, DocumentNode, Kind, StringValueNode } from 'graphql';
+import {
+  Kind,
+  type ArgumentNode,
+  type DocumentNode,
+  type StringValueNode,
+  type ValueNode,
+} from 'graphql';
 
 type FederationNamedImport = {
   name: string;
@@ -77,7 +83,7 @@ export function extractLinks(typeDefs: DocumentNode): FederatedLink[] {
   return links;
 }
 
-function linkFromArgs(args: readonly ConstArgumentNode[]): FederatedLink | undefined {
+function linkFromArgs(args: readonly ArgumentNode[]): FederatedLink | undefined {
   let url: FederationLinkUrl | undefined;
   let imports: FederationNamedImport[] = [];
   let as: string | undefined;
@@ -117,7 +123,7 @@ function linkFromArgs(args: readonly ConstArgumentNode[]): FederatedLink | undef
 /**
  * Supports federation 1
  */
-function linkFromCoreArgs(args: readonly ConstArgumentNode[]): FederatedLink | undefined {
+function linkFromCoreArgs(args: readonly ArgumentNode[]): FederatedLink | undefined {
   const feature = args.find(
     ({ name, value }) => name.value === 'feature' && value.kind === Kind.STRING,
   );
@@ -130,7 +136,7 @@ function linkFromCoreArgs(args: readonly ConstArgumentNode[]): FederatedLink | u
   }
 }
 
-function parseImportNode(node: ConstValueNode): FederationNamedImport[] {
+function parseImportNode(node: ValueNode): FederationNamedImport[] {
   if (node.kind === Kind.LIST) {
     const imports = node.values.map((v): FederationNamedImport | undefined => {
       let namedImport: FederationNamedImport | undefined;
