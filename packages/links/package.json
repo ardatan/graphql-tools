@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/links",
-  "version": "9.0.20",
+  "version": "9.0.28",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
@@ -52,14 +52,14 @@
   },
   "dependencies": {
     "@graphql-tools/delegate": "^10.1.2",
-    "@graphql-tools/utils": "^10.7.2",
+    "@graphql-tools/utils": "^10.9.0",
     "apollo-upload-client": "17.0.0",
     "form-data": "^4.0.0",
     "node-fetch": "^2.6.5",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@apollo/client": "3.12.8",
+    "@apollo/client": "3.13.8",
     "@graphql-tools/stitch": "^9.3.4",
     "@types/apollo-upload-client": "17.0.5",
     "@types/node-fetch": "^2",

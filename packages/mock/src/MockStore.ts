@@ -9,7 +9,7 @@ import {
   isEnumType,
   isInterfaceType,
   isListType,
-  isNullableType,
+  isNonNullType,
   isObjectType,
   isScalarType,
 } from 'graphql';
@@ -263,8 +263,16 @@ export class MockStore implements IMockStore {
       value = deepResolveMockList(value);
     }
 
+    if (typeName === '__proto__' || typeName === 'constructor' || typeName === 'prototype') {
+      throw new Error(`Invalid typeName: ${typeName}`);
+    }
+
     if (this.store[typeName] === undefined) {
       this.store[typeName] = {};
+    }
+
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      throw new Error(`Invalid key: ${key}`);
     }
 
     if (this.store[typeName][key] === undefined) {
@@ -327,12 +335,9 @@ export class MockStore implements IMockStore {
     currentValue: unknown,
     onInsertType: (typeName: string, values: { [fieldName: string]: unknown }) => Ref,
   ): unknown {
-    const fieldTypeName = fieldType.toString();
     if (value === null) {
-      if (!isNullableType(fieldType)) {
-        throw new Error(
-          `should not be null because ${fieldTypeName} is not nullable. Received null.`,
-        );
+      if (isNonNullType(fieldType)) {
+        throw new Error(`should not be null because ${fieldType} is not nullable. Received null.`);
       }
       return null;
     }
@@ -424,8 +429,16 @@ export class MockStore implements IMockStore {
       });
     }
 
+    if (typeName === '__proto__' || typeName === 'constructor' || typeName === 'prototype') {
+      throw new Error(`Invalid typeName: ${typeName}`);
+    }
+
     if (this.store[typeName] === undefined) {
       this.store[typeName] = {};
+    }
+
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      throw new Error(`Invalid key: ${key}`);
     }
 
     if (this.store[typeName][key] === undefined) {

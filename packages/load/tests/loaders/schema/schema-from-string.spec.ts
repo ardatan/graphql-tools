@@ -95,7 +95,7 @@ describe('schema from string', () => {
         load(schemaString, {
           loaders: [new GraphQLFileLoader()],
         }),
-      ).rejects.toThrowError('Syntax Error');
+      ).rejects.toThrow('Syntax Error');
     });
   });
 });

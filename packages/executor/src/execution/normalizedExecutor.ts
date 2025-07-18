@@ -1,5 +1,4 @@
 import { getOperationAST, GraphQLSchema } from 'graphql';
-import { ValueOrPromise } from 'value-or-promise';
 import {
   ExecutionRequest,
   ExecutionResult,
@@ -8,7 +7,14 @@ import {
   MaybePromise,
   memoize1,
 } from '@graphql-tools/utils';
-import { execute, ExecutionArgs, flattenIncrementalResults, subscribe } from './execute.js';
+import { handleMaybePromise } from '@whatwg-node/promise-helpers';
+import {
+  execute,
+  ExecutionArgs,
+  flattenIncrementalResults,
+  isIncrementalResults,
+  subscribe,
+} from './execute.js';
 
 export function normalizedExecutor<TData = any, TVariables = any, TContext = any>(
   args: ExecutionArgs<TData, TVariables, TContext>,
@@ -20,14 +26,15 @@ export function normalizedExecutor<TData = any, TVariables = any, TContext = any
   if (operationAST.operation === 'subscription') {
     return subscribe(args);
   }
-  return new ValueOrPromise(() => execute(args))
-    .then((result): MaybeAsyncIterable<ExecutionResult<TData>> => {
-      if ('initialResult' in result) {
+  return handleMaybePromise(
+    () => execute(args),
+    result => {
+      if (isIncrementalResults(result)) {
         return flattenIncrementalResults(result);
       }
       return result;
-    })
-    .resolve()!;
+    },
+  );
 }
 
 export const executorFromSchema = memoize1(function executorFromSchema(

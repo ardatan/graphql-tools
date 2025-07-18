@@ -1,5 +1,6 @@
 import '../../../testing/to-be-similar-gql-doc';
 import http from 'http';
+import { AddressInfo } from 'net';
 import {
   getIntrospectionQuery,
   getOperationAST,
@@ -8,9 +9,9 @@ import {
   print,
 } from 'graphql';
 import { createHandler } from 'graphql-sse/lib/use/http';
-import { useServer } from 'graphql-ws/lib/use/ws';
+import { useServer } from 'graphql-ws/use/ws';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
-import { Server as WSServer } from 'ws';
+import { WebSocketServer } from 'ws';
 import { execute, isIncrementalResult, subscribe } from '@graphql-tools/executor';
 import type { AsyncFetchFn } from '@graphql-tools/executor-http';
 import { loadSchema } from '@graphql-tools/load';
@@ -366,7 +367,7 @@ describe('Schema URL Loader', () => {
       res.end();
     });
 
-    const wsServer = new WSServer({
+    const wsServer = new WebSocketServer({
       server: httpServer,
       path: '/graphql',
     });
@@ -473,19 +474,21 @@ describe('Schema URL Loader', () => {
     subscriptionServer.close();
   });
   it('should handle subscriptions - graphql-sse', async () => {
-    const testUrl = 'http://localhost:8081/graphql';
+    httpServer = http.createServer(
+      createHandler({
+        schema: testSchema,
+      }),
+    );
+    await new Promise<void>(resolve => httpServer.listen(0, resolve));
+
+    const port = (httpServer.address() as AddressInfo).port;
+
+    const testUrl = `http://localhost:${port}/graphql`;
     const customFetch: AsyncFetchFn = async (url, options) => {
       if (String(options?.body).includes('IntrospectionQuery')) {
-        return new Response(
-          JSON.stringify({
-            data: introspectionFromSchema(testSchema),
-          }),
-          {
-            headers: {
-              'content-type': 'application/json',
-            },
-          },
-        );
+        return Response.json({
+          data: introspectionFromSchema(testSchema),
+        });
       }
       return defaultAsyncFetch(url, options);
     };
@@ -494,14 +497,6 @@ describe('Schema URL Loader', () => {
       customFetch,
       subscriptionsProtocol: SubscriptionProtocol.GRAPHQL_SSE,
     });
-
-    httpServer = http.createServer(
-      createHandler({
-        schema: testSchema,
-      }),
-    );
-    await new Promise<void>(resolve => httpServer.listen(8081, resolve));
-
     assertNonMaybe(schema);
     const asyncIterable = (await subscribe({
       schema,
@@ -578,17 +573,18 @@ describe('Schema URL Loader', () => {
     expect(result?.data?.['foo']?.bar?.[0]?.id).toBe('BAR');
   });
   it('should return errors correctly if fetch fails', async () => {
-    const executor = loader.getExecutorAsync('http://127.0.0.1:9777/graphql');
+    const executor = loader.getExecutorAsync('http://test.test/graphql');
 
-    const result = (await executor({
+    const result = await executor({
       document: parse(/* GraphQL */ `
         query TestQuery {
           a
         }
       `),
-    })) as ExecutionResult;
-    expect(result.data).toBeUndefined();
-    expect(result.errors).toBeDefined();
+    });
+    expect(result).toEqual({
+      errors: expect.any(Array),
+    });
   });
   it('should not accept invalid protocols', async () => {
     const testUrl = 'myprotocol://localhost:8081/graphql';

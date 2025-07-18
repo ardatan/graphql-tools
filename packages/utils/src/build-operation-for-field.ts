@@ -479,9 +479,9 @@ function resolveField({
   if (fieldTypeMap.has(fieldPathStr) && fieldTypeMap.get(fieldPathStr) !== field.type.toString()) {
     fieldName += (field.type as any)
       .toString()
-      .replace('!', 'NonNull')
-      .replace('[', 'List')
-      .replace(']', '');
+      .replace(/!/g, 'NonNull')
+      .replace(/\[/g, 'List')
+      .replace(/\]/g, '');
   }
   fieldTypeMap.set(fieldPathStr, field.type.toString());
 

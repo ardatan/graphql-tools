@@ -1,6 +1,5 @@
 import { buildASTSchema, buildSchema, IntrospectionOptions } from 'graphql';
 import WebSocket from 'isomorphic-ws';
-import { ValueOrPromise } from 'value-or-promise';
 import { buildGraphQLWSExecutor } from '@graphql-tools/executor-graphql-ws';
 import {
   buildHTTPExecutor,
@@ -17,12 +16,15 @@ import {
   ExecutionRequest,
   Executor,
   getOperationASTFromRequest,
+  isUrl,
   Loader,
+  MaybePromise,
   parseGraphQLSDL,
   Source,
   SyncExecutor,
 } from '@graphql-tools/utils';
 import { schemaFromExecutor, wrapSchema } from '@graphql-tools/wrap';
+import { handleMaybePromise } from '@whatwg-node/promise-helpers';
 import { defaultAsyncFetch } from './defaultAsyncFetch.js';
 import { defaultSyncFetch } from './defaultSyncFetch.js';
 
@@ -104,12 +106,10 @@ export interface LoadFromUrlOptions
 const acceptableProtocols = ['http:', 'https:', 'ws:', 'wss:'];
 
 function isCompatibleUri(uri: string): boolean {
-  try {
-    const url = new URL(uri);
-    return acceptableProtocols.includes(url.protocol);
-  } catch {
-    return false;
+  if (acceptableProtocols.some(protocol => uri.startsWith(protocol))) {
+    return isUrl(uri);
   }
+  return false;
 }
 
 /**
@@ -139,7 +139,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
 
   buildHTTPExecutor(
     initialEndpoint: string,
-    fetchFn: FetchFn,
+    fetchFn: SyncFetchFn | AsyncFetchFn,
     options?: LoadFromUrlOptions,
   ): Executor<any, ExecutionExtensions> {
     const HTTP_URL = switchProtocols(initialEndpoint, {
@@ -163,11 +163,12 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       https: 'wss',
       http: 'ws',
     });
-    return buildGraphQLWSExecutor({
+    const opts = {
       url: WS_URL,
       webSocketImpl,
       connectionParams,
-    });
+    };
+    return buildGraphQLWSExecutor(opts);
   }
 
   buildWSLegacyExecutor(
@@ -197,9 +198,10 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     if (customFetch) {
       if (typeof customFetch === 'string') {
         const [moduleName, fetchFnName] = customFetch.split('#');
-        return new ValueOrPromise(() => importFn(moduleName))
-          .then(module => (fetchFnName ? (module as Record<string, any>)[fetchFnName] : module))
-          .resolve();
+        return handleMaybePromise(
+          () => importFn(moduleName),
+          module => (fetchFnName ? (module as Record<string, any>)[fetchFnName] : module),
+        );
       } else if (typeof customFetch === 'function') {
         return customFetch;
       }
@@ -234,11 +236,10 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
   ): typeof WebSocket | PromiseLike<typeof WebSocket> {
     if (typeof options?.webSocketImpl === 'string') {
       const [moduleName, webSocketImplName] = options.webSocketImpl.split('#');
-      return new ValueOrPromise(() => importFn(moduleName))
-        .then(importedModule =>
-          webSocketImplName ? importedModule[webSocketImplName] : importedModule,
-        )
-        .resolve();
+      return handleMaybePromise(
+        () => importFn(moduleName),
+        importedModule => (webSocketImplName ? importedModule[webSocketImplName] : importedModule),
+      );
     } else {
       const websocketImpl = options?.webSocketImpl || WebSocket;
       return websocketImpl;
@@ -266,28 +267,34 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     options?: LoadFromUrlOptions,
   ): Executor {
     if (options?.subscriptionsProtocol === SubscriptionProtocol.SSE) {
-      return this.buildHTTPExecutor(subscriptionsEndpoint, fetch as any, options);
+      return this.buildHTTPExecutor(subscriptionsEndpoint, fetch as AsyncFetchFn, options);
     } else if (options?.subscriptionsProtocol === SubscriptionProtocol.GRAPHQL_SSE) {
       if (!options?.subscriptionsEndpoint) {
         // when no custom subscriptions endpoint is specified,
         // graphql-sse is recommended to be used on `/graphql/stream`
         subscriptionsEndpoint += '/stream';
       }
-      return this.buildHTTPExecutor(subscriptionsEndpoint, fetch as any, options);
+      return this.buildHTTPExecutor(subscriptionsEndpoint, fetch as AsyncFetchFn, options);
     } else {
-      const webSocketImpl$ = new ValueOrPromise(() => this.getWebSocketImpl(importFn, options));
-      const executor$ = webSocketImpl$.then(webSocketImpl => {
-        if (options?.subscriptionsProtocol === SubscriptionProtocol.LEGACY_WS) {
-          return this.buildWSLegacyExecutor(subscriptionsEndpoint, webSocketImpl, options);
-        } else {
-          return this.buildWSExecutor(
-            subscriptionsEndpoint,
-            webSocketImpl,
-            options?.connectionParams,
-          );
-        }
-      });
-      return request => executor$.then(executor => executor(request)).resolve();
+      return request =>
+        handleMaybePromise(
+          () =>
+            handleMaybePromise(
+              () => this.getWebSocketImpl(importFn, options),
+              webSocketImpl => {
+                if (options?.subscriptionsProtocol === SubscriptionProtocol.LEGACY_WS) {
+                  return this.buildWSLegacyExecutor(subscriptionsEndpoint, webSocketImpl, options);
+                } else {
+                  return this.buildWSExecutor(
+                    subscriptionsEndpoint,
+                    webSocketImpl,
+                    options?.connectionParams,
+                  );
+                }
+              },
+            ),
+          executor => executor(request),
+        );
     }
   }
 
@@ -308,22 +315,30 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     importFn: AsyncImportFn | SyncImportFn,
     options?: Omit<LoadFromUrlOptions, 'endpoint'>,
   ): Executor {
-    const fetch$ = new ValueOrPromise(() => this.getFetch(options?.customFetch, importFn));
+    let fetch$: MaybePromise<ReturnType<typeof this.getFetch>> | undefined;
+    const getHttpExecutor = () => {
+      return handleMaybePromise(
+        () => (fetch$ ||= this.getFetch(options?.customFetch, importFn)),
+        fetch => this.buildHTTPExecutor(endpoint, fetch, options),
+      );
+    };
+    const getSetHttpExecutor$ = () => (httpExecutor$ ||= getHttpExecutor());
 
-    const httpExecutor$ = fetch$.then(fetch => {
-      return this.buildHTTPExecutor(endpoint, fetch, options);
-    });
+    let httpExecutor$: ReturnType<typeof getHttpExecutor> | undefined;
 
     if (
       options?.subscriptionsEndpoint != null ||
       options?.subscriptionsProtocol !== SubscriptionProtocol.SSE
     ) {
-      const subscriptionExecutor$ = fetch$.then(fetch => {
-        const subscriptionsEndpoint = options?.subscriptionsEndpoint || endpoint;
-        return this.buildSubscriptionExecutor(subscriptionsEndpoint, fetch, importFn, options);
-      });
+      const subscriptionExecutor$ = handleMaybePromise(
+        () => (fetch$ ||= this.getFetch(options?.customFetch, importFn)),
+        fetch => {
+          const subscriptionsEndpoint = options?.subscriptionsEndpoint || endpoint;
+          return this.buildSubscriptionExecutor(subscriptionsEndpoint, fetch, importFn, options);
+        },
+      );
 
-      function getExecutorByRequest(request: ExecutionRequest<any>): ValueOrPromise<Executor> {
+      function getExecutorByRequest(request: ExecutionRequest<any>): MaybePromise<Executor> {
         request.operationType =
           request.operationType || getOperationASTFromRequest(request)?.operation;
         if (
@@ -335,16 +350,17 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         if (request.operationType === 'subscription') {
           return subscriptionExecutor$;
         } else {
-          return httpExecutor$;
+          return getSetHttpExecutor$();
         }
       }
 
       return request =>
-        getExecutorByRequest(request)
-          .then(executor => executor(request))
-          .resolve();
+        handleMaybePromise(
+          () => getExecutorByRequest(request),
+          executor => executor(request),
+        );
     } else {
-      return request => httpExecutor$.then(executor => executor(request)).resolve();
+      return request => handleMaybePromise(getSetHttpExecutor$, executor => executor(request));
     }
   }
 
@@ -361,21 +377,20 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
 
   handleSDL(pointer: string, fetch: SyncFetchFn, options: LoadFromUrlOptions): Source;
   handleSDL(pointer: string, fetch: AsyncFetchFn, options: LoadFromUrlOptions): Promise<Source>;
-  handleSDL(
-    pointer: string,
-    fetch: FetchFn,
-    options: LoadFromUrlOptions,
-  ): Source | Promise<Source> {
+  handleSDL(pointer: string, fetch: FetchFn, options: LoadFromUrlOptions): MaybePromise<Source> {
     const defaultMethod = this.getDefaultMethodFromOptions(options?.method, 'GET');
-    return new ValueOrPromise<any>(() =>
-      fetch(pointer, {
-        method: defaultMethod,
-        headers: typeof options?.headers === 'function' ? options.headers() : options?.headers,
-      }),
-    )
-      .then(response => response.text())
-      .then(schemaString => parseGraphQLSDL(pointer, schemaString, options))
-      .resolve();
+    return handleMaybePromise(
+      () =>
+        fetch(pointer, {
+          method: defaultMethod,
+          headers: typeof options?.headers === 'function' ? options.headers() : options?.headers,
+        }),
+      res =>
+        handleMaybePromise(
+          () => res.text(),
+          schemaString => parseGraphQLSDL(pointer, schemaString, options),
+        ),
+    );
   }
 
   async load(pointer: string, options: LoadFromUrlOptions): Promise<Source[]> {

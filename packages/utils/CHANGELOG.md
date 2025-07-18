@@ -1,5 +1,89 @@
 # @graphql-tools/utils
 
+## 10.9.0
+
+### Minor Changes
+
+- [#7281](https://github.com/ardatan/graphql-tools/pull/7281)
+  [`53db005`](https://github.com/ardatan/graphql-tools/commit/53db00540c2549748afdeeb65bb45a6c45ce57d3)
+  Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - Add optional `subgraphName` preoperty
+  to the `ExecutionRequest` interface for usage in Gateways like Hive Gateway.
+
+### Patch Changes
+
+- [#7282](https://github.com/ardatan/graphql-tools/pull/7282)
+  [`22af985`](https://github.com/ardatan/graphql-tools/commit/22af98581e983079ec7e53677b905d3d03117524)
+  Thanks [@renovate](https://github.com/apps/renovate)! - Support `@oneOf` directive
+
+## 10.8.6
+
+### Patch Changes
+
+- [`d123e26`](https://github.com/ardatan/graphql-tools/commit/d123e26b30b4febbbe1780bd32773b60e614dbf0)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fix incomplete string escaping/encoding
+
+## 10.8.5
+
+### Patch Changes
+
+- [#6977](https://github.com/ardatan/graphql-tools/pull/6977)
+  [`90a717e`](https://github.com/ardatan/graphql-tools/commit/90a717e35a7e4e51da4fe747cb73544f24698fb7)
+  Thanks [@ardatan](https://github.com/ardatan)! - In executor, do not use leaking
+  `registerAbortSignalListener`, and handle listeners inside the execution context
+
+- [#7025](https://github.com/ardatan/graphql-tools/pull/7025)
+  [`26518de`](https://github.com/ardatan/graphql-tools/commit/26518debfcb668e8feb5fb146271a13da92b778a)
+  Thanks [@ardatan](https://github.com/ardatan)! - Better handling for field name handling in
+  `buildOperationForField`
+
+## 10.8.4
+
+### Patch Changes
+
+- [`155944b`](https://github.com/ardatan/graphql-tools/commit/155944b11e7ff1d8816ba3e9a4e4aa035c81f645)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fix breaking change by adding
+  `PromiseWithResolvers` back
+
+## 10.8.3
+
+### Patch Changes
+
+- [#6971](https://github.com/ardatan/graphql-tools/pull/6971)
+  [`4a2eb14`](https://github.com/ardatan/graphql-tools/commit/4a2eb14d0e3394d3dfbb3d83856500c5fb548285)
+  Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+  - Added dependency
+    [`@whatwg-node/promise-helpers@^1.0.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/promise-helpers/v/1.0.0)
+    (to `dependencies`)
+
+## 10.8.2
+
+### Patch Changes
+
+- [`3547bba`](https://github.com/ardatan/graphql-tools/commit/3547bbadd3ad4fa01a950fd685345f7c9c934e2f)
+  Thanks [@ardatan](https://github.com/ardatan)! - Relax `extensions` type
+
+## 10.8.1
+
+### Patch Changes
+
+- [`651a5dc`](https://github.com/ardatan/graphql-tools/commit/651a5dccb466b04f7fd16561cd264acd306e0711)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fix the regression on var counting
+
+## 10.8.0
+
+### Minor Changes
+
+- [#6921](https://github.com/ardatan/graphql-tools/pull/6921)
+  [`357b2ee`](https://github.com/ardatan/graphql-tools/commit/357b2ee6eef5e1f3b2b067728e9b167b1c2f82e5)
+  Thanks [@renovate](https://github.com/apps/renovate)! - New `isUrl` helper, and it uses
+  `URL.canParse` if available
+
+### Patch Changes
+
+- [`0a3e193`](https://github.com/ardatan/graphql-tools/commit/0a3e193e1ed70bd744375bfb4a10e515ecf59019)
+  Thanks [@ardatan](https://github.com/ardatan)! - Do not add `_v` prefix if there is only one
+  argument/variable
+
 ## 10.7.2
 
 ### Patch Changes
@@ -7,7 +91,6 @@
 - [#6822](https://github.com/ardatan/graphql-tools/pull/6822)
   [`53bb601`](https://github.com/ardatan/graphql-tools/commit/53bb60104782738f51a2c2de42d6da7aba191537)
   Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-
   - Updated dependency [`dset@^3.1.4` ↗︎](https://www.npmjs.com/package/dset/v/3.1.4) (from
     `^3.1.2`, in `dependencies`)
 
@@ -35,7 +118,6 @@
   [`2c70d27`](https://github.com/ardatan/graphql-tools/commit/2c70d276c510be18f7ce9e966c4653ff3c9b2641)
   Thanks [@n1ru4l](https://github.com/n1ru4l)! - - New helper function `getAbortPromise` to get a
   promise rejected when `AbortSignal` is aborted
-
   - New helper function `registerAbortSignalListener` to register a listener to abort a promise when
     `AbortSignal` is aborted
 
@@ -389,7 +471,6 @@
 - [#5396](https://github.com/ardatan/graphql-tools/pull/5396)
   [`bb8f169e`](https://github.com/ardatan/graphql-tools/commit/bb8f169e21a8a7002b66d3bc6e4e4b40cc2a5f5c)
   Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
-
   - Added dependency [`dset@^3.1.2` ↗︎](https://www.npmjs.com/package/dset/v/3.1.2) (to
     `dependencies`)
 
@@ -844,7 +925,6 @@
   `stitchSchemas` configurations
 
   Breaking Changes;
-
   - Move `mergeSchemas` and `MergeSchemasConfig` from `@graphql-tools/merge` to
     `@graphql-tools/schema` package to prevent circular dependency between them.
   - `mergeSchemasAsync` has been removed.
@@ -872,7 +952,6 @@
 ### Major Changes
 
 - af9a78de: BREAKING CHANGE
-
   - Now each loader handles glob patterns internally and returns an array of `Source` object instead
     of single `Source`
 
@@ -894,7 +973,6 @@
   rootValue property is now a part of the Request type.
 
   When delegating with delegateToSchema, rootValue can be set multiple ways:
-
   - when using a custom executor, the custom executor can utilize a rootValue in whichever custom
     way it specifies.
   - when using the default executor (execute/subscribe from graphql-js): -- rootValue can be passed
@@ -911,7 +989,6 @@
   `mergeDeep(sources)`
 
 - c42e811d: BREAKING CHANGES;
-
   - Rename `Request` to `ExecutionRequest`
   - Add required `operationType: OperationTypeNode` field in `ExecutionRequest`
   - Add `context` in `createRequest` and `createRequestInfo` instead of `delegateToSchema`
@@ -922,7 +999,6 @@
   > https://github.com/ardatan/graphql-tools/pull/3166/files#diff-d4824895ea613dcc1f710c3ac82e952fe0ca12391b671f70d9f2d90d5656fdceR38
 
   Improvements;
-
   - Memoize `defaultExecutor` for a single `GraphQLSchema` so allow `getBatchingExecutor` to memoize
     `batchingExecutor` correctly.
   - And there is no different `defaultExecutor` is created for `subscription` and other operation
@@ -1094,8 +1170,8 @@
 
 ### Patch Changes
 
-- e53f97b3: fix(utils): provide `{ done: true }` from iterator when complete is called on observer in
-  observableToAsyncIterable
+- e53f97b3: fix(utils): provide `{ done: true }` from iterator when complete is called on observer
+  in observableToAsyncIterable
 
 ## 7.2.5
 
@@ -1220,7 +1296,6 @@
 - be1a1575: ## Breaking Changes:
 
   #### Schema Generation and Decoration API (`@graphql-tools/schema`)
-
   - Resolver validation options should now be set to `error`, `warn` or `ignore` rather than `true`
     or `false`. In previous versions, some of the validators caused errors to be thrown, while some
     issued warnings. This changes brings consistency to validator behavior.
@@ -1230,7 +1305,6 @@
     `requireResolversToMatchSchema` is `error`, matching the previous behavior.
 
   #### Schema Delegation (`delegateToSchema` & `@graphql-tools/delegate`)
-
   - The `delegateToSchema` return value has matured and been formalized as an `ExternalObject`, in
     which all errors are integrated into the GraphQL response, preserving their initial path. Those
     advanced users accessing the result directly will note the change in error handling. This also
@@ -1260,7 +1334,6 @@
     parameters above.
 
   #### Remote Schemas & Wrapping (`wrapSchema`, `makeRemoteExecutableSchema`, and `@graphql-tools/wrap`)
-
   - `wrapSchema` and `generateProxyingResolvers` now only take a single options argument with named
     properties of type `SubschemaConfig`. The previously possible shorthand version with first
     argument consisting of a `GraphQLSchema` and second argument representing the transforms should
@@ -1296,7 +1369,6 @@
     `parseSelectionSet` function from `@graphql-tools/utils`.
 
   #### Schema Stitching (`stitchSchemas` & `@graphql-tools/stitch`)
-
   - `stitchSchemas`'s `mergeTypes` option is now true by default! This causes the `onTypeConflict`
     option to be ignored by default. To use `onTypeConflict` to select a specific type instead of
     simply merging, simply set `mergeTypes` to false.
@@ -1317,13 +1389,11 @@
     property name change for `onTypeConflict` from `schema` to `subschema`.
 
   #### Mocking (`addMocksToSchema` and `@graphql-tools/mock`)
-
   - Mocks returning objects with fields set as functions are now operating according to upstream
     graphql-js convention, i.e. these functions take three arguments, `args`, `context`, and `info`
     with `parent` available as `this` rather than as the first argument.
 
   #### Other Utilities (`@graphql-tools/utils`)
-
   - `filterSchema`'s `fieldFilter` will now filter _all_ fields across Object, Interface, and Input
     types. For the previous Object-only behavior, switch to the `objectFieldFilter` option.
   - Unused `fieldNodes` utility functions have been removed.
@@ -1335,7 +1405,6 @@
     removed from the `utils` package, as they are implemented elsewhere or no longer necessary.
 
   ## Related Issues
-
   - proxy all the errors: #1047, #1641
   - better error handling for merges #2016, #2062
   - fix typings #1614

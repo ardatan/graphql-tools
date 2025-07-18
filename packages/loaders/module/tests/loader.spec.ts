@@ -54,21 +54,21 @@ describe('ModuleLoader', () => {
       });
 
       it('should throw error when using a bad pointer', async () => {
-        await expect(load(getPointer('type-defs-named-export', 'tooMany#'))).rejects.toThrowError(
+        await expect(load(getPointer('type-defs-named-export', 'tooMany#'))).rejects.toThrow(
           'Schema pointer should match',
         );
       });
 
       it('should throw error when using a bad identifier', async () => {
-        await expect(
-          load(getPointer('type-defs-named-export', 'badIdentifier')),
-        ).rejects.toThrowError('Unable to load schema from module');
+        await expect(load(getPointer('type-defs-named-export', 'badIdentifier'))).rejects.toThrow(
+          'Unable to load schema from module',
+        );
       });
 
       it('should throw error when loaded object is not GraphQLSchema, DocumentNode or string', async () => {
-        await expect(
-          load(getPointer('type-defs-named-export', 'favoriteNumber')),
-        ).rejects.toThrowError('Imported object was not a string, DocumentNode or GraphQLSchema');
+        await expect(load(getPointer('type-defs-named-export', 'favoriteNumber'))).rejects.toThrow(
+          'Imported object was not a string, DocumentNode or GraphQLSchema',
+        );
       });
     });
   });

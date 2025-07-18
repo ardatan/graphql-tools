@@ -28,8 +28,8 @@ export * from './getResponseKeyFromInfo.js';
 export * from './fields.js';
 export * from './renameType.js';
 export * from './transformInputValue.js';
-export * from './mapAsyncIterator.js';
 export * from './updateArgument.js';
+export * from './astFromType.js';
 export * from './implementsAbstractType.js';
 export * from './errors.js';
 export * from './observableToAsyncIterable.js';
@@ -55,8 +55,11 @@ export * from './directives.js';
 export * from './mergeIncrementalResult.js';
 export * from './debugTimer.js';
 export * from './getDirectiveExtensions.js';
-export * from './map-maybe-promise.js';
-export * from './fakePromise.js';
-export * from './createDeferred.js';
+export {
+  mapAsyncIterator,
+  mapMaybePromise,
+  fakePromise,
+  createDeferredPromise as createDeferred,
+} from '@whatwg-node/promise-helpers';
 export * from './registerAbortSignalListener.js';
 export * from './unixifyWithDriveLetter.js';

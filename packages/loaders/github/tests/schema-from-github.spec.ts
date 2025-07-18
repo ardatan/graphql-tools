@@ -112,7 +112,7 @@ test('expect loadSync to handle 401 request errors gracefully', async () => {
       token: 'BAD_TOKEN',
     });
   };
-  expect(result).toThrowError('Unable to download schema from github: Bad credentials');
+  expect(result).toThrow('Unable to download schema from github: Bad credentials');
 });
 
 describe('expect handleResponse to handle error messages gracefully', () => {
@@ -130,7 +130,7 @@ describe('expect handleResponse to handle error messages gracefully', () => {
       });
     };
 
-    expect(result).toThrowError(`Unable to download schema from github: ${expectedMessage}`);
+    expect(result).toThrow(`Unable to download schema from github: ${expectedMessage}`);
   });
 
   it('Should handle multiple error messages', () => {
@@ -159,7 +159,7 @@ describe('expect handleResponse to handle error messages gracefully', () => {
 
     const expectedMessage = errorMessages.map(e => e.message).join(', ');
 
-    expect(result).toThrowError(`Unable to download schema from github: ${expectedMessage}`);
+    expect(result).toThrow(`Unable to download schema from github: ${expectedMessage}`);
   });
 
   it('Should handle 401 error codes', () => {
@@ -178,6 +178,6 @@ describe('expect handleResponse to handle error messages gracefully', () => {
       });
     };
 
-    expect(result).toThrowError('Unable to download schema from github: Bad credentials');
+    expect(result).toThrow('Unable to download schema from github: Bad credentials');
   });
 });
