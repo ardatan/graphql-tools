@@ -1,5 +1,6 @@
 import { inspect } from 'cross-inspect';
-import { GraphQLType, isListType, isNonNullType, Kind, TypeNode } from 'graphql';
+import { GraphQLType, Kind, TypeNode } from 'graphql';
+import { isListType, isNonNullType } from './typeCheckers.js';
 
 export function astFromType(type: GraphQLType): TypeNode {
   if (isNonNullType(type)) {
