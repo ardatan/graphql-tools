@@ -18,7 +18,7 @@ import {
   resetComments,
   TypeSource,
 } from '@graphql-tools/utils';
-import { extractLinkImplementations } from '@theguild/federation-composition';
+import { extractLinks, resolveImportName } from '../links.js';
 import { OnFieldTypeConflict } from './fields.js';
 import { mergeGraphQLNodes, schemaDefSymbol } from './merge-nodes.js';
 import { DEFAULT_OPERATION_TYPE_NAME_MAP } from './schema-def.js';
@@ -200,10 +200,11 @@ function visitTypeSources(
         repeatableLinkImports,
       );
     } else if (typeof typeSource === 'object' && isDefinitionNode(typeSource)) {
-      const { matchesImplementation, resolveImportName } = extractLinkImplementations({
+      const links = extractLinks({
         definitions: [typeSource],
         kind: Kind.DOCUMENT,
       });
+
       const federationUrl = 'https://specs.apollo.dev/federation';
       const linkUrl = 'https://specs.apollo.dev/link';
 
@@ -214,12 +215,14 @@ function visitTypeSources(
        * But this is enough information to be comfortable not blocking the imports at this phase. It's
        * the job of the composer to validate the versions.
        * */
-      if (matchesImplementation(federationUrl, 'v2.0')) {
-        addRepeatable(resolveImportName(federationUrl, '@composeDirective'));
-        addRepeatable(resolveImportName(federationUrl, '@key'));
+      const federationLink = links.find(l => l.url.identity === federationUrl);
+      if (federationLink) {
+        addRepeatable(resolveImportName(federationLink, '@composeDirective'));
+        addRepeatable(resolveImportName(federationLink, '@key'));
       }
-      if (matchesImplementation(linkUrl, 'v1.0')) {
-        addRepeatable(resolveImportName(linkUrl, '@link'));
+      const linkLink = links.find(l => l.url.identity === linkUrl);
+      if (linkLink) {
+        addRepeatable(resolveImportName(linkLink, '@link'));
       }
 
       if (typeSource.kind === Kind.DIRECTIVE_DEFINITION) {
