@@ -1,6 +1,6 @@
 import fs, { promises as fsPromises } from 'node:fs';
 import path from 'node:path';
-import chalk from 'chalk';
+import { styleText } from 'node:util';
 import globby from 'globby';
 import { Application, TSConfigReader } from 'typedoc';
 import workspacePackageJson from '../package.json';
@@ -38,7 +38,7 @@ async function buildApiDocs(): Promise<void> {
 
   // Delete existing docs directory
   await fsPromises.rm(OUTPUT_PATH, { recursive: true }).catch(() => null);
-  console.log('🧹 ', chalk.green('Deleted existing docs directory'), OUTPUT_PATH);
+  console.log('🧹 ', styleText('green', 'Deleted existing docs directory'), OUTPUT_PATH);
   // Initialize TypeDoc
   const typeDoc = await Application.bootstrapWithPlugins(
     {
@@ -82,7 +82,7 @@ async function buildApiDocs(): Promise<void> {
     const relativePath = path.relative(CWD, filePath);
     const newFileName = relativePath.toLowerCase();
     await fsPromises.rename(filePath, newFileName);
-    console.log('✅ ', chalk.green(newFileName));
+    console.log('✅ ', styleText('green', newFileName));
   }
 
   async function visitMarkdownFile(filePath: string): Promise<void> {
