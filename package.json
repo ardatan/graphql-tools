@@ -91,7 +91,7 @@
   },
   "resolutions": {
     "cookie": "1.0.2",
-    "esbuild": "0.25.7",
+    "esbuild": "0.25.8",
     "estree-util-value-to-estree": "3.4.0",
     "graphql": "16.11.0"
   },
