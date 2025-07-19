@@ -1,7 +1,7 @@
-import { buildSchema, parse } from 'graphql';
+import { buildSchema, parse, print, stripIgnoredCharacters } from 'graphql';
 import { envelop } from '@envelop/core';
 import { useExecutor } from '@graphql-tools/executor-envelop';
-import { Executor } from '@graphql-tools/utils';
+import { ExecutionRequest, ExecutionResult, Executor } from '@graphql-tools/utils';
 
 describe('Envelop', () => {
   const schema = buildSchema(/* GraphQL */ `
@@ -9,11 +9,12 @@ describe('Envelop', () => {
       hello: String
     }
   `);
-  const document = parse(/* GraphQL */ `
+  const query = /* GraphQL */ `
     query Greetings {
       hello
     }
-  `);
+  `;
+  const document = parse(query);
   it('should pass the operation correctly with execute', async () => {
     const executor: Executor = jest.fn().mockImplementation(() => ({
       data: {
@@ -40,7 +41,9 @@ describe('Envelop', () => {
     });
   });
   it('should pass the operation correctly with subscribe', async () => {
-    const executor: Executor = jest.fn().mockImplementation(async function* () {
+    const executor = jest.fn(async function* (
+      _req: ExecutionRequest,
+    ): AsyncIterable<ExecutionResult> {
       for (let i = 0; i < 3; i++) {
         yield {
           data: {
@@ -57,6 +60,7 @@ describe('Envelop', () => {
     const result = await subscribe({
       schema,
       document,
+      contextValue: context,
     });
     expect(result[Symbol.asyncIterator]).toBeDefined();
     const collectedResults: any[] = [];
@@ -80,11 +84,10 @@ describe('Envelop', () => {
         },
       },
     ]);
-
-    expect(executor).toBeCalledWith({
-      document,
-      context,
-    });
+    expect(stripIgnoredCharacters(print(executor.mock.calls[1][0].document))).toBe(
+      stripIgnoredCharacters(query),
+    );
+    expect(executor.mock.calls[1][0].context).toBe(context);
   });
   it('should skip validation if schema is not provided', async () => {
     const executor: Executor = jest.fn().mockImplementation(() => {

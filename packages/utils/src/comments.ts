@@ -179,7 +179,7 @@ function wrap(start: string, maybeString: any, end?: string) {
  * a single-line, adding a leading blank line would strip that whitespace.
  */
 function printBlockString(value: string, isDescription = false) {
-  const escaped = value.replace(/"""/g, '\\"""');
+  const escaped = value.replace(/\\/g, '\\\\').replace(/"""/g, '\\"""');
   return (value[0] === ' ' || value[0] === '\t') && value.indexOf('\n') === -1
     ? `"""${escaped.replace(/"$/, '"\n')}"""`
     : `"""\n${isDescription ? escaped : indent(escaped)}\n"""`;

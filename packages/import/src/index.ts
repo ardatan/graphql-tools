@@ -30,6 +30,7 @@ import {
   ScalarTypeDefinitionNode,
   ScalarTypeExtensionNode,
   SchemaDefinitionNode,
+  SchemaExtensionNode,
   SelectionNode,
   Source,
   TypeNode,
@@ -38,21 +39,21 @@ import {
 } from 'graphql';
 import resolveFrom from 'resolve-from';
 import { parseGraphQLSDL } from '@graphql-tools/utils';
+import { extractLinkImplementations } from '@theguild/federation-composition';
 
 const builtinTypes = ['String', 'Float', 'Int', 'Boolean', 'ID', 'Upload'];
+
+const federationV1Directives = ['key', 'provides', 'requires', 'external'];
 
 const builtinDirectives = [
   'deprecated',
   'skip',
   'include',
   'cacheControl',
-  'key',
-  'external',
-  'requires',
-  'provides',
   'connection',
   'client',
   'specifiedBy',
+  ...federationV1Directives,
 ];
 
 const IMPORT_FROM_REGEX = /^import\s+(\*|(.*))\s+from\s+('|")(.*)('|");?$/;
@@ -262,13 +263,77 @@ export function extractDependencies(
   };
 }
 
+function importFederatedSchemaLinks(
+  definition: DefinitionNode,
+  definitionsByName: Map<string, Set<DefinitionNode>>,
+) {
+  const addDefinition = (name: string) => {
+    definitionsByName.set(name.replace(/^@/g, ''), new Set());
+  };
+
+  // extract links from this definition
+  const { links, matchesImplementation, resolveImportName } = extractLinkImplementations({
+    kind: Kind.DOCUMENT,
+    definitions: [definition],
+  });
+
+  if (links.length) {
+    const federationUrl = 'https://specs.apollo.dev/federation';
+    const linkUrl = 'https://specs.apollo.dev/link';
+
+    /**
+     * Official Federated imports are special because they can be referenced without specifyin the import.
+     * To handle this case, we must prepare a list of all the possible valid usages to check against.
+     * Note that this versioning is not technically correct, since some definitions are after v2.0.
+     * But this is enough information to be comfortable not blocking the imports at this phase. It's
+     * the job of the composer to validate the versions.
+     * */
+    if (matchesImplementation(federationUrl, 'v2.0')) {
+      const federationImports = [
+        '@composeDirective',
+        '@extends',
+        '@external',
+        '@inaccessible',
+        '@interfaceObject',
+        '@key',
+        '@override',
+        '@provides',
+        '@requires',
+        '@shareable',
+        '@tag',
+        'FieldSet',
+      ];
+      for (const i of federationImports) {
+        addDefinition(resolveImportName(federationUrl, i));
+      }
+    }
+    if (matchesImplementation(linkUrl, 'v1.0')) {
+      const linkImports = ['Purpose', 'Import', '@link'];
+      for (const i of linkImports) {
+        addDefinition(resolveImportName(linkUrl, i));
+      }
+    }
+
+    const imported = links
+      .filter(l => ![linkUrl, federationUrl].includes(l.identity))
+      .flatMap(l => l.imports.map(i => i.as ?? i.name));
+    for (const namedImport of imported) {
+      addDefinition(namedImport);
+    }
+  }
+}
+
 function visitDefinition(
   definition: DefinitionNode,
   definitionsByName: Map<string, Set<DefinitionNode>>,
   dependenciesByDefinitionName: Map<string, Set<string>>,
 ): void {
   // TODO: handle queries without names
-  if ('name' in definition || definition.kind === Kind.SCHEMA_DEFINITION) {
+  if (
+    'name' in definition ||
+    definition.kind === Kind.SCHEMA_DEFINITION ||
+    definition.kind === Kind.SCHEMA_EXTENSION
+  ) {
     const definitionName =
       'name' in definition && definition.name ? definition.name.value : 'schema';
     if (!definitionsByName.has(definitionName)) {
@@ -282,6 +347,7 @@ function visitDefinition(
       dependencySet = new Set();
       dependenciesByDefinitionName.set(definitionName, dependencySet);
     }
+
     switch (definition.kind) {
       case Kind.OPERATION_DEFINITION:
         visitOperationDefinitionNode(definition, dependencySet);
@@ -311,7 +377,12 @@ function visitDefinition(
         visitScalarDefinitionNode(definition, dependencySet);
         break;
       case Kind.SCHEMA_DEFINITION:
+        importFederatedSchemaLinks(definition, definitionsByName);
         visitSchemaDefinitionNode(definition, dependencySet);
+        break;
+      case Kind.SCHEMA_EXTENSION:
+        importFederatedSchemaLinks(definition, definitionsByName);
+        visitSchemaExtensionDefinitionNode(definition, dependencySet);
         break;
       case Kind.OBJECT_TYPE_EXTENSION:
         visitObjectTypeExtensionNode(definition, dependencySet, dependenciesByDefinitionName);
@@ -804,6 +875,14 @@ function visitSchemaDefinitionNode(node: SchemaDefinitionNode, dependencySet: Se
   dependencySet.add('schema');
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.operationTypes.forEach(operationTypeDefinitionNode =>
+    visitOperationTypeDefinitionNode(operationTypeDefinitionNode, dependencySet),
+  );
+}
+
+function visitSchemaExtensionDefinitionNode(node: SchemaExtensionNode, dependencySet: Set<string>) {
+  dependencySet.add('schema');
+  node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
+  node.operationTypes?.forEach(operationTypeDefinitionNode =>
     visitOperationTypeDefinitionNode(operationTypeDefinitionNode, dependencySet),
   );
 }

@@ -1,6 +1,6 @@
 import { OperationTypeNode } from 'graphql';
 import { filter, make, merge, mergeMap, pipe, share, Source, takeUntil } from 'wonka';
-import { ExecutionRequest, Executor, fakePromise, isAsyncIterable } from '@graphql-tools/utils';
+import { ExecutionRequest, Executor, isAsyncIterable } from '@graphql-tools/utils';
 import {
   AnyVariables,
   Exchange,
@@ -13,6 +13,7 @@ import {
   OperationContext,
   OperationResult,
 } from '@urql/core';
+import { handleMaybePromise } from '@whatwg-node/promise-helpers';
 
 export function executorExchange(executor: Executor): Exchange {
   function makeYogaSource<TData extends Record<string, any>>(
@@ -37,9 +38,10 @@ export function executorExchange(executor: Executor): Exchange {
     };
     return make<OperationResult<TData>>(observer => {
       let ended = false;
-      fakePromise()
-        .then(() => executor(executionRequest))
-        .then(result => {
+      let iterator: AsyncIterator<ExecutionResult>;
+      handleMaybePromise(
+        () => executor(executionRequest),
+        result => {
           if (ended || !result) {
             return;
           }
@@ -49,8 +51,15 @@ export function executorExchange(executor: Executor): Exchange {
           } else {
             let prevResult: OperationResult<TData, AnyVariables> | null = null;
 
-            return fakePromise().then(async () => {
-              for await (const value of result) {
+            iterator = result[Symbol.asyncIterator]() as AsyncIterator<ExecutionResult>;
+            function iterate() {
+              if (ended) {
+                return;
+              }
+              return iterator.next().then(({ value, done }) => {
+                if (done) {
+                  return;
+                }
                 if (value) {
                   if (prevResult && value.incremental) {
                     prevResult = mergeResultPatch(prevResult, value as ExecutionResult);
@@ -59,22 +68,23 @@ export function executorExchange(executor: Executor): Exchange {
                   }
                   observer.next(prevResult);
                 }
-                if (ended) {
-                  break;
-                }
-              }
-              observer.complete();
-            });
+                return iterate();
+              });
+            }
+            return handleMaybePromise(
+              () => iterate(),
+              () => observer.complete(),
+            );
           }
-        })
-        .catch(error => {
+        },
+        error => {
           observer.next(makeErrorResult(operation, error));
-        })
-        .finally(() => {
           ended = true;
           observer.complete();
-        });
+        },
+      );
       return () => {
+        iterator?.return?.();
         ended = true;
       };
     });

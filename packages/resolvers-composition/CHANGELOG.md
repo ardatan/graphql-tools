@@ -1,5 +1,72 @@
 # @graphql-tools/resolvers-composition
 
+## 7.0.19
+
+### Patch Changes
+
+- Updated dependencies
+  [[`22af985`](https://github.com/ardatan/graphql-tools/commit/22af98581e983079ec7e53677b905d3d03117524),
+  [`53db005`](https://github.com/ardatan/graphql-tools/commit/53db00540c2549748afdeeb65bb45a6c45ce57d3)]:
+  - @graphql-tools/utils@10.9.0
+
+## 7.0.18
+
+### Patch Changes
+
+- Updated dependencies
+  [[`d123e26`](https://github.com/ardatan/graphql-tools/commit/d123e26b30b4febbbe1780bd32773b60e614dbf0)]:
+  - @graphql-tools/utils@10.8.6
+
+## 7.0.17
+
+### Patch Changes
+
+- Updated dependencies
+  [[`90a717e`](https://github.com/ardatan/graphql-tools/commit/90a717e35a7e4e51da4fe747cb73544f24698fb7),
+  [`26518de`](https://github.com/ardatan/graphql-tools/commit/26518debfcb668e8feb5fb146271a13da92b778a)]:
+  - @graphql-tools/utils@10.8.5
+
+## 7.0.16
+
+### Patch Changes
+
+- Updated dependencies
+  [[`155944b`](https://github.com/ardatan/graphql-tools/commit/155944b11e7ff1d8816ba3e9a4e4aa035c81f645)]:
+  - @graphql-tools/utils@10.8.4
+
+## 7.0.15
+
+### Patch Changes
+
+- Updated dependencies
+  [[`4a2eb14`](https://github.com/ardatan/graphql-tools/commit/4a2eb14d0e3394d3dfbb3d83856500c5fb548285)]:
+  - @graphql-tools/utils@10.8.3
+
+## 7.0.14
+
+### Patch Changes
+
+- Updated dependencies
+  [[`3547bba`](https://github.com/ardatan/graphql-tools/commit/3547bbadd3ad4fa01a950fd685345f7c9c934e2f)]:
+  - @graphql-tools/utils@10.8.2
+
+## 7.0.13
+
+### Patch Changes
+
+- Updated dependencies
+  [[`651a5dc`](https://github.com/ardatan/graphql-tools/commit/651a5dccb466b04f7fd16561cd264acd306e0711)]:
+  - @graphql-tools/utils@10.8.1
+
+## 7.0.12
+
+### Patch Changes
+
+- Updated dependencies
+  [[`0a3e193`](https://github.com/ardatan/graphql-tools/commit/0a3e193e1ed70bd744375bfb4a10e515ecf59019),
+  [`357b2ee`](https://github.com/ardatan/graphql-tools/commit/357b2ee6eef5e1f3b2b067728e9b167b1c2f82e5)]:
+  - @graphql-tools/utils@10.8.0
+
 ## 7.0.11
 
 ### Patch Changes

@@ -1,0 +1,10 @@
+paths-ignore:
+  - '**/*.test.ts'
+  - '**/*.spec.ts'
+  - '**/__tests__/**'
+  - '**/tests/**'
+  - '**/test/**'
+  - '**/test-files/**'
+  - '**/dist/**'
+  - '**/node_modules/**'
+  - '**/scripts/**'

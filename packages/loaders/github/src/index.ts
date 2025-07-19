@@ -1,6 +1,5 @@
 import { parse } from 'graphql';
 import syncFetch from 'sync-fetch';
-import { ValueOrPromise } from 'value-or-promise';
 import { AsyncFetchFn, FetchFn, SyncFetchFn } from '@graphql-tools/executor-http';
 import {
   gqlPluckFromCodeStringSync,
@@ -9,11 +8,13 @@ import {
 import {
   BaseLoaderOptions,
   Loader,
+  MaybePromise,
   parseGraphQLJSON,
   parseGraphQLSDL,
   Source,
 } from '@graphql-tools/utils';
 import { fetch as asyncFetch } from '@whatwg-node/fetch';
+import { handleMaybePromise } from '@whatwg-node/promise-helpers';
 
 // github:owner/name#ref:path/to/file
 function extractData(pointer: string): {
@@ -90,30 +91,33 @@ export class GithubLoader implements Loader<GithubLoaderOptions> {
     pointer: string,
     options: GithubLoaderOptions,
     fetchFn: FetchFn,
-  ): Promise<Source[]> | Source[] {
+  ): MaybePromise<Source[]> {
     if (!this.canLoadSync(pointer)) {
       return [];
     }
     const { owner, name, ref, path } = extractData(pointer);
-    return new ValueOrPromise(() =>
-      fetchFn(
-        'https://api.github.com/graphql',
-        this.prepareRequest({ owner, ref, path, name, options }),
-      ),
-    )
-      .then(response => {
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          return response.json();
-        } else {
-          return response.text();
-        }
-      })
-      .then(response => {
+    return handleMaybePromise(
+      () =>
+        handleMaybePromise(
+          () =>
+            fetchFn(
+              'https://api.github.com/graphql',
+              this.prepareRequest({ owner, ref, path, name, options }),
+            ),
+          response => {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              return response.json();
+            } else {
+              return response.text();
+            }
+          },
+        ),
+      response => {
         const status = response.status;
         return this.handleResponse({ pointer, path, options, response, status });
-      })
-      .resolve();
+      },
+    );
   }
 
   load(pointer: string, options: GithubLoaderOptions): Promise<Source[]> {

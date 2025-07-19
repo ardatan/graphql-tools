@@ -32,7 +32,7 @@ function mergeOperationTypes(
 
 export function mergeSchemaDefs(
   node: SchemaDefinitionNode | SchemaExtensionNode,
-  existingNode: SchemaDefinitionNode | SchemaExtensionNode,
+  existingNode: SchemaDefinitionNode | SchemaExtensionNode | undefined,
   config?: Config,
   directives?: Record<string, DirectiveDefinitionNode>,
 ): SchemaDefinitionNode | SchemaExtensionNode {

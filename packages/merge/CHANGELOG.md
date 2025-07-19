@@ -1,5 +1,96 @@
 # @graphql-tools/merge
 
+## 9.1.0
+
+### Minor Changes
+
+- [#7249](https://github.com/ardatan/graphql-tools/pull/7249)
+  [`e5f98c2`](https://github.com/ardatan/graphql-tools/commit/e5f98c231ba2ba8a317539bac761f4f26e8b56b2)
+  Thanks [@jdolle](https://github.com/jdolle)! - Support repeatable @link-ed federation directives;
+  fix merging non-identical, repeatable directives
+
+### Patch Changes
+
+- [#7249](https://github.com/ardatan/graphql-tools/pull/7249)
+  [`e5f98c2`](https://github.com/ardatan/graphql-tools/commit/e5f98c231ba2ba8a317539bac761f4f26e8b56b2)
+  Thanks [@jdolle](https://github.com/jdolle)! - dependencies updates:
+  - Added dependency
+    [`@theguild/federation-composition@^0.16.0` ↗︎](https://www.npmjs.com/package/@theguild/federation-composition/v/0.16.0)
+    (to `dependencies`)
+
+- [#7276](https://github.com/ardatan/graphql-tools/pull/7276)
+  [`3c21496`](https://github.com/ardatan/graphql-tools/commit/3c214963309373641433d62230c5fffeaa2c61eb)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@theguild/federation-composition@^0.19.0` ↗︎](https://www.npmjs.com/package/@theguild/federation-composition/v/0.19.0)
+    (from `^0.16.0`, in `dependencies`)
+- Updated dependencies
+  [[`22af985`](https://github.com/ardatan/graphql-tools/commit/22af98581e983079ec7e53677b905d3d03117524),
+  [`53db005`](https://github.com/ardatan/graphql-tools/commit/53db00540c2549748afdeeb65bb45a6c45ce57d3)]:
+  - @graphql-tools/utils@10.9.0
+
+## 9.0.24
+
+### Patch Changes
+
+- Updated dependencies
+  [[`d123e26`](https://github.com/ardatan/graphql-tools/commit/d123e26b30b4febbbe1780bd32773b60e614dbf0)]:
+  - @graphql-tools/utils@10.8.6
+
+## 9.0.23
+
+### Patch Changes
+
+- [#7028](https://github.com/ardatan/graphql-tools/pull/7028)
+  [`4899c62`](https://github.com/ardatan/graphql-tools/commit/4899c62ee4365c518df7f8cd2a897c6132f09f45)
+  Thanks [@ardatan](https://github.com/ardatan)! - Prevent prototype polluting assignment
+
+- Updated dependencies
+  [[`90a717e`](https://github.com/ardatan/graphql-tools/commit/90a717e35a7e4e51da4fe747cb73544f24698fb7),
+  [`26518de`](https://github.com/ardatan/graphql-tools/commit/26518debfcb668e8feb5fb146271a13da92b778a)]:
+  - @graphql-tools/utils@10.8.5
+
+## 9.0.22
+
+### Patch Changes
+
+- Updated dependencies
+  [[`155944b`](https://github.com/ardatan/graphql-tools/commit/155944b11e7ff1d8816ba3e9a4e4aa035c81f645)]:
+  - @graphql-tools/utils@10.8.4
+
+## 9.0.21
+
+### Patch Changes
+
+- Updated dependencies
+  [[`4a2eb14`](https://github.com/ardatan/graphql-tools/commit/4a2eb14d0e3394d3dfbb3d83856500c5fb548285)]:
+  - @graphql-tools/utils@10.8.3
+
+## 9.0.20
+
+### Patch Changes
+
+- Updated dependencies
+  [[`3547bba`](https://github.com/ardatan/graphql-tools/commit/3547bbadd3ad4fa01a950fd685345f7c9c934e2f)]:
+  - @graphql-tools/utils@10.8.2
+
+## 9.0.19
+
+### Patch Changes
+
+- Updated dependencies
+  [[`651a5dc`](https://github.com/ardatan/graphql-tools/commit/651a5dccb466b04f7fd16561cd264acd306e0711)]:
+  - @graphql-tools/utils@10.8.1
+
+## 9.0.18
+
+### Patch Changes
+
+- Updated dependencies
+  [[`0a3e193`](https://github.com/ardatan/graphql-tools/commit/0a3e193e1ed70bd744375bfb4a10e515ecf59019),
+  [`357b2ee`](https://github.com/ardatan/graphql-tools/commit/357b2ee6eef5e1f3b2b067728e9b167b1c2f82e5)]:
+  - @graphql-tools/utils@10.8.0
+
 ## 9.0.17
 
 ### Patch Changes
@@ -546,7 +637,6 @@
   `stitchSchemas` configurations
 
   Breaking Changes;
-
   - Move `mergeSchemas` and `MergeSchemasConfig` from `@graphql-tools/merge` to
     `@graphql-tools/schema` package to prevent circular dependency between them.
   - `mergeSchemasAsync` has been removed.
@@ -648,7 +738,6 @@
 
 - 0194118f: Introduces a suite of stitched schema validations that enforce the integrity of merged
   schemas. This includes validations for:
-
   - Strict and safe null consistency (the later of which allows safe transitions in nullability).
   - Named type consistency with the option to whitelist proxiable scalar mappings.
   - Argument and input field name consistency.
@@ -724,7 +813,6 @@
 - be1a1575: ## Breaking Changes:
 
   #### Schema Generation and Decoration API (`@graphql-tools/schema`)
-
   - Resolver validation options should now be set to `error`, `warn` or `ignore` rather than `true`
     or `false`. In previous versions, some of the validators caused errors to be thrown, while some
     issued warnings. This changes brings consistency to validator behavior.
@@ -734,7 +822,6 @@
     `requireResolversToMatchSchema` is `error`, matching the previous behavior.
 
   #### Schema Delegation (`delegateToSchema` & `@graphql-tools/delegate`)
-
   - The `delegateToSchema` return value has matured and been formalized as an `ExternalObject`, in
     which all errors are integrated into the GraphQL response, preserving their initial path. Those
     advanced users accessing the result directly will note the change in error handling. This also
@@ -764,7 +851,6 @@
     parameters above.
 
   #### Remote Schemas & Wrapping (`wrapSchema`, `makeRemoteExecutableSchema`, and `@graphql-tools/wrap`)
-
   - `wrapSchema` and `generateProxyingResolvers` now only take a single options argument with named
     properties of type `SubschemaConfig`. The previously possible shorthand version with first
     argument consisting of a `GraphQLSchema` and second argument representing the transforms should
@@ -800,7 +886,6 @@
     `parseSelectionSet` function from `@graphql-tools/utils`.
 
   #### Schema Stitching (`stitchSchemas` & `@graphql-tools/stitch`)
-
   - `stitchSchemas`'s `mergeTypes` option is now true by default! This causes the `onTypeConflict`
     option to be ignored by default. To use `onTypeConflict` to select a specific type instead of
     simply merging, simply set `mergeTypes` to false.
@@ -821,13 +906,11 @@
     property name change for `onTypeConflict` from `schema` to `subschema`.
 
   #### Mocking (`addMocksToSchema` and `@graphql-tools/mock`)
-
   - Mocks returning objects with fields set as functions are now operating according to upstream
     graphql-js convention, i.e. these functions take three arguments, `args`, `context`, and `info`
     with `parent` available as `this` rather than as the first argument.
 
   #### Other Utilities (`@graphql-tools/utils`)
-
   - `filterSchema`'s `fieldFilter` will now filter _all_ fields across Object, Interface, and Input
     types. For the previous Object-only behavior, switch to the `objectFieldFilter` option.
   - Unused `fieldNodes` utility functions have been removed.
@@ -839,7 +922,6 @@
     removed from the `utils` package, as they are implemented elsewhere or no longer necessary.
 
   ## Related Issues
-
   - proxy all the errors: #1047, #1641
   - better error handling for merges #2016, #2062
   - fix typings #1614

@@ -108,7 +108,7 @@ export default function MyPage() {
           </CallToAction>
           <CallToAction
             variant="secondary-inverted"
-            href="https://github.com/dotansimha/graphql-yoga"
+            href="https://github.com/ardatan/graphql-tools"
           >
             <GitHubIcon className="size-6" />
             GitHub

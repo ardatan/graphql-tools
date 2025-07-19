@@ -1,6 +1,6 @@
 import { setTimeout } from 'timers/promises';
 import { parse } from 'graphql';
-import { createSchema, createYoga, Repeater } from 'graphql-yoga';
+import { createSchema, createYoga, DisposableSymbols, Repeater } from 'graphql-yoga';
 import { ApolloClient, FetchResult, InMemoryCache } from '@apollo/client/core';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import { createDeferred } from '@graphql-tools/utils';
@@ -55,23 +55,21 @@ describe('Apollo Link', () => {
     }),
   });
 
+  const executor = buildHTTPExecutor({
+    endpoint: `http://localhost${yoga.graphqlEndpoint}`,
+    fetch: yoga.fetch,
+    File: yoga.fetchAPI.File,
+    FormData: yoga.fetchAPI.FormData,
+  });
   const client = new ApolloClient({
-    link: new ExecutorLink(
-      buildHTTPExecutor({
-        endpoint: `http://localhost${yoga.graphqlEndpoint}`,
-        fetch: yoga.fetch,
-        File: yoga.fetchAPI.File,
-        FormData: yoga.fetchAPI.FormData,
-      }),
-    ),
+    link: new ExecutorLink(executor),
     cache: new InMemoryCache(),
   });
 
-  beforeEach(() => {});
-
-  afterAll(() => {
+  afterAll(async () => {
+    await executor[DisposableSymbols.asyncDispose]();
     client.stop();
-    return client.clearStore();
+    await client.clearStore();
   });
 
   it('should handle queries correctly', async () => {

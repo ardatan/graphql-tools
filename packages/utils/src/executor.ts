@@ -1,6 +1,8 @@
+import type { MaybePromise } from '@whatwg-node/promise-helpers';
 import { ExecutionRequest, ExecutionResult } from './Interfaces.js';
 
-export type MaybePromise<T> = PromiseLike<T> | T;
+export type { MaybePromise } from '@whatwg-node/promise-helpers';
+
 export type MaybeAsyncIterable<T> = AsyncIterable<T> | T;
 
 export type AsyncExecutor<
@@ -42,13 +44,11 @@ export type Executor<TBaseContext = Record<string, any>, TBaseExtensions = Recor
 export type DisposableSyncExecutor<
   TBaseContext = Record<string, any>,
   TBaseExtensions = Record<string, any>,
-> = SyncExecutor<TBaseContext, TBaseExtensions> & { [Symbol.dispose]: () => void };
+> = SyncExecutor<TBaseContext, TBaseExtensions> & Disposable;
 export type DisposableAsyncExecutor<
   TBaseContext = Record<string, any>,
   TBaseExtensions = Record<string, any>,
-> = AsyncExecutor<TBaseContext, TBaseExtensions> & {
-  [Symbol.asyncDispose]: () => PromiseLike<void>;
-};
+> = AsyncExecutor<TBaseContext, TBaseExtensions> & AsyncDisposable;
 export type DisposableExecutor<
   TBaseContext = Record<string, any>,
   TBaseExtensions = Record<string, any>,

@@ -1,4 +1,4 @@
-import { getAbortPromise } from '@graphql-tools/utils';
+import { handleMaybePromise, isPromise, MaybePromise } from '@whatwg-node/promise-helpers';
 
 type ResolvedObject<TData> = {
   [TKey in keyof TData]: TData[TKey] extends Promise<infer TValue> ? TValue : TData[TKey];
@@ -11,19 +11,31 @@ type ResolvedObject<TData> = {
  * This is akin to bluebird's `Promise.props`, but implemented only using
  * `Promise.all` so it will work with any implementation of ES6 promises.
  */
-export async function promiseForObject<TData>(
+export function promiseForObject<TData>(
   object: TData,
   signal?: AbortSignal,
-): Promise<ResolvedObject<TData>> {
+  signalPromise?: Promise<never>,
+): MaybePromise<ResolvedObject<TData>> {
+  signal?.throwIfAborted();
   const resolvedObject = Object.create(null);
-  const promises = Promise.all(
-    Object.entries(object as any).map(async ([key, value]) => {
-      resolvedObject[key] = await value;
-    }),
-  );
-  if (signal) {
-    const abortPromise = getAbortPromise(signal);
-    return Promise.race([abortPromise, promises]).then(() => resolvedObject);
+  const promises: Promise<void>[] = [];
+  for (const key in object) {
+    const valueSet$ = handleMaybePromise(
+      () => object[key],
+      resolvedValue => {
+        resolvedObject[key] = resolvedValue;
+      },
+    );
+    if (isPromise(valueSet$)) {
+      promises.push(valueSet$);
+    }
   }
-  return promises.then(() => resolvedObject);
+  if (!promises.length) {
+    return resolvedObject;
+  }
+  const promiseAll = promises.length === 1 ? promises[0] : Promise.all(promises);
+  if (signalPromise) {
+    return Promise.race([signalPromise, promiseAll]).then(() => resolvedObject);
+  }
+  return promiseAll.then(() => resolvedObject);
 }
