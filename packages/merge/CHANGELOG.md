@@ -1,5 +1,24 @@
 # @graphql-tools/merge
 
+## 9.1.1
+
+### Patch Changes
+
+- [#7298](https://github.com/ardatan/graphql-tools/pull/7298)
+  [`984d542`](https://github.com/ardatan/graphql-tools/commit/984d542b95cbe717b8853f6922218a1edbc59122)
+  Thanks [@jdolle](https://github.com/jdolle)! - dependencies updates:
+  - Removed dependency
+    [`@theguild/federation-composition@^0.19.0` ↗︎](https://www.npmjs.com/package/@theguild/federation-composition/v/0.19.0)
+    (from `dependencies`)
+
+- [#7298](https://github.com/ardatan/graphql-tools/pull/7298)
+  [`984d542`](https://github.com/ardatan/graphql-tools/commit/984d542b95cbe717b8853f6922218a1edbc59122)
+  Thanks [@jdolle](https://github.com/jdolle)! - Fix "Named export 'OperationTypeNode' not found"
+
+- Updated dependencies
+  [[`32d0457`](https://github.com/ardatan/graphql-tools/commit/32d0457f3fae53b408bd8de459bf4541fcc14a23)]:
+  - @graphql-tools/utils@10.9.1
+
 ## 9.1.0
 
 ### Minor Changes
