@@ -243,17 +243,9 @@ export function getDirectiveNodes<TDirectiveNode extends DirectiveNode>(
         specifiedDirective => specifiedDirective.name !== directive.name.value,
       ),
     );
-    if (entity.deprecationReason != null) {
-      deprecatedDirectiveNode = directives.find(directive => directive.name.value === 'deprecated');
-    }
-    if (entity.specifiedByUrl != null || entity.specifiedByURL != null) {
-      specifiedByDirectiveNode = directives.find(
-        directive => directive.name.value === 'specifiedBy',
-      );
-    }
-    if (entity.isOneOf) {
-      oneOfDirectiveNode = directives.find(directive => directive.name.value === 'oneOf');
-    }
+    deprecatedDirectiveNode = directives.find(directive => directive.name.value === 'deprecated');
+    specifiedByDirectiveNode = directives.find(directive => directive.name.value === 'specifiedBy');
+    oneOfDirectiveNode = directives.find(directive => directive.name.value === 'oneOf');
   }
 
   if (entity.deprecationReason != null && deprecatedDirectiveNode == null) {
