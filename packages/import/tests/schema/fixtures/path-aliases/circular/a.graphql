@@ -1,0 +1,11 @@
+# import TypeB from "@circular/b.graphql"
+
+type TypeA {
+  id: ID!
+  relatedB: TypeB!
+}
+
+type Query {
+  getA: TypeA
+  getB: TypeB
+}

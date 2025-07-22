@@ -1,0 +1,10 @@
+# import TypeB from "@b-schema"
+
+type TypeA {
+  id: ID!
+  relatedB: TypeB!
+}
+
+type Query {
+  getA: TypeA
+}

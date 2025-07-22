@@ -1,0 +1,5 @@
+# import User from '@multiple-levels/level2.graphql'
+
+type Query {
+  user: User
+}
