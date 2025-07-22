@@ -1,11 +1,16 @@
 import * as fs from 'fs';
+import * as path from 'path';
 import '../../../testing/to-be-similar-gql-doc';
 import { Kind, print } from 'graphql';
 import { mergeTypeDefs } from '@graphql-tools/merge';
-import { parseImportLine, processImport } from '../../src/index.js';
+import { parseImportLine, PathAliases, processImport } from '../../src/index.js';
 
-const importSchema = (schema: string, schemas?: Record<string, string>) => {
-  const document = processImport(schema, __dirname, schemas);
+const importSchema = (
+  schema: string,
+  schemas?: Record<string, string>,
+  pathAliases?: PathAliases,
+) => {
+  const document = processImport(schema, __dirname, schemas, new Map(), pathAliases);
   return print(
     mergeTypeDefs(
       document.definitions.map(definition => ({ kind: Kind.DOCUMENT, definitions: [definition] })),
@@ -1142,6 +1147,176 @@ describe('importSchema', () => {
         field: String
         anotherField: String
         localField: String
+      }
+    `);
+  });
+
+  it('should resolve exact path aliases', () => {
+    const document = importSchema(
+      './fixtures/path-aliases/exact/a.graphql',
+      {},
+      {
+        mappings: {
+          '@b-schema': path.join(__dirname, './fixtures/path-aliases/exact/b.graphql'),
+        },
+      },
+    );
+
+    expect(document).toBeSimilarGqlDoc(/* GraphQL */ `
+      type Query {
+        getA: TypeA
+      }
+
+      type TypeA {
+        id: ID!
+        relatedB: TypeB!
+      }
+
+      type TypeB {
+        id: ID!
+      }
+    `);
+  });
+
+  it('should resolve mixed path aliases and relative imports', () => {
+    const document = importSchema(
+      './fixtures/path-aliases/mixed-use/schema.graphql',
+      {},
+      {
+        mappings: {
+          '@mixed-use/*': path.join(__dirname, './fixtures/path-aliases/mixed-use/*'),
+          'c-graphql': path.join(__dirname, './fixtures/path-aliases/mixed-use/c.graphql'),
+        },
+      },
+    );
+
+    expect(document).toBeSimilarGqlDoc(/* GraphQL */ `
+      type Query {
+        a: A
+        b: B
+        c: C
+      }
+
+      type A {
+        id: ID!
+      }
+
+      type B {
+        id: ID!
+      }
+
+      type C {
+        id: ID!
+      }
+    `);
+  });
+
+  it('should resolve multiple levels of path aliases', () => {
+    const document = importSchema(
+      './fixtures/path-aliases/multiple-levels/level1.graphql',
+      {},
+      {
+        mappings: {
+          '@multiple-levels/*': path.join(__dirname, './fixtures/path-aliases/multiple-levels/*'),
+        },
+      },
+    );
+
+    expect(document).toBeSimilarGqlDoc(/* GraphQL */ `
+      type Query {
+        user: User
+      }
+
+      type User {
+        account: Account
+      }
+
+      type Account {
+        id: ID
+        cart: Cart
+      }
+
+      type Cart {
+        total: Int
+        products: Products
+      }
+
+      type Products {
+        items: [Product]
+      }
+
+      type Product {
+        price: Int
+      }
+    `);
+  });
+
+  it('should handle circular imports with path aliases', () => {
+    const document = importSchema(
+      './fixtures/path-aliases/circular/a.graphql',
+      {},
+      {
+        mappings: {
+          '@circular/*': path.join(__dirname, './fixtures/path-aliases/circular/*'),
+        },
+      },
+    );
+
+    expect(document).toBeSimilarGqlDoc(/* GraphQL */ `
+      type Query {
+        getA: TypeA
+        getB: TypeB
+      }
+
+      type TypeA {
+        id: ID!
+        relatedB: TypeB!
+      }
+
+      type TypeB {
+        id: ID!
+        relatedA: TypeA!
+      }
+    `);
+  });
+
+  it('resolves mapped paths relative to root dir', () => {
+    const document = importSchema(
+      './fixtures/path-aliases/multiple-levels/level1.graphql',
+      {},
+      {
+        rootDir: path.join(__dirname, './fixtures/path-aliases'),
+        mappings: {
+          '@multiple-levels/*': './multiple-levels/*',
+        },
+      },
+    );
+
+    expect(document).toBeSimilarGqlDoc(/* GraphQL */ `
+      type Query {
+        user: User
+      }
+
+      type User {
+        account: Account
+      }
+
+      type Account {
+        id: ID
+        cart: Cart
+      }
+
+      type Cart {
+        total: Int
+        products: Products
+      }
+
+      type Products {
+        items: [Product]
+      }
+
+      type Product {
+        price: Int
       }
     `);
   });

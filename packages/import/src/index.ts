@@ -62,6 +62,71 @@ const IMPORT_DEFAULT_REGEX = /^import\s+('|")(.*)('|");?$/;
 export type VisitedFilesMap = Map<string, Map<string, Set<DefinitionNode>>>;
 
 /**
+ * Configuration for path aliasing in GraphQL import statements using the same
+ * syntax as tsconfig.json#paths
+ */
+export interface PathAliases {
+  /**
+   * Root directory for resolving relative paths in mappings. Defaults to the
+   * current working directory.
+   *
+   * @example
+   * ```ts
+   * {
+   *   rootDir: '/project/src/graphql',
+   *   mappings: {
+   *     '@types': './types' // Will resolve to '/project/src/graphql/types'
+   *   }
+   * }
+   * ```
+   */
+  rootDir?: string;
+
+  /**
+   * A map of path aliases to their corresponding file system paths. Keys are
+   * the aliases used in import statements, values are the paths they resolve
+   * to.
+   *
+   * ## Supports two patterns:
+   *
+   * 1. Exact mapping: Maps a specific alias to a specific file
+   *    `'@user': '/path/to/user.graphql'`
+   *
+   * 2. Wildcard mapping: Maps a prefix pattern to a directory pattern using '*'
+   *    2a. The '*' is replaced with the remainder of the import path
+   *        `'@models/*': '/path/to/models/*'`
+   *    2b. Maps to a directory without wildcard expansion
+   *        `'@types/*': '/path/to/types'`
+   *
+   * @example
+   * ```ts
+   * {
+   *   mappings: {
+   *     // Exact mapping
+   *     '@schema': '/project/schema/main.graphql',
+   *
+   *     // Wildcard mapping with expansion
+   *     '@models/*': '/project/graphql/models/*',
+   *
+   *     // Wildcard mapping without expansion
+   *     '@types/*': '/project/graphql/types.graphql',
+   *
+   *     // Relative paths (resolved against rootDir if specified)
+   *     '@common': './common/types.graphql'
+   *   }
+   * }
+   * ```
+   *
+   * Import examples:
+   * - `#import User from "@schema"` → `/project/schema/main.graphql`
+   * - `#import User from "@models/user.graphql"` → `/project/graphql/models/user.graphql`
+   * - `#import User from "@types/user.graphql"` → `/project/graphql/types.graphql`
+   * - `#import User from "@common"` → Resolved relative to rootDir
+   */
+  mappings: Record<string, string>;
+}
+
+/**
  * Loads the GraphQL document and recursively resolves all the imports
  * and copies them into the final document.
  * processImport does not merge the typeDefs as designed ( https://github.com/ardatan/graphql-tools/issues/2980#issuecomment-1003692728 )
@@ -71,8 +136,15 @@ export function processImport(
   cwd = globalThis.process?.cwd(),
   predefinedImports: Record<string, string> = {},
   visitedFiles: VisitedFilesMap = new Map(),
+  pathAliases?: PathAliases,
 ): DocumentNode {
-  const set = visitFile(filePath, join(cwd + '/root.graphql'), visitedFiles, predefinedImports);
+  const set = visitFile(
+    filePath,
+    join(cwd + '/root.graphql'),
+    visitedFiles,
+    predefinedImports,
+    pathAliases,
+  );
   const definitionStrSet = new Set<string>();
   let definitionsStr = '';
   for (const defs of set.values()) {
@@ -98,9 +170,10 @@ function visitFile(
   cwd: string,
   visitedFiles: VisitedFilesMap,
   predefinedImports: Record<string, string>,
+  pathAliases?: PathAliases,
 ): Map<string, Set<DefinitionNode>> {
   if (!isAbsolute(filePath) && !(filePath in predefinedImports)) {
-    filePath = resolveFilePath(cwd, filePath);
+    filePath = resolveFilePath(cwd, filePath, pathAliases);
   }
   if (!visitedFiles.has(filePath)) {
     const fileContent =
@@ -122,6 +195,7 @@ function visitFile(
       filePath,
       visitedFiles,
       predefinedImports,
+      pathAliases,
     );
 
     const addDefinition = (
@@ -468,6 +542,7 @@ export function processImports(
   filePath: string,
   visitedFiles: VisitedFilesMap,
   predefinedImports: Record<string, string>,
+  pathAliases?: PathAliases,
 ): {
   allImportedDefinitionsMap: Map<string, Set<DefinitionNode>>;
   potentialTransitiveDefinitionsMap: Map<string, Set<DefinitionNode>>;
@@ -476,7 +551,13 @@ export function processImports(
   const allImportedDefinitionsMap = new Map<string, Set<DefinitionNode>>();
   for (const line of importLines) {
     const { imports, from } = parseImportLine(line.replace('#', '').trim());
-    const importFileDefinitionMap = visitFile(from, filePath, visitedFiles, predefinedImports);
+    const importFileDefinitionMap = visitFile(
+      from,
+      filePath,
+      visitedFiles,
+      predefinedImports,
+      pathAliases,
+    );
 
     const buildFullDefinitionMap = (dependenciesMap: Map<string, Set<DefinitionNode>>) => {
       for (const [importedDefinitionName, importedDefinitions] of importFileDefinitionMap) {
@@ -585,7 +666,21 @@ export function parseImportLine(importLine: string): { imports: string[]; from: 
   `);
 }
 
-function resolveFilePath(filePath: string, importFrom: string): string {
+function resolveFilePath(filePath: string, importFrom: string, pathAliases?: PathAliases): string {
+  // First, check if importFrom matches any path aliases.
+  if (pathAliases != null) {
+    for (const [prefixPattern, mapping] of Object.entries(pathAliases.mappings)) {
+      const matchedMapping = applyPathAlias(prefixPattern, mapping, importFrom);
+      if (matchedMapping == null) {
+        continue;
+      }
+
+      const resolvedMapping = resolveFrom(pathAliases.rootDir ?? process.cwd(), matchedMapping);
+      return realpathSync(resolvedMapping);
+    }
+  }
+
+  // Fall back to original resolution logic
   const dirName = dirname(filePath);
   try {
     const fullPath = join(dirName, importFrom);
@@ -596,6 +691,44 @@ function resolveFilePath(filePath: string, importFrom: string): string {
     }
     throw e;
   }
+}
+
+/**
+ * Resolves an import alias and it's mapping using the same strategy as
+ * tsconfig.json#paths
+ *
+ * @param prefixPattern - The import alias pattern.
+ * @param mapping - The mapping applied if the prefixPattern matches.
+ * @param importFrom - The import to evaluate.
+ *
+ * @returns The mapped import or null if the alias did not match.
+ *
+ * @see https://www.typescriptlang.org/tsconfig/#paths
+ */
+function applyPathAlias(prefixPattern: string, mapping: string, importFrom: string): string | null {
+  if (prefixPattern.endsWith('*')) {
+    const prefix = prefixPattern.slice(0, -1);
+    if (!importFrom.startsWith(prefix)) {
+      return null;
+    }
+
+    const remainder = importFrom.slice(prefix.length);
+    if (mapping.endsWith('*')) {
+      return mapping.slice(0, -1) + remainder;
+    }
+
+    return mapping;
+  }
+
+  if (importFrom !== prefixPattern) {
+    return null;
+  }
+
+  if (mapping.endsWith('*')) {
+    return mapping.slice(0, -1);
+  }
+
+  return mapping;
 }
 
 function visitOperationDefinitionNode(node: OperationDefinitionNode, dependencySet: Set<string>) {
