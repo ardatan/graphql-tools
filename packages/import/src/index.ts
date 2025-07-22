@@ -62,8 +62,8 @@ const IMPORT_DEFAULT_REGEX = /^import\s+('|")(.*)('|");?$/;
 export type VisitedFilesMap = Map<string, Map<string, Set<DefinitionNode>>>;
 
 /**
- * Configuration for path aliasing in GraphQL import statements.
- * Allows mapping of import paths to file system paths for better organization and modularity.
+ * Configuration for path aliasing in GraphQL import statements using the same
+ * syntax as tsconfig.json#paths
  */
 export interface PathAliases {
   /**
@@ -83,16 +83,20 @@ export interface PathAliases {
   rootDir?: string;
 
   /**
-   * A map of path aliases to their corresponding file system paths.
-   * Keys are the aliases used in import statements, values are the paths they resolve to.
+   * A map of path aliases to their corresponding file system paths. Keys are
+   * the aliases used in import statements, values are the paths they resolve
+   * to.
    *
-   * Supports two patterns:
+   * ## Supports two patterns:
+   *
    * 1. Exact mapping: Maps a specific alias to a specific file
-   *    - `'@user': '/path/to/user.graphql'`
+   *    `'@user': '/path/to/user.graphql'`
    *
    * 2. Wildcard mapping: Maps a prefix pattern to a directory pattern using '*'
-   *    - `'@models/*': '/path/to/models/*'` - The '*' is replaced with the remainder of the import path
-   *    - `'@types/*': '/path/to/types'` - Maps to a directory without wildcard expansion
+   *    2a. The '*' is replaced with the remainder of the import path
+   *        `'@models/*': '/path/to/models/*'`
+   *    2b. Maps to a directory without wildcard expansion
+   *        `'@types/*': '/path/to/types'`
    *
    * @example
    * ```ts
@@ -663,14 +667,16 @@ export function parseImportLine(importLine: string): { imports: string[]; from: 
 }
 
 function resolveFilePath(filePath: string, importFrom: string, pathAliases?: PathAliases): string {
-  // First, check if importFrom matches any path aliases
+  // First, check if importFrom matches any path aliases.
   if (pathAliases != null) {
-    for (const [alias, aliasPath] of Object.entries(pathAliases.mappings)) {
-      let mapping = applyPathAlias(alias, aliasPath, importFrom);
-      if (mapping != null) {
-        mapping = resolveFrom(pathAliases.rootDir ?? process.cwd(), mapping);
-        return realpathSync(mapping);
+    for (const [prefixPattern, mapping] of Object.entries(pathAliases.mappings)) {
+      const matchedMapping = applyPathAlias(prefixPattern, mapping, importFrom);
+      if (matchedMapping == null) {
+        continue;
       }
+
+      const resolvedMapping = resolveFrom(pathAliases.rootDir ?? process.cwd(), matchedMapping);
+      return realpathSync(resolvedMapping);
     }
   }
 
@@ -687,6 +693,18 @@ function resolveFilePath(filePath: string, importFrom: string, pathAliases?: Pat
   }
 }
 
+/**
+ * Resolves an import alias and it's mapping using the same strategy as
+ * tsconfig.json#paths
+ *
+ * @param prefixPattern - The import alias pattern.
+ * @param mapping - The mapping applied if the prefixPattern matches.
+ * @param importFrom - The import to evaluate.
+ *
+ * @returns The mapped import or null if the alias did not match.
+ *
+ * @see https://www.typescriptlang.org/tsconfig/#paths
+ */
 function applyPathAlias(prefixPattern: string, mapping: string, importFrom: string): string | null {
   if (prefixPattern.endsWith('*')) {
     const prefix = prefixPattern.slice(0, -1);
