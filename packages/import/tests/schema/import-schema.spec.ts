@@ -1185,7 +1185,7 @@ describe('importSchema', () => {
       {
         mappings: {
           '@mixed-use/*': path.join(__dirname, './fixtures/path-aliases/mixed-use/*'),
-          'c-graphql': path.join(__dirname, './fixtures/path-aliases/mixed-use/C.graphql'),
+          'c-graphql': path.join(__dirname, './fixtures/path-aliases/mixed-use/c.graphql'),
         },
       },
     );
