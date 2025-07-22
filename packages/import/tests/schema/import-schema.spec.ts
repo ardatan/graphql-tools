@@ -1190,8 +1190,6 @@ describe('importSchema', () => {
       },
     );
 
-    console.log(document);
-
     expect(document).toBeSimilarGqlDoc(/* GraphQL */ `
       type Query {
         a: A

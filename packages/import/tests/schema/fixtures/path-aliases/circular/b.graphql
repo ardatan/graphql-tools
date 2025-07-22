@@ -1,4 +1,4 @@
-# import TypeA from "@circular/a.graphql"
+#import TypeA from "@circular/a.graphql"
 
 type TypeB {
   id: ID!

@@ -1,4 +1,4 @@
-# import TypeB from "@b-schema"
+#import TypeB from "@b-schema"
 
 type TypeA {
   id: ID!
