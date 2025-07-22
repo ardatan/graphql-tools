@@ -72,7 +72,7 @@
     "eslint-plugin-n": "17.21.0",
     "eslint-plugin-promise": "7.2.1",
     "eslint-plugin-standard": "5.0.0",
-    "globby": "11.1.0",
+    "globby": "14.1.0",
     "graphql": "16.11.0",
     "graphql-yoga": "5.15.1",
     "husky": "9.1.7",
