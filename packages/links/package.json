@@ -51,7 +51,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "^10.1.2",
+    "@graphql-tools/delegate": "^10.2.22",
     "@graphql-tools/utils": "^10.9.1",
     "apollo-upload-client": "17.0.0",
     "form-data": "^4.0.0",
@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@apollo/client": "3.13.8",
-    "@graphql-tools/stitch": "^9.3.4",
+    "@graphql-tools/stitch": "^9.4.27",
     "@types/apollo-upload-client": "17.0.5",
     "@types/node-fetch": "^2",
     "graphql-upload": "17.0.0"
