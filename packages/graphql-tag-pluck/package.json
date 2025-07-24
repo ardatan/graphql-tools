@@ -54,7 +54,7 @@
     "@babel/parser": "^7.26.10",
     "@babel/plugin-syntax-import-assertions": "^7.26.0",
     "@babel/traverse": "^7.26.10",
-    "@babel/types": "^7.26.10",
+    "@babel/types": "^7.28.2",
     "@graphql-tools/utils": "^10.9.1",
     "tslib": "^2.4.0"
   },
@@ -64,7 +64,7 @@
     "@vue/compiler-sfc": "3.5.18",
     "astrojs-compiler-sync": "1.1.1",
     "content-tag": "4.0.0",
-    "svelte": "5.36.14",
+    "svelte": "5.36.16",
     "svelte2tsx": "0.7.41"
   },
   "publishConfig": {
