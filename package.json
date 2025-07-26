@@ -64,7 +64,7 @@
     "bob-the-bundler": "7.0.1",
     "bun": "1.2.19",
     "concurrently": "9.2.0",
-    "cross-env": "7.0.3",
+    "cross-env": "10.0.0",
     "eslint": "9.31.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-config-standard": "17.1.0",
