@@ -1,4 +1,5 @@
-import { doTypesOverlap, GraphQLSchema, GraphQLType, isCompositeType } from 'graphql';
+import { doTypesOverlap, GraphQLSchema, GraphQLType } from 'graphql';
+import { isCompositeType } from './typeCheckers.js';
 import { Maybe } from './types.js';
 
 export function implementsAbstractType(
