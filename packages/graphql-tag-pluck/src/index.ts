@@ -421,7 +421,6 @@ const MissingTypeScriptPackageError = new Error(
 
 async function loadVueCompilerAsync() {
   try {
-    // eslint-disable-next-line import/no-extraneous-dependencies
     return await import('@vue/compiler-sfc');
   } catch {
     throw MissingVueTemplateCompilerError;
@@ -439,7 +438,6 @@ async function loadTypeScriptPackageAsync() {
 
 function loadVueCompilerSync() {
   try {
-    // eslint-disable-next-line import/no-extraneous-dependencies
     return require('@vue/compiler-sfc');
   } catch {
     throw MissingVueTemplateCompilerError;
