@@ -112,7 +112,7 @@ describeIf(platform() !== 'win32')('[url-loader] webpack bundle compat', () => {
           if (err) {
             reject(err);
           } else {
-            compiler.close(err => {
+            compiler?.close(err => {
               if (err) {
                 reject(err);
               } else {
