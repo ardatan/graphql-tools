@@ -14,8 +14,8 @@
     "@theguild/components": "9.8.0",
     "next": "15.4.4",
     "next-sitemap": "4.2.3",
-    "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
   },
   "optionalDependencies": {
     "@img/sharp-libvips-linux-x64": "1.2.0"

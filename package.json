@@ -69,7 +69,7 @@
     "eslint-config-prettier": "10.1.8",
     "eslint-config-standard": "17.1.0",
     "eslint-plugin-import": "2.32.0",
-    "eslint-plugin-n": "17.21.2",
+    "eslint-plugin-n": "17.21.3",
     "eslint-plugin-promise": "7.2.1",
     "eslint-plugin-standard": "5.0.0",
     "globby": "11.1.0",
