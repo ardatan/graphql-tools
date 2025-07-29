@@ -6,7 +6,15 @@ const ROOT_DIR = __dirname;
 const TSCONFIG = resolve(ROOT_DIR, 'tsconfig.json');
 const tsconfig = require(TSCONFIG);
 
-const ESM_PACKAGES = ['graphql', 'graphql-upload', 'fs-capacitor'];
+const ESM_PACKAGES = [
+  'graphql',
+  'graphql-upload',
+  'fs-capacitor',
+  'apollo-upload-client',
+  '@apollo/client',
+  'extract-files',
+  'is-plain-obj',
+];
 
 const modulePathIgnorePatterns = ['dist', 'test-assets', 'test-files', 'fixtures', '.bob'];
 
@@ -58,6 +66,9 @@ module.exports = {
     '^.+\\.ts?$': 'babel-jest',
     '^.+\\.js$': 'babel-jest',
   },
-  transformIgnorePatterns: [`node_modules/(?!(${ESM_PACKAGES.join('|')})/)`],
+  transformIgnorePatterns: [
+    `node_modules/(?!(${ESM_PACKAGES.join('|')})/)`,
+    'node_modules/apollo-upload-client/!(createUploadLink.mjs)',
+  ],
   resolver: 'bob-the-bundler/jest-resolver',
 };
