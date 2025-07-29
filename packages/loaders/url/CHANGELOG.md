@@ -1,5 +1,24 @@
 # @graphql-tools/url-loader
 
+## 8.0.33
+
+### Patch Changes
+
+- Updated dependencies
+  [[`32d0457`](https://github.com/ardatan/graphql-tools/commit/32d0457f3fae53b408bd8de459bf4541fcc14a23)]:
+  - @graphql-tools/utils@10.9.1
+  - @graphql-tools/executor-legacy-ws@1.1.19
+
+## 8.0.32
+
+### Patch Changes
+
+- Updated dependencies
+  [[`22af985`](https://github.com/ardatan/graphql-tools/commit/22af98581e983079ec7e53677b905d3d03117524),
+  [`53db005`](https://github.com/ardatan/graphql-tools/commit/53db00540c2549748afdeeb65bb45a6c45ce57d3)]:
+  - @graphql-tools/utils@10.9.0
+  - @graphql-tools/executor-legacy-ws@1.1.18
+
 ## 8.0.31
 
 ### Patch Changes
@@ -613,7 +632,6 @@
 - [#4941](https://github.com/ardatan/graphql-tools/pull/4941)
   [`0e5d250c`](https://github.com/ardatan/graphql-tools/commit/0e5d250cbac7ab003c45020b5ea464a8924eed01)
   Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-
   - Updated dependency
     [`@whatwg-node/fetch@^0.6.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.6.0)
     (from `^0.5.0`, in `dependencies`)
@@ -799,7 +817,6 @@
 - [#4829](https://github.com/ardatan/graphql-tools/pull/4829)
   [`61812ccb`](https://github.com/ardatan/graphql-tools/commit/61812ccb97d6e179e74d72661dd0736f6ca0a7ff)
   Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
-
   - Added dependency
     [`@graphql-tools/executor-http@0.0.0` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-http/v/0.0.0)
     (to `dependencies`)
@@ -913,7 +930,6 @@
 - [#4772](https://github.com/ardatan/graphql-tools/pull/4772)
   [`884c7ef7`](https://github.com/ardatan/graphql-tools/commit/884c7ef7bc549421fad6cbf38616d4a9eb9f8738)
   Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-
   - Updated dependency
     [`@whatwg-node/fetch@^0.5.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.5.0)
     (from `^0.4.0`, in `dependencies`)
@@ -983,7 +999,6 @@
 - [#4700](https://github.com/ardatan/graphql-tools/pull/4700)
   [`939e07ca`](https://github.com/ardatan/graphql-tools/commit/939e07cae38ff179e00c2ff2a23b70f6259971ef)
   Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-
   - Updated dependency
     [`@whatwg-node/fetch@^0.4.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/null) (from
     `^0.3.0`, in `dependencies`)
@@ -991,7 +1006,6 @@
 - [#4703](https://github.com/ardatan/graphql-tools/pull/4703)
   [`dd8886d1`](https://github.com/ardatan/graphql-tools/commit/dd8886d1534fdf73b7cfb6d54b13a3db5812b38b)
   Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
-
   - Removed dependency
     [`@n1ru4l/graphql-live-query@^0.10.0` ↗︎](https://www.npmjs.com/package/@n1ru4l/graphql-live-query/v/null)
     (from `dependencies`)
@@ -1044,7 +1058,6 @@
 - [#4665](https://github.com/ardatan/graphql-tools/pull/4665)
   [`5e9b1c06`](https://github.com/ardatan/graphql-tools/commit/5e9b1c066ed02fcac54cd79080c89e327d8d2f53)
   Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-
   - Updated dependency
     [`@whatwg-node/fetch@^0.3.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/null) (from
     `^0.2.9`, in `dependencies`)
@@ -1079,7 +1092,6 @@
 - [#4640](https://github.com/ardatan/graphql-tools/pull/4640)
   [`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d)
   Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
-
   - Updated dependency
     [`@graphql-tools/delegate@9.0.3` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/9.0.3)
     (was `9.0.2`, in `dependencies`)
@@ -1493,7 +1505,6 @@
 ### Patch Changes
 
 - 3a33c9d8: adjust accept headers sent to the server.
-
   - `text/event-stream` is only sent if Subscriptions are executed over SSE (GET).
   - `multipart/mixed` is only send for POST requests
 
@@ -1700,7 +1711,6 @@
 ### Major Changes
 
 - af9a78de: BREAKING CHANGE
-
   - Now each loader handles glob patterns internally and returns an array of `Source` object instead
     of single `Source`
 
@@ -1724,7 +1734,6 @@
   rootValue property is now a part of the Request type.
 
   When delegating with delegateToSchema, rootValue can be set multiple ways:
-
   - when using a custom executor, the custom executor can utilize a rootValue in whichever custom
     way it specifies.
   - when using the default executor (execute/subscribe from graphql-js): -- rootValue can be passed
@@ -1739,11 +1748,9 @@
   - - Now `Executor` can receive `AsyncIterable` and subscriptions will also be handled by
       `Executor`. This is a future-proof change for defer, stream and live queries
 - 7d3e3006: BREAKING CHANGE
-
   - No more accept arrays or functions for `headers`
 
   NEW FEATURES
-
   - Respect `operationName` and `extensions`
   - Ability to get headers from `extensions.headers`
 

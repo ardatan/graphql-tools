@@ -30,6 +30,7 @@ import {
   ScalarTypeDefinitionNode,
   ScalarTypeExtensionNode,
   SchemaDefinitionNode,
+  SchemaExtensionNode,
   SelectionNode,
   Source,
   TypeNode,
@@ -38,27 +39,92 @@ import {
 } from 'graphql';
 import resolveFrom from 'resolve-from';
 import { parseGraphQLSDL } from '@graphql-tools/utils';
+import { extractLinkImplementations } from '@theguild/federation-composition';
 
 const builtinTypes = ['String', 'Float', 'Int', 'Boolean', 'ID', 'Upload'];
+
+const federationV1Directives = ['key', 'provides', 'requires', 'external'];
 
 const builtinDirectives = [
   'deprecated',
   'skip',
   'include',
   'cacheControl',
-  'key',
-  'external',
-  'requires',
-  'provides',
   'connection',
   'client',
   'specifiedBy',
+  ...federationV1Directives,
 ];
 
 const IMPORT_FROM_REGEX = /^import\s+(\*|(.*))\s+from\s+('|")(.*)('|");?$/;
 const IMPORT_DEFAULT_REGEX = /^import\s+('|")(.*)('|");?$/;
 
 export type VisitedFilesMap = Map<string, Map<string, Set<DefinitionNode>>>;
+
+/**
+ * Configuration for path aliasing in GraphQL import statements using the same
+ * syntax as tsconfig.json#paths
+ */
+export interface PathAliases {
+  /**
+   * Root directory for resolving relative paths in mappings. Defaults to the
+   * current working directory.
+   *
+   * @example
+   * ```ts
+   * {
+   *   rootDir: '/project/src/graphql',
+   *   mappings: {
+   *     '@types': './types' // Will resolve to '/project/src/graphql/types'
+   *   }
+   * }
+   * ```
+   */
+  rootDir?: string;
+
+  /**
+   * A map of path aliases to their corresponding file system paths. Keys are
+   * the aliases used in import statements, values are the paths they resolve
+   * to.
+   *
+   * ## Supports two patterns:
+   *
+   * 1. Exact mapping: Maps a specific alias to a specific file
+   *    `'@user': '/path/to/user.graphql'`
+   *
+   * 2. Wildcard mapping: Maps a prefix pattern to a directory pattern using '*'
+   *    2a. The '*' is replaced with the remainder of the import path
+   *        `'@models/*': '/path/to/models/*'`
+   *    2b. Maps to a directory without wildcard expansion
+   *        `'@types/*': '/path/to/types'`
+   *
+   * @example
+   * ```ts
+   * {
+   *   mappings: {
+   *     // Exact mapping
+   *     '@schema': '/project/schema/main.graphql',
+   *
+   *     // Wildcard mapping with expansion
+   *     '@models/*': '/project/graphql/models/*',
+   *
+   *     // Wildcard mapping without expansion
+   *     '@types/*': '/project/graphql/types.graphql',
+   *
+   *     // Relative paths (resolved against rootDir if specified)
+   *     '@common': './common/types.graphql'
+   *   }
+   * }
+   * ```
+   *
+   * Import examples:
+   * - `#import User from "@schema"` → `/project/schema/main.graphql`
+   * - `#import User from "@models/user.graphql"` → `/project/graphql/models/user.graphql`
+   * - `#import User from "@types/user.graphql"` → `/project/graphql/types.graphql`
+   * - `#import User from "@common"` → Resolved relative to rootDir
+   */
+  mappings: Record<string, string>;
+}
 
 /**
  * Loads the GraphQL document and recursively resolves all the imports
@@ -70,8 +136,15 @@ export function processImport(
   cwd = globalThis.process?.cwd(),
   predefinedImports: Record<string, string> = {},
   visitedFiles: VisitedFilesMap = new Map(),
+  pathAliases?: PathAliases,
 ): DocumentNode {
-  const set = visitFile(filePath, join(cwd + '/root.graphql'), visitedFiles, predefinedImports);
+  const set = visitFile(
+    filePath,
+    join(cwd + '/root.graphql'),
+    visitedFiles,
+    predefinedImports,
+    pathAliases,
+  );
   const definitionStrSet = new Set<string>();
   let definitionsStr = '';
   for (const defs of set.values()) {
@@ -97,9 +170,10 @@ function visitFile(
   cwd: string,
   visitedFiles: VisitedFilesMap,
   predefinedImports: Record<string, string>,
+  pathAliases?: PathAliases,
 ): Map<string, Set<DefinitionNode>> {
   if (!isAbsolute(filePath) && !(filePath in predefinedImports)) {
-    filePath = resolveFilePath(cwd, filePath);
+    filePath = resolveFilePath(cwd, filePath, pathAliases);
   }
   if (!visitedFiles.has(filePath)) {
     const fileContent =
@@ -121,6 +195,7 @@ function visitFile(
       filePath,
       visitedFiles,
       predefinedImports,
+      pathAliases,
     );
 
     const addDefinition = (
@@ -262,13 +337,77 @@ export function extractDependencies(
   };
 }
 
+function importFederatedSchemaLinks(
+  definition: DefinitionNode,
+  definitionsByName: Map<string, Set<DefinitionNode>>,
+) {
+  const addDefinition = (name: string) => {
+    definitionsByName.set(name.replace(/^@/g, ''), new Set());
+  };
+
+  // extract links from this definition
+  const { links, matchesImplementation, resolveImportName } = extractLinkImplementations({
+    kind: Kind.DOCUMENT,
+    definitions: [definition],
+  });
+
+  if (links.length) {
+    const federationUrl = 'https://specs.apollo.dev/federation';
+    const linkUrl = 'https://specs.apollo.dev/link';
+
+    /**
+     * Official Federated imports are special because they can be referenced without specifyin the import.
+     * To handle this case, we must prepare a list of all the possible valid usages to check against.
+     * Note that this versioning is not technically correct, since some definitions are after v2.0.
+     * But this is enough information to be comfortable not blocking the imports at this phase. It's
+     * the job of the composer to validate the versions.
+     * */
+    if (matchesImplementation(federationUrl, 'v2.0')) {
+      const federationImports = [
+        '@composeDirective',
+        '@extends',
+        '@external',
+        '@inaccessible',
+        '@interfaceObject',
+        '@key',
+        '@override',
+        '@provides',
+        '@requires',
+        '@shareable',
+        '@tag',
+        'FieldSet',
+      ];
+      for (const i of federationImports) {
+        addDefinition(resolveImportName(federationUrl, i));
+      }
+    }
+    if (matchesImplementation(linkUrl, 'v1.0')) {
+      const linkImports = ['Purpose', 'Import', '@link'];
+      for (const i of linkImports) {
+        addDefinition(resolveImportName(linkUrl, i));
+      }
+    }
+
+    const imported = links
+      .filter(l => ![linkUrl, federationUrl].includes(l.identity))
+      .flatMap(l => l.imports.map(i => i.as ?? i.name));
+    for (const namedImport of imported) {
+      addDefinition(namedImport);
+    }
+  }
+}
+
 function visitDefinition(
   definition: DefinitionNode,
   definitionsByName: Map<string, Set<DefinitionNode>>,
   dependenciesByDefinitionName: Map<string, Set<string>>,
 ): void {
   // TODO: handle queries without names
-  if ('name' in definition || definition.kind === Kind.SCHEMA_DEFINITION) {
+  if (
+    'name' in definition ||
+    definition.kind === Kind.SCHEMA_DEFINITION ||
+    definition.kind === Kind.SCHEMA_EXTENSION
+  ) {
     const definitionName =
       'name' in definition && definition.name ? definition.name.value : 'schema';
     if (!definitionsByName.has(definitionName)) {
@@ -282,6 +421,7 @@ function visitDefinition(
       dependencySet = new Set();
       dependenciesByDefinitionName.set(definitionName, dependencySet);
     }
+
     switch (definition.kind) {
       case Kind.OPERATION_DEFINITION:
         visitOperationDefinitionNode(definition, dependencySet);
@@ -311,7 +451,12 @@ function visitDefinition(
         visitScalarDefinitionNode(definition, dependencySet);
         break;
       case Kind.SCHEMA_DEFINITION:
+        importFederatedSchemaLinks(definition, definitionsByName);
         visitSchemaDefinitionNode(definition, dependencySet);
+        break;
+      case Kind.SCHEMA_EXTENSION:
+        importFederatedSchemaLinks(definition, definitionsByName);
+        visitSchemaExtensionDefinitionNode(definition, dependencySet);
         break;
       case Kind.OBJECT_TYPE_EXTENSION:
         visitObjectTypeExtensionNode(definition, dependencySet, dependenciesByDefinitionName);
@@ -397,6 +542,7 @@ export function processImports(
   filePath: string,
   visitedFiles: VisitedFilesMap,
   predefinedImports: Record<string, string>,
+  pathAliases?: PathAliases,
 ): {
   allImportedDefinitionsMap: Map<string, Set<DefinitionNode>>;
   potentialTransitiveDefinitionsMap: Map<string, Set<DefinitionNode>>;
@@ -405,7 +551,13 @@ export function processImports(
   const allImportedDefinitionsMap = new Map<string, Set<DefinitionNode>>();
   for (const line of importLines) {
     const { imports, from } = parseImportLine(line.replace('#', '').trim());
-    const importFileDefinitionMap = visitFile(from, filePath, visitedFiles, predefinedImports);
+    const importFileDefinitionMap = visitFile(
+      from,
+      filePath,
+      visitedFiles,
+      predefinedImports,
+      pathAliases,
+    );
 
     const buildFullDefinitionMap = (dependenciesMap: Map<string, Set<DefinitionNode>>) => {
       for (const [importedDefinitionName, importedDefinitions] of importFileDefinitionMap) {
@@ -514,7 +666,21 @@ export function parseImportLine(importLine: string): { imports: string[]; from: 
   `);
 }
 
-function resolveFilePath(filePath: string, importFrom: string): string {
+function resolveFilePath(filePath: string, importFrom: string, pathAliases?: PathAliases): string {
+  // First, check if importFrom matches any path aliases.
+  if (pathAliases != null) {
+    for (const [prefixPattern, mapping] of Object.entries(pathAliases.mappings)) {
+      const matchedMapping = applyPathAlias(prefixPattern, mapping, importFrom);
+      if (matchedMapping == null) {
+        continue;
+      }
+
+      const resolvedMapping = resolveFrom(pathAliases.rootDir ?? process.cwd(), matchedMapping);
+      return realpathSync(resolvedMapping);
+    }
+  }
+
+  // Fall back to original resolution logic
   const dirName = dirname(filePath);
   try {
     const fullPath = join(dirName, importFrom);
@@ -525,6 +691,44 @@ function resolveFilePath(filePath: string, importFrom: string): string {
     }
     throw e;
   }
+}
+
+/**
+ * Resolves an import alias and it's mapping using the same strategy as
+ * tsconfig.json#paths
+ *
+ * @param prefixPattern - The import alias pattern.
+ * @param mapping - The mapping applied if the prefixPattern matches.
+ * @param importFrom - The import to evaluate.
+ *
+ * @returns The mapped import or null if the alias did not match.
+ *
+ * @see https://www.typescriptlang.org/tsconfig/#paths
+ */
+function applyPathAlias(prefixPattern: string, mapping: string, importFrom: string): string | null {
+  if (prefixPattern.endsWith('*')) {
+    const prefix = prefixPattern.slice(0, -1);
+    if (!importFrom.startsWith(prefix)) {
+      return null;
+    }
+
+    const remainder = importFrom.slice(prefix.length);
+    if (mapping.endsWith('*')) {
+      return mapping.slice(0, -1) + remainder;
+    }
+
+    return mapping;
+  }
+
+  if (importFrom !== prefixPattern) {
+    return null;
+  }
+
+  if (mapping.endsWith('*')) {
+    return mapping.slice(0, -1);
+  }
+
+  return mapping;
 }
 
 function visitOperationDefinitionNode(node: OperationDefinitionNode, dependencySet: Set<string>) {
@@ -804,6 +1008,14 @@ function visitSchemaDefinitionNode(node: SchemaDefinitionNode, dependencySet: Se
   dependencySet.add('schema');
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.operationTypes.forEach(operationTypeDefinitionNode =>
+    visitOperationTypeDefinitionNode(operationTypeDefinitionNode, dependencySet),
+  );
+}
+
+function visitSchemaExtensionDefinitionNode(node: SchemaExtensionNode, dependencySet: Set<string>) {
+  dependencySet.add('schema');
+  node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
+  node.operationTypes?.forEach(operationTypeDefinitionNode =>
     visitOperationTypeDefinitionNode(operationTypeDefinitionNode, dependencySet),
   );
 }

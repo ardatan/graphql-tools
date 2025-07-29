@@ -1,5 +1,27 @@
 # @graphql-tools/utils
 
+## 10.9.1
+
+### Patch Changes
+
+- [`32d0457`](https://github.com/ardatan/graphql-tools/commit/32d0457f3fae53b408bd8de459bf4541fcc14a23)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fix oneOf handling
+
+## 10.9.0
+
+### Minor Changes
+
+- [#7281](https://github.com/ardatan/graphql-tools/pull/7281)
+  [`53db005`](https://github.com/ardatan/graphql-tools/commit/53db00540c2549748afdeeb65bb45a6c45ce57d3)
+  Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - Add optional `subgraphName` preoperty
+  to the `ExecutionRequest` interface for usage in Gateways like Hive Gateway.
+
+### Patch Changes
+
+- [#7282](https://github.com/ardatan/graphql-tools/pull/7282)
+  [`22af985`](https://github.com/ardatan/graphql-tools/commit/22af98581e983079ec7e53677b905d3d03117524)
+  Thanks [@renovate](https://github.com/apps/renovate)! - Support `@oneOf` directive
+
 ## 10.8.6
 
 ### Patch Changes
@@ -76,7 +98,6 @@
 - [#6822](https://github.com/ardatan/graphql-tools/pull/6822)
   [`53bb601`](https://github.com/ardatan/graphql-tools/commit/53bb60104782738f51a2c2de42d6da7aba191537)
   Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-
   - Updated dependency [`dset@^3.1.4` ↗︎](https://www.npmjs.com/package/dset/v/3.1.4) (from
     `^3.1.2`, in `dependencies`)
 
@@ -104,7 +125,6 @@
   [`2c70d27`](https://github.com/ardatan/graphql-tools/commit/2c70d276c510be18f7ce9e966c4653ff3c9b2641)
   Thanks [@n1ru4l](https://github.com/n1ru4l)! - - New helper function `getAbortPromise` to get a
   promise rejected when `AbortSignal` is aborted
-
   - New helper function `registerAbortSignalListener` to register a listener to abort a promise when
     `AbortSignal` is aborted
 
@@ -458,7 +478,6 @@
 - [#5396](https://github.com/ardatan/graphql-tools/pull/5396)
   [`bb8f169e`](https://github.com/ardatan/graphql-tools/commit/bb8f169e21a8a7002b66d3bc6e4e4b40cc2a5f5c)
   Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
-
   - Added dependency [`dset@^3.1.2` ↗︎](https://www.npmjs.com/package/dset/v/3.1.2) (to
     `dependencies`)
 
@@ -913,7 +932,6 @@
   `stitchSchemas` configurations
 
   Breaking Changes;
-
   - Move `mergeSchemas` and `MergeSchemasConfig` from `@graphql-tools/merge` to
     `@graphql-tools/schema` package to prevent circular dependency between them.
   - `mergeSchemasAsync` has been removed.
@@ -941,7 +959,6 @@
 ### Major Changes
 
 - af9a78de: BREAKING CHANGE
-
   - Now each loader handles glob patterns internally and returns an array of `Source` object instead
     of single `Source`
 
@@ -963,7 +980,6 @@
   rootValue property is now a part of the Request type.
 
   When delegating with delegateToSchema, rootValue can be set multiple ways:
-
   - when using a custom executor, the custom executor can utilize a rootValue in whichever custom
     way it specifies.
   - when using the default executor (execute/subscribe from graphql-js): -- rootValue can be passed
@@ -980,7 +996,6 @@
   `mergeDeep(sources)`
 
 - c42e811d: BREAKING CHANGES;
-
   - Rename `Request` to `ExecutionRequest`
   - Add required `operationType: OperationTypeNode` field in `ExecutionRequest`
   - Add `context` in `createRequest` and `createRequestInfo` instead of `delegateToSchema`
@@ -991,7 +1006,6 @@
   > https://github.com/ardatan/graphql-tools/pull/3166/files#diff-d4824895ea613dcc1f710c3ac82e952fe0ca12391b671f70d9f2d90d5656fdceR38
 
   Improvements;
-
   - Memoize `defaultExecutor` for a single `GraphQLSchema` so allow `getBatchingExecutor` to memoize
     `batchingExecutor` correctly.
   - And there is no different `defaultExecutor` is created for `subscription` and other operation
@@ -1289,7 +1303,6 @@
 - be1a1575: ## Breaking Changes:
 
   #### Schema Generation and Decoration API (`@graphql-tools/schema`)
-
   - Resolver validation options should now be set to `error`, `warn` or `ignore` rather than `true`
     or `false`. In previous versions, some of the validators caused errors to be thrown, while some
     issued warnings. This changes brings consistency to validator behavior.
@@ -1299,7 +1312,6 @@
     `requireResolversToMatchSchema` is `error`, matching the previous behavior.
 
   #### Schema Delegation (`delegateToSchema` & `@graphql-tools/delegate`)
-
   - The `delegateToSchema` return value has matured and been formalized as an `ExternalObject`, in
     which all errors are integrated into the GraphQL response, preserving their initial path. Those
     advanced users accessing the result directly will note the change in error handling. This also
@@ -1329,7 +1341,6 @@
     parameters above.
 
   #### Remote Schemas & Wrapping (`wrapSchema`, `makeRemoteExecutableSchema`, and `@graphql-tools/wrap`)
-
   - `wrapSchema` and `generateProxyingResolvers` now only take a single options argument with named
     properties of type `SubschemaConfig`. The previously possible shorthand version with first
     argument consisting of a `GraphQLSchema` and second argument representing the transforms should
@@ -1365,7 +1376,6 @@
     `parseSelectionSet` function from `@graphql-tools/utils`.
 
   #### Schema Stitching (`stitchSchemas` & `@graphql-tools/stitch`)
-
   - `stitchSchemas`'s `mergeTypes` option is now true by default! This causes the `onTypeConflict`
     option to be ignored by default. To use `onTypeConflict` to select a specific type instead of
     simply merging, simply set `mergeTypes` to false.
@@ -1386,13 +1396,11 @@
     property name change for `onTypeConflict` from `schema` to `subschema`.
 
   #### Mocking (`addMocksToSchema` and `@graphql-tools/mock`)
-
   - Mocks returning objects with fields set as functions are now operating according to upstream
     graphql-js convention, i.e. these functions take three arguments, `args`, `context`, and `info`
     with `parent` available as `this` rather than as the first argument.
 
   #### Other Utilities (`@graphql-tools/utils`)
-
   - `filterSchema`'s `fieldFilter` will now filter _all_ fields across Object, Interface, and Input
     types. For the previous Object-only behavior, switch to the `objectFieldFilter` option.
   - Unused `fieldNodes` utility functions have been removed.
@@ -1404,7 +1412,6 @@
     removed from the `utils` package, as they are implemented elsewhere or no longer necessary.
 
   ## Related Issues
-
   - proxy all the errors: #1047, #1641
   - better error handling for merges #2016, #2062
   - fix typings #1614

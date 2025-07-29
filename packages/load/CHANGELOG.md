@@ -1,5 +1,35 @@
 # @graphql-tools/load
 
+## 8.1.2
+
+### Patch Changes
+
+- Updated dependencies
+  [[`32d0457`](https://github.com/ardatan/graphql-tools/commit/32d0457f3fae53b408bd8de459bf4541fcc14a23)]:
+  - @graphql-tools/utils@10.9.1
+  - @graphql-tools/schema@10.0.25
+
+## 8.1.1
+
+### Patch Changes
+
+- Updated dependencies
+  [[`22af985`](https://github.com/ardatan/graphql-tools/commit/22af98581e983079ec7e53677b905d3d03117524),
+  [`53db005`](https://github.com/ardatan/graphql-tools/commit/53db00540c2549748afdeeb65bb45a6c45ce57d3)]:
+  - @graphql-tools/utils@10.9.0
+  - @graphql-tools/schema@10.0.24
+
+## 8.1.0
+
+### Minor Changes
+
+- [#7093](https://github.com/ardatan/graphql-tools/pull/7093)
+  [`4a33247`](https://github.com/ardatan/graphql-tools/commit/4a33247c159ebb0db27f0746a2b10c2b786ea8d5)
+  Thanks [@eddeee888](https://github.com/eddeee888)! - Throw NoTypeDefinitionsFound when cannot find
+  files, instead of the standard Error
+
+  This helps libraries such as GraphQL Code Generator to handle loading error cases more flexibly.
+
 ## 8.0.19
 
 ### Patch Changes
@@ -732,7 +762,6 @@
 ### Major Changes
 
 - af9a78de: BREAKING CHANGE
-
   - Now each loader handles glob patterns internally and returns an array of `Source` object instead
     of single `Source`
 

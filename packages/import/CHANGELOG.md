@@ -1,5 +1,50 @@
 # @graphql-tools/import
 
+## 7.0.21
+
+### Patch Changes
+
+- Updated dependencies
+  [[`32d0457`](https://github.com/ardatan/graphql-tools/commit/32d0457f3fae53b408bd8de459bf4541fcc14a23)]:
+  - @graphql-tools/utils@10.9.1
+
+## 7.0.20
+
+### Patch Changes
+
+- [#7229](https://github.com/ardatan/graphql-tools/pull/7229)
+  [`a824120`](https://github.com/ardatan/graphql-tools/commit/a8241205862ebcf294a835da6eb782f777e9fdfb)
+  Thanks [@jdolle](https://github.com/jdolle)! - dependencies updates:
+  - Added dependency
+    [`@theguild/federation-composition@^0.18.3` ↗︎](https://www.npmjs.com/package/@theguild/federation-composition/v/0.18.3)
+    (to `dependencies`)
+
+- [#7260](https://github.com/ardatan/graphql-tools/pull/7260)
+  [`d15c850`](https://github.com/ardatan/graphql-tools/commit/d15c850d69c3b7d034828f397c8fa59ca30e9b98)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@theguild/federation-composition@^0.19.0` ↗︎](https://www.npmjs.com/package/@theguild/federation-composition/v/0.19.0)
+    (from `^0.18.3`, in `dependencies`)
+
+- [#7229](https://github.com/ardatan/graphql-tools/pull/7229)
+  [`a824120`](https://github.com/ardatan/graphql-tools/commit/a8241205862ebcf294a835da6eb782f777e9fdfb)
+  Thanks [@jdolle](https://github.com/jdolle)! - Adjust dependency and definition logic to include
+  federated links
+
+- Updated dependencies
+  [[`22af985`](https://github.com/ardatan/graphql-tools/commit/22af98581e983079ec7e53677b905d3d03117524),
+  [`53db005`](https://github.com/ardatan/graphql-tools/commit/53db00540c2549748afdeeb65bb45a6c45ce57d3)]:
+  - @graphql-tools/utils@10.9.0
+
+## 7.0.19
+
+### Patch Changes
+
+- [#7225](https://github.com/ardatan/graphql-tools/pull/7225)
+  [`99e6faf`](https://github.com/ardatan/graphql-tools/commit/99e6faf036f370db13f52b8f414b4c90f417de7a)
+  Thanks [@jdolle](https://github.com/jdolle)! - Support 'extend schema' syntax and add 'link' to
+  the list of builtins so that it doesnt need a directive definition for federated schemas
+
 ## 7.0.18
 
 ### Patch Changes

@@ -23,6 +23,7 @@
         "!/@graphql-inspector/core/",
         "!/next/",
         "!/husky/",
+        "!/@img/sharp-libvips-linux-x64/",
         "*"
       ]
     }

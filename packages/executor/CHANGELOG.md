@@ -1,5 +1,22 @@
 # @graphql-tools/executor
 
+## 1.4.9
+
+### Patch Changes
+
+- Updated dependencies
+  [[`32d0457`](https://github.com/ardatan/graphql-tools/commit/32d0457f3fae53b408bd8de459bf4541fcc14a23)]:
+  - @graphql-tools/utils@10.9.1
+
+## 1.4.8
+
+### Patch Changes
+
+- Updated dependencies
+  [[`22af985`](https://github.com/ardatan/graphql-tools/commit/22af98581e983079ec7e53677b905d3d03117524),
+  [`53db005`](https://github.com/ardatan/graphql-tools/commit/53db00540c2549748afdeeb65bb45a6c45ce57d3)]:
+  - @graphql-tools/utils@10.9.0
+
 ## 1.4.7
 
 ### Patch Changes
@@ -51,7 +68,6 @@
 - [#6971](https://github.com/ardatan/graphql-tools/pull/6971)
   [`4a2eb14`](https://github.com/ardatan/graphql-tools/commit/4a2eb14d0e3394d3dfbb3d83856500c5fb548285)
   Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
-
   - Added dependency
     [`@whatwg-node/promise-helpers@^1.0.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/promise-helpers/v/1.0.0)
     (to `dependencies`)
@@ -634,7 +650,6 @@
 - [#4814](https://github.com/ardatan/graphql-tools/pull/4814)
   [`79e5554b`](https://github.com/ardatan/graphql-tools/commit/79e5554b524d1404f70c932cb43bdd55869ddfff)
   Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-
   - Updated dependency
     [`value-or-promise@1.0.11` ↗︎](https://www.npmjs.com/package/value-or-promise/v/1.0.11) (from
     `1.0.1`, in `dependencies`)
@@ -658,7 +673,6 @@
 - [#4796](https://github.com/ardatan/graphql-tools/pull/4796)
   [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931)
   Thanks [@saihaj](https://github.com/saihaj)! - dependencies updates:
-
   - Added dependency
     [`@repeaterjs/repeater@3.0.4` ↗︎](https://www.npmjs.com/package/@repeaterjs/repeater/v/3.0.4)
     (to `dependencies`)

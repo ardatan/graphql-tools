@@ -18,6 +18,7 @@ import {
   resetComments,
   TypeSource,
 } from '@graphql-tools/utils';
+import { extractLinks, resolveImportName } from '../links.js';
 import { OnFieldTypeConflict } from './fields.js';
 import { mergeGraphQLNodes, schemaDefSymbol } from './merge-nodes.js';
 import { DEFAULT_OPERATION_TYPE_NAME_MAP } from './schema-def.js';
@@ -77,6 +78,11 @@ export interface Config extends ParseOptions, GetDocumentNodeFromSchemaOptions {
   convertExtensions?: boolean;
   consistentEnumMerge?: boolean;
   ignoreFieldConflicts?: boolean;
+  /**
+   * Allow directives that are not defined in the schema, but are imported
+   * through federated @links, to be repeated.
+   */
+  repeatableLinkImports?: Set<string>;
   /**
    * Called if types of the same fields are different
    *
@@ -145,14 +151,33 @@ function visitTypeSources(
   allDirectives: DirectiveDefinitionNode[] = [],
   allNodes: DefinitionNode[] = [],
   visitedTypeSources = new Set<TypeSource>(),
+  repeatableLinkImports: Set<string> = new Set(),
 ) {
+  const addRepeatable = (name: string) => {
+    repeatableLinkImports.add(name);
+  };
+
   if (typeSource && !visitedTypeSources.has(typeSource)) {
     visitedTypeSources.add(typeSource);
     if (typeof typeSource === 'function') {
-      visitTypeSources(typeSource(), options, allDirectives, allNodes, visitedTypeSources);
+      visitTypeSources(
+        typeSource(),
+        options,
+        allDirectives,
+        allNodes,
+        visitedTypeSources,
+        repeatableLinkImports,
+      );
     } else if (Array.isArray(typeSource)) {
       for (const type of typeSource) {
-        visitTypeSources(type, options, allDirectives, allNodes, visitedTypeSources);
+        visitTypeSources(
+          type,
+          options,
+          allDirectives,
+          allNodes,
+          visitedTypeSources,
+          repeatableLinkImports,
+        );
       }
     } else if (isSchema(typeSource)) {
       const documentNode = getDocumentNodeFromSchema(typeSource, options);
@@ -162,6 +187,7 @@ function visitTypeSources(
         allDirectives,
         allNodes,
         visitedTypeSources,
+        repeatableLinkImports,
       );
     } else if (isStringTypes(typeSource) || isSourceTypes(typeSource)) {
       const documentNode = parse(typeSource, options);
@@ -171,8 +197,34 @@ function visitTypeSources(
         allDirectives,
         allNodes,
         visitedTypeSources,
+        repeatableLinkImports,
       );
     } else if (typeof typeSource === 'object' && isDefinitionNode(typeSource)) {
+      const links = extractLinks({
+        definitions: [typeSource],
+        kind: Kind.DOCUMENT,
+      });
+
+      const federationUrl = 'https://specs.apollo.dev/federation';
+      const linkUrl = 'https://specs.apollo.dev/link';
+
+      /**
+       * Official Federated imports are special because they can be referenced without specifyin the import.
+       * To handle this case, we must prepare a list of all the possible valid usages to check against.
+       * Note that this versioning is not technically correct, since some definitions are after v2.0.
+       * But this is enough information to be comfortable not blocking the imports at this phase. It's
+       * the job of the composer to validate the versions.
+       * */
+      const federationLink = links.find(l => l.url.identity === federationUrl);
+      if (federationLink) {
+        addRepeatable(resolveImportName(federationLink, '@composeDirective'));
+        addRepeatable(resolveImportName(federationLink, '@key'));
+      }
+      const linkLink = links.find(l => l.url.identity === linkUrl);
+      if (linkLink) {
+        addRepeatable(resolveImportName(linkLink, '@link'));
+      }
+
       if (typeSource.kind === Kind.DIRECTIVE_DEFINITION) {
         allDirectives.push(typeSource);
       } else {
@@ -185,6 +237,7 @@ function visitTypeSources(
         allDirectives,
         allNodes,
         visitedTypeSources,
+        repeatableLinkImports,
       );
     } else {
       throw new Error(
@@ -192,18 +245,20 @@ function visitTypeSources(
       );
     }
   }
-  return { allDirectives, allNodes };
+  return { allDirectives, allNodes, repeatableLinkImports };
 }
 
 export function mergeGraphQLTypes(typeSource: TypeSource, config: Config): DefinitionNode[] {
   resetComments();
 
-  const { allDirectives, allNodes } = visitTypeSources(typeSource, config);
+  const { allDirectives, allNodes, repeatableLinkImports } = visitTypeSources(typeSource, config);
 
   const mergedDirectives = mergeGraphQLNodes(allDirectives, config) as Record<
     string,
     DirectiveDefinitionNode
   >;
+
+  config.repeatableLinkImports = repeatableLinkImports;
 
   const mergedNodes = mergeGraphQLNodes(allNodes, config, mergedDirectives);
 

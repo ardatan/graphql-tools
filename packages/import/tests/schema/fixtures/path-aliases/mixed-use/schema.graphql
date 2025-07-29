@@ -1,0 +1,9 @@
+#import "@mixed-use/a.graphql"
+#import "./b.graphql"
+#import "c-graphql"
+
+type Query {
+  a: A
+  b: B
+  c: C
+}

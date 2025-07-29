@@ -41,6 +41,7 @@ import {
   ScalarTypeDefinitionNode,
   SchemaDefinitionNode,
   SchemaExtensionNode,
+  specifiedDirectives,
   UnionTypeDefinitionNode,
   ValueNode,
 } from 'graphql';
@@ -219,11 +220,12 @@ export function getDirectiveNodes<TDirectiveNode extends DirectiveNode>(
     deprecationReason?: string | null;
     specifiedByUrl?: string | null;
     specifiedByURL?: string | null;
+    isOneOf?: boolean;
   },
   schema?: GraphQLSchema,
   pathToDirectivesInExtensions?: Array<string>,
 ): Array<TDirectiveNode> {
-  let directiveNodesBesidesDeprecatedAndSpecifiedBy: Array<TDirectiveNode> = [];
+  let directiveNodesBesidesNativeDirectives: Array<TDirectiveNode> = [];
 
   const directivesInExtensions = getDirectivesInExtensions(entity, pathToDirectivesInExtensions);
 
@@ -234,20 +236,16 @@ export function getDirectiveNodes<TDirectiveNode extends DirectiveNode>(
 
   let deprecatedDirectiveNode: Maybe<TDirectiveNode> = null;
   let specifiedByDirectiveNode: Maybe<TDirectiveNode> = null;
+  let oneOfDirectiveNode: Maybe<TDirectiveNode> = null;
   if (directives != null) {
-    directiveNodesBesidesDeprecatedAndSpecifiedBy = directives.filter(
-      directive => directive.name.value !== 'deprecated' && directive.name.value !== 'specifiedBy',
+    directiveNodesBesidesNativeDirectives = directives.filter(directive =>
+      specifiedDirectives.every(
+        specifiedDirective => specifiedDirective.name !== directive.name.value,
+      ),
     );
-    if (entity.deprecationReason != null) {
-      deprecatedDirectiveNode = directives.filter(
-        directive => directive.name.value === 'deprecated',
-      )?.[0];
-    }
-    if (entity.specifiedByUrl != null || entity.specifiedByURL != null) {
-      specifiedByDirectiveNode = directives.filter(
-        directive => directive.name.value === 'specifiedBy',
-      )?.[0];
-    }
+    deprecatedDirectiveNode = directives.find(directive => directive.name.value === 'deprecated');
+    specifiedByDirectiveNode = directives.find(directive => directive.name.value === 'specifiedBy');
+    oneOfDirectiveNode = directives.find(directive => directive.name.value === 'oneOf');
   }
 
   if (entity.deprecationReason != null && deprecatedDirectiveNode == null) {
@@ -265,13 +263,20 @@ export function getDirectiveNodes<TDirectiveNode extends DirectiveNode>(
     specifiedByDirectiveNode = makeDirectiveNode<TDirectiveNode>('specifiedBy', specifiedByArgs);
   }
 
+  if (entity.isOneOf && oneOfDirectiveNode == null) {
+    oneOfDirectiveNode = makeDirectiveNode<TDirectiveNode>('oneOf');
+  }
+
   if (deprecatedDirectiveNode != null) {
-    directiveNodesBesidesDeprecatedAndSpecifiedBy.push(deprecatedDirectiveNode);
+    directiveNodesBesidesNativeDirectives.push(deprecatedDirectiveNode);
   }
   if (specifiedByDirectiveNode != null) {
-    directiveNodesBesidesDeprecatedAndSpecifiedBy.push(specifiedByDirectiveNode);
+    directiveNodesBesidesNativeDirectives.push(specifiedByDirectiveNode);
   }
-  return directiveNodesBesidesDeprecatedAndSpecifiedBy;
+  if (oneOfDirectiveNode != null) {
+    directiveNodesBesidesNativeDirectives.push(oneOfDirectiveNode);
+  }
+  return directiveNodesBesidesNativeDirectives;
 }
 
 export function astFromArg(

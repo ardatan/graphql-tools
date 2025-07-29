@@ -2,7 +2,7 @@ import { join } from 'path';
 import { parse, separateOperations } from 'graphql';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { loadDocuments, loadDocumentsSync } from '@graphql-tools/load';
+import { loadDocuments, loadDocumentsSync, NoTypeDefinitionsFound } from '@graphql-tools/load';
 import { runTests } from '../../../../testing/utils.js';
 import '../../../../testing/to-be-similar-string';
 import { readFileSync } from 'fs';
@@ -93,14 +93,22 @@ describe('documentsFromGlob', () => {
     });
 
     test(`Should throw on empty files and empty result`, async () => {
+      expect.assertions(2);
+
+      const glob1 = join(__dirname, 'test-files', '*.empty.graphql');
+      const glob2 = join(__dirname, 'test-files', '*.empty2.graphql');
+
       try {
-        const glob = join(__dirname, 'test-files', '*.empty.graphql');
-        await load(glob, {
+        await load([glob1, glob2], {
           loaders: [new GraphQLFileLoader()],
         });
-        expect(true).toBeFalsy();
-      } catch (e: any) {
-        expect(e).toBeDefined();
+      } catch (err: any) {
+        expect(err instanceof NoTypeDefinitionsFound).toBe(true);
+        expect(err.message).toBeSimilarString(`
+          Unable to find any GraphQL type definitions for the following pointers:
+          - ${glob1}
+          - ${glob2}
+          `);
       }
     });
 

@@ -1,5 +1,22 @@
 # @graphql-tools/links
 
+## 9.0.29
+
+### Patch Changes
+
+- Updated dependencies
+  [[`32d0457`](https://github.com/ardatan/graphql-tools/commit/32d0457f3fae53b408bd8de459bf4541fcc14a23)]:
+  - @graphql-tools/utils@10.9.1
+
+## 9.0.28
+
+### Patch Changes
+
+- Updated dependencies
+  [[`22af985`](https://github.com/ardatan/graphql-tools/commit/22af98581e983079ec7e53677b905d3d03117524),
+  [`53db005`](https://github.com/ardatan/graphql-tools/commit/53db00540c2549748afdeeb65bb45a6c45ce57d3)]:
+  - @graphql-tools/utils@10.9.0
+
 ## 9.0.27
 
 ### Patch Changes
@@ -479,7 +496,6 @@
 - [#4701](https://github.com/ardatan/graphql-tools/pull/4701)
   [`4689bd6d`](https://github.com/ardatan/graphql-tools/commit/4689bd6d2f0530819aa14f8f40fe62a7a54c9da9)
   Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-
   - Updated dependency
     [`@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0` ↗︎](https://www.npmjs.com/package/@apollo/client/v/3.2.5)
     (from `~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0`, in `peerDependencies`)
@@ -487,7 +503,6 @@
 - [#4736](https://github.com/ardatan/graphql-tools/pull/4736)
   [`f807a537`](https://github.com/ardatan/graphql-tools/commit/f807a537acdcd843fef082108a94b264a3662a61)
   Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-
   - Updated dependency
     [`@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0` ↗︎](https://www.npmjs.com/package/@apollo/client/v/3.2.5)
     (from `~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0`, in `peerDependencies`)
@@ -543,7 +558,6 @@
 - [#4640](https://github.com/ardatan/graphql-tools/pull/4640)
   [`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d)
   Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
-
   - Updated dependency
     [`@graphql-tools/delegate@9.0.3` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/9.0.3)
     (was `9.0.2`, in `dependencies`)
@@ -900,7 +914,6 @@
   rootValue property is now a part of the Request type.
 
   When delegating with delegateToSchema, rootValue can be set multiple ways:
-
   - when using a custom executor, the custom executor can utilize a rootValue in whichever custom
     way it specifies.
   - when using the default executor (execute/subscribe from graphql-js): -- rootValue can be passed
@@ -911,7 +924,6 @@
   function which can pass whatever rootValue it wants to delegateToSchema as above.
 
 - c42e811d: BREAKING CHANGES;
-
   - Rename `Request` to `ExecutionRequest`
   - Add required `operationType: OperationTypeNode` field in `ExecutionRequest`
   - Add `context` in `createRequest` and `createRequestInfo` instead of `delegateToSchema`
@@ -922,7 +934,6 @@
   > https://github.com/ardatan/graphql-tools/pull/3166/files#diff-d4824895ea613dcc1f710c3ac82e952fe0ca12391b671f70d9f2d90d5656fdceR38
 
   Improvements;
-
   - Memoize `defaultExecutor` for a single `GraphQLSchema` so allow `getBatchingExecutor` to memoize
     `batchingExecutor` correctly.
   - And there is no different `defaultExecutor` is created for `subscription` and other operation
@@ -1047,7 +1058,6 @@
 - be1a1575: ## Breaking Changes:
 
   #### Schema Generation and Decoration API (`@graphql-tools/schema`)
-
   - Resolver validation options should now be set to `error`, `warn` or `ignore` rather than `true`
     or `false`. In previous versions, some of the validators caused errors to be thrown, while some
     issued warnings. This changes brings consistency to validator behavior.
@@ -1057,7 +1067,6 @@
     `requireResolversToMatchSchema` is `error`, matching the previous behavior.
 
   #### Schema Delegation (`delegateToSchema` & `@graphql-tools/delegate`)
-
   - The `delegateToSchema` return value has matured and been formalized as an `ExternalObject`, in
     which all errors are integrated into the GraphQL response, preserving their initial path. Those
     advanced users accessing the result directly will note the change in error handling. This also
@@ -1087,7 +1096,6 @@
     parameters above.
 
   #### Remote Schemas & Wrapping (`wrapSchema`, `makeRemoteExecutableSchema`, and `@graphql-tools/wrap`)
-
   - `wrapSchema` and `generateProxyingResolvers` now only take a single options argument with named
     properties of type `SubschemaConfig`. The previously possible shorthand version with first
     argument consisting of a `GraphQLSchema` and second argument representing the transforms should
@@ -1123,7 +1131,6 @@
     `parseSelectionSet` function from `@graphql-tools/utils`.
 
   #### Schema Stitching (`stitchSchemas` & `@graphql-tools/stitch`)
-
   - `stitchSchemas`'s `mergeTypes` option is now true by default! This causes the `onTypeConflict`
     option to be ignored by default. To use `onTypeConflict` to select a specific type instead of
     simply merging, simply set `mergeTypes` to false.
@@ -1144,13 +1151,11 @@
     property name change for `onTypeConflict` from `schema` to `subschema`.
 
   #### Mocking (`addMocksToSchema` and `@graphql-tools/mock`)
-
   - Mocks returning objects with fields set as functions are now operating according to upstream
     graphql-js convention, i.e. these functions take three arguments, `args`, `context`, and `info`
     with `parent` available as `this` rather than as the first argument.
 
   #### Other Utilities (`@graphql-tools/utils`)
-
   - `filterSchema`'s `fieldFilter` will now filter _all_ fields across Object, Interface, and Input
     types. For the previous Object-only behavior, switch to the `objectFieldFilter` option.
   - Unused `fieldNodes` utility functions have been removed.
@@ -1162,7 +1167,6 @@
     removed from the `utils` package, as they are implemented elsewhere or no longer necessary.
 
   ## Related Issues
-
   - proxy all the errors: #1047, #1641
   - better error handling for merges #2016, #2062
   - fix typings #1614

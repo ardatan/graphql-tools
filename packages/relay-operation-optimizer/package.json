@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/relay-operation-optimizer",
-  "version": "7.0.19",
+  "version": "7.0.21",
   "type": "module",
   "description": "Package for optimizing your GraphQL operations relay style.",
   "repository": {
@@ -63,7 +63,7 @@
   },
   "dependencies": {
     "@ardatan/relay-compiler": "^12.0.3",
-    "@graphql-tools/utils": "^10.8.6",
+    "@graphql-tools/utils": "^10.9.1",
     "tslib": "^2.4.0"
   },
   "devDependencies": {

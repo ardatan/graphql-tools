@@ -1,5 +1,29 @@
 # @graphql-tools/schema
 
+## 10.0.25
+
+### Patch Changes
+
+- Updated dependencies
+  [[`984d542`](https://github.com/ardatan/graphql-tools/commit/984d542b95cbe717b8853f6922218a1edbc59122),
+  [`984d542`](https://github.com/ardatan/graphql-tools/commit/984d542b95cbe717b8853f6922218a1edbc59122),
+  [`32d0457`](https://github.com/ardatan/graphql-tools/commit/32d0457f3fae53b408bd8de459bf4541fcc14a23)]:
+  - @graphql-tools/merge@9.1.1
+  - @graphql-tools/utils@10.9.1
+
+## 10.0.24
+
+### Patch Changes
+
+- Updated dependencies
+  [[`e5f98c2`](https://github.com/ardatan/graphql-tools/commit/e5f98c231ba2ba8a317539bac761f4f26e8b56b2),
+  [`3c21496`](https://github.com/ardatan/graphql-tools/commit/3c214963309373641433d62230c5fffeaa2c61eb),
+  [`e5f98c2`](https://github.com/ardatan/graphql-tools/commit/e5f98c231ba2ba8a317539bac761f4f26e8b56b2),
+  [`22af985`](https://github.com/ardatan/graphql-tools/commit/22af98581e983079ec7e53677b905d3d03117524),
+  [`53db005`](https://github.com/ardatan/graphql-tools/commit/53db00540c2549748afdeeb65bb45a6c45ce57d3)]:
+  - @graphql-tools/merge@9.1.0
+  - @graphql-tools/utils@10.9.0
+
 ## 10.0.23
 
 ### Patch Changes
@@ -769,7 +793,6 @@
   `stitchSchemas` configurations
 
   Breaking Changes;
-
   - Move `mergeSchemas` and `MergeSchemasConfig` from `@graphql-tools/merge` to
     `@graphql-tools/schema` package to prevent circular dependency between them.
   - `mergeSchemasAsync` has been removed.
@@ -907,7 +930,6 @@
 - be1a1575: ## Breaking Changes:
 
   #### Schema Generation and Decoration API (`@graphql-tools/schema`)
-
   - Resolver validation options should now be set to `error`, `warn` or `ignore` rather than `true`
     or `false`. In previous versions, some of the validators caused errors to be thrown, while some
     issued warnings. This changes brings consistency to validator behavior.
@@ -917,7 +939,6 @@
     `requireResolversToMatchSchema` is `error`, matching the previous behavior.
 
   #### Schema Delegation (`delegateToSchema` & `@graphql-tools/delegate`)
-
   - The `delegateToSchema` return value has matured and been formalized as an `ExternalObject`, in
     which all errors are integrated into the GraphQL response, preserving their initial path. Those
     advanced users accessing the result directly will note the change in error handling. This also
@@ -947,7 +968,6 @@
     parameters above.
 
   #### Remote Schemas & Wrapping (`wrapSchema`, `makeRemoteExecutableSchema`, and `@graphql-tools/wrap`)
-
   - `wrapSchema` and `generateProxyingResolvers` now only take a single options argument with named
     properties of type `SubschemaConfig`. The previously possible shorthand version with first
     argument consisting of a `GraphQLSchema` and second argument representing the transforms should
@@ -983,7 +1003,6 @@
     `parseSelectionSet` function from `@graphql-tools/utils`.
 
   #### Schema Stitching (`stitchSchemas` & `@graphql-tools/stitch`)
-
   - `stitchSchemas`'s `mergeTypes` option is now true by default! This causes the `onTypeConflict`
     option to be ignored by default. To use `onTypeConflict` to select a specific type instead of
     simply merging, simply set `mergeTypes` to false.
@@ -1004,13 +1023,11 @@
     property name change for `onTypeConflict` from `schema` to `subschema`.
 
   #### Mocking (`addMocksToSchema` and `@graphql-tools/mock`)
-
   - Mocks returning objects with fields set as functions are now operating according to upstream
     graphql-js convention, i.e. these functions take three arguments, `args`, `context`, and `info`
     with `parent` available as `this` rather than as the first argument.
 
   #### Other Utilities (`@graphql-tools/utils`)
-
   - `filterSchema`'s `fieldFilter` will now filter _all_ fields across Object, Interface, and Input
     types. For the previous Object-only behavior, switch to the `objectFieldFilter` option.
   - Unused `fieldNodes` utility functions have been removed.
@@ -1022,7 +1039,6 @@
     removed from the `utils` package, as they are implemented elsewhere or no longer necessary.
 
   ## Related Issues
-
   - proxy all the errors: #1047, #1641
   - better error handling for merges #2016, #2062
   - fix typings #1614

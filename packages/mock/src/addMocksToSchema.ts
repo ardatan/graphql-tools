@@ -155,6 +155,10 @@ export function addMocksToSchema<TResolvers = IResolvers>({
   };
 
   const typeResolver: GraphQLTypeResolver<any, any> = data => {
+    if (data.__typename) {
+      return data.__typename;
+    }
+
     if (isRef(data)) {
       return data.$ref.typeName;
     }

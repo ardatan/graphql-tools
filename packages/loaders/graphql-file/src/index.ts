@@ -4,7 +4,7 @@ import { env, cwd as processCwd } from 'process';
 import type { GlobbyOptions } from 'globby';
 import globby from 'globby';
 import unixify from 'unixify';
-import { processImport } from '@graphql-tools/import';
+import { PathAliases, processImport } from '@graphql-tools/import';
 import {
   asArray,
   BaseLoaderOptions,
@@ -34,6 +34,11 @@ export interface GraphQLFileLoaderOptions extends BaseLoaderOptions {
    * Set to `true` to disable handling `#import` syntax
    */
   skipGraphQLImport?: boolean;
+
+  /**
+   * A series of entries which re-map imports to lookup locations.
+   */
+  pathAliases?: PathAliases;
 }
 
 function isGraphQLImportFile(rawSDL: string) {
@@ -210,7 +215,7 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
 
   handleFileContent(rawSDL: string, pointer: string, options: GraphQLFileLoaderOptions) {
     if (!options.skipGraphQLImport && isGraphQLImportFile(rawSDL)) {
-      const document = processImport(pointer, options.cwd);
+      const document = processImport(pointer, options.cwd, {}, new Map(), options.pathAliases);
       return {
         location: pointer,
         document,

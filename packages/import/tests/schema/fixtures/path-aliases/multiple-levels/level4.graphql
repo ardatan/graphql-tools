@@ -1,0 +1,7 @@
+type Product {
+  price: Int
+}
+
+type Products {
+  items: [Product]
+}

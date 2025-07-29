@@ -1,5 +1,19 @@
 # graphql-tools
 
+## 9.0.20
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/schema@10.0.25
+
+## 9.0.19
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/schema@10.0.24
+
 ## 9.0.18
 
 ### Patch Changes
@@ -498,11 +512,9 @@
 - a9254491: - Resolver validation options should now be set to `error`, `warn` or `ignore` rather
   than `true` or `false`. In previous versions, some of the validators caused errors to be thrown,
   while some issued warnings. This changes brings consistency to validator behavior.
-
   - The `allowResolversNotInSchema` has been renamed to `requireResolversToMatchSchema`, to
     harmonize the naming convention of all the validators. The default setting of
     `requireResolversToMatchSchema` is `error`, matching the previous behavior.
-
   * The `delegateToSchema` return value has matured and been formalized as an `ExternalObject`, in
     which all errors are integrated into the GraphQL response, preserving their initial path. Those
     advanced users accessing the result directly will note the change in error handling. This also
@@ -530,7 +542,6 @@
 
   * `applySchemaTransforms` parameters have been updated to match and support the `transformSchema`
     parameters above.
-
   - `wrapSchema` and `generateProxyingResolvers` now only take a single options argument with named
     properties of type `SubschemaConfig`. The previously possible shorthand version with first
     argument consisting of a `GraphQLSchema` and second argument representing the transforms should
@@ -564,7 +575,6 @@
     parsed SDL rather than strings, to nudge end users to parse these strings at build time (when
     possible), rather than at runtime. Parsing of selection set strings can be performed using the
     `parseSelectionSet` function from `@graphql-tools/utils`.
-
   * `stitchSchemas`'s `mergeTypes` option is now true by default! This causes the `onTypeConflict`
     option to be ignored by default. To use `onTypeConflict` to select a specific type instead of
     simply merging, simply set `mergeTypes` to false.
@@ -583,11 +593,9 @@
     used. Signatures of the `onTypeConflict`, `fieldConfigMerger`, and `inputFieldConfigMerger` have
     been updated to include metadata related to the original and transformed subschemas. Note the
     property name change for `onTypeConflict` from `schema` to `subschema`.
-
   - Mocks returning objects with fields set as functions are now operating according to upstream
     graphql-js convention, i.e. these functions take three arguments, `args`, `context`, and `info`
     with `parent` available as `this` rather than as the first argument.
-
   * `filterSchema`'s `fieldFilter` will now filter _all_ fields across Object, Interface, and Input
     types. For the previous Object-only behavior, switch to the `objectFieldFilter` option.
   * Unused `fieldNodes` utility functions have been removed.
