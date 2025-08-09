@@ -4018,10 +4018,10 @@
   resolved "https://registry.yarnpkg.com/@unrs/resolver-binding-win32-x64-msvc/-/resolver-binding-win32-x64-msvc-1.11.1.tgz#538b1e103bf8d9864e7b85cc96fa8d6fb6c40777"
   integrity sha512-lrW200hZdbfRtztbygyaq/6jP6AKE8qQN2KvPcJ+x7wiD038YtnYtZ82IMNJ69GJibV7bwL3y9FgK+5w/pYt6g==
 
-"@urql/core@5.2.0":
-  version "5.2.0"
-  resolved "https://registry.yarnpkg.com/@urql/core/-/core-5.2.0.tgz#77ee41e192e261fea30c2ca6c2f340410b45d214"
-  integrity sha512-/n0ieD0mvvDnVAXEQgX/7qJiVcvYvNkOHeBvkwtylfjydar123caCXcl58PXFY11oU1oquJocVXHxLAbtv4x1A==
+"@urql/core@6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@urql/core/-/core-6.0.0.tgz#0caaf813ff218be13e1ef63b6a87c75b9c1f7124"
+  integrity sha512-LdK7d7B14s/LAljPptoZ9DTZ0lFJXCTy8jSxVr1L98JZYELHEesb5nZVsnqy0jrcrF1KW7juKWZzT5VfZra8XA==
   dependencies:
     "@0no-co/graphql.web" "^1.0.13"
     wonka "^6.3.2"
