@@ -1341,7 +1341,7 @@
   dependencies:
     tslib "^2.4.0"
 
-"@envelop/core@5.3.0", "@envelop/core@^5.2.3", "@envelop/core@^5.3.0":
+"@envelop/core@5.3.0", "@envelop/core@^5.3.0":
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/@envelop/core/-/core-5.3.0.tgz#ee666caa94dc2fdcb00c9659cfc06775ff95faa1"
   integrity sha512-xvUkOWXI8JsG2OOnqiI2tOkEc52wbmIqWORr7yGc8B8E53Oh1MMGGGck4mbR80s25LnHVzfNIiIlNkuDgZRuuA==
@@ -1675,14 +1675,6 @@
     dset "^3.1.2"
     tslib "^2.8.1"
 
-"@graphql-tools/executor-common@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-common/-/executor-common-0.0.4.tgz#763603a6d7a22bb09d67ce682e84a0d730ff2bf9"
-  integrity sha512-SEH/OWR+sHbknqZyROCFHcRrbZeUAyjCsgpVWCRjqjqRbiJiXq6TxNIIOmpXgkrXWW/2Ev4Wms6YSGJXjdCs6Q==
-  dependencies:
-    "@envelop/core" "^5.2.3"
-    "@graphql-tools/utils" "^10.8.1"
-
 "@graphql-tools/executor-common@^0.0.6":
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/@graphql-tools/executor-common/-/executor-common-0.0.6.tgz#f681de443d7e90e1768c44bd64a4cd418dc356e3"
@@ -1704,19 +1696,19 @@
     tslib "^2.8.1"
     ws "^8.18.3"
 
-"@graphql-tools/executor-http@^1.1.9":
-  version "1.3.3"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-http/-/executor-http-1.3.3.tgz#057de79ebc90edbd242259cccb1268d37ee6c579"
-  integrity sha512-LIy+l08/Ivl8f8sMiHW2ebyck59JzyzO/yF9SFS4NH6MJZUezA1xThUXCDIKhHiD56h/gPojbkpcFvM2CbNE7A==
+"@graphql-tools/executor-http@^2.1.1":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-http/-/executor-http-2.1.1.tgz#a055567bae658a215d56d7700344f555aa1dea73"
+  integrity sha512-EW5h+n+usQHm8tExFz6jpptF5lnRoMGxyVxaJxtTnVyLjb51ZzzR5o+NH62KJ3l1Eczj/rmSKp6YQjIVceiklw==
   dependencies:
     "@graphql-hive/signal" "^1.0.0"
-    "@graphql-tools/executor-common" "^0.0.4"
-    "@graphql-tools/utils" "^10.8.1"
+    "@graphql-tools/executor-common" "^0.0.6"
+    "@graphql-tools/utils" "^10.9.1"
     "@repeaterjs/repeater" "^3.0.4"
     "@whatwg-node/disposablestack" "^0.0.6"
-    "@whatwg-node/fetch" "^0.10.4"
+    "@whatwg-node/fetch" "^0.10.9"
     "@whatwg-node/promise-helpers" "^1.3.0"
-    meros "^1.2.1"
+    meros "^1.3.1"
     tslib "^2.8.1"
 
 "@graphql-tools/stitch@^9.3.4":
@@ -4215,7 +4207,7 @@
   dependencies:
     tslib "^2.6.3"
 
-"@whatwg-node/fetch@^0.10.0", "@whatwg-node/fetch@^0.10.10", "@whatwg-node/fetch@^0.10.4", "@whatwg-node/fetch@^0.10.6":
+"@whatwg-node/fetch@^0.10.0", "@whatwg-node/fetch@^0.10.10", "@whatwg-node/fetch@^0.10.6", "@whatwg-node/fetch@^0.10.9":
   version "0.10.10"
   resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.10.10.tgz#2b3397bc114b3f6dbda34bd1f205e45216abd10f"
   integrity sha512-watz4i/Vv4HpoJ+GranJ7HH75Pf+OkPQ63NoVmru6Srgc8VezTArB00i/oQlnn0KWh14gM42F22Qcc9SU9mo/w==
@@ -9124,7 +9116,7 @@ mermaid@^11.0.0:
     ts-dedent "^2.2.0"
     uuid "^11.1.0"
 
-meros@^1.2.1:
+meros@^1.3.1:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/meros/-/meros-1.3.1.tgz#21a090d59c02afb1e418e40631b78aa37a21ac69"
   integrity sha512-eV7dRObfTrckdmAz4/n7pT1njIsIJXRIZkgCiX43xEsPNy4gjXQzOYYxmGcolAMtF7HyfqRuDBh3Lgs4hmhVEw==
