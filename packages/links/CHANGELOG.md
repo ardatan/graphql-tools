@@ -1,5 +1,16 @@
 # @graphql-tools/links
 
+## 9.0.30
+
+### Patch Changes
+
+- [#7103](https://github.com/ardatan/graphql-tools/pull/7103)
+  [`296b883`](https://github.com/ardatan/graphql-tools/commit/296b883a61ea2422f42d7370fabe044f469489ff)
+  Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+  - Updated dependency
+    [`apollo-upload-client@18.0.1` ↗︎](https://www.npmjs.com/package/apollo-upload-client/v/18.0.1)
+    (from `17.0.0`, in `dependencies`)
+
 ## 9.0.29
 
 ### Patch Changes
