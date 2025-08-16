@@ -1,5 +1,16 @@
 # @graphql-tools/executor-urql-exchange
 
+## 1.0.22
+
+### Patch Changes
+
+- [#7370](https://github.com/ardatan/graphql-tools/pull/7370)
+  [`c1e31a2`](https://github.com/ardatan/graphql-tools/commit/c1e31a2e3c738cf3f4251634b5be93e35dfbb7be)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@urql/core@^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0` ↗︎](https://www.npmjs.com/package/@urql/core/v/3.0.0)
+    (from `^3.0.0 || ^4.0.0 || ^5.0.0`, in `peerDependencies`)
+
 ## 1.0.21
 
 ### Patch Changes
