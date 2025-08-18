@@ -93,6 +93,23 @@ describe('mapSchema', () => {
     expect(newSchema.getQueryType()?.name).toBe('RootQuery');
   });
 
+  test('map scalar type', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type Query {
+        _: Boolean
+      }
+    `);
+
+    mapSchema(schema, {
+      [MapperKind.SCALAR_TYPE](type) {
+        const config = type.toConfig();
+        return new GraphQLScalarType({
+          ...config,
+        });
+      },
+    });
+  });
+
   const typeDefs = /* GraphQL */ `
     directive @schemaDirective(role: String) on SCHEMA
     directive @schemaExtensionDirective(role: String) on SCHEMA
