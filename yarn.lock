@@ -254,13 +254,13 @@
   integrity sha512-YvjJow9FxbhFFKDSuFnVCe2WxXk1zWc22fFePVNEaWJEu8IrZVlda6N0uHwzZrUM1il7NC9Mlp4MaJYbYd9JSg==
 
 "@babel/helper-wrap-function@^7.27.1":
-  version "7.27.1"
-  resolved "https://registry.yarnpkg.com/@babel/helper-wrap-function/-/helper-wrap-function-7.27.1.tgz#b88285009c31427af318d4fe37651cd62a142409"
-  integrity sha512-NFJK2sHUvrjo8wAU/nQTWU890/zB2jj0qBcCbZbbf+005cAsv6tMjXz31fBign6M5ov1o0Bllu+9nbqkfsjjJQ==
+  version "7.28.3"
+  resolved "https://registry.yarnpkg.com/@babel/helper-wrap-function/-/helper-wrap-function-7.28.3.tgz#fe4872092bc1438ffd0ce579e6f699609f9d0a7a"
+  integrity sha512-zdf983tNfLZFletc0RRXYrHrucBEg95NIFMkn6K9dbeMYnsgHaSBGcQqdsCSStG2PYwRre0Qc2NNSCXbG+xc6g==
   dependencies:
-    "@babel/template" "^7.27.1"
-    "@babel/traverse" "^7.27.1"
-    "@babel/types" "^7.27.1"
+    "@babel/template" "^7.27.2"
+    "@babel/traverse" "^7.28.3"
+    "@babel/types" "^7.28.2"
 
 "@babel/helpers@^7.28.3":
   version "7.28.3"
@@ -976,9 +976,9 @@
     "@babel/plugin-transform-typescript" "^7.27.1"
 
 "@babel/runtime@^7.0.0", "@babel/runtime@^7.26.10", "@babel/runtime@^7.5.5":
-  version "7.28.2"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.28.2.tgz#2ae5a9d51cc583bd1f5673b3bb70d6d819682473"
-  integrity sha512-KHp2IflsnGywDjBWDkR9iEqiWSpc8GIi0lgTT3mOElT0PP1tG26P4tmFI2YvAdzgq9RGyoHZQEIEdZy6Ec5xCA==
+  version "7.28.3"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.28.3.tgz#75c5034b55ba868121668be5d5bb31cc64e6e61a"
+  integrity sha512-9uIQ10o0WGdpP6GDhXcdOJPJuDgFtIDtN/9+ArJQ2NAfAmiuhTQdzkaTGR33v43GYS2UrSA0eX2pPPHoFVvpxA==
 
 "@babel/template@^7.27.1", "@babel/template@^7.27.2":
   version "7.27.2"
@@ -1580,9 +1580,9 @@
     levn "^0.4.1"
 
 "@fastify/busboy@^3.1.1":
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/@fastify/busboy/-/busboy-3.1.1.tgz#af3aea7f1e52ec916d8b5c9dcc0f09d4c060a3fc"
-  integrity sha512-5DGmA8FTdB2XbDeEwc/5ZXBl6UbBAyBOOLlPuBnZ/N1SwdH9Ii+cOX3tBROlDgcTXxjOYnLMVoKk9+FXAw0CJw==
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/@fastify/busboy/-/busboy-3.2.0.tgz#13ed8212f3b9ba697611529d15347f8528058cea"
+  integrity sha512-m9FVDXU3GT2ITSe0UaMA5rU3QkfC/UXtCU8y0gSN/GugTqtVldOBWIB5V6V3sbmenVZUIpU6f+mPEO2+m5iTaA==
 
 "@floating-ui/core@^1.7.3":
   version "1.7.3"
@@ -2366,9 +2366,9 @@
     "@jridgewell/trace-mapping" "^0.3.24"
 
 "@jridgewell/remapping@^2.3.4":
-  version "2.3.4"
-  resolved "https://registry.yarnpkg.com/@jridgewell/remapping/-/remapping-2.3.4.tgz#231002d80f23252cda81b2233e1592119e1b78ea"
-  integrity sha512-aG+WvAz17rhbzhKNkSeMLgbkPPK82ovXdONvmucbGhUqcroRFLLVhoGAk4xEI17gHpXgNX3sr0/B1ybRUsbEWw==
+  version "2.3.5"
+  resolved "https://registry.yarnpkg.com/@jridgewell/remapping/-/remapping-2.3.5.tgz#375c476d1972947851ba1e15ae8f123047445aa1"
+  integrity sha512-LI9u/+laYG4Ds1TDKSJW2YPrIlcVYOwi2fUC6xB43lueCjgxV4lffOCZCtYFiH6TNOX+tQKXx97T4IKHbhyHEQ==
   dependencies:
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
@@ -2379,9 +2379,9 @@
   integrity sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==
 
 "@jridgewell/source-map@^0.3.3":
-  version "0.3.10"
-  resolved "https://registry.yarnpkg.com/@jridgewell/source-map/-/source-map-0.3.10.tgz#a35714446a2e84503ff9bfe66f1d1d4846f2075b"
-  integrity sha512-0pPkgz9dY+bijgistcTTJ5mR+ocqRXLuhXHYdzoMmmoJ2C9S46RCm2GMUbatPEUK9Yjy26IrAy8D/M00lLkv+Q==
+  version "0.3.11"
+  resolved "https://registry.yarnpkg.com/@jridgewell/source-map/-/source-map-0.3.11.tgz#b21835cbd36db656b857c2ad02ebd413cc13a9ba"
+  integrity sha512-ZMp1V8ZFcPG5dIWnQLr3NSI1MiCU7UETdS/A0G8V/XWHvJv3ZsFqutJn1Y5RPmAPX6F3BiE397OqveU/9NCuIA==
   dependencies:
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.25"
@@ -2499,101 +2499,101 @@
     "@n1ru4l/graphql-live-query" "0.10.0"
     "@repeaterjs/repeater" "^3.0.4"
 
-"@napi-rs/simple-git-android-arm-eabi@0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-android-arm-eabi/-/simple-git-android-arm-eabi-0.1.21.tgz#6068bf552b59743d5a6bc0aca4b7eccd647903ba"
-  integrity sha512-NSZTD3c+RzSR3cg0acPFqUfV64+Vqye4Veda5L9fbbnsYRzziYHbL3alMI/6p5Ur44ezw5RqKRZ4Tbp1T08veA==
+"@napi-rs/simple-git-android-arm-eabi@0.1.22":
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-android-arm-eabi/-/simple-git-android-arm-eabi-0.1.22.tgz#f2d240dc87e924a8ca4428fa68b121e8697f1765"
+  integrity sha512-JQZdnDNm8o43A5GOzwN/0Tz3CDBQtBUNqzVwEopm32uayjdjxev1Csp1JeaqF3v9djLDIvsSE39ecsN2LhCKKQ==
 
-"@napi-rs/simple-git-android-arm64@0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-android-arm64/-/simple-git-android-arm64-0.1.21.tgz#70a9ff262a8c649eddf00cd987657a04b0ccd5f7"
-  integrity sha512-FR8J/pmy4nFyzWon0RuhReucociF8kiCTBRBQV+TN+7tmI2lsHp+8sDNh1HXf+UP0iOC8azMTKwcHiyhv7oPPw==
+"@napi-rs/simple-git-android-arm64@0.1.22":
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-android-arm64/-/simple-git-android-arm64-0.1.22.tgz#80432fe8ccca85764ca773bd605f456de02e3159"
+  integrity sha512-46OZ0SkhnvM+fapWjzg/eqbJvClxynUpWYyYBn4jAj7GQs1/Yyc8431spzDmkA8mL0M7Xo8SmbkzTDE7WwYAfg==
 
-"@napi-rs/simple-git-darwin-arm64@0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-darwin-arm64/-/simple-git-darwin-arm64-0.1.21.tgz#f60a1de2288afc6e3d55ffcad90deaf66c9de520"
-  integrity sha512-FoUck6Sv1VJZyEZ7CcAKPDystkwnv4osJs3XCXCtx6AdT/8oDyfjMHxe3CSBMcNVjawsd+tG7yFvhgKJCdjBvA==
+"@napi-rs/simple-git-darwin-arm64@0.1.22":
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-darwin-arm64/-/simple-git-darwin-arm64-0.1.22.tgz#cc9730b7895318519a941f8e42d22ec6e458a3f3"
+  integrity sha512-zH3h0C8Mkn9//MajPI6kHnttywjsBmZ37fhLX/Fiw5XKu84eHA6dRyVtMzoZxj6s+bjNTgaMgMUucxPn9ktxTQ==
 
-"@napi-rs/simple-git-darwin-x64@0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-darwin-x64/-/simple-git-darwin-x64-0.1.21.tgz#e3b11dc136107dd039eb2ae5cbb62a6c3422a8cd"
-  integrity sha512-PlqZgFhcwJmdj4j/LSLxddrAZU5KbDtq54UMp35++IFs+XkK0SnJlfB9oQTE+m6ieQPYQVz6S9cLeyw5X12L+w==
+"@napi-rs/simple-git-darwin-x64@0.1.22":
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-darwin-x64/-/simple-git-darwin-x64-0.1.22.tgz#216d9472db2f5e261e4b2879eef571e24ff05258"
+  integrity sha512-GZN7lRAkGKB6PJxWsoyeYJhh85oOOjVNyl+/uipNX8bR+mFDCqRsCE3rRCFGV9WrZUHXkcuRL2laIRn7lLi3ag==
 
-"@napi-rs/simple-git-freebsd-x64@0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-freebsd-x64/-/simple-git-freebsd-x64-0.1.21.tgz#15601ee97f9f81627652593f1c8125acb2355744"
-  integrity sha512-n3S74zw0WIuCdsXV6hdU3vpakYNZyeTU3VlQdV/m5f3TxxqeEGcxJi18s2QfQOelE/N0Ze+u23USd7b06NQlCg==
+"@napi-rs/simple-git-freebsd-x64@0.1.22":
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-freebsd-x64/-/simple-git-freebsd-x64-0.1.22.tgz#a526ebf45fa955b6523b0194d4e702c830503536"
+  integrity sha512-xyqX1C5I0WBrUgZONxHjZH5a4LqQ9oki3SKFAVpercVYAcx3pq6BkZy1YUOP4qx78WxU1CCNfHBN7V+XO7D99A==
 
-"@napi-rs/simple-git-linux-arm-gnueabihf@0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-linux-arm-gnueabihf/-/simple-git-linux-arm-gnueabihf-0.1.21.tgz#abc66f26e1b5558ce8ec002b14ce50d0d7fa2253"
-  integrity sha512-gsLnZD8OMttCjB2OYofDdsI9SpidMfJP6H8fjPXcon2q90JT/XUS7xIYXDEABiwRvz1BZ149HqmnjO8yPgNMIQ==
+"@napi-rs/simple-git-linux-arm-gnueabihf@0.1.22":
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-linux-arm-gnueabihf/-/simple-git-linux-arm-gnueabihf-0.1.22.tgz#54aad93e1391bb242b14ab194b30efca1f53d798"
+  integrity sha512-4LOtbp9ll93B9fxRvXiUJd1/RM3uafMJE7dGBZGKWBMGM76+BAcCEUv2BY85EfsU/IgopXI6n09TycRfPWOjxA==
 
-"@napi-rs/simple-git-linux-arm64-gnu@0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-linux-arm64-gnu/-/simple-git-linux-arm64-gnu-0.1.21.tgz#7a17ef055a2aa5bee08b1ce9fe136d7853cab54e"
-  integrity sha512-05hSW4K5RexXo6YICmKzBThkY4WXJ25MAkSON720kIVv8ZPLi0ZouijJuM7GWmEZPcgCm6/mvrGrEDrS6i0/Mg==
+"@napi-rs/simple-git-linux-arm64-gnu@0.1.22":
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-linux-arm64-gnu/-/simple-git-linux-arm64-gnu-0.1.22.tgz#1f022edd88904b8e6d58b81b792a3b45f378ab74"
+  integrity sha512-GVOjP/JjCzbQ0kSqao7ctC/1sodVtv5VF57rW9BFpo2y6tEYPCqHnkQkTpieuwMNe+TVOhBUC1+wH0d9/knIHg==
 
-"@napi-rs/simple-git-linux-arm64-musl@0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-linux-arm64-musl/-/simple-git-linux-arm64-musl-0.1.21.tgz#db78d3f7c5dbe962af11a823f5a74330821603da"
-  integrity sha512-z2dyQmwtbpgAuUmWeJBhz00/6C3//SV0YSYE9Smfaf2DiSEEAvWyoni67pQU5/Q9FFaiyvzrCoz966EVNmz6Bg==
+"@napi-rs/simple-git-linux-arm64-musl@0.1.22":
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-linux-arm64-musl/-/simple-git-linux-arm64-musl-0.1.22.tgz#68fc72bd7d6dec9154b9fb0a6ad48bd99eb0c5a2"
+  integrity sha512-MOs7fPyJiU/wqOpKzAOmOpxJ/TZfP4JwmvPad/cXTOWYwwyppMlXFRms3i98EU3HOazI/wMU2Ksfda3+TBluWA==
 
-"@napi-rs/simple-git-linux-ppc64-gnu@0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-linux-ppc64-gnu/-/simple-git-linux-ppc64-gnu-0.1.21.tgz#37e9cf782f9c80bd93163b8cbcdd085983008632"
-  integrity sha512-mEkVx9oQxKTdzTdjDTCc9XAaH9E9eI2F+KsY0R6DTYafgb/rwq0FJO+eCa8Llzz6ndgbLrzq4q+wHqR8z7dF3w==
+"@napi-rs/simple-git-linux-ppc64-gnu@0.1.22":
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-linux-ppc64-gnu/-/simple-git-linux-ppc64-gnu-0.1.22.tgz#19e595c5a13c95ae6a48a096ba5debf6dbc896ed"
+  integrity sha512-L59dR30VBShRUIZ5/cQHU25upNgKS0AMQ7537J6LCIUEFwwXrKORZKJ8ceR+s3Sr/4jempWVvMdjEpFDE4HYww==
 
-"@napi-rs/simple-git-linux-s390x-gnu@0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-linux-s390x-gnu/-/simple-git-linux-s390x-gnu-0.1.21.tgz#ef7ebb1e49e71ea254fc210cd9b7585cef3a5de8"
-  integrity sha512-FulRem5vdsvH0VER2Q9cynv01SugMk/jQwbytwyPziF6JZ81D6I8otP9NkS3dqv//6HCokyojH+oOnrsF82/VQ==
+"@napi-rs/simple-git-linux-s390x-gnu@0.1.22":
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-linux-s390x-gnu/-/simple-git-linux-s390x-gnu-0.1.22.tgz#399c7c6a1050ae382c61b276f898155636c83faf"
+  integrity sha512-4FHkPlCSIZUGC6HiADffbe6NVoTBMd65pIwcd40IDbtFKOgFMBA+pWRqKiQ21FERGH16Zed7XHJJoY3jpOqtmQ==
 
-"@napi-rs/simple-git-linux-x64-gnu@0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-linux-x64-gnu/-/simple-git-linux-x64-gnu-0.1.21.tgz#6709653ac9d1cd3d4f57464d9e8eaf0e4fac6c05"
-  integrity sha512-SY6HuLVH+IFlkz8aTf4hwtaXalqBIPyE7FvEMCQIVPf85slOHMs9RThmrL7fvuSl0EDuUKOXANUP2OtdgT+zNg==
+"@napi-rs/simple-git-linux-x64-gnu@0.1.22":
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-linux-x64-gnu/-/simple-git-linux-x64-gnu-0.1.22.tgz#8f74a3a42d6b9e5d50e3f3ff68aeebc5d3768d9d"
+  integrity sha512-Ei1tM5Ho/dwknF3pOzqkNW9Iv8oFzRxE8uOhrITcdlpxRxVrBVptUF6/0WPdvd7R9747D/q61QG/AVyWsWLFKw==
 
-"@napi-rs/simple-git-linux-x64-musl@0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-linux-x64-musl/-/simple-git-linux-x64-musl-0.1.21.tgz#176afeff91b03c0dba2c11f4cc2df9811ae5c566"
-  integrity sha512-bG6zRqlXmVysjUUXNPsApfXP6c+rSjhinmGlLh8XW6Tfj0PqYmbSTL/3XcowbP6yJGTJbbkvxmhQDdGYO99AnQ==
+"@napi-rs/simple-git-linux-x64-musl@0.1.22":
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-linux-x64-musl/-/simple-git-linux-x64-musl-0.1.22.tgz#71e311b95d07c15c74075b487c6cfa56ac99733c"
+  integrity sha512-zRYxg7it0p3rLyEJYoCoL2PQJNgArVLyNavHW03TFUAYkYi5bxQ/UFNVpgxMaXohr5yu7qCBqeo9j4DWeysalg==
 
-"@napi-rs/simple-git-win32-arm64-msvc@0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-win32-arm64-msvc/-/simple-git-win32-arm64-msvc-0.1.21.tgz#13747b133535ba98c2244eca168581afc6e9d9be"
-  integrity sha512-bTX+Xb5Fl3AYK2c8E/Pm04i29n9gP+FGNzaT7AQp0q/5Bgq1z/4jEadSmg5hXvoJOlIFN0+HZyau9gWGq7DpCQ==
+"@napi-rs/simple-git-win32-arm64-msvc@0.1.22":
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-win32-arm64-msvc/-/simple-git-win32-arm64-msvc-0.1.22.tgz#01b948b52217ae79e3c80bccd9b05ae728c37ce4"
+  integrity sha512-XGFR1fj+Y9cWACcovV2Ey/R2xQOZKs8t+7KHPerYdJ4PtjVzGznI4c2EBHXtdOIYvkw7tL5rZ7FN1HJKdD5Quw==
 
-"@napi-rs/simple-git-win32-ia32-msvc@0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-win32-ia32-msvc/-/simple-git-win32-ia32-msvc-0.1.21.tgz#2db549d468678e90dc145d72ac164f6908c73abe"
-  integrity sha512-jGdFPAJYgUSrPTGaM9D7devuSXby6FL9NzKffB5AXcL0AeB5HpqxaxOiOikunP5NQil1vEow6YxD4SyDIX57Cg==
+"@napi-rs/simple-git-win32-ia32-msvc@0.1.22":
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-win32-ia32-msvc/-/simple-git-win32-ia32-msvc-0.1.22.tgz#3ec733ade79fc50050c9268c7ec163118e4bf1a2"
+  integrity sha512-Gqr9Y0gs6hcNBA1IXBpoqTFnnIoHuZGhrYqaZzEvGMLrTrpbXrXVEtX3DAAD2RLc1b87CPcJ49a7sre3PU3Rfw==
 
-"@napi-rs/simple-git-win32-x64-msvc@0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-win32-x64-msvc/-/simple-git-win32-x64-msvc-0.1.21.tgz#52789d62d5b576c2b27fddd698a3827031495cf4"
-  integrity sha512-OEVKwZ4pEGSk3AxlEaEKba6bCepbV7w+v7BjeNgCscl0Evw8A81nV2ytNqajZAPk49bZZDSDzeNWe44kkaD96Q==
+"@napi-rs/simple-git-win32-x64-msvc@0.1.22":
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git-win32-x64-msvc/-/simple-git-win32-x64-msvc-0.1.22.tgz#aee122d7aa030f45775bfd8abff49ffe12b89eb7"
+  integrity sha512-hQjcreHmUcpw4UrtkOron1/TQObfe484lxiXFLLUj7aWnnnOVs1mnXq5/Bo9+3NYZldFpFRJPdPBeHCisXkKJg==
 
 "@napi-rs/simple-git@^0.1.9":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git/-/simple-git-0.1.21.tgz#8c0526585c16ca122a89810c74f79e0660f7f476"
-  integrity sha512-49ij3JTYr/eSqvUaAXORgohU7pARH7GpCn/8JrwQo/mIulSY+gc/Xj4FtZ2+RdJrK6dLD6jSGU5vI17Of0qtCw==
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/@napi-rs/simple-git/-/simple-git-0.1.22.tgz#00a2520aedcfc73b65bb8147fde352c78da27423"
+  integrity sha512-bMVoAKhpjTOPHkW/lprDPwv5aD4R4C3Irt8vn+SKA9wudLe9COLxOhurrKRsxmZccUbWXRF7vukNeGUAj5P8kA==
   optionalDependencies:
-    "@napi-rs/simple-git-android-arm-eabi" "0.1.21"
-    "@napi-rs/simple-git-android-arm64" "0.1.21"
-    "@napi-rs/simple-git-darwin-arm64" "0.1.21"
-    "@napi-rs/simple-git-darwin-x64" "0.1.21"
-    "@napi-rs/simple-git-freebsd-x64" "0.1.21"
-    "@napi-rs/simple-git-linux-arm-gnueabihf" "0.1.21"
-    "@napi-rs/simple-git-linux-arm64-gnu" "0.1.21"
-    "@napi-rs/simple-git-linux-arm64-musl" "0.1.21"
-    "@napi-rs/simple-git-linux-ppc64-gnu" "0.1.21"
-    "@napi-rs/simple-git-linux-s390x-gnu" "0.1.21"
-    "@napi-rs/simple-git-linux-x64-gnu" "0.1.21"
-    "@napi-rs/simple-git-linux-x64-musl" "0.1.21"
-    "@napi-rs/simple-git-win32-arm64-msvc" "0.1.21"
-    "@napi-rs/simple-git-win32-ia32-msvc" "0.1.21"
-    "@napi-rs/simple-git-win32-x64-msvc" "0.1.21"
+    "@napi-rs/simple-git-android-arm-eabi" "0.1.22"
+    "@napi-rs/simple-git-android-arm64" "0.1.22"
+    "@napi-rs/simple-git-darwin-arm64" "0.1.22"
+    "@napi-rs/simple-git-darwin-x64" "0.1.22"
+    "@napi-rs/simple-git-freebsd-x64" "0.1.22"
+    "@napi-rs/simple-git-linux-arm-gnueabihf" "0.1.22"
+    "@napi-rs/simple-git-linux-arm64-gnu" "0.1.22"
+    "@napi-rs/simple-git-linux-arm64-musl" "0.1.22"
+    "@napi-rs/simple-git-linux-ppc64-gnu" "0.1.22"
+    "@napi-rs/simple-git-linux-s390x-gnu" "0.1.22"
+    "@napi-rs/simple-git-linux-x64-gnu" "0.1.22"
+    "@napi-rs/simple-git-linux-x64-musl" "0.1.22"
+    "@napi-rs/simple-git-win32-arm64-msvc" "0.1.22"
+    "@napi-rs/simple-git-win32-ia32-msvc" "0.1.22"
+    "@napi-rs/simple-git-win32-x64-msvc" "0.1.22"
 
 "@napi-rs/wasm-runtime@^0.2.11":
   version "0.2.12"
@@ -2811,18 +2811,18 @@
     tar-fs "^3.1.0"
     yargs "^17.7.2"
 
-"@radix-ui/primitive@1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@radix-ui/primitive/-/primitive-1.1.2.tgz#83f415c4425f21e3d27914c12b3272a32e3dae65"
-  integrity sha512-XnbHrrprsNqZKQhStrSwgRUQzoCI1glLzdw79xiZPoofhGICeZRSQ3dIxAKH1gb3OHfNf4d6f+vAv3kil2eggA==
+"@radix-ui/primitive@1.1.3":
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/@radix-ui/primitive/-/primitive-1.1.3.tgz#e2dbc13bdc5e4168f4334f75832d7bdd3e2de5ba"
+  integrity sha512-JTF99U/6XIjCBo0wqkU5sK10glYe27MRRsfwoiq5zzOEZLHU3A3KCMa5X/azekYRCJ0HlwI0crAXS/5dEHTzDg==
 
 "@radix-ui/react-accordion@^1.2.2":
-  version "1.2.11"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-accordion/-/react-accordion-1.2.11.tgz#7837dd4d44aeed56aabad2b098727b8b4f89ae4c"
-  integrity sha512-l3W5D54emV2ues7jjeG1xcyN7S3jnK3zE2zHqgn0CmMsy9lNJwmgcrmaxS+7ipw15FAivzKNzH3d5EcGoFKw0A==
+  version "1.2.12"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-accordion/-/react-accordion-1.2.12.tgz#1fd70d4ef36018012b9e03324ff186de7a29c13f"
+  integrity sha512-T4nygeh9YE9dLRPhAHSeOZi7HBXo+0kYIPJXayZfvWOWA0+n3dESrZbjfDPUABkUNym6Hd+f2IR113To8D2GPA==
   dependencies:
-    "@radix-ui/primitive" "1.1.2"
-    "@radix-ui/react-collapsible" "1.1.11"
+    "@radix-ui/primitive" "1.1.3"
+    "@radix-ui/react-collapsible" "1.1.12"
     "@radix-ui/react-collection" "1.1.7"
     "@radix-ui/react-compose-refs" "1.1.2"
     "@radix-ui/react-context" "1.1.2"
@@ -2831,16 +2831,16 @@
     "@radix-ui/react-primitive" "2.1.3"
     "@radix-ui/react-use-controllable-state" "1.2.2"
 
-"@radix-ui/react-collapsible@1.1.11":
-  version "1.1.11"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-collapsible/-/react-collapsible-1.1.11.tgz#a2d132d5baa6f14551f15b1fff29f925cae46b83"
-  integrity sha512-2qrRsVGSCYasSz1RFOorXwl0H7g7J1frQtgpQgYrt+MOidtPAINHn9CPovQXb83r8ahapdx3Tu0fa/pdFFSdPg==
+"@radix-ui/react-collapsible@1.1.12":
+  version "1.1.12"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-collapsible/-/react-collapsible-1.1.12.tgz#e2cc69a4490a2920f97c3c3150b0bf21281e3c49"
+  integrity sha512-Uu+mSh4agx2ib1uIGPP4/CKNULyajb3p92LsVXmH2EHVMTfZWpll88XJ0j4W0z3f8NK1eYl1+Mf/szHPmcHzyA==
   dependencies:
-    "@radix-ui/primitive" "1.1.2"
+    "@radix-ui/primitive" "1.1.3"
     "@radix-ui/react-compose-refs" "1.1.2"
     "@radix-ui/react-context" "1.1.2"
     "@radix-ui/react-id" "1.1.1"
-    "@radix-ui/react-presence" "1.1.4"
+    "@radix-ui/react-presence" "1.1.5"
     "@radix-ui/react-primitive" "2.1.3"
     "@radix-ui/react-use-controllable-state" "1.2.2"
     "@radix-ui/react-use-layout-effect" "1.1.1"
@@ -2870,12 +2870,12 @@
   resolved "https://registry.yarnpkg.com/@radix-ui/react-direction/-/react-direction-1.1.1.tgz#39e5a5769e676c753204b792fbe6cf508e550a14"
   integrity sha512-1UEWRX6jnOA2y4H5WczZ44gOOjTEmlqv1uNW4GAJEO5+bauCBhv8snY65Iw5/VOS/ghKN9gr2KjnLKxrsvoMVw==
 
-"@radix-ui/react-dismissable-layer@1.1.10":
-  version "1.1.10"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-dismissable-layer/-/react-dismissable-layer-1.1.10.tgz#429b9bada3672c6895a5d6a642aca6ecaf4f18c3"
-  integrity sha512-IM1zzRV4W3HtVgftdQiiOmA0AdJlCtMLe00FXaHwgt3rAnNsIyDqshvkIW3hj/iu5hu8ERP7KIYki6NkqDxAwQ==
+"@radix-ui/react-dismissable-layer@1.1.11":
+  version "1.1.11"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-dismissable-layer/-/react-dismissable-layer-1.1.11.tgz#e33ab6f6bdaa00f8f7327c408d9f631376b88b37"
+  integrity sha512-Nqcp+t5cTB8BinFkZgXiMJniQH0PsUt2k51FUhbdfeKvc4ACcG2uQniY/8+h1Yv6Kza4Q7lD7PQV0z0oicE0Mg==
   dependencies:
-    "@radix-ui/primitive" "1.1.2"
+    "@radix-ui/primitive" "1.1.3"
     "@radix-ui/react-compose-refs" "1.1.2"
     "@radix-ui/react-primitive" "2.1.3"
     "@radix-ui/react-use-callback-ref" "1.1.1"
@@ -2894,18 +2894,18 @@
     "@radix-ui/react-use-layout-effect" "1.1.1"
 
 "@radix-ui/react-navigation-menu@^1.2.0":
-  version "1.2.13"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-navigation-menu/-/react-navigation-menu-1.2.13.tgz#8d49ce275bf4f49a8642be520074b5a7438a5fb0"
-  integrity sha512-WG8wWfDiJlSF5hELjwfjSGOXcBR/ZMhBFCGYe8vERpC39CQYZeq1PQ2kaYHdye3V95d06H89KGMsVCIE4LWo3g==
+  version "1.2.14"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-navigation-menu/-/react-navigation-menu-1.2.14.tgz#4e6d1172be3c89752e564f8721706f78574ad7dd"
+  integrity sha512-YB9mTFQvCOAQMHU+C/jVl96WmuWeltyUEpRJJky51huhds5W2FQr1J8D/16sQlf0ozxkPK8uF3niQMdUwZPv5w==
   dependencies:
-    "@radix-ui/primitive" "1.1.2"
+    "@radix-ui/primitive" "1.1.3"
     "@radix-ui/react-collection" "1.1.7"
     "@radix-ui/react-compose-refs" "1.1.2"
     "@radix-ui/react-context" "1.1.2"
     "@radix-ui/react-direction" "1.1.1"
-    "@radix-ui/react-dismissable-layer" "1.1.10"
+    "@radix-ui/react-dismissable-layer" "1.1.11"
     "@radix-ui/react-id" "1.1.1"
-    "@radix-ui/react-presence" "1.1.4"
+    "@radix-ui/react-presence" "1.1.5"
     "@radix-ui/react-primitive" "2.1.3"
     "@radix-ui/react-use-callback-ref" "1.1.1"
     "@radix-ui/react-use-controllable-state" "1.2.2"
@@ -2913,10 +2913,10 @@
     "@radix-ui/react-use-previous" "1.1.1"
     "@radix-ui/react-visually-hidden" "1.2.3"
 
-"@radix-ui/react-presence@1.1.4":
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-presence/-/react-presence-1.1.4.tgz#253ac0ad4946c5b4a9c66878335f5cf07c967ced"
-  integrity sha512-ueDqRbdc4/bkaQT3GIpLQssRlFgWaL/U2z/S31qRwwLWoxHLgry3SIfCwhxeQNbirEUXFa+lq3RL3oBYXtcmIA==
+"@radix-ui/react-presence@1.1.5":
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-presence/-/react-presence-1.1.5.tgz#5d8f28ac316c32f078afce2996839250c10693db"
+  integrity sha512-/jfEwNDdQVBCNvjkGit4h6pMOzq8bHkopq458dPt2lMjx+eBQUohZNG9A7DtO/O5ukSbxuaNGXMjHicgwy6rQQ==
   dependencies:
     "@radix-ui/react-compose-refs" "1.1.2"
     "@radix-ui/react-use-layout-effect" "1.1.1"
@@ -3115,9 +3115,9 @@
   integrity sha512-83yeghZ2xxin3Nj8z1NMd/NCuca+gsYXswywDy5bHvwlWL8tpTQmzGeUuHd9FC3E/SBEMvzJRwWEOz5gGes9Qg==
 
 "@sinclair/typebox@^0.34.0":
-  version "0.34.38"
-  resolved "https://registry.yarnpkg.com/@sinclair/typebox/-/typebox-0.34.38.tgz#2365df7c23406a4d79413a766567bfbca708b49d"
-  integrity sha512-HpkxMmc2XmZKhvaKIZZThlHmx1L0I/V1hWK1NubtlFnr6ZqdiOpV72TKudZUNQjZNsyDBay72qFEhEvb+bcwcA==
+  version "0.34.40"
+  resolved "https://registry.yarnpkg.com/@sinclair/typebox/-/typebox-0.34.40.tgz#740056ea8d8aaada2ac1ce414c2f074798283b92"
+  integrity sha512-gwBNIP8ZAYev/ORDWW0QvxdwPXwxBtLsdsJgSc7eDIRt8ubP+rxUBzPsrwnu16fgEF8Bx4lh/+mvQvJzcTM6Kw==
 
 "@sindresorhus/is@^7.0.2":
   version "7.0.2"
@@ -4412,9 +4412,9 @@ ansi-regex@^5.0.1:
   integrity sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==
 
 ansi-regex@^6.0.1:
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-6.1.0.tgz#95ec409c69619d6cb1b8b34f14b660ef28ebd654"
-  integrity sha512-7HSX4QQb4CspciLpVFwyRe79O3xsIZDDLER21kERQ71oaPodF8jL725AgJMFAYbooIqolJoRLuM81SpeUkpkvA==
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-6.2.0.tgz#2f302e7550431b1b7762705fffb52cf1ffa20447"
+  integrity sha512-TKY5pyBkHyADOPYlRT9Lx6F544mPl0vS5Ew7BJ45hA08Q+t3GjbueLliBWN3sMICk6+y7HdyxSzC4bWS8baBdg==
 
 ansi-sequence-parser@^1.1.0:
   version "1.1.3"
@@ -4728,9 +4728,9 @@ bare-events@^2.2.0, bare-events@^2.5.4:
   integrity sha512-AuTJkq9XmE6Vk0FJVNq5QxETrSA/vKHarWVBG5l/JbdCL1prJemiyJqUS0jrlXO0MftuPq4m3YVYhoNc5+aE/g==
 
 bare-fs@^4.0.1:
-  version "4.1.6"
-  resolved "https://registry.yarnpkg.com/bare-fs/-/bare-fs-4.1.6.tgz#0925521e7310f65cb1f154cab264f0b647a7cdef"
-  integrity sha512-25RsLF33BqooOEFNdMcEhMpJy8EoR88zSMrnOQOaM3USnOK2VmaJ1uaQEwPA6AQjrv1lXChScosN6CzbwbO9OQ==
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/bare-fs/-/bare-fs-4.2.0.tgz#c761d8495e506f03301a3f2b29a3602da04cb076"
+  integrity sha512-oRfrw7gwwBVAWx9S5zPMo2iiOjxyiZE12DmblmMQREgcogbNO0AFaZ+QBxxkEXiPspcpvO/Qtqn8LabUx4uYXg==
   dependencies:
     bare-events "^2.5.4"
     bare-path "^3.0.0"
@@ -4749,9 +4749,9 @@ bare-path@^3.0.0:
     bare-os "^3.0.1"
 
 bare-stream@^2.6.4:
-  version "2.6.5"
-  resolved "https://registry.yarnpkg.com/bare-stream/-/bare-stream-2.6.5.tgz#bba8e879674c4c27f7e27805df005c15d7a2ca07"
-  integrity sha512-jSmxKJNJmHySi6hC42zlZnq00rga4jjxcgNZjY9N5WlOe/iOoGRtdwGsHzQv2RlH2KOYMwGUXhf2zXd32BA9RA==
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/bare-stream/-/bare-stream-2.7.0.tgz#5b9e7dd0a354d06e82d6460c426728536c35d789"
+  integrity sha512-oyXQNicV1y8nc2aKffH+BUHFRXmx6VrPzlnaEvMhram0nPBrKcEdcyBg5r08D0i8VxngHFAiVyn1QKXpSG0B8A==
   dependencies:
     streamx "^2.21.0"
 
@@ -4979,9 +4979,9 @@ chalk@^4.0.0, chalk@^4.1.2:
     supports-color "^7.1.0"
 
 chalk@^5.0.0, chalk@^5.5.0:
-  version "5.5.0"
-  resolved "https://registry.yarnpkg.com/chalk/-/chalk-5.5.0.tgz#67ada1df5ca809dc84c9b819d76418ddcf128428"
-  integrity sha512-1tm8DTaJhPBG3bIkVeZt1iZM9GfSX2lzOeDVZH9R9ffRHpmHvxZ/QhgQH/aDTkswQVt+YHdXAdS/In/30OjCbg==
+  version "5.6.0"
+  resolved "https://registry.yarnpkg.com/chalk/-/chalk-5.6.0.tgz#a1a8d294ea3526dbb77660f12649a08490e33ab8"
+  integrity sha512-46QrSQFyVSEyYAgQ22hQ+zDa60YHA4fBstHmtSApj1Y5vKtG27fWowW03jCk5KcbXEWPZUIR894aARCA/G1kfQ==
 
 char-regex@^1.0.2:
   version "1.0.2"
@@ -5367,9 +5367,9 @@ cytoscape-fcose@^2.2.0:
     cose-base "^2.2.0"
 
 cytoscape@^3.29.3:
-  version "3.33.0"
-  resolved "https://registry.yarnpkg.com/cytoscape/-/cytoscape-3.33.0.tgz#c08136096f568d0f9b438406ec722f1a093b4e16"
-  integrity sha512-2d2EwwhaxLWC8ahkH1PpQwCyu6EY3xDRdcEJXrLTb4fOUtVc+YWQalHU67rFS1a6ngj1fgv9dQLtJxP/KAFZEw==
+  version "3.33.1"
+  resolved "https://registry.yarnpkg.com/cytoscape/-/cytoscape-3.33.1.tgz#449e05d104b760af2912ab76482d24c01cdd4c97"
+  integrity sha512-iJc4TwyANnOGR1OmWhsS9ayRS3s+XQ185FmuHObThD+5AeJCakAAbWv8KimMTt08xCCLNgneQwFp+JRJOr9qGQ==
 
 "d3-array@1 - 2":
   version "2.12.1"
@@ -5900,9 +5900,9 @@ ee-first@1.1.1:
   integrity sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==
 
 electron-to-chromium@^1.5.199:
-  version "1.5.201"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.201.tgz#bdc8f13e828e2f65d2c925ab2e8b02604928632f"
-  integrity sha512-ZG65vsrLClodGqywuigc+7m0gr4ISoTQttfVh7nfpLv0M7SIwF4WbFNEOywcqTiujs12AUeeXbFyQieDICAIxg==
+  version "1.5.203"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.203.tgz#ef7fc2f7e1b816fa4535c861d1ec1348204142b6"
+  integrity sha512-uz4i0vLhfm6dLZWbz/iH88KNDV+ivj5+2SA+utpgjKaj9Q0iDLuwk6Idhe9BTxciHudyx6IvTvijhkPvFGUQ0g==
 
 emittery@^0.13.1:
   version "0.13.1"
@@ -7581,13 +7581,10 @@ invariant@^2.2.4:
   dependencies:
     loose-envify "^1.0.0"
 
-ip-address@^9.0.5:
-  version "9.0.5"
-  resolved "https://registry.yarnpkg.com/ip-address/-/ip-address-9.0.5.tgz#117a960819b08780c3bd1f14ef3c1cc1d3f3ea5a"
-  integrity sha512-zHtQzGojZXTwZTHQqra+ETKd4Sn3vgi7uBmlPoXVWZqYvuKmtI0l/VZTjqGmJY9x88GGOaZ9+G9ES8hC4T4X8g==
-  dependencies:
-    jsbn "1.1.0"
-    sprintf-js "^1.1.3"
+ip-address@^10.0.1:
+  version "10.0.1"
+  resolved "https://registry.yarnpkg.com/ip-address/-/ip-address-10.0.1.tgz#a8180b783ce7788777d796286d61bce4276818ed"
+  integrity sha512-NWv9YLW4PoW2B7xtzaS3NCot75m6nK7Icdv0o3lfMceJVRfSoQwqD4wEH5rLwoKJwUiZ/rfpiVBhnaF0FK4HoA==
 
 ipaddr.js@1.9.1:
   version "1.9.1"
@@ -8381,11 +8378,6 @@ js-yaml@^4.1.0:
   dependencies:
     argparse "^2.0.1"
 
-jsbn@1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/jsbn/-/jsbn-1.1.0.tgz#b01307cb29b618a1ed26ec79e911f803c4da0040"
-  integrity sha512-4bYVV3aAMtDTTu4+xsDYa6sy9GyJ69/amsu9sYF2zqjiEoZA5xJi3BrfX3uY+/IekIu7MwdObdbDWpoZdBv3/A==
-
 jsesc@^3.0.2, jsesc@~3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/jsesc/-/jsesc-3.0.2.tgz#bb8b09a6597ba426425f2e4a07245c3d00b9343e"
@@ -8452,9 +8444,9 @@ jsonfile@^4.0.0:
     graceful-fs "^4.1.6"
 
 jsonfile@^6.0.1:
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/jsonfile/-/jsonfile-6.1.0.tgz#bc55b2634793c679ec6403094eb13698a6ec0aae"
-  integrity sha512-5dgndWOriYSm5cnYaJNhalLNDKOqFwyDB/rr1E9ZsGciGvKPs8R2xYGCacuf3z6K1YKDz182fd+fY3cn3pMqXQ==
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/jsonfile/-/jsonfile-6.2.0.tgz#7c265bd1b65de6977478300087c99f1c84383f62"
+  integrity sha512-FGuPw30AdOIUTRMC2OMRtQV+jkVj2cfPqSeWXv1NEAJ1qZ5zb1X6z1mFhbfOB/iy3ssJCD+3KuZ8r8C3uVFlAg==
   dependencies:
     universalify "^2.0.0"
   optionalDependencies:
@@ -8833,9 +8825,9 @@ markdown-table@^3.0.0:
   integrity sha512-wiYz4+JrLyb/DqW2hkFJxP7Vd7JuTDm77fvbM8VfEQdmSMqcImWeeRbHwZjBjIFki/VaMK2BhFi7oUUZeM5bqw==
 
 marked@^16.0.0:
-  version "16.1.2"
-  resolved "https://registry.yarnpkg.com/marked/-/marked-16.1.2.tgz#b723ad2eb0a19d5bf5809b62816af85d117672e3"
-  integrity sha512-rNQt5EvRinalby7zJZu/mB+BvaAY2oz3wCuCjt1RDrWNpS1Pdf9xqMOeC9Hm5adBdcV/3XZPJpG58eT+WBc0XQ==
+  version "16.2.0"
+  resolved "https://registry.yarnpkg.com/marked/-/marked-16.2.0.tgz#c407a4f7ed3acc1110812525cfd1b0ed8502792c"
+  integrity sha512-LbbTuye+0dWRz2TS9KJ7wsnD4KAtpj0MVkWc90XvBa6AslXsT0hTBVH5k32pcSyHH1fst9XEFJunXHktVy0zlg==
 
 marked@^4.3.0:
   version "4.3.0"
@@ -10616,9 +10608,9 @@ qs@^6.14.0:
     side-channel "^1.1.0"
 
 quansync@^0.2.7, quansync@^0.2.8:
-  version "0.2.10"
-  resolved "https://registry.yarnpkg.com/quansync/-/quansync-0.2.10.tgz#32053cf166fa36511aae95fc49796116f2dc20e1"
-  integrity sha512-t41VRkMYbkHyCYmOvx/6URnN80H7k4X0lLdBMGsz+maAwrJQYB1djpV6vHrQIBE0WBSGqhtEHrK9U3DWWH8v7A==
+  version "0.2.11"
+  resolved "https://registry.yarnpkg.com/quansync/-/quansync-0.2.11.tgz#f9c3adda2e1272e4f8cf3f1457b04cbdb4ee692a"
+  integrity sha512-AifT7QEbW9Nri4tAwR5M/uzpBuqfZf+zwaEM/QkzEjj7NBuFD2rBuy0K3dE+8wltbezDV7JMA0WfnCPYRSYbXA==
 
 queue-microtask@^1.2.2:
   version "1.2.3"
@@ -11543,11 +11535,11 @@ socks-proxy-agent@^8.0.5:
     socks "^2.8.3"
 
 socks@^2.8.3:
-  version "2.8.6"
-  resolved "https://registry.yarnpkg.com/socks/-/socks-2.8.6.tgz#e335486a2552f34f932f0c27d8dbb93f2be867aa"
-  integrity sha512-pe4Y2yzru68lXCb38aAqRf5gvN8YdjP1lok5o0J7BOHljkyCGKVz7H3vpVIXKD27rj2giOJ7DwVyk/GWrPHDWA==
+  version "2.8.7"
+  resolved "https://registry.yarnpkg.com/socks/-/socks-2.8.7.tgz#e2fb1d9a603add75050a2067db8c381a0b5669ea"
+  integrity sha512-HLpt+uLy/pxB+bum/9DzAgiKS8CX1EvbWxI4zlmgGCExImLdiad2iCwXT5Z4c9c3Eq8rP2318mPW2c+QbtjK8A==
   dependencies:
-    ip-address "^9.0.5"
+    ip-address "^10.0.1"
     smart-buffer "^4.2.0"
 
 source-map-js@^1.0.2, source-map-js@^1.2.1:
@@ -11602,11 +11594,6 @@ speech-rule-engine@^4.0.6:
     "@xmldom/xmldom" "0.9.8"
     commander "13.1.0"
     wicked-good-xpath "1.3.0"
-
-sprintf-js@^1.1.3:
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.1.3.tgz#4914b903a2f8b685d17fdf78a70e917e872e444a"
-  integrity sha512-Oo+0REFV59/rz3gfJNKQiBlwfHaSESl1pcGyABQsnnIfWOFt6JNj5gCog2U6MLZ//IGYD+nA8nI+mTShREReaA==
 
 sprintf-js@~1.0.2:
   version "1.0.3"
@@ -11839,9 +11826,9 @@ sucrase@^3.35.0:
     ts-interface-checker "^0.1.9"
 
 supports-color@^10.0.0:
-  version "10.1.0"
-  resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-10.1.0.tgz#78416c8bf60b8d34e0ac73046d991374cce1425f"
-  integrity sha512-GBuewsPrhJPftT+fqDa9oI/zc5HNsG9nREqwzoSFDOIqf0NggOZbHQj2TE1P1CDJK8ZogFnlZY9hWoUiur7I/A==
+  version "10.2.0"
+  resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-10.2.0.tgz#4e2ff2704883c99d95ba659ac5e702f06e12e8ed"
+  integrity sha512-5eG9FQjEjDbAlI5+kdpdyPIBMRH4GfTVDGREVupaZHmVoppknhM29b/S9BkQz7cathp85BVgRi/As3Siln7e0Q==
 
 supports-color@^7.1.0:
   version "7.2.0"
@@ -12331,9 +12318,9 @@ undici-types@~7.10.0:
   integrity sha512-t5Fy/nfn+14LuOc2KNYg75vZqClpAiqscVvMygNnlsHBFpSXdJaYtXMcdNLpl/Qvc3P2cB3s6lOV51nqsFq4ag==
 
 undici@^7.10.0:
-  version "7.13.0"
-  resolved "https://registry.yarnpkg.com/undici/-/undici-7.13.0.tgz#9331f99fc42970dcbdf54199e6604755ba54433a"
-  integrity sha512-l+zSMssRqrzDcb3fjMkjjLGmuiiK2pMIcV++mJaAc9vhjSGpvM7h43QgP+OAMb1GImHmbPyG2tBXeuyG5iY4gA==
+  version "7.14.0"
+  resolved "https://registry.yarnpkg.com/undici/-/undici-7.14.0.tgz#7e616eeb3900deb1c4dda0e51384303975eec72c"
+  integrity sha512-Vqs8HTzjpQXZeXdpsfChQTlafcMQaaIwnGwLam1wudSSjlJeQ3bw1j+TLPePgrCnCpUXx7Ba5Pdpf5OBih62NQ==
 
 unenv@2.0.0-rc.19:
   version "2.0.0-rc.19"
