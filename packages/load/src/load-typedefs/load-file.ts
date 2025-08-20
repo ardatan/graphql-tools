@@ -74,9 +74,6 @@ export function loadFileSync(pointer: string, options: LoadTypedefsOptions): Sou
     }
 
     if (results.length === 0 && errors.length > 0) {
-      if (errors.length === 1) {
-        throw errors[0];
-      }
       throw new AggregateError(
         errors,
         `Failed to find any GraphQL type definitions in: ${pointer};\n - ${errors
