@@ -26,7 +26,9 @@ describe('loadSchema', () => {
         });
         expect(true).toBeFalsy(); // should throw
       } catch (e: any) {
-        expect(e.toString()).toContain(`SyntaxError`);
+        expect(e).toBeInstanceOf(AggregateError);
+        expect(e.errors.length).toEqual(0);
+        expect(e.errors[0].toString()).toContain(`SyntaxError`);
       }
     });
 
