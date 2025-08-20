@@ -26,8 +26,6 @@ describe('loadSchema', () => {
         });
         expect(true).toBeFalsy(); // should throw
       } catch (e: any) {
-        console.log('Got error:', e);
-
         expect(e).toBeInstanceOf(AggregateError);
         expect(e.errors.length).toEqual(1);
         expect(e.errors[0].toString()).toContain(`SyntaxError`);
