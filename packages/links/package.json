@@ -47,7 +47,7 @@
   },
   "typings": "dist/typings/index.d.ts",
   "peerDependencies": {
-    "@apollo/client": "^3",
+    "@apollo/client": "^3 || ^4.0.0",
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
@@ -59,7 +59,7 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@apollo/client": "3.13.9",
+    "@apollo/client": "4.0.0",
     "@graphql-tools/stitch": "^9.3.4",
     "@types/apollo-upload-client": "18.0.0",
     "@types/node-fetch": "^2",
