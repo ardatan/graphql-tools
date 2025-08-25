@@ -17,16 +17,6 @@ import {
   GraphQLSchema,
   GraphQLType,
   InputValueDefinitionNode,
-  isEnumType,
-  isInputObjectType,
-  isInterfaceType,
-  isLeafType,
-  isListType,
-  isNamedType,
-  isNonNullType,
-  isObjectType,
-  isScalarType,
-  isUnionType,
   Kind,
 } from 'graphql';
 import { getObjectTypeFromTypeMap } from './getObjectTypeFromTypeMap.js';
@@ -43,6 +33,18 @@ import {
 } from './Interfaces.js';
 import { rewireTypes } from './rewire.js';
 import { parseInputValue, serializeInputValue } from './transformInputValue.js';
+import {
+  isEnumType,
+  isInputObjectType,
+  isInterfaceType,
+  isLeafType,
+  isListType,
+  isNamedType,
+  isNonNullType,
+  isObjectType,
+  isScalarType,
+  isUnionType,
+} from './typeCheckers.js';
 
 export function mapSchema(schema: GraphQLSchema, schemaMapper: SchemaMapper = {}): GraphQLSchema {
   const newTypeMap = mapArguments(
