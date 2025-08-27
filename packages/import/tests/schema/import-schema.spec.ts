@@ -1374,4 +1374,37 @@ describe('importSchema', () => {
       }
     `);
   });
+
+  it('predefined imports take precedence over path aliases', () => {
+    const document = importSchema(
+      './fixtures/path-aliases/exact/a.graphql',
+      {
+        '@b-schema': `
+          type TypeB {
+            date: String!
+          }
+        `,
+      },
+      {
+        mappings: {
+          '@b-schema': path.join(__dirname, './fixtures/path-aliases/exact/b.graphql'),
+        },
+      },
+    );
+
+    expect(document).toBeSimilarGqlDoc(/* GraphQL */ `
+      type Query {
+        getA: TypeA
+      }
+
+      type TypeA {
+        id: ID!
+        relatedB: TypeB!
+      }
+
+      type TypeB {
+        date: String!
+      }
+    `);
+  });
 });
