@@ -1280,6 +1280,33 @@ describe('importSchema', () => {
     `);
   });
 
+  it('should handle absolute path aliases', () => {
+    const document = importSchema(
+      './fixtures/path-aliases/absolute/a.graphql',
+      {},
+      {
+        mappings: {
+          '/*': path.join(__dirname, './fixtures/path-aliases/absolute/*'),
+        },
+      },
+    );
+
+    expect(document).toBeSimilarGqlDoc(/* GraphQL */ `
+      type Query {
+        getA: TypeA
+      }
+
+      type TypeA {
+        id: ID!
+        relatedB: TypeB!
+      }
+
+      type TypeB {
+        id: ID!
+      }
+    `);
+  });
+
   it('resolves mapped paths relative to root dir', () => {
     const document = importSchema(
       './fixtures/path-aliases/multiple-levels/level1.graphql',
