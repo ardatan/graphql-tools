@@ -172,9 +172,11 @@ function visitFile(
   predefinedImports: Record<string, string>,
   pathAliases?: PathAliases,
 ): Map<string, Set<DefinitionNode>> {
-  filePath = applyPathAliases(filePath, pathAliases);
-  if (!isAbsolute(filePath) && !(filePath in predefinedImports)) {
-    filePath = resolveFilePath(cwd, filePath);
+  if (!(filePath in predefinedImports)) {
+    filePath = applyPathAliases(filePath, pathAliases);
+    if (!isAbsolute(filePath)) {
+      filePath = resolveFilePath(cwd, filePath);
+    }
   }
   if (!visitedFiles.has(filePath)) {
     const fileContent =
