@@ -172,8 +172,11 @@ function visitFile(
   predefinedImports: Record<string, string>,
   pathAliases?: PathAliases,
 ): Map<string, Set<DefinitionNode>> {
-  if (!isAbsolute(filePath) && !(filePath in predefinedImports)) {
-    filePath = resolveFilePath(cwd, filePath, pathAliases);
+  if (!(filePath in predefinedImports)) {
+    filePath = applyPathAliases(filePath, pathAliases);
+    if (!isAbsolute(filePath)) {
+      filePath = resolveFilePath(cwd, filePath);
+    }
   }
   if (!visitedFiles.has(filePath)) {
     const fileContent =
@@ -666,21 +669,7 @@ export function parseImportLine(importLine: string): { imports: string[]; from: 
   `);
 }
 
-function resolveFilePath(filePath: string, importFrom: string, pathAliases?: PathAliases): string {
-  // First, check if importFrom matches any path aliases.
-  if (pathAliases != null) {
-    for (const [prefixPattern, mapping] of Object.entries(pathAliases.mappings)) {
-      const matchedMapping = applyPathAlias(prefixPattern, mapping, importFrom);
-      if (matchedMapping == null) {
-        continue;
-      }
-
-      const resolvedMapping = resolveFrom(pathAliases.rootDir ?? process.cwd(), matchedMapping);
-      return realpathSync(resolvedMapping);
-    }
-  }
-
-  // Fall back to original resolution logic
+function resolveFilePath(filePath: string, importFrom: string): string {
   const dirName = dirname(filePath);
   try {
     const fullPath = join(dirName, importFrom);
@@ -691,6 +680,33 @@ function resolveFilePath(filePath: string, importFrom: string, pathAliases?: Pat
     }
     throw e;
   }
+}
+
+/**
+ * Rewrites the provided file path using the first matched path alias (or
+ * returns the file path with no changes if none match).
+ *
+ * @param filePath - The file path to rewrite.
+ * @param pathAliases - The path aliases to evaluate.
+ *
+ * @returns The rewritten file path.
+ */
+function applyPathAliases(filePath: string, pathAliases?: PathAliases): string {
+  if (pathAliases == null) {
+    return filePath;
+  }
+
+  for (const [prefixPattern, mapping] of Object.entries(pathAliases.mappings)) {
+    const matchedMapping = applyPathAlias(prefixPattern, mapping, filePath);
+    if (matchedMapping == null) {
+      continue;
+    }
+
+    const resolvedMapping = resolveFrom(pathAliases.rootDir ?? process.cwd(), matchedMapping);
+    return realpathSync(resolvedMapping);
+  }
+
+  return filePath;
 }
 
 /**

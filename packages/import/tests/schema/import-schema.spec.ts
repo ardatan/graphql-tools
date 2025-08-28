@@ -1280,6 +1280,60 @@ describe('importSchema', () => {
     `);
   });
 
+  it('should handle absolute path aliases', () => {
+    const document = importSchema(
+      './fixtures/path-aliases/absolute/a.graphql',
+      {},
+      {
+        mappings: {
+          '/*': path.join(__dirname, './fixtures/path-aliases/absolute/*'),
+        },
+      },
+    );
+
+    expect(document).toBeSimilarGqlDoc(/* GraphQL */ `
+      type Query {
+        getA: TypeA
+      }
+
+      type TypeA {
+        id: ID!
+        relatedB: TypeB!
+      }
+
+      type TypeB {
+        id: ID!
+      }
+    `);
+  });
+
+  it('should handle node-style subpath imports path aliases', () => {
+    const document = importSchema(
+      './fixtures/path-aliases/node-subpath/a.graphql',
+      {},
+      {
+        mappings: {
+          '#*': path.join(__dirname, './fixtures/path-aliases/node-subpath/*'),
+        },
+      },
+    );
+
+    expect(document).toBeSimilarGqlDoc(/* GraphQL */ `
+      type Query {
+        getA: TypeA
+      }
+
+      type TypeA {
+        id: ID!
+        relatedB: TypeB!
+      }
+
+      type TypeB {
+        id: ID!
+      }
+    `);
+  });
+
   it('resolves mapped paths relative to root dir', () => {
     const document = importSchema(
       './fixtures/path-aliases/multiple-levels/level1.graphql',
@@ -1317,6 +1371,39 @@ describe('importSchema', () => {
 
       type Product {
         price: Int
+      }
+    `);
+  });
+
+  it('predefined imports take precedence over path aliases', () => {
+    const document = importSchema(
+      './fixtures/path-aliases/exact/a.graphql',
+      {
+        '@b-schema': `
+          type TypeB {
+            date: String!
+          }
+        `,
+      },
+      {
+        mappings: {
+          '@b-schema': path.join(__dirname, './fixtures/path-aliases/exact/b.graphql'),
+        },
+      },
+    );
+
+    expect(document).toBeSimilarGqlDoc(/* GraphQL */ `
+      type Query {
+        getA: TypeA
+      }
+
+      type TypeA {
+        id: ID!
+        relatedB: TypeB!
+      }
+
+      type TypeB {
+        date: String!
       }
     `);
   });
