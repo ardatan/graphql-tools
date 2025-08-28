@@ -333,9 +333,7 @@ export function extractDependencies(
   const definitionsByName = new Map<string, Set<DefinitionNode>>();
   const dependenciesByDefinitionName = new Map<string, DependencySet>();
 
-  const { document } = parseGraphQLSDL(filePath, fileContents, {
-    noLocation: true,
-  });
+  const { document } = parseGraphQLSDL(filePath, fileContents);
 
   for (const definition of document.definitions) {
     visitDefinition(definition, definitionsByName, dependenciesByDefinitionName);
