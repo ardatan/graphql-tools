@@ -5,7 +5,7 @@ export function isStringTypes(types: any): types is string {
 }
 
 export function isSourceTypes(types: any): types is Source {
-  return types instanceof Source;
+  return types?.[Symbol.toStringTag] === 'Source';
 }
 
 export function extractType(type: TypeNode): NamedTypeNode {
