@@ -289,9 +289,7 @@ function visitFile(
                 ) {
                   throw new GraphQLError(
                     `Couldn't find type ${dependencyName} in any of the schemas.`,
-                    {
-                      nodes: Array.from(dependencyNodes),
-                    },
+                    { nodes: Array.from(dependencyNodes) },
                   );
                 }
                 const dependencyDefinitionsFromImports =
@@ -320,7 +318,28 @@ function visitFile(
   return visitedFiles.get(filePath)!;
 }
 
+// Maps dependencies by their name to the nodes which reference it.
+//
+// For example:
+//
+// ```graphql
+// type Foo {
+//   bar: Bar
+// }
+// ```
+//
+// The above schema would have a dependency set of:
+//
+// ```
+// {
+//   "Bar": Set([<NameNode name=Bar location=(line 2, character, 8)>])
+// }
+// ```
+//
+// This allows us to maintain a set of dependencies while also quickly accessing
+// all references to that dependency.
 type DependencySet = Map<string, Set<NameNode>>;
+
 type DependenciesByDefinitionName = Map<string, DependencySet>;
 
 export function extractDependencies(
