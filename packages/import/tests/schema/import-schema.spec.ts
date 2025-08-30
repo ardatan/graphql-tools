@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import '../../../testing/to-be-similar-gql-doc';
-import { Kind, print } from 'graphql';
+import { GraphQLError, Kind, print } from 'graphql';
 import { mergeTypeDefs } from '@graphql-tools/merge';
 import { parseImportLine, PathAliases, processImport } from '../../src/index.js';
 
@@ -800,7 +800,19 @@ describe('importSchema', () => {
       importSchema('./fixtures/type-not-found/a.graphql');
       throw new Error();
     } catch (e: any) {
+      expect(e).toBeInstanceOf(GraphQLError);
       expect(e.message).toBe(`Couldn't find type Post in any of the schemas.`);
+      expect(e.toString()).toBe(
+        `
+Couldn't find type Post in any of the schemas.
+
+${path.resolve(__dirname, './fixtures/type-not-found/a.graphql')}:2:9
+1 | type Dummy {
+2 |   test: Post
+  |         ^
+3 | }
+`.trim(),
+      );
     }
   });
 
@@ -809,7 +821,19 @@ describe('importSchema', () => {
       importSchema('./fixtures/type-not-found/b.graphql');
       throw new Error();
     } catch (e: any) {
+      expect(e).toBeInstanceOf(GraphQLError);
       expect(e.message).toBe(`Couldn't find type Post in any of the schemas.`);
+      expect(e.toString()).toBe(
+        `
+Couldn't find type Post in any of the schemas.
+
+${path.resolve(__dirname, './fixtures/type-not-found/b.graphql')}:2:9
+1 | interface Boo {
+2 |   test: Post
+  |         ^
+3 | }
+`.trim(),
+      );
     }
   });
 
@@ -818,7 +842,19 @@ describe('importSchema', () => {
       importSchema('./fixtures/type-not-found/c.graphql');
       throw new Error();
     } catch (e: any) {
+      expect(e).toBeInstanceOf(GraphQLError);
       expect(e.message).toBe(`Couldn't find type Post in any of the schemas.`);
+      expect(e.toString()).toBe(
+        `
+Couldn't find type Post in any of the schemas.
+
+${path.resolve(__dirname, './fixtures/type-not-found/c.graphql')}:2:17
+1 | type Test {
+2 |   myfield(post: Post): String
+  |                 ^
+3 | }
+`.trim(),
+      );
     }
   });
 
@@ -827,7 +863,18 @@ describe('importSchema', () => {
       importSchema('./fixtures/type-not-found/d.graphql');
       throw new Error();
     } catch (e: any) {
+      expect(e).toBeInstanceOf(GraphQLError);
       expect(e.message).toBe(`Couldn't find type MyInterface in any of the schemas.`);
+      expect(e.toString()).toBe(
+        `
+Couldn't find type MyInterface in any of the schemas.
+
+${path.resolve(__dirname, './fixtures/type-not-found/d.graphql')}:1:22
+1 | type Test implements MyInterface {
+  |                      ^
+2 |   test: String
+`.trim(),
+      );
     }
   });
 
@@ -836,7 +883,18 @@ describe('importSchema', () => {
       importSchema('./fixtures/type-not-found/e.graphql');
       throw new Error();
     } catch (e: any) {
+      expect(e).toBeInstanceOf(GraphQLError);
       expect(e.message).toBe(`Couldn't find type C in any of the schemas.`);
+      expect(e.toString()).toBe(
+        `
+Couldn't find type C in any of the schemas.
+
+${path.resolve(__dirname, './fixtures/type-not-found/e.graphql')}:1:15
+1 | union A = B | C
+  |               ^
+2 | type B {
+`.trim(),
+      );
     }
   });
 
@@ -845,7 +903,19 @@ describe('importSchema', () => {
       importSchema('./fixtures/type-not-found/f.graphql');
       throw new Error();
     } catch (e: any) {
+      expect(e).toBeInstanceOf(GraphQLError);
       expect(e.message).toBe(`Couldn't find type Post in any of the schemas.`);
+      expect(e.toString()).toBe(
+        `
+Couldn't find type Post in any of the schemas.
+
+${path.resolve(__dirname, './fixtures/type-not-found/f.graphql')}:2:12
+1 | input Test {
+2 |   myfield: Post
+  |            ^
+3 | }
+`.trim(),
+      );
     }
   });
 
@@ -854,7 +924,52 @@ describe('importSchema', () => {
       importSchema('./fixtures/type-not-found/g.graphql');
       throw new Error();
     } catch (e: any) {
+      expect(e).toBeInstanceOf(GraphQLError);
       expect(e.message).toBe(`Couldn't find type first in any of the schemas.`);
+      expect(e.toString()).toBe(
+        `
+Couldn't find type first in any of the schemas.
+
+${path.resolve(__dirname, './fixtures/type-not-found/g.graphql')}:2:19
+1 | type U {
+2 |   hello: String! @first
+  |                   ^
+3 | }
+`.trim(),
+      );
+    }
+  });
+
+  test('one type missing multiple times in a single type', () => {
+    try {
+      importSchema('./fixtures/type-not-found/h.graphql');
+      throw new Error();
+    } catch (e: any) {
+      expect(e).toBeInstanceOf(GraphQLError);
+      expect(e.message).toBe(`Couldn't find type Foo in any of the schemas.`);
+      expect(e.toString()).toBe(
+        `
+Couldn't find type Foo in any of the schemas.
+
+${path.resolve(__dirname, './fixtures/type-not-found/h.graphql')}:2:10
+1 | type Fixture {
+2 |   first: Foo
+  |          ^
+3 |   second: Foo
+
+${path.resolve(__dirname, './fixtures/type-not-found/h.graphql')}:3:11
+2 |   first: Foo
+3 |   second: Foo
+  |           ^
+4 |   third: Foo
+
+${path.resolve(__dirname, './fixtures/type-not-found/h.graphql')}:4:10
+3 |   second: Foo
+4 |   third: Foo
+  |          ^
+5 | }
+`.trim(),
+      );
     }
   });
 
