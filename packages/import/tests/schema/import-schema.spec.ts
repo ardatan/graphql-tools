@@ -940,6 +940,39 @@ ${path.resolve(__dirname, './fixtures/type-not-found/g.graphql')}:2:19
     }
   });
 
+  test('one type missing multiple times in a single type', () => {
+    try {
+      importSchema('./fixtures/type-not-found/h.graphql');
+      throw new Error();
+    } catch (e: any) {
+      expect(e).toBeInstanceOf(GraphQLError);
+      expect(e.message).toBe(`Couldn't find type Foo in any of the schemas.`);
+      expect(e.toString()).toBe(
+        `
+Couldn't find type Foo in any of the schemas.
+
+${path.resolve(__dirname, './fixtures/type-not-found/h.graphql')}:2:10
+1 | type Fixture {
+2 |   first: Foo
+  |          ^
+3 |   second: Foo
+
+${path.resolve(__dirname, './fixtures/type-not-found/h.graphql')}:3:11
+2 |   first: Foo
+3 |   second: Foo
+  |           ^
+4 |   third: Foo
+
+${path.resolve(__dirname, './fixtures/type-not-found/h.graphql')}:4:10
+3 |   second: Foo
+4 |   third: Foo
+  |          ^
+5 | }
+`.trim(),
+      );
+    }
+  });
+
   test('import with collision', () => {
     // Local type gets preference over imported type
     const expectedSDL = /* GraphQL */ `

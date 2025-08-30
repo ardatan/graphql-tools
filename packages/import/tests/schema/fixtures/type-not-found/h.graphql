@@ -1,0 +1,5 @@
+type Fixture {
+  first: Foo
+  second: Foo
+  third: Foo
+}
