@@ -289,7 +289,7 @@ function visitFile(
                 ) {
                   throw new GraphQLError(
                     `Couldn't find type ${dependencyName} in any of the schemas.`,
-                    { nodes: Array.from(dependencyNodes) },
+                    Array.from(dependencyNodes),
                   );
                 }
                 const dependencyDefinitionsFromImports =
