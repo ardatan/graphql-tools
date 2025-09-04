@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`graphql-tag-pluck async should allow to pluck without indentation changes 1`] = `
 "
@@ -14,7 +14,7 @@ exports[`graphql-tag-pluck async should allow to pluck without indentation chang
     }
   }
 
-  
+
 "
 `;
 
@@ -32,6 +32,6 @@ exports[`graphql-tag-pluck sync should allow to pluck without indentation change
     }
   }
 
-  
+
 "
 `;
