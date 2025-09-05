@@ -1,4 +1,4 @@
-import { GraphQLError } from 'graphql';
+import { createGraphQLError } from '@graphql-tools/utils';
 import { mergeIncrementalResult } from '../src/mergeIncrementalResult';
 
 describe('mergeIncrementalResult', () => {
