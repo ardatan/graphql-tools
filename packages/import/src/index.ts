@@ -40,7 +40,7 @@ import {
   UnionTypeExtensionNode,
 } from 'graphql';
 import resolveFrom from 'resolve-from';
-import { parseGraphQLSDL } from '@graphql-tools/utils';
+import { createGraphQLError, parseGraphQLSDL } from '@graphql-tools/utils';
 import { extractLinkImplementations } from '@theguild/federation-composition';
 
 const builtinTypes = ['String', 'Float', 'Int', 'Boolean', 'ID', 'Upload'];
@@ -287,9 +287,9 @@ function visitFile(
                   !allImportedDefinitionsMap.has(dependencyName) &&
                   !definitionsByName.has(dependencyName)
                 ) {
-                  throw new GraphQLError(
+                  throw createGraphQLError(
                     `Couldn't find type ${dependencyName} in any of the schemas.`,
-                    Array.from(dependencyNodes),
+                    { nodes: Array.from(dependencyNodes) },
                   );
                 }
                 const dependencyDefinitionsFromImports =
