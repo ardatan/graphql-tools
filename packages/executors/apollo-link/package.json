@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor-apollo-link",
-  "version": "1.0.21",
+  "version": "2.0.0",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {

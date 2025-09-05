@@ -1,5 +1,22 @@
 # @graphql-tools/executor-apollo-link
 
+## 2.0.0
+
+### Major Changes
+
+- [#7442](https://github.com/ardatan/graphql-tools/pull/7442)
+  [`7d975c4`](https://github.com/ardatan/graphql-tools/commit/7d975c423153e691ad17d11b4268165b9a20b77f)
+  Thanks [@renovate](https://github.com/apps/renovate)! - Drop Node 18 and Apollo Client v3 support
+
+### Patch Changes
+
+- [#7442](https://github.com/ardatan/graphql-tools/pull/7442)
+  [`7d975c4`](https://github.com/ardatan/graphql-tools/commit/7d975c423153e691ad17d11b4268165b9a20b77f)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@apollo/client@^4.0.4` ↗︎](https://www.npmjs.com/package/@apollo/client/v/4.0.4) (from
+    `^3.5.9`, in `peerDependencies`)
+
 ## 1.0.21
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # @graphql-tools/executor-envelop
 
+## 4.0.0
+
+### Major Changes
+
+- [#7449](https://github.com/ardatan/graphql-tools/pull/7449)
+  [`97e5e18`](https://github.com/ardatan/graphql-tools/commit/97e5e18201b1a67c67e2c78358ba94ea788f123b)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/wrap@^11.0.0` ↗︎](https://www.npmjs.com/package/@graphql-tools/wrap/v/11.0.0)
+    (from `^10.0.16`, in `dependencies`)
+
 ## 3.0.29
 
 ### Patch Changes
