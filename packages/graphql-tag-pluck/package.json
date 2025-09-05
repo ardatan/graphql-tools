@@ -47,7 +47,13 @@
   },
   "typings": "dist/typings/index.d.ts",
   "peerDependencies": {
+    "@vue/compiler-sfc": "^3.3.1",
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@vue/compiler-sfc": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@babel/core": "^7.26.10",
