@@ -1,5 +1,12 @@
 # @graphql-tools/url-loader
 
+## 9.0.0
+
+### Major Changes
+
+- [`dde8495`](https://github.com/ardatan/graphql-tools/commit/dde84954e74cb853077bcf78e41859221606304e)
+  Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 18 support
+
 ## 8.0.33
 
 ### Patch Changes
