@@ -1,13 +1,14 @@
 import { setTimeout } from 'timers/promises';
-import { parse } from 'graphql';
+import { parse, versionInfo } from 'graphql';
 import { createSchema, createYoga, DisposableSymbols, Repeater } from 'graphql-yoga';
-import { ApolloClient, FetchResult, InMemoryCache } from '@apollo/client/core';
+import { ApolloClient, InMemoryCache } from '@apollo/client/core';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import { createDeferred } from '@graphql-tools/utils';
 import { testIf } from '../../../testing/utils.js';
 import { ExecutorLink } from '../src/index.js';
 
-describe('Apollo Link', () => {
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip);
+describeIf(versionInfo.major >= 16)('Apollo Link', () => {
   const { promise: waitForPingStop, resolve: pingStop } = createDeferred<void>();
   const yoga = createYoga({
     logging: false,
@@ -80,8 +81,7 @@ describe('Apollo Link', () => {
         }
       `),
     });
-    expect(result.error).toBeUndefined();
-    expect(result.errors?.length).toBeFalsy();
+    expect(result.error).toBeFalsy();
     expect(result.data).toEqual({
       hello: 'Hello Apollo Client!',
     });
@@ -100,7 +100,7 @@ describe('Apollo Link', () => {
       const collectedValues: string[] = [];
       let i = 0;
       await new Promise<void>((resolve, reject) => {
-        const subscription = observable.subscribe((result: FetchResult) => {
+        const subscription = observable.subscribe(result => {
           collectedValues.push(result.data?.['time']);
           i++;
           if (i > 2) {
@@ -128,7 +128,7 @@ describe('Apollo Link', () => {
         file: new yoga.fetchAPI.File(['Hello World'], 'file.txt', { type: 'text/plain' }),
       },
     });
-    expect(result.errors?.length).toBeFalsy();
+    expect(result.error).toBeFalsy();
     expect(result.data).toEqual({
       readFile: 'Hello World',
     });
