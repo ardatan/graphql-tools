@@ -1,7 +1,5 @@
 ---
-"@graphql-tools/links": major
+"@graphql-tools/links": patch
 ---
-Drop Node 18 support
-
 dependencies updates:
   - Updated dependency [`@graphql-tools/delegate@^11.0.0` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/11.0.0) (from `^10.1.2`, in `dependencies`)
