@@ -11,6 +11,7 @@ import {
   FieldNode,
   FragmentDefinitionNode,
   FragmentSpreadNode,
+  GraphQLError,
   InlineFragmentNode,
   InputObjectTypeDefinitionNode,
   InputObjectTypeExtensionNode,
@@ -20,6 +21,7 @@ import {
   Kind,
   ListTypeNode,
   NamedTypeNode,
+  NameNode,
   NonNullTypeNode,
   ObjectTypeDefinitionNode,
   ObjectTypeExtensionNode,
@@ -38,7 +40,7 @@ import {
   UnionTypeExtensionNode,
 } from 'graphql';
 import resolveFrom from 'resolve-from';
-import { parseGraphQLSDL } from '@graphql-tools/utils';
+import { createGraphQLError, parseGraphQLSDL } from '@graphql-tools/utils';
 import { extractLinkImplementations } from '@theguild/federation-composition';
 
 const builtinTypes = ['String', 'Float', 'Int', 'Boolean', 'ID', 'Upload'];
@@ -236,7 +238,7 @@ function visitFile(
                 addDefinition(importedDefinition, fieldDefinitionName, definitionsWithDeps);
               }
             });
-            const newDependencySet = new Set<string>();
+            const newDependencySet = new Map<string, Set<NameNode>>();
             switch (field.kind) {
               case Kind.FIELD_DEFINITION:
                 visitFieldDefinitionNode(field, newDependencySet, dependenciesByDefinitionName);
@@ -249,7 +251,7 @@ function visitFile(
                 );
                 break;
             }
-            newDependencySet.forEach(dependencyName => {
+            Array.from(newDependencySet.keys()).forEach(dependencyName => {
               const definitionsInCurrentFile = fileDefinitionMap.get(dependencyName);
               definitionsInCurrentFile?.forEach(def =>
                 addDefinition(def, definitionName, definitionSet),
@@ -282,13 +284,16 @@ function visitFile(
             });
             const dependenciesOfDefinition = dependenciesByDefinitionName.get(definitionName);
             if (dependenciesOfDefinition) {
-              for (const dependencyName of dependenciesOfDefinition) {
+              for (const [dependencyName, dependencyNodes] of dependenciesOfDefinition.entries()) {
                 // If that dependency cannot be found both in imports and this file, throw an error
                 if (
                   !allImportedDefinitionsMap.has(dependencyName) &&
                   !definitionsByName.has(dependencyName)
                 ) {
-                  throw new Error(`Couldn't find type ${dependencyName} in any of the schemas.`);
+                  throw createGraphQLError(
+                    `Couldn't find type ${dependencyName} in any of the schemas.`,
+                    { nodes: Array.from(dependencyNodes) },
+                  );
                 }
                 const dependencyDefinitionsFromImports =
                   allImportedDefinitionsMap.get(dependencyName);
@@ -316,19 +321,41 @@ function visitFile(
   return visitedFiles.get(filePath)!;
 }
 
+// Maps dependencies by their name to the nodes which reference it.
+//
+// For example:
+//
+// ```graphql
+// type Foo {
+//   bar: Bar
+// }
+// ```
+//
+// The above schema would have a dependency set of:
+//
+// ```
+// {
+//   "Bar": Set([<NameNode name=Bar location=(line 2, character, 8)>])
+// }
+// ```
+//
+// This allows us to maintain a set of dependencies while also quickly accessing
+// all references to that dependency.
+type DependencySet = Map<string, Set<NameNode>>;
+
+type DependenciesByDefinitionName = Map<string, DependencySet>;
+
 export function extractDependencies(
   filePath: string,
   fileContents: string,
 ): {
   definitionsByName: Map<string, Set<DefinitionNode>>;
-  dependenciesByDefinitionName: Map<string, Set<string>>;
+  dependenciesByDefinitionName: DependenciesByDefinitionName;
 } {
   const definitionsByName = new Map<string, Set<DefinitionNode>>();
-  const dependenciesByDefinitionName = new Map<string, Set<string>>();
+  const dependenciesByDefinitionName = new Map<string, DependencySet>();
 
-  const { document } = parseGraphQLSDL(filePath, fileContents, {
-    noLocation: true,
-  });
+  const { document } = parseGraphQLSDL(filePath, fileContents);
 
   for (const definition of document.definitions) {
     visitDefinition(definition, definitionsByName, dependenciesByDefinitionName);
@@ -403,7 +430,7 @@ function importFederatedSchemaLinks(
 function visitDefinition(
   definition: DefinitionNode,
   definitionsByName: Map<string, Set<DefinitionNode>>,
-  dependenciesByDefinitionName: Map<string, Set<string>>,
+  dependenciesByDefinitionName: DependenciesByDefinitionName,
 ): void {
   // TODO: handle queries without names
   if (
@@ -421,7 +448,7 @@ function visitDefinition(
 
     let dependencySet = dependenciesByDefinitionName.get(definitionName);
     if (!dependencySet) {
-      dependencySet = new Set();
+      dependencySet = new Map<string, Set<NameNode>>();
       dependenciesByDefinitionName.set(definitionName, dependencySet);
     }
 
@@ -493,7 +520,7 @@ function visitDefinition(
 
         let dependencySet = dependenciesByDefinitionName.get(definitionName);
         if (!dependencySet) {
-          dependencySet = new Set();
+          dependencySet = new Map();
           dependenciesByDefinitionName.set(definitionName, dependencySet);
         }
         switch (field.kind) {
@@ -511,7 +538,7 @@ function visitDefinition(
 
 function getFileDefinitionMap(
   definitionsByName: Map<string, Set<DefinitionNode>>,
-  dependenciesByDefinitionName: Map<string, Set<string>>,
+  dependenciesByDefinitionName: DependenciesByDefinitionName,
 ): Map<string, Set<DefinitionNode>> {
   const fileDefinitionMap = new Map<string, Set<DefinitionNode>>();
 
@@ -526,7 +553,7 @@ function getFileDefinitionMap(
     }
     const dependenciesOfDefinition = dependenciesByDefinitionName.get(definitionName);
     if (dependenciesOfDefinition) {
-      for (const dependencyName of dependenciesOfDefinition) {
+      for (const dependencyName of dependenciesOfDefinition.keys()) {
         const dependencyDefinitions = definitionsByName.get(dependencyName);
         if (dependencyDefinitions != null) {
           for (const dependencyDefinition of dependencyDefinitions) {
@@ -747,16 +774,26 @@ function applyPathAlias(prefixPattern: string, mapping: string, importFrom: stri
   return mapping;
 }
 
-function visitOperationDefinitionNode(node: OperationDefinitionNode, dependencySet: Set<string>) {
+function addToDependencySet(dependencySet: DependencySet, node: NameNode): void {
+  const existingNodes = dependencySet.get(node.value);
+  if (existingNodes != null) {
+    existingNodes.add(node);
+    return;
+  }
+
+  dependencySet.set(node.value, new Set([node]));
+}
+
+function visitOperationDefinitionNode(node: OperationDefinitionNode, dependencySet: DependencySet) {
   if (node.name?.value) {
-    dependencySet.add(node.name.value);
+    addToDependencySet(dependencySet, node.name);
   }
   node.selectionSet.selections.forEach(selectionNode =>
     visitSelectionNode(selectionNode, dependencySet),
   );
 }
 
-function visitSelectionNode(node: SelectionNode, dependencySet: Set<string>) {
+function visitSelectionNode(node: SelectionNode, dependencySet: DependencySet) {
   switch (node.kind) {
     case Kind.FIELD:
       visitFieldNode(node, dependencySet);
@@ -770,24 +807,24 @@ function visitSelectionNode(node: SelectionNode, dependencySet: Set<string>) {
   }
 }
 
-function visitFieldNode(node: FieldNode, dependencySet: Set<string>) {
+function visitFieldNode(node: FieldNode, dependencySet: DependencySet) {
   node.selectionSet?.selections.forEach(selectionNode =>
     visitSelectionNode(selectionNode, dependencySet),
   );
 }
 
-function visitFragmentSpreadNode(node: FragmentSpreadNode, dependencySet: Set<string>) {
-  dependencySet.add(node.name.value);
+function visitFragmentSpreadNode(node: FragmentSpreadNode, dependencySet: DependencySet) {
+  addToDependencySet(dependencySet, node.name);
 }
 
-function visitInlineFragmentNode(node: InlineFragmentNode, dependencySet: Set<string>) {
+function visitInlineFragmentNode(node: InlineFragmentNode, dependencySet: DependencySet) {
   node.selectionSet.selections.forEach(selectionNode =>
     visitSelectionNode(selectionNode, dependencySet),
   );
 }
 
-function visitFragmentDefinitionNode(node: FragmentDefinitionNode, dependencySet: Set<string>) {
-  dependencySet.add(node.name.value);
+function visitFragmentDefinitionNode(node: FragmentDefinitionNode, dependencySet: DependencySet) {
+  addToDependencySet(dependencySet, node.name);
   node.selectionSet.selections.forEach(selectionNode =>
     visitSelectionNode(selectionNode, dependencySet),
   );
@@ -795,15 +832,13 @@ function visitFragmentDefinitionNode(node: FragmentDefinitionNode, dependencySet
 
 function addInterfaceDependencies(
   node: any,
-  dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>,
+  dependencySet: DependencySet,
+  dependenciesByDefinitionName: DependenciesByDefinitionName,
 ) {
-  const typeName: string = node.name.value;
   // all interfaces should be dependent to each other
   const allDependencies = [
-    typeName,
-    ...((node as any).interfaces?.map((namedTypeNode: NamedTypeNode) => namedTypeNode.name.value) ||
-      []),
+    node.name,
+    ...((node as any).interfaces?.map((namedTypeNode: NamedTypeNode) => namedTypeNode.name) || []),
   ];
   (node as any).interfaces?.forEach((namedTypeNode: NamedTypeNode) => {
     visitNamedTypeNode(namedTypeNode, dependencySet);
@@ -811,12 +846,12 @@ function addInterfaceDependencies(
     let set = dependenciesByDefinitionName.get(interfaceName);
     // interface should be dependent to the type as well
     if (set == null) {
-      set = new Set();
+      set = new Map();
       dependenciesByDefinitionName.set(interfaceName, set);
     }
     allDependencies.forEach(dependency => {
-      if (dependency !== interfaceName) {
-        set!.add(dependency);
+      if (dependency.value !== interfaceName) {
+        addToDependencySet(set!, dependency);
       }
     });
   });
@@ -824,11 +859,10 @@ function addInterfaceDependencies(
 
 function visitObjectTypeDefinitionNode(
   node: ObjectTypeDefinitionNode,
-  dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>,
+  dependencySet: DependencySet,
+  dependenciesByDefinitionName: DependenciesByDefinitionName,
 ) {
-  const typeName = node.name.value;
-  dependencySet.add(typeName);
+  addToDependencySet(dependencySet, node.name);
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName),
@@ -836,17 +870,17 @@ function visitObjectTypeDefinitionNode(
   addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
 }
 
-function visitDirectiveNode(node: DirectiveNode, dependencySet: Set<string>) {
+function visitDirectiveNode(node: DirectiveNode, dependencySet: DependencySet) {
   const directiveName = node.name.value;
   if (!builtinDirectives.includes(directiveName)) {
-    dependencySet.add(node.name.value);
+    addToDependencySet(dependencySet, node.name);
   }
 }
 
 function visitFieldDefinitionNode(
   node: FieldDefinitionNode,
-  dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>,
+  dependencySet: DependencySet,
+  dependenciesByDefinitionName: DependenciesByDefinitionName,
 ) {
   node.arguments?.forEach(inputValueDefinitionNode =>
     visitInputValueDefinitionNode(
@@ -861,8 +895,8 @@ function visitFieldDefinitionNode(
 
 function visitTypeNode(
   node: TypeNode,
-  dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>,
+  dependencySet: DependencySet,
+  dependenciesByDefinitionName: DependenciesByDefinitionName,
 ) {
   switch (node.kind) {
     case Kind.LIST_TYPE:
@@ -879,31 +913,31 @@ function visitTypeNode(
 
 function visitListTypeNode(
   node: ListTypeNode,
-  dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>,
+  dependencySet: DependencySet,
+  dependenciesByDefinitionName: DependenciesByDefinitionName,
 ) {
   visitTypeNode(node.type, dependencySet, dependenciesByDefinitionName);
 }
 
 function visitNonNullTypeNode(
   node: NonNullTypeNode,
-  dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>,
+  dependencySet: DependencySet,
+  dependenciesByDefinitionName: DependenciesByDefinitionName,
 ) {
   visitTypeNode(node.type, dependencySet, dependenciesByDefinitionName);
 }
 
-function visitNamedTypeNode(node: NamedTypeNode, dependencySet: Set<string>) {
+function visitNamedTypeNode(node: NamedTypeNode, dependencySet: DependencySet) {
   const namedTypeName = node.name.value;
   if (!builtinTypes.includes(namedTypeName)) {
-    dependencySet.add(node.name.value);
+    addToDependencySet(dependencySet, node.name);
   }
 }
 
 function visitInputValueDefinitionNode(
   node: InputValueDefinitionNode,
-  dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>,
+  dependencySet: DependencySet,
+  dependenciesByDefinitionName: DependenciesByDefinitionName,
 ) {
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   visitTypeNode(node.type, dependencySet, dependenciesByDefinitionName);
@@ -911,11 +945,10 @@ function visitInputValueDefinitionNode(
 
 function visitInterfaceTypeDefinitionNode(
   node: InterfaceTypeDefinitionNode,
-  dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>,
+  dependencySet: DependencySet,
+  dependenciesByDefinitionName: DependenciesByDefinitionName,
 ) {
-  const typeName = node.name.value;
-  dependencySet.add(typeName);
+  addToDependencySet(dependencySet, node.name);
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName),
@@ -923,23 +956,23 @@ function visitInterfaceTypeDefinitionNode(
   addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
 }
 
-function visitUnionTypeDefinitionNode(node: UnionTypeDefinitionNode, dependencySet: Set<string>) {
-  dependencySet.add(node.name.value);
+function visitUnionTypeDefinitionNode(node: UnionTypeDefinitionNode, dependencySet: DependencySet) {
+  addToDependencySet(dependencySet, node.name);
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.types?.forEach(namedTypeNode => visitNamedTypeNode(namedTypeNode, dependencySet));
 }
 
-function visitEnumTypeDefinitionNode(node: EnumTypeDefinitionNode, dependencySet: Set<string>) {
-  dependencySet.add(node.name.value);
+function visitEnumTypeDefinitionNode(node: EnumTypeDefinitionNode, dependencySet: DependencySet) {
+  addToDependencySet(dependencySet, node.name);
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
 }
 
 function visitInputObjectTypeDefinitionNode(
   node: InputObjectTypeDefinitionNode,
-  dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>,
+  dependencySet: DependencySet,
+  dependenciesByDefinitionName: DependenciesByDefinitionName,
 ) {
-  dependencySet.add(node.name.value);
+  addToDependencySet(dependencySet, node.name);
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.fields?.forEach(inputValueDefinitionNode =>
     visitInputValueDefinitionNode(
@@ -952,10 +985,10 @@ function visitInputObjectTypeDefinitionNode(
 
 function visitDirectiveDefinitionNode(
   node: DirectiveDefinitionNode,
-  dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>,
+  dependencySet: DependencySet,
+  dependenciesByDefinitionName: DependenciesByDefinitionName,
 ) {
-  dependencySet.add(node.name.value);
+  addToDependencySet(dependencySet, node.name);
   node.arguments?.forEach(inputValueDefinitionNode =>
     visitInputValueDefinitionNode(
       inputValueDefinitionNode,
@@ -967,11 +1000,10 @@ function visitDirectiveDefinitionNode(
 
 function visitObjectTypeExtensionNode(
   node: ObjectTypeExtensionNode,
-  dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>,
+  dependencySet: DependencySet,
+  dependenciesByDefinitionName: DependenciesByDefinitionName,
 ) {
-  const typeName = node.name.value;
-  dependencySet.add(typeName);
+  addToDependencySet(dependencySet, node.name);
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName),
@@ -981,11 +1013,10 @@ function visitObjectTypeExtensionNode(
 
 function visitInterfaceTypeExtensionNode(
   node: InterfaceTypeExtensionNode,
-  dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>,
+  dependencySet: DependencySet,
+  dependenciesByDefinitionName: DependenciesByDefinitionName,
 ) {
-  const typeName = node.name.value;
-  dependencySet.add(typeName);
+  addToDependencySet(dependencySet, node.name);
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName),
@@ -993,23 +1024,23 @@ function visitInterfaceTypeExtensionNode(
   addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
 }
 
-function visitUnionTypeExtensionNode(node: UnionTypeExtensionNode, dependencySet: Set<string>) {
-  dependencySet.add(node.name.value);
+function visitUnionTypeExtensionNode(node: UnionTypeExtensionNode, dependencySet: DependencySet) {
+  addToDependencySet(dependencySet, node.name);
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.types?.forEach(namedTypeNode => visitNamedTypeNode(namedTypeNode, dependencySet));
 }
 
-function visitEnumTypeExtensionNode(node: EnumTypeExtensionNode, dependencySet: Set<string>) {
-  dependencySet.add(node.name.value);
+function visitEnumTypeExtensionNode(node: EnumTypeExtensionNode, dependencySet: DependencySet) {
+  addToDependencySet(dependencySet, node.name);
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
 }
 
 function visitInputObjectTypeExtensionNode(
   node: InputObjectTypeExtensionNode,
-  dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>,
+  dependencySet: DependencySet,
+  dependenciesByDefinitionName: DependenciesByDefinitionName,
 ) {
-  dependencySet.add(node.name.value);
+  addToDependencySet(dependencySet, node.name);
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.fields?.forEach(inputValueDefinitionNode =>
     visitInputValueDefinitionNode(
@@ -1020,35 +1051,36 @@ function visitInputObjectTypeExtensionNode(
   );
 }
 
-function visitSchemaDefinitionNode(node: SchemaDefinitionNode, dependencySet: Set<string>) {
-  dependencySet.add('schema');
+function visitSchemaDefinitionNode(node: SchemaDefinitionNode, dependencySet: DependencySet) {
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.operationTypes.forEach(operationTypeDefinitionNode =>
     visitOperationTypeDefinitionNode(operationTypeDefinitionNode, dependencySet),
   );
 }
 
-function visitSchemaExtensionDefinitionNode(node: SchemaExtensionNode, dependencySet: Set<string>) {
-  dependencySet.add('schema');
+function visitSchemaExtensionDefinitionNode(
+  node: SchemaExtensionNode,
+  dependencySet: DependencySet,
+) {
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.operationTypes?.forEach(operationTypeDefinitionNode =>
     visitOperationTypeDefinitionNode(operationTypeDefinitionNode, dependencySet),
   );
 }
 
-function visitScalarDefinitionNode(node: ScalarTypeDefinitionNode, dependencySet: Set<string>) {
-  dependencySet.add(node.name.value);
+function visitScalarDefinitionNode(node: ScalarTypeDefinitionNode, dependencySet: DependencySet) {
+  addToDependencySet(dependencySet, node.name);
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
 }
 
-function visitScalarExtensionNode(node: ScalarTypeExtensionNode, dependencySet: Set<string>) {
-  dependencySet.add(node.name.value);
+function visitScalarExtensionNode(node: ScalarTypeExtensionNode, dependencySet: DependencySet) {
+  addToDependencySet(dependencySet, node.name);
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
 }
 
 function visitOperationTypeDefinitionNode(
   node: OperationTypeDefinitionNode,
-  dependencySet: Set<string>,
+  dependencySet: DependencySet,
 ) {
   visitNamedTypeNode(node.type, dependencySet);
 }
