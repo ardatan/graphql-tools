@@ -102,43 +102,43 @@ describe('mergeIncrementalResult', () => {
   it('should add errors', () => {
     const executionResult = { data: { user: { name: 'John' } } };
     const incrementalResult = {
-      errors: [new GraphQLError('error 1'), new GraphQLError('error 2')],
+      errors: [createGraphQLError('error 1'), createGraphQLError('error 2')],
     };
 
     mergeIncrementalResult({ incrementalResult, executionResult });
 
     expect(executionResult).toEqual({
       data: { user: { name: 'John' } },
-      errors: [new GraphQLError('error 1'), new GraphQLError('error 2')],
+      errors: [createGraphQLError('error 1'), createGraphQLError('error 2')],
     });
   });
 
   it('should keep errors', () => {
-    const executionResult = { errors: [new GraphQLError('error 1')] };
+    const executionResult = { errors: [createGraphQLError('error 1')] };
     const incrementalResult = { data: { user: { name: 'John' } }, path: [] };
 
     mergeIncrementalResult({ incrementalResult, executionResult });
 
     expect(executionResult).toEqual({
       data: { user: { name: 'John' } },
-      errors: [new GraphQLError('error 1')],
+      errors: [createGraphQLError('error 1')],
     });
   });
 
   it('should merge errors', () => {
-    const executionResult = { errors: [new GraphQLError('error 1')] };
+    const executionResult = { errors: [createGraphQLError('error 1')] };
 
     const incrementalResult = {
-      errors: [new GraphQLError('error 2'), new GraphQLError('error 3')],
+      errors: [createGraphQLError('error 2'), createGraphQLError('error 3')],
     };
 
     mergeIncrementalResult({ incrementalResult, executionResult });
 
     expect(executionResult).toEqual({
       errors: [
-        new GraphQLError('error 1'),
-        new GraphQLError('error 2'),
-        new GraphQLError('error 3'),
+        createGraphQLError('error 1'),
+        createGraphQLError('error 2'),
+        createGraphQLError('error 3'),
       ],
     });
   });
