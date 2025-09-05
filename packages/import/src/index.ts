@@ -11,7 +11,6 @@ import {
   FieldNode,
   FragmentDefinitionNode,
   FragmentSpreadNode,
-  GraphQLError,
   InlineFragmentNode,
   InputObjectTypeDefinitionNode,
   InputObjectTypeExtensionNode,
