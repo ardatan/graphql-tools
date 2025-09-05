@@ -44,7 +44,7 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@graphql-tools/stitch": "^9.3.4",
+    "@graphql-tools/stitch": "^10.0.0",
     "@types/dateformat": "3.0.1",
     "dateformat": "4.6.3",
     "graphql-scalars": "1.24.2"
