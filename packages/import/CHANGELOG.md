@@ -1,5 +1,24 @@
 # @graphql-tools/import
 
+## 7.1.1
+
+### Patch Changes
+
+- [#7433](https://github.com/ardatan/graphql-tools/pull/7433)
+  [`07124d5`](https://github.com/ardatan/graphql-tools/commit/07124d5c146affa8c379bd9c888e2faf31a0c245)
+  Thanks [@HunterLarco](https://github.com/HunterLarco)! - Fix support for absolute path aliases in
+  GraphQL imports
+
+  Path aliases configured with absolute paths (e.g., `/*` → `src/*`) now work correctly alongside
+  relative aliases (e.g., `@/*` → `src/*`). This allows more flexible aliasing configurations when
+  using [tsconfig.json#paths](https://www.typescriptlang.org/tsconfig/#paths) syntax for GraphQL
+  imports.
+
+- [#7437](https://github.com/ardatan/graphql-tools/pull/7437)
+  [`211ef44`](https://github.com/ardatan/graphql-tools/commit/211ef440ec9615f82deaf74c0b5d760fc9e716e0)
+  Thanks [@HunterLarco](https://github.com/HunterLarco)! - enhance GraphQL schema import error
+  debugging with source locations
+
 ## 7.1.0
 
 ### Minor Changes

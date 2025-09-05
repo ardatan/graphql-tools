@@ -1,5 +1,32 @@
 # @graphql-tools/links
 
+## 10.0.0
+
+### Major Changes
+
+- [#7449](https://github.com/ardatan/graphql-tools/pull/7449)
+  [`97e5e18`](https://github.com/ardatan/graphql-tools/commit/97e5e18201b1a67c67e2c78358ba94ea788f123b)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/delegate@^11.0.0` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/11.0.0)
+    (from `^10.1.2`, in `dependencies`)
+
+- [#7442](https://github.com/ardatan/graphql-tools/pull/7442)
+  [`7d975c4`](https://github.com/ardatan/graphql-tools/commit/7d975c423153e691ad17d11b4268165b9a20b77f)
+  Thanks [@renovate](https://github.com/apps/renovate)! - Drop Node 18 and Apollo Client v3 support
+
+### Patch Changes
+
+- [#7442](https://github.com/ardatan/graphql-tools/pull/7442)
+  [`7d975c4`](https://github.com/ardatan/graphql-tools/commit/7d975c423153e691ad17d11b4268165b9a20b77f)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`apollo-upload-client@^19.0.0` ↗︎](https://www.npmjs.com/package/apollo-upload-client/v/19.0.0)
+    (from `18.0.1`, in `dependencies`)
+  - Updated dependency
+    [`@apollo/client@^4.0.4` ↗︎](https://www.npmjs.com/package/@apollo/client/v/4.0.4) (from `^3`,
+    in `peerDependencies`)
+
 ## 9.0.30
 
 ### Patch Changes
