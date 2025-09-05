@@ -14,7 +14,7 @@ exports[`graphql-tag-pluck async should allow to pluck without indentation chang
     }
   }
 
-
+  
 "
 `;
 
@@ -32,6 +32,6 @@ exports[`graphql-tag-pluck sync should allow to pluck without indentation change
     }
   }
 
-
+  
 "
 `;
