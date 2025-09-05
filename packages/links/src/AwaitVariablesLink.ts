@@ -29,9 +29,9 @@ function getFinalPromise(object: any): Promise<any> {
 
 export class AwaitVariablesLink extends apollo.ApolloLink {
   request(
-    operation: apolloImport.Operation,
-    forward: apolloImport.NextLink,
-  ): apolloImport.Observable<apolloImport.FetchResult> {
+    operation: apolloImport.ApolloLink.Operation,
+    forward: apolloImport.ApolloLink.ForwardFunction,
+  ): apolloImport.Observable<apolloImport.ApolloLink.Result> {
     return new apollo.Observable(observer => {
       let subscription: any;
       getFinalPromise(operation.variables)
