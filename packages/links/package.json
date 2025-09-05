@@ -47,19 +47,19 @@
   },
   "typings": "dist/typings/index.d.ts",
   "peerDependencies": {
-    "@apollo/client": "^3",
+    "@apollo/client": "^4.0.4",
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
     "@graphql-tools/delegate": "^11.0.0",
     "@graphql-tools/utils": "^10.9.1",
-    "apollo-upload-client": "18.0.1",
+    "apollo-upload-client": "^19.0.0",
     "form-data": "^4.0.0",
     "node-fetch": "^2.6.5",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@apollo/client": "3.14.0",
+    "@apollo/client": "4.0.4",
     "@graphql-tools/stitch": "^10.0.0",
     "@types/apollo-upload-client": "18.0.0",
     "@types/node-fetch": "^2",

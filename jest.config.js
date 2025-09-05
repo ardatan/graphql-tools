@@ -68,7 +68,7 @@ module.exports = {
   },
   transformIgnorePatterns: [
     `node_modules/(?!(${ESM_PACKAGES.join('|')})/)`,
-    'node_modules/apollo-upload-client/!(createUploadLink.mjs)',
+    'node_modules/apollo-upload-client/!(UploadHttpLink.mjs)',
   ],
   resolver: 'bob-the-bundler/jest-resolver',
 };
