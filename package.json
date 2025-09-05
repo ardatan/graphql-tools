@@ -93,7 +93,8 @@
     "cookie": "1.0.2",
     "esbuild": "0.25.9",
     "estree-util-value-to-estree": "3.4.0",
-    "graphql": "16.11.0"
+    "graphql": "16.11.0",
+    "tmp": "0.2.4"
   },
   "lint-staged": {
     "packages/**/src/**/*.{ts,tsx}": [
