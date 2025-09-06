@@ -31,7 +31,9 @@ jobs:
       - name: Use GraphQL v15
         run: node ./scripts/match-graphql.js 15
       - name: Install Dependencies using NPM
-        run: npm install --ignore-engines && git checkout package-lock.json
+        run:
+          npm install --ignore-engines && git checkout package-lock.json && rm -rf
+          packages/*/node_modules/graphql
       - name: Type Check
         run: npm run ts:check
   check:
