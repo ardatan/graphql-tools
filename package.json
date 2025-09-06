@@ -44,6 +44,9 @@
     "test:leaks": "cross-env \"LEAK_TEST=1\" jest --no-watchman --detectOpenHandles --detectLeaks --forceExit",
     "ts:check": "tsc --noEmit"
   },
+  "optionalDependencies": {
+    "bun": "1.2.21"
+  },
   "devDependencies": {
     "@apollo/client": "4.0.4",
     "@babel/core": "7.28.4",
@@ -62,11 +65,11 @@
     "@urql/core": "6.0.1",
     "babel-jest": "30.1.2",
     "bob-the-bundler": "7.0.1",
-    "bun": "1.2.21",
     "concurrently": "9.2.1",
     "cross-env": "10.0.0",
     "eslint": "9.35.0",
     "eslint-config-prettier": "10.1.8",
+    "eslint-config-standard": "17.1.0",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-n": "17.21.3",
     "eslint-plugin-promise": "7.2.1",
