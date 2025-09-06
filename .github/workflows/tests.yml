@@ -29,11 +29,12 @@ jobs:
           node-version-file: .node-version
 
       - name: Use GraphQL v15
-        run: node ./scripts/match-graphql.js 15
-      - name: Force GraphQL v15 in node_modules
-        run:
-          npm install --ignore-engines && git checkout package-lock.json && npx rimraf
-          packages/**/*/node_modules/graphql
+        run: |
+          node ./scripts/match-graphql.js 15
+          npm install --ignore-engines
+          git checkout package-lock.json
+          npx rimraf packages/**/*/node_modules/graphql
+          npx rimraf packages/executor/node_modules/graphql
       - name: Type Check
         run: npm run ts:check
   check:
@@ -83,11 +84,12 @@ jobs:
           node-version: ${{matrix.node-version}}
 
       - name: Use GraphQL v${{matrix.graphql_version}}
-        run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
-      - name: Force GraphQL v${{matrix.graphql_version}} in node_modules
-        run:
-          npm install --ignore-engines && git checkout package-lock.json && npx rimraf
-          packages/**/*/node_modules/graphql
+        run: |
+          node ./scripts/match-graphql.js ${{matrix.graphql_version}}
+          npm install --ignore-engines
+          git checkout package-lock.json
+          npx rimraf packages/**/*/node_modules/graphql
+          npx rimraf packages/executor/node_modules/graphql
       - name: Cache Jest
         uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4
         with:
