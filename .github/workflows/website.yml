@@ -20,11 +20,10 @@ jobs:
       - name: checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
 
-      - uses: the-guild-org/shared-config/setup@main
+      - uses: the-guild-org/shared-config/setup@v1
         name: setup env
         with:
-          nodeVersion: 20
-          packageManager: yarn
+          node-version-file: .node-version
 
       - uses: the-guild-org/shared-config/website-cf@main
         name: build and deploy website
@@ -39,5 +38,5 @@ jobs:
           projectName: graphql-tools
           prId: ${{ github.event.pull_request.number }}
           websiteDirectory: ./
-          buildScript: yarn build && yarn build:api-docs && cd website && yarn build
+          buildScript: npm run build && npm run build:api-docs && cd website && npm run build
           artifactDir: website/out

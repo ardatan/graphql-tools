@@ -2,7 +2,7 @@
 
 A Jest transformer to preprocess GraphQL Documents (operations, fragments and SDL)
 
-    yarn add @graphql-tools/jest-transform
+    npm install @graphql-tools/jest-transform
 
 In your `package.json`:
 

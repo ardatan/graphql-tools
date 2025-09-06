@@ -5,7 +5,7 @@ A webpack loader to preprocess GraphQL Documents (operations, fragments and SDL)
 Slightly different fork of
 [graphql-tag/loader](https://github.com/apollographql/graphql-tag/pull/304).
 
-    yarn add @graphql-tools/webpack-loader
+    npm install @graphql-tools/webpack-loader
 
 How is it different from `graphql-tag`? It removes locations entirely, doesn't include sources
 (string content of imported files), no warnings about duplicated fragment names and supports more
