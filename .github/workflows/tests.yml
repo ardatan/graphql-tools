@@ -30,8 +30,8 @@ jobs:
 
       - name: Use GraphQL v15
         run: node ./scripts/match-graphql.js 15
-      - name: Install Dependencies using Yarn
-        run: npm install --ignore-engines && git checkout yarn.lock
+      - name: Install Dependencies using NPM
+        run: npm install --ignore-engines && git checkout package-lock.json
       - name: Type Check
         run: npm run ts:check
   check:
@@ -82,7 +82,7 @@ jobs:
 
       - name: Use GraphQL v${{matrix.graphql_version}}
         run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
-      - name: Install Dependencies using Yarn
+      - name: Install Dependencies using NPM
         run: npm install --ignore-engines && git checkout package-lock.json
       - name: Cache Jest
         uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4
@@ -90,7 +90,7 @@ jobs:
           path: .cache/jest
           key:
             ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-${{
-            hashFiles('yarn.lock') }}
+            hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-
       - name: Build
