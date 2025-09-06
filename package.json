@@ -16,7 +16,7 @@
     "packages/executors/*",
     "website"
   ],
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
+  "packageManager": "npm@11.6.0",
   "keywords": [
     "GraphQL",
     "Apollo",
@@ -35,7 +35,7 @@
     "lint": "cross-env \"ESLINT_USE_FLAT_CONFIG=false\" eslint --ext .ts .",
     "postbuild": "tsx scripts/postbuild.ts",
     "postinstall": "patch-package && husky install",
-    "prerelease": "yarn build",
+    "prerelease": "npm run build",
     "prettier": "prettier --cache --ignore-path .gitignore --ignore-path .prettierignore --write --list-different .",
     "prettier:check": "prettier --cache --ignore-path .gitignore --ignore-path .prettierignore --check .",
     "release": "changeset publish",
@@ -67,11 +67,9 @@
     "cross-env": "10.0.0",
     "eslint": "9.35.0",
     "eslint-config-prettier": "10.1.8",
-    "eslint-config-standard": "17.1.0",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-n": "17.21.3",
     "eslint-plugin-promise": "7.2.1",
-    "eslint-plugin-standard": "5.0.0",
     "globby": "11.1.0",
     "graphql": "16.11.0",
     "graphql-yoga": "5.15.1",
@@ -89,7 +87,7 @@
     "typescript": "5.9.2",
     "wonka": "6.3.5"
   },
-  "resolutions": {
+  "overrides": {
     "cookie": "1.0.2",
     "esbuild": "0.25.9",
     "estree-util-value-to-estree": "3.4.0",
@@ -102,11 +100,6 @@
     ],
     "**/*.{ts,tsx,graphql,yml,md,mdx,json}": [
       "prettier --write"
-    ]
-  },
-  "yarn": {
-    "args": [
-      "ignore-engines"
     ]
   }
 }

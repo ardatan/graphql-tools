@@ -5,7 +5,7 @@ Utilities for GraphQL documents.
 ## Install
 
 ```bash
-yarn install @graphql-tools/documents
+npm install @graphql-tools/documents
 ```
 
 ## Contents
