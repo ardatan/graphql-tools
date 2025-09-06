@@ -38,6 +38,7 @@ updates:
           - 'husky'
           - '@pulumi/*'
           - 'typedoc'
+          - "@img/sharp-*",
         update-types:
           - 'minor'
           - 'patch'
