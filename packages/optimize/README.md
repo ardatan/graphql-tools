@@ -10,7 +10,7 @@ The goal of this package is mostly around making optimizations for the way the d
 
 ## Getting Started
 
-    yarn add -D @graphql-tools/optimize
+    npm install -D @graphql-tools/optimize
 
 ## API
 

@@ -24,16 +24,19 @@ jobs:
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
 
       - name: Setup env
-        uses: the-guild-org/shared-config/setup@main
+        uses: the-guild-org/shared-config/setup@v1
         with:
-          nodeVersion: 24
+          node-version-file: .node-version
 
       - name: Use GraphQL v15
-        run: node ./scripts/match-graphql.js 15
-      - name: Install Dependencies using Yarn
-        run: yarn install --ignore-engines && git checkout yarn.lock
+        run: |
+          node ./scripts/match-graphql.js 15
+          npm install --ignore-engines
+          git checkout package-lock.json
+          npx rimraf packages/**/*/node_modules/graphql
+          npx rimraf packages/executor/node_modules/graphql
       - name: Type Check
-        run: yarn ts:check
+        run: npm run ts:check
   check:
     name: Full Check on GraphQL v16
     runs-on: ubuntu-latest
@@ -41,17 +44,17 @@ jobs:
       - name: Checkout Master
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
       - name: Setup env
-        uses: the-guild-org/shared-config/setup@main
+        uses: the-guild-org/shared-config/setup@v1
         with:
-          nodeVersion: 24
+          node-version-file: .node-version
       - name: Prettier
-        run: yarn prettier:check
+        run: npm run prettier:check
       - name: Lint
-        run: yarn lint
+        run: npm run lint
       - name: Build
-        run: yarn build
+        run: npm run build
       - name: Test ESM and CJS integrity
-        run: yarn bob check
+        run: npx bob check
   test:
     name:
       Unit Test on Node ${{matrix.node-version}} (${{matrix.os}}) and GraphQL
@@ -76,37 +79,40 @@ jobs:
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
 
       - name: Setup env
-        uses: the-guild-org/shared-config/setup@main
+        uses: the-guild-org/shared-config/setup@v1
         with:
-          nodeVersion: ${{matrix.node-version}}
+          node-version: ${{matrix.node-version}}
 
       - name: Use GraphQL v${{matrix.graphql_version}}
-        run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
-      - name: Install Dependencies using Yarn
-        run: yarn install --ignore-engines && git checkout yarn.lock
+        run: |
+          node ./scripts/match-graphql.js ${{matrix.graphql_version}}
+          npm install --ignore-engines
+          git checkout package-lock.json
+          npx rimraf packages/**/*/node_modules/graphql
+          npx rimraf packages/executor/node_modules/graphql
       - name: Cache Jest
         uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4
         with:
           path: .cache/jest
           key:
             ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-${{
-            hashFiles('yarn.lock') }}
+            hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-
       - name: Build
-        run: yarn build
+        run: npm run build
       - name: Unit Tests
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: yarn test --ci
+          command: npm run test --ci
       - name: Leak Tests
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: yarn test:leaks --ci
+          command: npm run test:leaks --ci
   test-bun:
     name: Unit Test on Bun
     runs-on: ubuntu-latest
@@ -114,14 +120,14 @@ jobs:
       - name: Checkout Master
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
       - name: Setup env
-        uses: the-guild-org/shared-config/setup@main
+        uses: the-guild-org/shared-config/setup@v1
         with:
-          nodeVersion: 24
+          node-version-file: .node-version
       - name: Build
-        run: yarn build
+        run: npm run build
       - name: Unit Tests
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: yarn test:bun --ci
+          command: npm run test:bun --ci

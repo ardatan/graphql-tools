@@ -43,8 +43,8 @@ improvement, no matter how small! If you would like to suggest a big change or m
 love to hear your ideas but please open an issue for discussion before writing the PR.
 
 If you want to edit the documentation locally you have to clone this project, install the
-dependencies using `yarn` and run the command `yarn build:api-docs`. Afterwards, run
-`yarn workspace website dev` and visit `http://localhost:3000`. All the documentation can be found
+dependencies using `npm` and run the command `npm run build:api-docs`. Afterwards, run
+`npm workspace website dev` and visit `http://localhost:3000`. All the documentation can be found
 within `website/src/pages/docs`.
 
 ### Responding to issues

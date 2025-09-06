@@ -7,7 +7,7 @@
     "build": "next build",
     "dev": "next --turbopack",
     "pagefind": "pagefind --site .next/server/app --output-path out/_pagefind",
-    "postbuild": "next-sitemap && yarn pagefind",
+    "postbuild": "next-sitemap && npm run pagefind",
     "start": "next start"
   },
   "dependencies": {
