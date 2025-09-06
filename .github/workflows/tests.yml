@@ -53,7 +53,7 @@ jobs:
       - name: Build
         run: npm run build
       - name: Test ESM and CJS integrity
-        run: npm run bob check
+        run: npx bob check
   test:
     name:
       Unit Test on Node ${{matrix.node-version}} (${{matrix.os}}) and GraphQL
