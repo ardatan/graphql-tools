@@ -1,8 +1,8 @@
 import { existsSync, promises as fsPromises, readFileSync } from 'fs';
 import { isAbsolute, resolve } from 'path';
 import { env, cwd as processCwd } from 'process';
-import type { GlobbyOptions } from 'globby';
-import globby from 'globby';
+import type { GlobOptions } from 'tinyglobby';
+import { globSync, glob as tinyglobby } from 'tinyglobby';
 import unixify from 'unixify';
 import { PathAliases, processImport } from '@graphql-tools/import';
 import {
@@ -46,7 +46,7 @@ function isGraphQLImportFile(rawSDL: string) {
   return trimmedRawSDL.startsWith('# import') || trimmedRawSDL.startsWith('#import');
 }
 
-function createGlobbyOptions(options: GraphQLFileLoaderOptions): GlobbyOptions {
+function createGlobbyOptions(options: GraphQLFileLoaderOptions): GlobOptions {
   return { absolute: true, ...options, ignore: [] };
 }
 
@@ -124,7 +124,7 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
     )
       return [glob]; // bypass globby when no glob character, can be loaded, no ignores and source not requested. Fixes problem with pkg and passes ci tests
     const globs = this._buildGlobs(glob, options);
-    const result = await globby(globs, createGlobbyOptions(options));
+    const result = await tinyglobby(globs, createGlobbyOptions(options));
     return result;
   }
 
@@ -137,7 +137,7 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
     )
       return [glob]; // bypass globby when no glob character, can be loaded, no ignores and source not requested. Fixes problem with pkg and passes ci tests
     const globs = this._buildGlobs(glob, options);
-    const result = globby.sync(globs, createGlobbyOptions(options));
+    const result = globSync(globs, createGlobbyOptions(options));
     return result;
   }
 
