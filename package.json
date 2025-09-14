@@ -48,7 +48,7 @@
     "bun": "1.2.21"
   },
   "devDependencies": {
-    "@apollo/client": "4.0.4",
+    "@apollo/client": "4.0.5",
     "@babel/core": "7.28.4",
     "@babel/plugin-proposal-class-properties": "7.18.6",
     "@babel/plugin-proposal-explicit-resource-management": "7.27.4",
@@ -59,7 +59,7 @@
     "@envelop/core": "5.3.1",
     "@theguild/prettier-config": "3.0.1",
     "@types/jest": "30.0.0",
-    "@types/node": "24.3.1",
+    "@types/node": "24.3.3",
     "@typescript-eslint/eslint-plugin": "8.43.0",
     "@typescript-eslint/parser": "8.43.0",
     "@urql/core": "6.0.1",
@@ -71,7 +71,7 @@
     "eslint-config-prettier": "10.1.8",
     "eslint-config-standard": "17.1.0",
     "eslint-plugin-import": "2.32.0",
-    "eslint-plugin-n": "17.21.3",
+    "eslint-plugin-n": "17.22.0",
     "eslint-plugin-promise": "7.2.1",
     "globby": "11.1.0",
     "graphql": "16.11.0",
