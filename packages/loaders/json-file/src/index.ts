@@ -1,8 +1,8 @@
 import { existsSync, promises as fsPromises, readFileSync } from 'fs';
 import { isAbsolute, resolve } from 'path';
 import { env, cwd as processCwd } from 'process';
-import type { GlobbyOptions } from 'globby';
-import globby from 'globby';
+import type { GlobOptions } from 'tinyglobby';
+import { globSync, glob as tinyglobby } from 'tinyglobby';
 import unixify from 'unixify';
 import {
   asArray,
@@ -22,7 +22,7 @@ const FILE_EXTENSIONS = ['.json'];
  */
 export interface JsonFileLoaderOptions extends BaseLoaderOptions {}
 
-function createGlobbyOptions(options: JsonFileLoaderOptions): GlobbyOptions {
+function createGlobbyOptions(options: JsonFileLoaderOptions): GlobOptions {
   return { absolute: true, ...options, ignore: [] };
 }
 
@@ -90,13 +90,13 @@ export class JsonFileLoader implements Loader {
 
   async resolveGlobs(glob: string, options: JsonFileLoaderOptions) {
     const globs = this._buildGlobs(glob, options);
-    const result = await globby(globs, createGlobbyOptions(options));
+    const result = await tinyglobby(globs, createGlobbyOptions(options));
     return result;
   }
 
   resolveGlobsSync(glob: string, options: JsonFileLoaderOptions) {
     const globs = this._buildGlobs(glob, options);
-    const result = globby.sync(globs, createGlobbyOptions(options));
+    const result = globSync(globs, createGlobbyOptions(options));
     return result;
   }
 
