@@ -38,12 +38,12 @@
     "prerelease": "npm run build",
     "prettier": "prettier --cache --ignore-path .gitignore --ignore-path .prettierignore --write --list-different .",
     "prettier:check": "prettier --cache --ignore-path .gitignore --ignore-path .prettierignore --check .",
-    "version": "npx changeset version",
     "release": "npx changeset publish",
     "test": "jest --no-watchman",
     "test:bun": "bun test",
     "test:leaks": "cross-env \"LEAK_TEST=1\" jest --no-watchman --detectOpenHandles --detectLeaks --forceExit",
-    "ts:check": "tsc --noEmit"
+    "ts:check": "tsc --noEmit",
+    "version": "npx changeset version"
   },
   "optionalDependencies": {
     "bun": "1.2.22"
