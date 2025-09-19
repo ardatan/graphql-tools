@@ -51,13 +51,13 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/executor-graphql-ws": "^3.0.1",
-    "@graphql-tools/executor-http": "^3.0.1",
+    "@graphql-tools/executor-graphql-ws": "^3.1.0",
+    "@graphql-tools/executor-http": "^3.0.3",
     "@graphql-tools/executor-legacy-ws": "^1.1.19",
     "@graphql-tools/utils": "^10.9.1",
     "@graphql-tools/wrap": "^11.0.0",
     "@types/ws": "^8.0.0",
-    "@whatwg-node/fetch": "^0.10.0",
+    "@whatwg-node/fetch": "^0.10.11",
     "@whatwg-node/promise-helpers": "^1.0.0",
     "isomorphic-ws": "^5.0.0",
     "sync-fetch": "0.6.0-2",
