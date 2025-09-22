@@ -25,7 +25,7 @@ export const metadata = {
     canonical: '.',
   },
   openGraph: {
-    ...rootMetadata.openGraph,
+    ...rootMetadata?.openGraph,
     // to remove leading slash
     url: '.',
   },
