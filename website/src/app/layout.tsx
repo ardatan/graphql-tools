@@ -35,9 +35,10 @@ const RootLayout: FC<{
     ...pageMap,
     { route: '/changelogs', name: 'changelogs', children: changelogsPageMap },
   ];
-  const logo = <ToolsLogo fill="currentColor" className="h-auto w-8" />;
+  const logo = <ToolsLogo key="tools-logo" fill="currentColor" className="h-auto w-8" />;
   return (
     <GuildLayout
+      key="guild-layout"
       websiteName={websiteName}
       description={description}
       logo={logo}
@@ -45,10 +46,16 @@ const RootLayout: FC<{
         docsRepositoryBase: 'https://github.com/ardatan/graphql-tools/tree/master/website',
         footer: (
           <HiveFooter
+            key="hive-footer"
             logo={
               <div className="flex items-center gap-3">
                 {logo}
-                <span className="text-2xl/[1.2] font-medium tracking-[-0.16px]">{websiteName}</span>
+                <span
+                  key="hive-footer-span"
+                  className="text-2xl/[1.2] font-medium tracking-[-0.16px]"
+                >
+                  {websiteName}
+                </span>
               </div>
             }
             description={description}
@@ -70,13 +77,17 @@ const RootLayout: FC<{
         developerMenu: [
           {
             href: '/docs',
-            icon: <PaperIcon />,
+            icon: <PaperIcon key="paper-icon" />,
             children: 'Documentation',
           },
-          { href: 'https://the-guild.dev/blog', icon: <PencilIcon />, children: 'Blog' },
+          {
+            href: 'https://the-guild.dev/blog',
+            icon: <PencilIcon key="pencil-icon" />,
+            children: 'Blog',
+          },
           {
             href: 'https://github.com/ardatan/graphql-tools',
-            icon: <GitHubIcon />,
+            icon: <GitHubIcon key="github-icon" />,
             children: 'GitHub',
           },
         ],
