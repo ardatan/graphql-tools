@@ -72,4 +72,16 @@ describe('mergeDeep', () => {
     const b = { options: ['$A', '$B'] };
     expect(mergeDeep([a, b], undefined, true, true)).toEqual({ options: ['$A', '$B'] });
   });
+
+  it('filters nullish values', () => {
+    expect(mergeDeep([{ a: 'dsa' }, { a: 'dd', b: 1 }, undefined])).toEqual({ a: 'dd', b: 1 });
+  });
+
+  it('respects empty objects', () => {
+    expect(mergeDeep([{}])).toEqual({});
+  });
+
+  it('returns undefined when an empty sources array passed', () => {
+    expect(mergeDeep([])).toEqual(undefined);
+  });
 });
