@@ -1,7 +1,6 @@
 import {
   ArgumentNode,
   astFromValue,
-  ConstValueNode,
   getNamedType,
   GraphQLArgument,
   GraphQLField,
@@ -388,20 +387,20 @@ function resolveVariable(arg: GraphQLArgument, name?: string): VariableDefinitio
     };
   }
 
-  let defaultValue: ConstValueNode | undefined;
+  let defaultValue: any | undefined;
   try {
-    const returnVal = astFromValue(arg.defaultValue, arg.type);
+    const returnVal = astFromValue(arg.defaultValue, arg.type) as any;
     if (returnVal == null) {
       defaultValue = undefined;
     } else {
-      defaultValue = returnVal as ConstValueNode;
+      defaultValue = returnVal;
     }
   } catch (e) {
-    const returnVal = astFromValueUntyped(arg.defaultValue);
+    const returnVal = astFromValueUntyped(arg.defaultValue) as any;
     if (returnVal == null) {
       defaultValue = undefined;
     } else {
-      defaultValue = returnVal as ConstValueNode;
+      defaultValue = returnVal;
     }
   }
   return {
