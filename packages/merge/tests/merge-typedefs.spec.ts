@@ -1782,7 +1782,6 @@ describe('Merge TypeDefs', () => {
     expect(prettyOutput).toBeSimilarString(prettyExpected);
   });
 
-
   it('merges the directives with the same name and same arguments', () => {
     const directive = parse(/* GraphQL */ `
       directive @link(
