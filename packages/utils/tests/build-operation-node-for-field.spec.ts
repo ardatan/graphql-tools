@@ -697,7 +697,7 @@ test('should work with query with default value arguments', async () => {
           name
         }
       }
-    `)
+    `),
   );
 });
 
@@ -729,6 +729,6 @@ test('should work with mutation with default value arguments', async () => {
           active
         }
       }
-    `)
+    `),
   );
 });

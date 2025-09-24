@@ -1,5 +1,7 @@
 import {
   ArgumentNode,
+  astFromValue,
+  ConstValueNode,
   getNamedType,
   GraphQLArgument,
   GraphQLField,
@@ -27,6 +29,7 @@ import {
   TypeNode,
   VariableDefinitionNode,
 } from 'graphql';
+import { astFromValueUntyped } from './astFromValueUntyped.js';
 import { getDefinedRootType, getRootTypeNames } from './rootTypes.js';
 
 let operationVariables: VariableDefinitionNode[] = [];
@@ -385,6 +388,22 @@ function resolveVariable(arg: GraphQLArgument, name?: string): VariableDefinitio
     };
   }
 
+  let defaultValue: ConstValueNode | undefined;
+  try {
+    const returnVal = astFromValue(arg.defaultValue, arg.type);
+    if (returnVal == null) {
+      defaultValue = undefined;
+    } else {
+      defaultValue = returnVal as ConstValueNode;
+    }
+  } catch (e) {
+    const returnVal = astFromValueUntyped(arg.defaultValue);
+    if (returnVal == null) {
+      defaultValue = undefined;
+    } else {
+      defaultValue = returnVal as ConstValueNode;
+    }
+  }
   return {
     kind: Kind.VARIABLE_DEFINITION,
     variable: {
@@ -395,7 +414,7 @@ function resolveVariable(arg: GraphQLArgument, name?: string): VariableDefinitio
       },
     },
     type: resolveVariableType(arg.type),
-    defaultValue: (arg.astNode || {}).defaultValue,
+    defaultValue,
   };
 }
 
