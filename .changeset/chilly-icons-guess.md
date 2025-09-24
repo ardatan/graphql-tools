@@ -1,8 +1,8 @@
 ---
-'@graphql-tools/utils': major
+'@graphql-tools/utils': patch
 ---
 
-Fix the bug in `mergeDeep` but it might be a breaking change;
+Fix the bug in `mergeDeep`;
 
 The following inputs and outputs are corrected;
 
