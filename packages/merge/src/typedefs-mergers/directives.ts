@@ -84,6 +84,14 @@ const matchValues = (a: ValueNode, b: ValueNode): boolean => {
   return false;
 };
 
+const isLinkDirective = (directive: DirectiveNode): boolean => directive.name.value === 'link';
+const getLinkDirectiveURL = (directive: DirectiveNode): string | undefined => {
+  const stringValue = isLinkDirective(directive)
+    ? directive.arguments?.find(arg => arg.name.value === 'url')?.value
+    : undefined;
+  return stringValue?.kind === 'StringValue' ? stringValue.value : undefined;
+};
+
 const matchArguments = (a: ArgumentNode, b: ArgumentNode): boolean =>
   a.name.value === b.name.value && a.value.kind === b.value.kind && matchValues(a.value, b.value);
 
@@ -124,6 +132,15 @@ export function mergeDirectives(
         // if did not find a directive with this name on the result set already
         result.push(directive);
       } else {
+        if (isLinkDirective(directive) && isLinkDirective(result[firstAt])) {
+          const url1 = getLinkDirectiveURL(directive);
+          const url2 = getLinkDirectiveURL(result[firstAt]);
+          // if both are link directives but with different urls, do not merge them
+          if (url1 && url2 && url1 !== url2) {
+            result.push(directive);
+            continue;
+          }
+        }
         // if not repeatable and found directive with the same name already in the result set,
         // then merge the arguments of the existing directive and the new directive
         const mergedArguments = mergeArguments(
