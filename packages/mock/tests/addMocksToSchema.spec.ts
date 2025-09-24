@@ -28,17 +28,20 @@ const typeDefs = /* GraphQL */ `
   }
 
   scalar Date
+  scalar UPC
 
   interface Book {
     id: ID!
     title: String
     publishedAt: Date
+    upc: UPC
   }
 
   type TextBook implements Book {
     id: ID!
     title: String
     publishedAt: Date
+    upc: UPC
     text: String
   }
 
@@ -46,6 +49,7 @@ const typeDefs = /* GraphQL */ `
     id: ID!
     title: String
     publishedAt: Date
+    upc: UPC
     colors: [String]
   }
 
@@ -346,6 +350,36 @@ describe('addMocksToSchema', () => {
     expect(errors).not.toBeDefined();
     expect(data).toBeDefined();
     expect((data!['viewer'] as any)['book']['publishedAt']).toBe(mockDate);
+  });
+  it('should handle objects with symbols', async () => {
+    const mockUpc = {
+      [Symbol('upc')]: '123456789012',
+    };
+    const query = /* GraphQL */ `
+      query {
+        viewer {
+          book {
+            title
+            upc
+          }
+        }
+      }
+    `;
+
+    const mockedSchema = addMocksToSchema({
+      schema,
+      mocks: {
+        UPC: () => mockUpc,
+      },
+    });
+    const { data, errors } = await graphql({
+      schema: mockedSchema,
+      source: query,
+    });
+
+    expect(errors).not.toBeDefined();
+    expect(data).toBeDefined();
+    expect((data!['viewer'] as any)['book']['upc']).toBe(mockUpc);
   });
   it('should handle null fields correctly', async () => {
     const schema = buildSchema(/* GraphQL */ `
