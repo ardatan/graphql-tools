@@ -664,3 +664,71 @@ test('should handle array field types used for alias field names', async () => {
   const source = parseGraphQLSDL(`${virtualFileName}.graphql`, rawSDL);
   expect(source).toBeDefined();
 });
+
+test('should work with query with default value arguments', async () => {
+  const document = buildOperationNodeForField({
+    schema: buildSchema(/* GraphQL */ `
+      input PageInfoInput {
+        offset: Int!
+        limit: Int!
+      }
+
+      type User {
+        id: ID
+        name: String
+      }
+
+      type Query {
+        # users(pageInfo: PageInfoInput!): [User]
+        usersSearch(query: String, offset: Int! = 0, limit: Int! = 10): [User]
+      }
+    `),
+    kind: 'query' as OperationTypeNode,
+    field: 'usersSearch',
+    models,
+    ignore: [],
+  })!;
+
+  expect(clean(document)).toEqual(
+    clean(/* GraphQL */ `
+      query usersSearch_query($query: String, $offset: Int! = 0, $limit: Int! = 10) {
+        usersSearch(query: $query, offset: $offset, limit: $limit) {
+          id
+          name
+        }
+      }
+    `),
+  );
+});
+
+test('should work with mutation with default value arguments', async () => {
+  const document = buildOperationNodeForField({
+    schema: buildSchema(/* GraphQL */ `
+      type User {
+        id: ID
+        name: String
+        active: Boolean!
+      }
+
+      type Mutation {
+        addUser(name: String!, active: Boolean = true): [User]
+      }
+    `),
+    kind: 'mutation' as OperationTypeNode,
+    field: 'addUser',
+    models,
+    ignore: [],
+  })!;
+
+  expect(clean(document)).toEqual(
+    clean(/* GraphQL */ `
+      mutation addUser_mutation($name: String!, $active: Boolean = true) {
+        addUser(name: $name, active: $active) {
+          id
+          name
+          active
+        }
+      }
+    `),
+  );
+});
