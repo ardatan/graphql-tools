@@ -14,7 +14,6 @@ import {
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLObjectTypeConfig,
-  GraphQLScalarType,
   GraphQLSchema,
   GraphQLType,
   InputValueDefinitionNode,
@@ -29,7 +28,6 @@ import {
   isScalarType,
   isUnionType,
   Kind,
-  specifiedScalarTypes,
 } from 'graphql';
 import { getObjectTypeFromTypeMap } from './getObjectTypeFromTypeMap.js';
 import {
@@ -99,6 +97,8 @@ export function mapSchema(schema: GraphQLSchema, schemaMapper: SchemaMapper = {}
   });
 }
 
+const builtinTypes = ['String', 'ID', 'Int', 'Float', 'Boolean'];
+
 function mapTypes(
   originalTypeMap: Record<string, GraphQLNamedType>,
   schema: GraphQLSchema,
@@ -108,13 +108,10 @@ function mapTypes(
   const newTypeMap = {};
 
   for (const typeName in originalTypeMap) {
-    if (!typeName.startsWith('__')) {
+    if (!typeName.startsWith('__') && !builtinTypes.includes(typeName)) {
       const originalType = originalTypeMap[typeName];
 
-      if (
-        originalType == null ||
-        (!testFn(originalType) && !specifiedScalarTypes.includes(originalType as GraphQLScalarType))
-      ) {
+      if (originalType == null || !testFn(originalType)) {
         newTypeMap[typeName] = originalType;
         continue;
       }
