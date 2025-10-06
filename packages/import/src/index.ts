@@ -393,11 +393,9 @@ function importFederatedSchemaLinks(
      * */
     if (matchesImplementation(federationUrl, 'v2.0')) {
       const federationImports = [
-        '@composeDirective',
         '@extends',
         '@external',
         '@inaccessible',
-        '@interfaceObject',
         '@key',
         '@override',
         '@provides',
@@ -405,6 +403,24 @@ function importFederatedSchemaLinks(
         '@shareable',
         '@tag',
         'FieldSet',
+        /** v2.1 */
+        '@composeDirective',
+        /** v2.3 */
+        '@interfaceObject',
+        /** v2.5 */
+        '@authenticated',
+        '@requiresScopes',
+        /** v2.6 */
+        '@policy',
+        /** v2.8 */
+        '@context',
+        '@fromContext',
+        /** v2.9 */
+        '@cost',
+        '@listSize',
+        /** v2.10 */
+        '@connect',
+        '@source',
       ];
       for (const i of federationImports) {
         addDefinition(resolveImportName(federationUrl, i));
