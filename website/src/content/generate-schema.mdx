@@ -272,4 +272,8 @@ const jsSchema = makeExecutableSchema({
     a GraphQL entity within the schema. Defaults to `error`, to help catch common errors.
 
 - `inheritResolversFromInterfaces` GraphQL Objects that implement interfaces will inherit missing
-  resolvers from their interface types defined in the `resolvers` object.
+  resolvers from their interface types defined in the `resolvers` object. If this option is set to
+  `true` and you are using [GraphQL Code Generator](https://the-guild.dev/graphql/codegen), you can
+  enable
+  [addInterfaceFieldResolverTypes: true](https://the-guild.dev/graphql/codegen/plugins/typescript/typescript-resolvers#addinterfacefieldresolvertypes)
+  to ensure that the generated types correctly reflect this resolver inheritance behavior.
