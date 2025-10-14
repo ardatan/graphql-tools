@@ -1,4 +1,5 @@
 import { ASTNode, GraphQLError, Source, versionInfo } from 'graphql';
+import { GraphQLResolveInfo } from './Interfaces.js';
 import { Maybe } from './types.js';
 
 interface GraphQLErrorOptions {
@@ -63,6 +64,7 @@ export function createGraphQLError(message: string, options?: GraphQLErrorOption
 export function relocatedError(
   originalError: GraphQLError,
   path?: ReadonlyArray<string | number>,
+  info?: Maybe<GraphQLResolveInfo>,
 ): GraphQLError {
   return createGraphQLError(originalError.message, {
     nodes: originalError.nodes,
@@ -70,6 +72,11 @@ export function relocatedError(
     positions: originalError.positions,
     path: path == null ? originalError.path : path,
     originalError,
-    extensions: originalError.extensions,
+    extensions: info
+      ? {
+          ...originalError.extensions,
+          schemaCoordinates: `${info.parentType.name}.${info.fieldName}`,
+        }
+      : originalError.extensions,
   });
 }
