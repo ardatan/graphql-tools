@@ -47,7 +47,7 @@
     "@graphql-tools/stitch": "^10.0.2",
     "@types/dateformat": "3.0.1",
     "dateformat": "4.6.3",
-    "graphql-scalars": "1.24.2"
+    "graphql-scalars": "1.25.0"
   },
   "publishConfig": {
     "directory": "dist",
