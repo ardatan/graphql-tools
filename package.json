@@ -97,7 +97,7 @@
   },
   "overrides": {
     "cookie": "1.0.2",
-    "esbuild": "0.25.10",
+    "esbuild": "0.25.11",
     "estree-util-value-to-estree": "3.4.0",
     "graphql": "16.11.0",
     "react": "19.2.0",
