@@ -93,6 +93,13 @@ export interface ExecutionRequest<
   subgraphName?: string;
   info?: GraphQLResolveInfo;
   signal?: AbortSignal;
+  /**
+   * Enable/Disable the addition of field schema coordinate in GraphQL Errors extension
+   *
+   * Note: Schema Coordinate are exposed using Symbol.for('schemaCoordinate') so that it's not
+   *       serialized. Exposing schema coordinate can ease the discovery of private schemas.
+   */
+  schemaCoordinateInErrors?: boolean;
 }
 
 // graphql-js non-exported typings
