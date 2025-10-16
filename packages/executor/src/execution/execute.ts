@@ -127,6 +127,7 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   signal?: AbortSignal;
   onSignalAbort?(handler: () => void): void;
   signalPromise?: Promise<never>;
+  schemaCoordinateInErrors?: boolean;
 }
 
 export interface FormattedExecutionResult<
@@ -247,6 +248,7 @@ export interface ExecutionArgs<TData = any, TVariables = any, TContext = any> {
   typeResolver?: Maybe<GraphQLTypeResolver<any, TContext>>;
   subscribeFieldResolver?: Maybe<GraphQLFieldResolver<any, TContext>>;
   signal?: AbortSignal;
+  schemaCoordinateInErrors?: boolean;
 }
 
 /**
@@ -419,6 +421,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     typeResolver,
     subscribeFieldResolver,
     signal,
+    schemaCoordinateInErrors,
   } = args;
 
   signal?.throwIfAborted();
@@ -531,6 +534,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     signal,
     onSignalAbort,
     signalPromise,
+    schemaCoordinateInErrors,
   };
 }
 
@@ -746,14 +750,24 @@ function executeField(
           let result: unknown;
           for (let rawErrorItem of rawError.errors) {
             rawErrorItem = coerceError(rawErrorItem);
-            const error = locatedError(rawErrorItem, fieldNodes, pathToArray(path), info);
+            const error = locatedError(
+              rawErrorItem,
+              fieldNodes,
+              pathToArray(path),
+              exeContext.schemaCoordinateInErrors && info,
+            );
             result = handleFieldError(error, returnType, errors);
             filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
           }
           return result;
         }
         rawError = coerceError(rawError);
-        const error = locatedError(rawError, fieldNodes, pathToArray(path), info);
+        const error = locatedError(
+          rawError,
+          fieldNodes,
+          pathToArray(path),
+          exeContext.schemaCoordinateInErrors && info,
+        );
         const handledError = handleFieldError(error, returnType, errors);
         filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
         return handledError;
@@ -765,14 +779,24 @@ function executeField(
       let result: unknown;
       for (let rawErrorItem of rawError.errors) {
         rawErrorItem = coerceError(rawErrorItem);
-        const error = locatedError(rawErrorItem, fieldNodes, pathToArray(path), info);
+        const error = locatedError(
+          rawErrorItem,
+          fieldNodes,
+          pathToArray(path),
+          exeContext.schemaCoordinateInErrors && info,
+        );
         result = handleFieldError(error, returnType, errors);
         filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
       }
       return result;
     }
     const coercedError = coerceError(rawError);
-    const error = locatedError(coercedError, fieldNodes, pathToArray(path), info);
+    const error = locatedError(
+      coercedError,
+      fieldNodes,
+      pathToArray(path),
+      exeContext.schemaCoordinateInErrors && info,
+    );
     const handledError = handleFieldError(error, returnType, errors);
     filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
     return handledError;
@@ -1041,7 +1065,12 @@ async function completeAsyncIteratorValue(
       }
     } catch (rawError) {
       const coercedError = coerceError(rawError);
-      const error = locatedError(coercedError, fieldNodes, pathToArray(itemPath), info);
+      const error = locatedError(
+        coercedError,
+        fieldNodes,
+        pathToArray(itemPath),
+        exeContext.schemaCoordinateInErrors && info,
+      );
       completedResults.push(handleFieldError(error, itemType, errors));
       break;
     }
@@ -1201,7 +1230,12 @@ function completeListItemValue(
       completedResults.push(
         completedItem.then(undefined, rawError => {
           rawError = coerceError(rawError);
-          const error = locatedError(rawError, fieldNodes, pathToArray(itemPath), info);
+          const error = locatedError(
+            rawError,
+            fieldNodes,
+            pathToArray(itemPath),
+            exeContext.schemaCoordinateInErrors && info,
+          );
           const handledError = handleFieldError(error, itemType, errors);
           filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
           return handledError;
@@ -1214,7 +1248,12 @@ function completeListItemValue(
     completedResults.push(completedItem);
   } catch (rawError) {
     const coercedError = coerceError(rawError);
-    const error = locatedError(coercedError, fieldNodes, pathToArray(itemPath), info);
+    const error = locatedError(
+      coercedError,
+      fieldNodes,
+      pathToArray(itemPath),
+      exeContext.schemaCoordinateInErrors && info,
+    );
     const handledError = handleFieldError(error, itemType, errors);
     filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
     completedResults.push(handledError);
@@ -1789,13 +1828,23 @@ function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIt
       return result
         .then(result => assertEventStream(result, exeContext.signal, exeContext.onSignalAbort))
         .then(undefined, error => {
-          throw locatedError(error, fieldNodes, pathToArray(path), info);
+          throw locatedError(
+            error,
+            fieldNodes,
+            pathToArray(path),
+            exeContext.schemaCoordinateInErrors && info,
+          );
         });
     }
 
     return assertEventStream(result, exeContext.signal, exeContext.onSignalAbort);
   } catch (error) {
-    throw locatedError(error, fieldNodes, pathToArray(path), info);
+    throw locatedError(
+      error,
+      fieldNodes,
+      pathToArray(path),
+      exeContext.schemaCoordinateInErrors && info,
+    );
   }
 }
 
@@ -1921,7 +1970,12 @@ function executeStreamField(
         // to take a second callback for the error case.
         completedItem = completedItem.then(undefined, rawError => {
           rawError = coerceError(rawError);
-          const error = locatedError(rawError, fieldNodes, pathToArray(itemPath), info);
+          const error = locatedError(
+            rawError,
+            fieldNodes,
+            pathToArray(itemPath),
+            exeContext.schemaCoordinateInErrors && info,
+          );
           const handledError = handleFieldError(error, itemType, asyncPayloadRecord.errors);
           filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
           return handledError;
@@ -1929,7 +1983,12 @@ function executeStreamField(
       }
     } catch (rawError) {
       const coercedError = coerceError(rawError);
-      const error = locatedError(coercedError, fieldNodes, pathToArray(itemPath), info);
+      const error = locatedError(
+        coercedError,
+        fieldNodes,
+        pathToArray(itemPath),
+        exeContext.schemaCoordinateInErrors && info,
+      );
       completedItem = handleFieldError(error, itemType, asyncPayloadRecord.errors);
       filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
     }
@@ -1977,7 +2036,12 @@ async function executeStreamIteratorItem(
     item = value;
   } catch (rawError) {
     const coercedError = coerceError(rawError);
-    const error = locatedError(coercedError, fieldNodes, pathToArray(itemPath), info);
+    const error = locatedError(
+      coercedError,
+      fieldNodes,
+      pathToArray(itemPath),
+      exeContext.schemaCoordinateInErrors && info,
+    );
     const value = handleFieldError(error, itemType, asyncPayloadRecord.errors);
     // don't continue if iterator throws
     return { done: true, value };
@@ -1996,7 +2060,12 @@ async function executeStreamIteratorItem(
 
     if (isPromise(completedItem)) {
       completedItem = completedItem.then(undefined, rawError => {
-        const error = locatedError(rawError, fieldNodes, pathToArray(itemPath), info);
+        const error = locatedError(
+          rawError,
+          fieldNodes,
+          pathToArray(itemPath),
+          exeContext.schemaCoordinateInErrors && info,
+        );
         const handledError = handleFieldError(error, itemType, asyncPayloadRecord.errors);
         filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
         return handledError;
@@ -2004,7 +2073,12 @@ async function executeStreamIteratorItem(
     }
     return { done: false, value: completedItem };
   } catch (rawError) {
-    const error = locatedError(rawError, fieldNodes, pathToArray(itemPath), info);
+    const error = locatedError(
+      rawError,
+      fieldNodes,
+      pathToArray(itemPath),
+      exeContext.schemaCoordinateInErrors && info,
+    );
     const value = handleFieldError(error, itemType, asyncPayloadRecord.errors);
     filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
     return { done: false, value };
