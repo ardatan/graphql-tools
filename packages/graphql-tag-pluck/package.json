@@ -50,7 +50,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@babel/core": "^7.26.10",
+    "@babel/core": "^7.28.5",
     "@babel/parser": "^7.26.10",
     "@babel/plugin-syntax-import-assertions": "^7.26.0",
     "@babel/traverse": "^7.26.10",
@@ -64,7 +64,7 @@
     "@vue/compiler-sfc": "3.5.22",
     "astrojs-compiler-sync": "1.1.1",
     "content-tag": "4.0.0",
-    "svelte": "5.41.1",
+    "svelte": "5.41.3",
     "svelte2tsx": "0.7.45"
   },
   "publishConfig": {
