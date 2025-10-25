@@ -1,5 +1,57 @@
 # @graphql-tools/utils
 
+## 10.10.0
+
+### Minor Changes
+
+- [#5269](https://github.com/ardatan/graphql-tools/pull/5269)
+  [`fded91e`](https://github.com/ardatan/graphql-tools/commit/fded91e34c19cabdcca1bc49146fda1b8fd5661c)
+  Thanks [@uroslates](https://github.com/uroslates)! - Add default values to the arguments
+
+  When the schema is like following;
+
+  ```graphql
+  type Query {
+      getAllPages(currentPage: Int = 0, pageSize: Int = 10, pageType: getAllPages_pageType = ContentPage, sort: String = "asc"): PagesList
+  }
+
+  enum getAllPages_pageType {
+      ContentPage
+      CategoryPage
+      CatalogPage
+  }
+
+  type PagesList {
+      ...
+  }
+  ```
+
+  The generated operation will be like following;
+
+  ```graphql
+  query getAllPages_query($currentPage: Int = 0, $pageSize: Int = 10, $pageType: getAllPages_pageType = ContentPage, $sort: String = "asc") {
+      getAllPages(currentPage: $currentPage, pageSize: $pageSize, pageType: $pageType, sort: $sort) {
+          ...
+      }
+  }
+  ```
+
+### Patch Changes
+
+- [#7012](https://github.com/ardatan/graphql-tools/pull/7012)
+  [`fd105f4`](https://github.com/ardatan/graphql-tools/commit/fd105f4e3a81a32050b5a104d1040ffbb86c6ff5)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fix the bug in `mergeDeep`;
+
+  The following inputs and outputs are corrected;
+  - `mergeDeep([{a:2}, undefined])` - Any nullish values should be ignored so it should return
+    `{a:2}`
+  - `mergeDeep([])` - no sources should return `undefined`
+  - `mergeDeep([undefined])` - no sources should return `undefined`
+
+- [#5294](https://github.com/ardatan/graphql-tools/pull/5294)
+  [`3b99a9b`](https://github.com/ardatan/graphql-tools/commit/3b99a9b6c6f190b2108dc6571bb64a7c3319edd6)
+  Thanks [@n1ru4l](https://github.com/n1ru4l)! - Do not map builtin scalars
+
 ## 10.9.1
 
 ### Patch Changes
