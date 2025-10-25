@@ -16,6 +16,8 @@ const typeDefs = /* GraphQL */ `
     sex: Sex
 
     image: UserImage!
+
+    verified: Boolean
   }
 
   union UserImage = UserImageSolidColor | UserImageURL
@@ -39,17 +41,20 @@ const typeDefs = /* GraphQL */ `
   interface Book {
     id: ID!
     title: String
+    rating: Float
   }
 
   type TextBook implements Book {
     id: ID!
     title: String
+    rating: Float
     text: String
   }
 
   type ColoringBook implements Book {
     id: ID!
     title: String
+    rating: Float
     colors: [String]
   }
 
@@ -666,6 +671,163 @@ describe('MockStore', () => {
       expect(store.find('User', ({ name }) => (name as string).startsWith('N'))).toEqual({
         name: 'Nico',
       });
+    });
+  });
+
+  describe('random generation behavior', () => {
+    it('should generate random integer values for Int scalars', () => {
+      const store = new MockStore({ schema, mockGenerationBehavior: 'random' });
+
+      const userAges = [...new Array(100)].map((_value, index) => {
+        const userId = `user-${index + 1}`;
+        store.set('User', userId, {});
+        return store.get('User', userId, 'age') as number;
+      });
+
+      const hasIntegersOnly = userAges.every(age => age === Math.trunc(age));
+      expect(hasIntegersOnly).toBe(true);
+
+      const hasDifferentValues = userAges
+        .slice(1)
+        .some((value, index) => value !== userAges[index]);
+      expect(hasDifferentValues).toBe(true);
+    });
+
+    it('should generate random float values for Float scalars', () => {
+      const store = new MockStore({ schema, mockGenerationBehavior: 'random' });
+
+      const bookRatings = [...new Array(100)].map((_value, index) => {
+        const bookId = `book-${index + 1}`;
+        store.set('Book', bookId, {});
+        return store.get('Book', bookId, 'rating') as number;
+      });
+
+      const hasFloats = bookRatings.some(rating => rating !== Math.trunc(rating));
+      expect(hasFloats).toBe(true);
+
+      const hasDifferentValues = bookRatings
+        .slice(1)
+        .some((value, index) => value !== bookRatings[index]);
+      expect(hasDifferentValues).toBe(true);
+    });
+
+    it('should return random enum values', () => {
+      const store = new MockStore({ schema, mockGenerationBehavior: 'random' });
+
+      const userSex = [...new Array(100)].map((_value, index) => {
+        const userId = `user-${index + 1}`;
+        store.set('User', userId, {});
+        return store.get('User', userId, 'sex');
+      });
+
+      const hasDifferentValues = userSex.slice(1).some((value, index) => value !== userSex[index]);
+      expect(hasDifferentValues).toBe(true);
+    });
+
+    it('should return random values for Boolean scalars', () => {
+      const store = new MockStore({ schema, mockGenerationBehavior: 'random' });
+
+      const userImages = [...new Array(100)].map((_value, index) => {
+        const userId = `user-${index + 1}`;
+        store.set('User', userId, {});
+        return store.get('User', userId, 'image') as any;
+      });
+
+      const hasSolidColorImages = userImages.some(
+        image => image.$ref.typeName === 'UserImageSolidColor',
+      );
+      const hasUrlImages = userImages.some(image => image.$ref.typeName === 'UserImageURL');
+      expect(hasSolidColorImages).toBe(true);
+      expect(hasUrlImages).toBe(true);
+    });
+
+    it('should return random boolean values', () => {
+      const store = new MockStore({ schema, mockGenerationBehavior: 'random' });
+
+      const userVerificationStatuses = [...new Array(100)].map((_value, index) => {
+        const userId = `user-${index + 1}`;
+        store.set('User', userId, {});
+        return store.get('User', userId, 'verified') as boolean;
+      });
+
+      const hasDifferentValues = userVerificationStatuses
+        .slice(1)
+        .some((value, index) => value !== userVerificationStatuses[index]);
+      expect(hasDifferentValues).toBe(true);
+    });
+  });
+
+  describe('deterministic generation behavior', () => {
+    it('should always return 1 for Int scalars', () => {
+      const store = new MockStore({ schema, mockGenerationBehavior: 'deterministic' });
+
+      const userAges = [...new Array(100)].map((_value, index) => {
+        const userId = `user-${index + 1}`;
+        store.set('User', userId, {});
+        return store.get('User', userId, 'age') as number;
+      });
+
+      expect(userAges).toEqual(new Array(100).fill(1));
+    });
+
+    it('should always return 1.5 for Float scalars', () => {
+      const store = new MockStore({ schema, mockGenerationBehavior: 'deterministic' });
+
+      const bookRatings = [...new Array(100)].map((_value, index) => {
+        const bookId = `book-${index + 1}`;
+        store.set('Book', bookId, {});
+        return store.get('Book', bookId, 'rating') as number;
+      });
+
+      expect(bookRatings).toEqual(new Array(100).fill(1.5));
+    });
+
+    it('should always return first enum value', () => {
+      const store = new MockStore({ schema, mockGenerationBehavior: 'deterministic' });
+
+      const userSex = [...new Array(100)].map((_value, index) => {
+        const userId = `user-${index + 1}`;
+        store.set('User', userId, {});
+        return store.get('User', userId, 'sex');
+      });
+
+      expect(userSex).toEqual(new Array(100).fill('Male'));
+    });
+
+    it('should always return first union value', () => {
+      const store = new MockStore({ schema, mockGenerationBehavior: 'deterministic' });
+
+      const userImageTypes = [...new Array(100)].map((_value, index) => {
+        const userId = `user-${index + 1}`;
+        store.set('User', userId, {});
+        return (store.get('User', userId, 'image') as any).$ref.typeName;
+      });
+
+      expect(userImageTypes).toEqual(new Array(100).fill('UserImageSolidColor'));
+    });
+
+    it('should always return arrays with two elements', () => {
+      const store = new MockStore({ schema, mockGenerationBehavior: 'deterministic' });
+
+      const userSurnames = [...new Array(100)].map((_value, index) => {
+        const userId = `user-${index + 1}`;
+        store.set('User', userId, {});
+        return store.get('User', userId, 'surnames') as unknown[];
+      });
+
+      expect(userSurnames).toEqual(new Array(100).fill(['Hello World', 'Hello World']));
+    });
+
+    it('should always return "true" for Boolean scalars', () => {
+      const store = new MockStore({ schema, mockGenerationBehavior: 'deterministic' });
+
+      const userVerificationStatuses = [...new Array(100)].map((_value, index) => {
+        const userId = `user-${index + 1}`;
+        store.set('User', userId, {});
+        return store.get('User', userId, 'verified') as boolean;
+      });
+
+      expect(userVerificationStatuses).toEqual(new Array(100).fill(true));
     });
   });
 });

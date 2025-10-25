@@ -11,13 +11,14 @@ import {
 import { addResolversToSchema } from '@graphql-tools/schema';
 import { IResolvers, MapperKind, mapSchema } from '@graphql-tools/utils';
 import { createMockStore } from './MockStore.js';
-import { IMocks, IMockStore, isRef, TypePolicy } from './types.js';
+import { IMocks, IMockStore, isRef, MockGenerationBehavior, TypePolicy } from './types.js';
 import { copyOwnProps, isObject, isRootType } from './utils.js';
 
 type IMockOptions<TResolvers = IResolvers> = {
   schema: GraphQLSchema;
   store?: IMockStore;
   mocks?: IMocks<TResolvers>;
+  mockGenerationBehavior?: MockGenerationBehavior;
   typePolicies?: {
     [typeName: string]: TypePolicy;
   };
@@ -93,6 +94,7 @@ export function addMocksToSchema<TResolvers = IResolvers>({
   schema,
   store: maybeStore,
   mocks,
+  mockGenerationBehavior,
   typePolicies,
   resolvers: resolversOrFnResolvers,
   preserveResolvers = false,
@@ -112,6 +114,7 @@ export function addMocksToSchema<TResolvers = IResolvers>({
     createMockStore({
       schema,
       mocks,
+      mockGenerationBehavior,
       typePolicies,
     });
 

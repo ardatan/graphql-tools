@@ -21,6 +21,8 @@ export type IMocks<TResolvers = IResolvers> = {
   [typeOrScalarName: string]: IScalarMock | ITypeMock;
 };
 
+export type MockGenerationBehavior = 'random' | 'deterministic';
+
 export type KeyTypeConstraints = string | number;
 
 export type TypePolicy = {
