@@ -2,7 +2,7 @@ import { graphql, isSchema } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { TypeSource } from '@graphql-tools/utils';
 import { addMocksToSchema } from './addMocksToSchema.js';
-import { IMocks, IMockServer } from './types.js';
+import { IMocks, IMockServer, MockGenerationBehavior } from './types.js';
 
 /**
  * A convenience wrapper on top of `addMocksToSchema`. It adds your mock resolvers
@@ -15,11 +15,14 @@ import { IMocks, IMockServer } from './types.js';
  * @param preserveResolvers Set to `true` to prevent existing resolvers from being
  * overwritten to provide mock data. This can be used to mock some parts of the
  * server and not others.
+ * @param mockGenerationBehavior Set to `'deterministic'` if the default random
+ * mock generation behavior causes flakiness.
  */
 export function mockServer<TResolvers>(
   schema: TypeSource,
   mocks: IMocks<TResolvers>,
   preserveResolvers = false,
+  mockGenerationBehavior?: MockGenerationBehavior,
 ): IMockServer {
   const mockedSchema = addMocksToSchema({
     schema: isSchema(schema)
@@ -28,6 +31,7 @@ export function mockServer<TResolvers>(
           typeDefs: schema,
         }),
     mocks,
+    mockGenerationBehavior,
     preserveResolvers,
   });
 

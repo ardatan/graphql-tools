@@ -1,6 +1,6 @@
 import { GraphQLObjectType, GraphQLSchema } from 'graphql';
 import { getRootTypeNames } from '@graphql-tools/utils';
-import { KeyTypeConstraints, Ref } from './types.js';
+import { KeyTypeConstraints, MockGenerationBehavior, Ref } from './types.js';
 
 export function uuidv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -17,7 +17,13 @@ export const randomListLength = () => {
   return 2;
 };
 
-export const takeRandom = <T>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
+export const takeOneOf = <T>(arr: T[], behavior: MockGenerationBehavior) => {
+  if (behavior === 'deterministic') {
+    return arr[0];
+  }
+
+  return arr[Math.floor(Math.random() * arr.length)];
+};
 
 export function makeRef<KeyT extends KeyTypeConstraints = string>(
   typeName: string,

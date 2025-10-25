@@ -412,15 +412,20 @@ import { addMocksToSchema } from '@graphql-tools/mock'
 const schemaWithMocks = addMocksToSchema({
   schema,
   mocks: {},
+  mockGenerationBehavior: 'random',
   preserveResolvers: false
 })
 ```
 
 Given an instance of GraphQLSchema and a mock object, `addMocksToSchema` returns a new schema that
-can return mock data for any valid query that is sent to the server. If `mocks` is not passed, the
-defaults will be used for each of the scalar types. If `preserveResolvers` is set to `true`,
-existing resolvers will not be overwritten to provide mock data. This can be used to mock some parts
-of the server and not others.
+can return mock data for any valid query that is sent to the server.
+
+If `mocks` is not passed, the defaults will be used for each of the scalar types. By default it'll
+generate random values, if this causes flakiness and you need a more deterministic behavior, set
+`mockGenerationBehavior` to `'deterministic'`.
+
+If `preserveResolvers` is set to `true`, existing resolvers will not be overwritten to provide mock
+data. This can be used to mock some parts of the server and not others.
 
 ### `mockServer`
 
