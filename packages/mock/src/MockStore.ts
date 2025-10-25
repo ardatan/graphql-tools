@@ -37,7 +37,7 @@ const defaultRandomMocks = {
   Boolean: () => Math.random() > 0.5,
 };
 
-const defaultDeteministicMocks = {
+const defaultDeterministicMocks = {
   Int: () => 1,
   Float: () => 1.5,
   Boolean: () => true,
@@ -81,7 +81,7 @@ export class MockStore implements IMockStore {
     this.mockGenerationBehavior = mockGenerationBehavior;
     this.mocks = {
       ...defaultCommonMocks,
-      ...(mockGenerationBehavior === 'random' ? defaultRandomMocks : defaultDeteministicMocks),
+      ...(mockGenerationBehavior === 'random' ? defaultRandomMocks : defaultDeterministicMocks),
       ...mocks,
     };
     this.typePolicies = typePolicies || {};
