@@ -24,17 +24,27 @@ import {
   isRef,
   ITypeMock,
   KeyTypeConstraints,
+  MockGenerationBehavior,
   Ref,
   SetArgs,
   TypePolicy,
 } from './types.js';
-import { makeRef, randomListLength, takeRandom, uuidv4 } from './utils.js';
+import { makeRef, randomListLength, takeOneOf, uuidv4 } from './utils.js';
 
-export const defaultMocks = {
+const defaultRandomMocks = {
   Int: () => Math.round(Math.random() * 200) - 100,
   Float: () => Math.random() * 200 - 100,
-  String: () => 'Hello World',
   Boolean: () => Math.random() > 0.5,
+};
+
+const defaultDeterministicMocks = {
+  Int: () => 1,
+  Float: () => 1.5,
+  Boolean: () => true,
+};
+
+const defaultCommonMocks = {
+  String: () => 'Hello World',
   ID: () => uuidv4(),
 };
 
@@ -47,6 +57,7 @@ type Entity = {
 export class MockStore implements IMockStore {
   public schema: GraphQLSchema;
   private mocks: IMocks;
+  private mockGenerationBehavior: MockGenerationBehavior;
   private typePolicies: {
     [typeName: string]: TypePolicy;
   };
@@ -56,16 +67,23 @@ export class MockStore implements IMockStore {
   constructor({
     schema,
     mocks,
+    mockGenerationBehavior = 'random',
     typePolicies,
   }: {
     schema: GraphQLSchema;
     mocks?: IMocks;
+    mockGenerationBehavior?: MockGenerationBehavior;
     typePolicies?: {
       [typeName: string]: TypePolicy;
     };
   }) {
     this.schema = schema;
-    this.mocks = { ...defaultMocks, ...mocks };
+    this.mockGenerationBehavior = mockGenerationBehavior;
+    this.mocks = {
+      ...defaultCommonMocks,
+      ...(mockGenerationBehavior === 'random' ? defaultRandomMocks : defaultDeterministicMocks),
+      ...mocks,
+    };
     this.typePolicies = typePolicies || {};
   }
 
@@ -549,7 +567,7 @@ export class MockStore implements IMockStore {
       if (typeof mockFn === 'function') return mockFn();
 
       const values = nullableType.getValues().map(v => v.value);
-      return takeRandom(values);
+      return takeOneOf(values, this.mockGenerationBehavior);
     } else if (isObjectType(nullableType)) {
       // this will create a new random ref
       return this.insert(nullableType.name, {});
@@ -563,7 +581,10 @@ export class MockStore implements IMockStore {
       let typeName: string;
       let values: { [key: string]: unknown } = {};
       if (!mock) {
-        typeName = takeRandom(this.schema.getPossibleTypes(nullableType).map(t => t.name));
+        typeName = takeOneOf(
+          this.schema.getPossibleTypes(nullableType).map(t => t.name),
+          this.mockGenerationBehavior,
+        );
       } else if (typeof mock === 'function') {
         const mockRes = mock();
         if (mockRes === null) return null;
@@ -690,6 +711,8 @@ function assertIsDefined<T>(value: T, message?: string): asserts value is NonNul
  * Will create `MockStore` for the given `schema`.
  *
  * A `MockStore` will generate mock values for the given schema when queried.
+ * By default it'll generate random values, if this causes flakiness and you
+ * need a more deterministic behavior, use `mockGenerationBehavior` option.
  *
  * It will store generated mocks, so that, provided with same arguments
  * the returned values will be the same.
@@ -721,6 +744,30 @@ export function createMockStore(options: {
    * The mocks functions to use.
    */
   mocks?: IMocks;
+
+  /**
+   * Configures the default behavior for Scalar, Enum, Union, and Array types.
+   *
+   * When set to `random`, then every time a value is generated for a field with
+   * one of these types
+   * - For Unions and Enums one of the allowed values will be picked randomly
+   * - For Arrays an array of random length will be generated
+   * - For Int and Float scalars a random number will be generated
+   * - For Boolean scalars either `true` or `false` will be returned randomly
+   *
+   * When set to `deterministic`, then
+   * - For Unions and Enums the first allowed value is picked
+   * - For Arrays an array of two elements will be generated
+   * - For Int and Float scalars values 1 and 1.5 will be used respectively
+   * - For Boolean scalars we'll always return `true`
+   * - For String scalars we'll always return "Hello World"
+   *
+   * Regardless of the chosen behavior, for ID scalars a random UUID string
+   * will always be generated.
+   *
+   * @default "random"
+   */
+  mockGenerationBehavior?: MockGenerationBehavior;
 
   typePolicies?: {
     [typeName: string]: TypePolicy;
