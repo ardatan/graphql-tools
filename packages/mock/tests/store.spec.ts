@@ -829,5 +829,17 @@ describe('MockStore', () => {
 
       expect(userVerificationStatuses).toEqual(new Array(100).fill(true));
     });
+
+    it('should always return "Hello World" for String scalars', () => {
+      const store = new MockStore({ schema, mockGenerationBehavior: 'deterministic' });
+
+      const userNames = [...new Array(100)].map((_value, index) => {
+        const userId = `user-${index + 1}`;
+        store.set('User', userId, {});
+        return store.get('User', userId, 'name') as string;
+      });
+
+      expect(userNames).toEqual(new Array(100).fill('Hello World'));
+    });
   });
 });

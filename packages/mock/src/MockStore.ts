@@ -760,6 +760,7 @@ export function createMockStore(options: {
    * - For Arrays an array of two elements will be generated
    * - For Int and Float scalars values 1 and 1.5 will be used respectively
    * - For Boolean scalars we'll always return `true`
+   * - For String scalars we'll always return "Hello World"
    *
    * Regardless of the chosen behavior, for ID scalars a random UUID string
    * will always be generated.
