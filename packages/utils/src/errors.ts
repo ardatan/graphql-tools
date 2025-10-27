@@ -69,7 +69,7 @@ function addSchemaCoordinateToError(error: GraphQLError, info: SchemaCoordinateI
 
 export function locatedError(
   rawError: unknown,
-  nodes: ASTNode | ReadonlyArray<ASTNode> | null | undefined,
+  nodes: ASTNode | ReadonlyArray<ASTNode> | undefined,
   path: Maybe<ReadonlyArray<string | number>>,
   info: SchemaCoordinateInfo | false | null | undefined,
 ) {
