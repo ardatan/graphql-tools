@@ -67,6 +67,11 @@ function addSchemaCoordinateToError(error: GraphQLError, info: SchemaCoordinateI
   error.extensions[ERROR_EXTENSION_SCHEMA_COORDINATE] = `${info.parentType.name}.${info.fieldName}`;
 }
 
+export function getSchemaCoordinate(error: GraphQLError): string | undefined {
+  // @ts-expect-error extensions can't be Symbol in official GraphQL Error type
+  return error.extensions[ERROR_EXTENSION_SCHEMA_COORDINATE];
+}
+
 export function locatedError(
   rawError: unknown,
   nodes: ASTNode | ReadonlyArray<ASTNode> | undefined,
