@@ -93,12 +93,7 @@ export function relocatedError(
     positions: originalError.positions,
     path: path == null ? originalError.path : path,
     originalError,
-    extensions: info
-      ? {
-          ...originalError.extensions,
-          schemaCoordinates: `${info.parentType.name}.${info.fieldName}`,
-        }
-      : originalError.extensions,
+    extensions: originalError.extensions,
   });
 
   if (info) {
