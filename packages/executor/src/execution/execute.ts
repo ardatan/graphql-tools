@@ -42,6 +42,7 @@ import {
   isIterableObject,
   isObjectLike,
   isPromise,
+  locatedError,
   mapAsyncIterator,
   Maybe,
   MaybePromise,
@@ -57,7 +58,6 @@ import { createDeferredPromise, handleMaybePromise } from '@whatwg-node/promise-
 import { coerceError } from './coerceError.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import { invariant } from './invariant.js';
-import { locatedError } from './locatedError.js';
 import { promiseForObject } from './promiseForObject.js';
 import { getVariableValues } from './values.js';
 
