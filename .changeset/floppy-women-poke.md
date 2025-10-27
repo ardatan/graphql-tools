@@ -11,7 +11,7 @@ To avoid leaking schema information to the client, the extension key is a `Symbo
 To forward it to the client, copy it to a custom extension with a serializable key.
 
 ```ts
-import { ERROR_EXTENSION_SCHEMA_COORDINATE } from '@graphql-tools/utils'
+import { getSchemaCoordinate } from '@graphql-tools/utils'
 import { normalizedExecutor } from '@graphql-tools/executor'
 import { parse } from 'graphql'
 import schema from './schema'
@@ -29,7 +29,7 @@ if (result.errors) {
   for (error of result.errors) {
     console.log(
       'Error in resolver ',
-      error.extensions[ERROR_EXTENSION_SCHEMA_COORDINATE], ':',
+      getSchemaCoordinate(error), ':',
       error.message
     )
   }
