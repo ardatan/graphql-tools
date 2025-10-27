@@ -26,7 +26,7 @@ const result = await normalizedExecutor({
 });
 
 if (result.errors) {
-  for (error of result.errors) {
+  for (const error of result.errors) {
     console.log(
       'Error in resolver ',
       getSchemaCoordinate(error), ':',
