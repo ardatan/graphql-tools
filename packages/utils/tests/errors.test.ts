@@ -1,4 +1,4 @@
-import { ASTNode, GraphQLError, Kind, versionInfo } from 'graphql';
+import { ASTNode, GraphQLError, Kind } from 'graphql';
 import {
   createGraphQLError,
   ERROR_EXTENSION_SCHEMA_COORDINATE,
@@ -39,11 +39,9 @@ describe('Errors', () => {
       });
       expect(error.nodes).toBe(nodes);
       expect(error.path).toEqual(['test']);
-      if (versionInfo.major !== 16) {
-        expect(error.extensions).toEqual({
-          [ERROR_EXTENSION_SCHEMA_COORDINATE]: 'Query.test',
-        });
-      }
+      expect(error.extensions).toEqual({
+        [ERROR_EXTENSION_SCHEMA_COORDINATE]: 'Query.test',
+      });
     });
   });
 
@@ -66,16 +64,14 @@ describe('Errors', () => {
     });
 
     it('should handle coordinate', () => {
-      if (versionInfo.major !== 16) {
-        const error = createGraphQLError('message', {
-          extensions: {
-            [ERROR_EXTENSION_SCHEMA_COORDINATE]: 'Query.test',
-          },
-        });
-        expect(error.extensions).toMatchObject({
+      const error = createGraphQLError('message', {
+        extensions: {
           [ERROR_EXTENSION_SCHEMA_COORDINATE]: 'Query.test',
-        });
-      }
+        },
+      });
+      expect(error.extensions).toMatchObject({
+        [ERROR_EXTENSION_SCHEMA_COORDINATE]: 'Query.test',
+      });
     });
   });
 });
