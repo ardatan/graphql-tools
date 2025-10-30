@@ -1,5 +1,31 @@
 # @graphql-tools/mock
 
+## 9.1.0
+
+### Minor Changes
+
+- [#7629](https://github.com/ardatan/graphql-tools/pull/7629)
+  [`252f142`](https://github.com/ardatan/graphql-tools/commit/252f142fb9b92516d6005387fc4db7ef32ef1c96)
+  Thanks [@sanniassin](https://github.com/sanniassin)! - New `mockGenerationBehavior` option to
+  enable deterministic mock generation
+
+### Patch Changes
+
+- [#4505](https://github.com/ardatan/graphql-tools/pull/4505)
+  [`f26bc08`](https://github.com/ardatan/graphql-tools/commit/f26bc08de6b739a05cbc2ca28ed2878d338bfd36)
+  Thanks [@Hetch3t](https://github.com/Hetch3t)! - Respect objects with symbol properties while
+  copying
+
+- [`8d0e3c3`](https://github.com/ardatan/graphql-tools/commit/8d0e3c37ec34028b6639033eb5c64bf31b5105b6)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fix `$ref` setting in MockStore
+
+- Updated dependencies
+  [[`fd105f4`](https://github.com/ardatan/graphql-tools/commit/fd105f4e3a81a32050b5a104d1040ffbb86c6ff5),
+  [`fded91e`](https://github.com/ardatan/graphql-tools/commit/fded91e34c19cabdcca1bc49146fda1b8fd5661c),
+  [`3b99a9b`](https://github.com/ardatan/graphql-tools/commit/3b99a9b6c6f190b2108dc6571bb64a7c3319edd6)]:
+  - @graphql-tools/utils@10.10.0
+  - @graphql-tools/schema@10.0.26
+
 ## 9.0.25
 
 ### Patch Changes
