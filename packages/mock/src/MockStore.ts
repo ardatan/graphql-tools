@@ -302,6 +302,9 @@ export class MockStore implements IMockStore {
         throw new Error('When no `fieldName` is provided, `value` should be a record.');
       }
       for (const fieldName in value) {
+        if (fieldName === '$ref') {
+          continue;
+        }
         this.setImpl({
           typeName,
           key,
