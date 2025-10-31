@@ -1,4 +1,4 @@
-import { ASTNode, GraphQLError, Source, versionInfo } from 'graphql';
+import { locatedError as _locatedError, ASTNode, GraphQLError, Source, versionInfo } from 'graphql';
 import { Maybe } from './types.js';
 
 interface GraphQLErrorOptions {
@@ -60,11 +60,39 @@ export function createGraphQLError(message: string, options?: GraphQLErrorOption
   );
 }
 
+type SchemaCoordinateInfo = { fieldName: string; parentType: { name: string } };
+export const ERROR_EXTENSION_SCHEMA_COORDINATE = Symbol.for('graphql.error.schemaCoordinate');
+function addSchemaCoordinateToError(error: GraphQLError, info: SchemaCoordinateInfo): void {
+  // @ts-expect-error extensions can't be Symbol in official GraphQL Error type
+  error.extensions[ERROR_EXTENSION_SCHEMA_COORDINATE] = `${info.parentType.name}.${info.fieldName}`;
+}
+
+export function getSchemaCoordinate(error: GraphQLError): string | undefined {
+  // @ts-expect-error extensions can't be Symbol in official GraphQL Error type
+  return error.extensions[ERROR_EXTENSION_SCHEMA_COORDINATE];
+}
+
+export function locatedError(
+  rawError: unknown,
+  nodes: ASTNode | ReadonlyArray<ASTNode> | undefined,
+  path: Maybe<ReadonlyArray<string | number>>,
+  info: SchemaCoordinateInfo | false | null | undefined,
+) {
+  const error = _locatedError(rawError, nodes, path);
+
+  if (info) {
+    addSchemaCoordinateToError(error, info);
+  }
+
+  return error;
+}
+
 export function relocatedError(
   originalError: GraphQLError,
   path?: ReadonlyArray<string | number>,
+  info?: SchemaCoordinateInfo | false | null | undefined,
 ): GraphQLError {
-  return createGraphQLError(originalError.message, {
+  const error = createGraphQLError(originalError.message, {
     nodes: originalError.nodes,
     source: originalError.source,
     positions: originalError.positions,
@@ -72,4 +100,10 @@ export function relocatedError(
     originalError,
     extensions: originalError.extensions,
   });
+
+  if (info) {
+    addSchemaCoordinateToError(error, info);
+  }
+
+  return error;
 }
