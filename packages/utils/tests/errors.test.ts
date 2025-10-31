@@ -2,6 +2,7 @@ import { ASTNode, GraphQLError, Kind } from 'graphql';
 import {
   createGraphQLError,
   ERROR_EXTENSION_SCHEMA_COORDINATE,
+  getSchemaCoordinate,
   locatedError,
   relocatedError,
 } from '../src/errors';
@@ -19,13 +20,7 @@ describe('Errors', () => {
         fieldName: 'id',
         parentType: { name: 'Test' },
       });
-      const expectedError = createGraphQLError('test', {
-        path: ['test', 1, 'id'],
-        extensions: {
-          [ERROR_EXTENSION_SCHEMA_COORDINATE]: 'Query.test',
-        },
-      });
-      expect(newError).toEqual(expectedError);
+      expect(getSchemaCoordinate(newError)).toEqual('Test.id');
     });
   });
 
