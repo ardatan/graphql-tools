@@ -1,11 +1,4 @@
-import {
-  concatAST,
-  DefinitionNode,
-  DocumentNode,
-  GraphQLSchema,
-  parse,
-  ParseOptions,
-} from 'graphql';
+import { concatAST, DocumentNode, GraphQLSchema, parse, ParseOptions } from 'graphql';
 import CompilerContext from '@ardatan/relay-compiler/lib/core/CompilerContext.js';
 import { print as relayPrint } from '@ardatan/relay-compiler/lib/core/IRPrinter.js';
 import { transform as relayTransform } from '@ardatan/relay-compiler/lib/core/RelayParser.js';
@@ -37,10 +30,7 @@ export function optimizeDocuments(
 
   const documentAsts = concatAST(documents);
 
-  const relayDocuments = relayTransform(
-    adjustedSchema,
-    documentAsts.definitions as DefinitionNode[],
-  );
+  const relayDocuments = relayTransform(adjustedSchema, documentAsts.definitions as any);
 
   const result: DocumentNode[] = [];
 
