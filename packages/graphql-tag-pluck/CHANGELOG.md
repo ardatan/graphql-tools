@@ -1,5 +1,13 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 8.3.23
+
+### Patch Changes
+
+- Updated dependencies
+  [[`fbb58b5`](https://github.com/ardatan/graphql-tools/commit/fbb58b51c4993ba9680ce6c2ef7203ab3a142713)]:
+  - @graphql-tools/utils@10.10.1
+
 ## 8.3.22
 
 ### Patch Changes
