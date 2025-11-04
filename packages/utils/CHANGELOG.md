@@ -1,5 +1,12 @@
 # @graphql-tools/utils
 
+## 10.10.1
+
+### Patch Changes
+
+- [`fbb58b5`](https://github.com/ardatan/graphql-tools/commit/fbb58b51c4993ba9680ce6c2ef7203ab3a142713)
+  Thanks [@ardatan](https://github.com/ardatan)! - Remove \`dset\` dependency
+
 ## 10.10.0
 
 ### Minor Changes
