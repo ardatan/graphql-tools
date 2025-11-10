@@ -1,7 +1,6 @@
 import { ASTNode, GraphQLError, Kind } from 'graphql';
 import {
   createGraphQLError,
-  ERROR_EXTENSION_SCHEMA_COORDINATE,
   getSchemaCoordinate,
   locatedError,
   relocatedError,
@@ -12,9 +11,7 @@ describe('Errors', () => {
     it('should adjust the path of a GraphqlError', () => {
       const originalError = createGraphQLError('test', {
         path: ['test'],
-        extensions: {
-          [ERROR_EXTENSION_SCHEMA_COORDINATE]: 'Query.test',
-        },
+        coordinate: 'Query.test',
       });
       const newError = relocatedError(originalError, ['test', 1, 'id'], {
         fieldName: 'id',
@@ -34,9 +31,20 @@ describe('Errors', () => {
       });
       expect(error.nodes).toBe(nodes);
       expect(error.path).toEqual(['test']);
-      expect(error.extensions).toEqual({
-        [ERROR_EXTENSION_SCHEMA_COORDINATE]: 'Query.test',
-      });
+      expect(error.coordinate).toEqual('Query.test');
+    });
+  });
+
+  describe('getSchemaCoordinate', () => {
+    it('should always return the schema coordinate, even when typed as original graphql error', () => {
+      const error = new GraphQLError('test');
+      expect(getSchemaCoordinate(error)).toBe(undefined);
+      // @ts-expect-error coordinate doesn't exists in `graphql` yet.
+      error.coordinate = 'Query.test';
+      expect(getSchemaCoordinate(error)).toBe('Query.test');
+      expect(createGraphQLError('test', { coordinate: 'Query.test' }).coordinate).toBe(
+        'Query.test',
+      );
     });
   });
 
@@ -61,11 +69,11 @@ describe('Errors', () => {
     it('should handle coordinate', () => {
       const error = createGraphQLError('message', {
         extensions: {
-          [ERROR_EXTENSION_SCHEMA_COORDINATE]: 'Query.test',
+          coordinate: 'Query.test',
         },
       });
       expect(error.extensions).toMatchObject({
-        [ERROR_EXTENSION_SCHEMA_COORDINATE]: 'Query.test',
+        coordinate: 'Query.test',
       });
     });
   });

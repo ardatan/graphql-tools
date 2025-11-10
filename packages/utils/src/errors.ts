@@ -1,4 +1,11 @@
-import { locatedError as _locatedError, ASTNode, GraphQLError, Source, versionInfo } from 'graphql';
+import {
+  GraphQLError as _GraphQLError,
+  locatedError as _locatedError,
+  ASTNode,
+  GraphQLErrorExtensions,
+  Source,
+  versionInfo,
+} from 'graphql';
 import { Maybe } from './types.js';
 
 interface GraphQLErrorOptions {
@@ -12,6 +19,7 @@ interface GraphQLErrorOptions {
     }
   >;
   extensions?: any;
+  coordinate?: string;
 }
 
 const possibleGraphQLErrorProperties = [
@@ -25,9 +33,57 @@ const possibleGraphQLErrorProperties = [
   'name',
   'stack',
   'extensions',
+  'coordinate',
 ];
 
-function isGraphQLErrorLike(error: any) {
+function toNormalizedOptions(args: any): GraphQLErrorOptions {
+  const firstArg = args[0];
+
+  if (firstArg == null || 'kind' in firstArg || 'length' in firstArg) {
+    return {
+      nodes: firstArg,
+      source: args[1],
+      positions: args[2],
+      path: args[3],
+      originalError: args[4],
+      extensions: args[5],
+      coordinate: args[6],
+    };
+  }
+
+  return firstArg;
+}
+
+export class GraphQLError extends _GraphQLError {
+  readonly coordinate?: string;
+
+  constructor(message: string, options?: Maybe<GraphQLErrorOptions>);
+  /**
+   * @deprecated Please use the `GraphQLErrorOptions` constructor overload instead.
+   */
+  constructor(
+    message: string,
+    nodes?: ReadonlyArray<ASTNode> | ASTNode | null,
+    source?: Maybe<Source>,
+    positions?: Maybe<ReadonlyArray<number>>,
+    path?: Maybe<ReadonlyArray<string | number>>,
+    originalError?: Maybe<
+      Error & {
+        readonly extensions?: unknown;
+      }
+    >,
+    extensions?: Maybe<GraphQLErrorExtensions>,
+    coordinate?: Maybe<string>,
+  );
+
+  constructor(message: string, ...args: any) {
+    const options = toNormalizedOptions(args);
+    super(message, ...args);
+    this.coordinate = options.coordinate;
+  }
+}
+
+export function isGraphQLErrorLike(error: any) {
   return (
     error != null &&
     typeof error === 'object' &&
@@ -46,7 +102,7 @@ export function createGraphQLError(message: string, options?: GraphQLErrorOption
       options.originalError,
     );
   }
-  if (versionInfo.major >= 17) {
+  if (versionInfo.major >= 16) {
     return new (GraphQLError as any)(message, options);
   }
   return new (GraphQLError as any)(
@@ -57,19 +113,14 @@ export function createGraphQLError(message: string, options?: GraphQLErrorOption
     options?.path,
     options?.originalError,
     options?.extensions,
+    options?.coordinate,
   );
 }
 
 type SchemaCoordinateInfo = { fieldName: string; parentType: { name: string } };
-export const ERROR_EXTENSION_SCHEMA_COORDINATE = Symbol.for('graphql.error.schemaCoordinate');
-function addSchemaCoordinateToError(error: GraphQLError, info: SchemaCoordinateInfo): void {
-  // @ts-expect-error extensions can't be Symbol in official GraphQL Error type
-  error.extensions[ERROR_EXTENSION_SCHEMA_COORDINATE] = `${info.parentType.name}.${info.fieldName}`;
-}
 
 export function getSchemaCoordinate(error: GraphQLError): string | undefined {
-  // @ts-expect-error extensions can't be Symbol in official GraphQL Error type
-  return error.extensions[ERROR_EXTENSION_SCHEMA_COORDINATE];
+  return error.coordinate;
 }
 
 export function locatedError(
@@ -77,11 +128,13 @@ export function locatedError(
   nodes: ASTNode | ReadonlyArray<ASTNode> | undefined,
   path: Maybe<ReadonlyArray<string | number>>,
   info: SchemaCoordinateInfo | false | null | undefined,
-) {
-  const error = _locatedError(rawError, nodes, path);
+): GraphQLError {
+  const error = _locatedError(rawError, nodes, path) as GraphQLError;
 
-  if (info) {
-    addSchemaCoordinateToError(error, info);
+  // `graphql` locatedError is only changing path and nodes if it is not already defined
+  if (!error.coordinate && info) {
+    // @ts-expect-error coordinate is readonly, but we don't want to recreate it just to add coordinate
+    error.coordinate = `${info.parentType.name}.${info.fieldName}`;
   }
 
   return error;
@@ -92,18 +145,13 @@ export function relocatedError(
   path?: ReadonlyArray<string | number>,
   info?: SchemaCoordinateInfo | false | null | undefined,
 ): GraphQLError {
-  const error = createGraphQLError(originalError.message, {
+  return createGraphQLError(originalError.message, {
     nodes: originalError.nodes,
     source: originalError.source,
     positions: originalError.positions,
     path: path == null ? originalError.path : path,
     originalError,
     extensions: originalError.extensions,
+    coordinate: info ? `${info.parentType.name}.${info.fieldName}` : undefined,
   });
-
-  if (info) {
-    addSchemaCoordinateToError(error, info);
-  }
-
-  return error;
 }
