@@ -47,7 +47,6 @@ function toNormalizedOptions(args: any): GraphQLErrorOptions {
       path: args[3],
       originalError: args[4],
       extensions: args[5],
-      coordinate: args[6],
     };
   }
 
@@ -73,7 +72,6 @@ export class GraphQLError extends _GraphQLError {
       }
     >,
     extensions?: Maybe<GraphQLErrorExtensions>,
-    coordinate?: Maybe<string>,
   );
 
   constructor(message: string, ...args: any) {
@@ -113,7 +111,6 @@ export function createGraphQLError(message: string, options?: GraphQLErrorOption
     options?.path,
     options?.originalError,
     options?.extensions,
-    options?.coordinate,
   );
 }
 
