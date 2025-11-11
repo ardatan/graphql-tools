@@ -13,6 +13,7 @@ import {
   GraphQLString,
   printSchema,
   specifiedDirectives,
+  stripIgnoredCharacters,
 } from 'graphql';
 import { GraphQLJSON } from 'graphql-scalars';
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -401,5 +402,18 @@ describe('printSchemaWithDirectives', () => {
       const output = printSchemaWithDirectives(schema);
       expect(output).toContain('input OneOfInput @oneOf');
     }
+  });
+  it('prints a federation-style subgraph schema correctly', () => {
+    const sdl = stripIgnoredCharacters(/* GraphQL */ `
+      extend schema @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key"])
+
+      type User @key(fields: "id") {
+        id: ID!
+        username: String
+      }
+    `);
+    const userSubgraph = buildSchema(sdl, { assumeValid: true, assumeValidSDL: true });
+    const printedSchema = stripIgnoredCharacters(printSchemaWithDirectives(userSubgraph));
+    expect(printedSchema).toBe(sdl);
   });
 });
