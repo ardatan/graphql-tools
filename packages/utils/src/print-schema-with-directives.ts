@@ -179,7 +179,7 @@ export function astFromSchema(
   }
 
   const schemaNode: SchemaDefinitionNode | SchemaExtensionNode = {
-    kind: operationTypes?.length ? Kind.SCHEMA_DEFINITION : Kind.SCHEMA_EXTENSION,
+    kind: operationTypes.length ? Kind.SCHEMA_DEFINITION : Kind.SCHEMA_EXTENSION,
     operationTypes,
     // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
     directives: directives as any,
