@@ -1,5 +1,15 @@
 # @graphql-tools/utils
 
+## 10.10.3
+
+### Patch Changes
+
+- [#7683](https://github.com/ardatan/graphql-tools/pull/7683)
+  [`2fe123a`](https://github.com/ardatan/graphql-tools/commit/2fe123aedaa9f996cd30bbffa43dcba864c13bc9)
+  Thanks [@ardatan](https://github.com/ardatan)! - Revert
+  https://github.com/ardatan/graphql-tools/pull/7683 which can cause unexpected breaking changes so
+  as before the schema extension node will always be converted to a schema definition node
+
 ## 10.10.2
 
 ### Patch Changes
