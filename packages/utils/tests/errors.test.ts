@@ -73,13 +73,18 @@ describe('Errors', () => {
 
     testIf(versionInfo.major >= 16)('should handle coordinate', () => {
       const error = createGraphQLError('message', {
-        extensions: {
-          coordinate: 'Query.test',
-        },
-      });
-      expect(error.extensions).toMatchObject({
         coordinate: 'Query.test',
       });
+      expect(error).toMatchObject({
+        coordinate: 'Query.test',
+      });
+    });
+
+    testIf(versionInfo.major >= 16)('should have coordinate in JSON representation', () => {
+      const error = createGraphQLError('message', {
+        coordinate: 'Query.test',
+      });
+      expect(JSON.stringify(error)).toBe('{"message":"message","coordinate":"Query.test"}');
     });
   });
 });
