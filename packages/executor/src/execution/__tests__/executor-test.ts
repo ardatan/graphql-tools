@@ -1271,4 +1271,92 @@ describe('Execute: Handles basic execution tasks', () => {
     const [error] = result.errors!;
     expect(error.originalError?.name).toBe('Error');
   });
+
+  it('should properly add schema coordinate on errors only if enabled', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          foo: {
+            type: GraphQLInt,
+            resolve: () => {
+              throw new Error('Test Error');
+            },
+          },
+        },
+      }),
+    });
+
+    const document = parse('{ foo }');
+
+    expect(
+      executeSync({
+        schema,
+        document,
+        schemaCoordinateInErrors: true,
+      }).errors![0].coordinate,
+    ).toBe('Query.foo');
+
+    expect(
+      executeSync({
+        schema,
+        document,
+        schemaCoordinateInErrors: false,
+      }).errors![0].coordinate,
+    ).toBe(undefined);
+  });
+
+  it('should properly add schema coordinate even with abstract types', () => {
+    const I = new GraphQLInterfaceType({ name: 'I', fields: { f: { type: GraphQLString } } });
+    const A = new GraphQLObjectType({
+      name: 'A',
+      interfaces: [I],
+      fields: {
+        f: {
+          type: GraphQLString,
+          resolve: () => {
+            throw new Error('Error A');
+          },
+        },
+      },
+    });
+
+    const B = new GraphQLObjectType({ name: 'B', fields: { b: { type: GraphQLString } } });
+
+    const schema = new GraphQLSchema({
+      types: [I, A, B],
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          i: {
+            type: I,
+            resolve: () => ({ __typename: 'A' }),
+          },
+          u: {
+            type: new GraphQLUnionType({
+              name: 'U',
+              types: [A, B],
+            }),
+            resolve: () => ({ __typename: 'A' }),
+          },
+        },
+      }),
+    });
+
+    expect(
+      executeSync({
+        schema,
+        document: parse('{ i { f } }'),
+        schemaCoordinateInErrors: true,
+      }).errors![0].coordinate,
+    ).toBe('A.f');
+
+    expect(
+      executeSync({
+        schema,
+        document: parse('{ u { ...on A { f } } }'),
+        schemaCoordinateInErrors: true,
+      }).errors![0].coordinate,
+    ).toBe('A.f');
+  });
 });
