@@ -1,11 +1,4 @@
-import {
-  GraphQLError as _GraphQLError,
-  locatedError as _locatedError,
-  ASTNode,
-  GraphQLErrorExtensions,
-  Source,
-  versionInfo,
-} from 'graphql';
+import { locatedError as _locatedError, ASTNode, GraphQLError, Source, versionInfo } from 'graphql';
 import { Maybe } from './types.js';
 
 interface GraphQLErrorOptions {
@@ -22,6 +15,15 @@ interface GraphQLErrorOptions {
   coordinate?: string;
 }
 
+declare module 'graphql' {
+  interface GraphQLError {
+    /**
+     * An optional schema coordinate (e.g. "MyType.myField") associated with this error.
+     */
+    readonly coordinate?: string;
+  }
+}
+
 const possibleGraphQLErrorProperties = [
   'message',
   'locations',
@@ -35,51 +37,6 @@ const possibleGraphQLErrorProperties = [
   'extensions',
   'coordinate',
 ];
-
-function toNormalizedOptions(args: any): GraphQLErrorOptions {
-  const firstArg = args[0];
-
-  if (firstArg == null || 'kind' in firstArg || 'length' in firstArg) {
-    return {
-      nodes: firstArg,
-      source: args[1],
-      positions: args[2],
-      path: args[3],
-      originalError: args[4],
-      extensions: args[5],
-    };
-  }
-
-  return firstArg;
-}
-
-export class GraphQLError extends _GraphQLError {
-  readonly coordinate?: string;
-
-  constructor(message: string, options?: Maybe<GraphQLErrorOptions>);
-  /**
-   * @deprecated Please use the `GraphQLErrorOptions` constructor overload instead.
-   */
-  constructor(
-    message: string,
-    nodes?: ReadonlyArray<ASTNode> | ASTNode | null,
-    source?: Maybe<Source>,
-    positions?: Maybe<ReadonlyArray<number>>,
-    path?: Maybe<ReadonlyArray<string | number>>,
-    originalError?: Maybe<
-      Error & {
-        readonly extensions?: unknown;
-      }
-    >,
-    extensions?: Maybe<GraphQLErrorExtensions>,
-  );
-
-  constructor(message: string, ...args: any) {
-    const options = toNormalizedOptions(args);
-    super(message, ...args);
-    this.coordinate = options.coordinate;
-  }
-}
 
 export function isGraphQLErrorLike(error: any) {
   return (
@@ -100,18 +57,31 @@ export function createGraphQLError(message: string, options?: GraphQLErrorOption
       options.originalError,
     );
   }
-  if (versionInfo.major >= 16) {
-    return new (GraphQLError as any)(message, options);
+
+  // To avoid type error on graphql <16, we have to use an any type here
+  const Constructor = GraphQLError as any;
+  const error: GraphQLError =
+    versionInfo.major >= 16
+      ? new Constructor(message, options)
+      : new Constructor(
+          message,
+          options?.nodes,
+          options?.source,
+          options?.positions,
+          options?.path,
+          options?.originalError,
+          options?.extensions,
+        );
+
+  if (options?.coordinate) {
+    Object.defineProperty(error, 'coordinate', {
+      value: options.coordinate,
+      enumerable: true,
+      configurable: true,
+    });
   }
-  return new (GraphQLError as any)(
-    message,
-    options?.nodes,
-    options?.source,
-    options?.positions,
-    options?.path,
-    options?.originalError,
-    options?.extensions,
-  );
+
+  return error;
 }
 
 type SchemaCoordinateInfo = { fieldName: string; parentType: { name: string } };
