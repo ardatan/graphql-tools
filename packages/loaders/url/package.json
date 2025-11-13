@@ -75,7 +75,7 @@
     "graphql-sse": "2.6.0",
     "graphql-upload": "17.0.0",
     "graphql-yoga": "5.16.2",
-    "puppeteer": "24.29.1",
+    "puppeteer": "24.30.0",
     "subscriptions-transport-ws": "0.11.0",
     "webpack": "5.102.1"
   },
