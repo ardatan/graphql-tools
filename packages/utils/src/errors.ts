@@ -88,12 +88,10 @@ export function createGraphQLError(message: string, options?: GraphQLErrorOption
         );
 
   if (options?.coordinate && error.coordinate == null) {
-    Object.defineProperty(error, 'coordinate', {
-      value: options.coordinate,
-      enumerable: true,
-      configurable: true,
+    Object.defineProperties(error, {
+      coordinate: { value: options.coordinate, enumerable: true, configurable: true },
+      toJSON: { value: toJSON },
     });
-    error.toJSON = toJSON;
   }
 
   return error;
@@ -115,10 +113,10 @@ export function locatedError(
 
   // `graphql` locatedError is only changing path and nodes if it is not already defined
   if (!error.coordinate && info && error.coordinate == null) {
-    Object.defineProperty(error, 'coordinate', {
-      value: `${info.parentType.name}.${info.fieldName}`,
-      enumerable: true,
-      configurable: true,
+    const coordinate = `${info.parentType.name}.${info.fieldName}`;
+    Object.defineProperties(error, {
+      coordinate: { value: coordinate, enumerable: true, configurable: true },
+      toJSON: { value: toJSON },
     });
   }
 
