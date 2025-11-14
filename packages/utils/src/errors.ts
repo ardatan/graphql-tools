@@ -87,7 +87,7 @@ export function createGraphQLError(message: string, options?: GraphQLErrorOption
           options?.extensions,
         );
 
-  if (options?.coordinate) {
+  if (options?.coordinate && error.coordinate == null) {
     Object.defineProperty(error, 'coordinate', {
       value: options.coordinate,
       enumerable: true,
