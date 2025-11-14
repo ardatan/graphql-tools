@@ -18,6 +18,9 @@ describe('Errors', () => {
         fieldName: 'id',
         parentType: { name: 'Test' },
       });
+
+      expect(newError.path).toEqual(['test', 1, 'id']);
+
       if (versionInfo.major >= 16) {
         expect(getSchemaCoordinate(newError)).toEqual('Test.id');
       }
