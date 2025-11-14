@@ -8,8 +8,9 @@ source of the error by automated tools like tracing or monitoring.
 
 This new feature is opt-in, you have to enable it using `schemaCoordinateInErrors` executor option.
 
-To avoid leaking schema information to the client, the extension key is a `Symbol` (which is not
-serializable). To forward it to the client, copy it to a custom extension with a serializable key.
+**Caution:** This feature, when enabled, will expose information about your schema. If you need to
+keep you schema private and secret, you should strip this attribute at serialization time before
+sending errors to the client.
 
 ```ts
 import { parse } from 'graphql'
