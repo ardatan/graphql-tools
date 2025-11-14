@@ -114,9 +114,12 @@ export function locatedError(
   const error = _locatedError(rawError, nodes, path) as GraphQLError;
 
   // `graphql` locatedError is only changing path and nodes if it is not already defined
-  if (!error.coordinate && info) {
-    // @ts-expect-error coordinate is readonly, but we don't want to recreate it just to add coordinate
-    error.coordinate = `${info.parentType.name}.${info.fieldName}`;
+  if (!error.coordinate && info && error.coordinate == null) {
+    Object.defineProperty(error, 'coordinate', {
+      value: `${info.parentType.name}.${info.fieldName}`,
+      enumerable: true,
+      configurable: true,
+    });
   }
 
   return error;
