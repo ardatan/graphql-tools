@@ -1,0 +1,4 @@
+input D @oneOf {
+  field1: ID
+  field2: Int
+}

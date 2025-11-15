@@ -604,7 +604,12 @@ describe('importSchema', () => {
       }
 
       input C {
-        id: ID!
+        id: D!
+      }
+
+      input D @oneOf {
+        field1: ID
+        field2: Int
       }
     `;
     expect(importSchema('./fixtures/input-types/a.graphql')).toBeSimilarGqlDoc(expectedSDL);

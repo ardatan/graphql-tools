@@ -54,6 +54,7 @@ const builtinDirectives = [
   'connection',
   'client',
   'specifiedBy',
+  'oneOf',
   ...federationV1Directives,
 ];
 
