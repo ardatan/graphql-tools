@@ -1,4 +1,11 @@
-import { ASTNode, GraphQLError, Source, versionInfo } from 'graphql';
+import {
+  GraphQLError as _GraphQLError,
+  locatedError as _locatedError,
+  ASTNode,
+  GraphQLError,
+  Source,
+  versionInfo,
+} from 'graphql';
 import { Maybe } from './types.js';
 
 interface GraphQLErrorOptions {
@@ -12,6 +19,7 @@ interface GraphQLErrorOptions {
     }
   >;
   extensions?: any;
+  coordinate?: string;
 }
 
 const possibleGraphQLErrorProperties = [
@@ -27,12 +35,21 @@ const possibleGraphQLErrorProperties = [
   'extensions',
 ];
 
-function isGraphQLErrorLike(error: any) {
+export function isGraphQLErrorLike(error: any) {
   return (
     error != null &&
     typeof error === 'object' &&
     Object.keys(error).every(key => possibleGraphQLErrorProperties.includes(key))
   );
+}
+
+declare module 'graphql' {
+  interface GraphQLError {
+    /**
+     * An optional schema coordinate (e.g. "MyType.myField") associated with this error.
+     */
+    readonly coordinate?: string;
+  }
 }
 
 export function createGraphQLError(message: string, options?: GraphQLErrorOptions): GraphQLError {
@@ -46,23 +63,57 @@ export function createGraphQLError(message: string, options?: GraphQLErrorOption
       options.originalError,
     );
   }
-  if (versionInfo.major >= 17) {
-    return new (GraphQLError as any)(message, options);
+  let error: GraphQLError;
+  if (versionInfo.major >= 16) {
+    error = new (GraphQLError as any)(message, options);
+  } else {
+    error = new (GraphQLError as any)(
+      message,
+      options?.nodes,
+      options?.source,
+      options?.positions,
+      options?.path,
+      options?.originalError,
+      options?.extensions,
+    );
   }
-  return new (GraphQLError as any)(
-    message,
-    options?.nodes,
-    options?.source,
-    options?.positions,
-    options?.path,
-    options?.originalError,
-    options?.extensions,
-  );
+  if (options?.coordinate != null && !error.coordinate) {
+    Object.defineProperty(error, 'coordinate', {
+      value: options.coordinate,
+      enumerable: true,
+      configurable: true,
+    });
+  }
+  return error;
+}
+
+type SchemaCoordinateInfo = { fieldName: string; parentType: { name: string } };
+
+export function getSchemaCoordinate(error: GraphQLError): string | undefined {
+  return error.coordinate;
+}
+
+export function locatedError(
+  rawError: unknown,
+  nodes: ASTNode | ReadonlyArray<ASTNode> | undefined,
+  path: Maybe<ReadonlyArray<string | number>>,
+  info: SchemaCoordinateInfo | false | null | undefined,
+): GraphQLError {
+  const error = _locatedError(rawError, nodes, path) as GraphQLError;
+
+  // `graphql` locatedError is only changing path and nodes if it is not already defined
+  if (!error.coordinate && info) {
+    // @ts-expect-error coordinate is readonly, but we don't want to recreate it just to add coordinate
+    error.coordinate = `${info.parentType.name}.${info.fieldName}`;
+  }
+
+  return error;
 }
 
 export function relocatedError(
   originalError: GraphQLError,
   path?: ReadonlyArray<string | number>,
+  info?: SchemaCoordinateInfo | false | null | undefined,
 ): GraphQLError {
   return createGraphQLError(originalError.message, {
     nodes: originalError.nodes,
@@ -71,5 +122,6 @@ export function relocatedError(
     path: path == null ? originalError.path : path,
     originalError,
     extensions: originalError.extensions,
+    coordinate: info ? `${info.parentType.name}.${info.fieldName}` : undefined,
   });
 }
