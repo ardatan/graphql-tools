@@ -1,4 +1,4 @@
-import { ASTNode, GraphQLError, Source, versionInfo } from 'graphql';
+import { locatedError as _locatedError, ASTNode, GraphQLError, Source, versionInfo } from 'graphql';
 import { Maybe } from './types.js';
 
 interface GraphQLErrorOptions {
@@ -12,6 +12,23 @@ interface GraphQLErrorOptions {
     }
   >;
   extensions?: any;
+  coordinate?: string;
+}
+
+declare module 'graphql' {
+  interface GraphQLError {
+    /**
+     * An optional schema coordinate (e.g. "MyType.myField") associated with this error.
+     */
+    readonly coordinate?: string;
+  }
+
+  interface GraphQLFormattedError {
+    /**
+     * An optional schema coordinate (e.g. "MyType.myField") associated with this error.
+     */
+    readonly coordinate?: string;
+  }
 }
 
 const possibleGraphQLErrorProperties = [
@@ -25,15 +42,23 @@ const possibleGraphQLErrorProperties = [
   'name',
   'stack',
   'extensions',
+  'coordinate',
 ];
 
-function isGraphQLErrorLike(error: any) {
+export function isGraphQLErrorLike(error: any) {
   return (
     error != null &&
     typeof error === 'object' &&
     Object.keys(error).every(key => possibleGraphQLErrorProperties.includes(key))
   );
 }
+
+export const toJSON: GraphQLError['toJSON'] = function toJSON(this: GraphQLError) {
+  const formattedError = GraphQLError.prototype.toJSON.apply(this);
+  // @ts-expect-error coordinate is readonly
+  formattedError.coordinate = this.coordinate;
+  return formattedError;
+};
 
 export function createGraphQLError(message: string, options?: GraphQLErrorOptions): GraphQLError {
   if (
@@ -46,23 +71,62 @@ export function createGraphQLError(message: string, options?: GraphQLErrorOption
       options.originalError,
     );
   }
-  if (versionInfo.major >= 17) {
-    return new (GraphQLError as any)(message, options);
+
+  // To avoid type error on graphql <16, we have to use an any type here
+  const Constructor = GraphQLError as any;
+  const error: GraphQLError =
+    versionInfo.major >= 16
+      ? new Constructor(message, options)
+      : new Constructor(
+          message,
+          options?.nodes,
+          options?.source,
+          options?.positions,
+          options?.path,
+          options?.originalError,
+          options?.extensions,
+        );
+
+  if (options?.coordinate && error.coordinate == null) {
+    Object.defineProperties(error, {
+      coordinate: { value: options.coordinate, enumerable: true, configurable: true },
+      toJSON: { value: toJSON },
+    });
   }
-  return new (GraphQLError as any)(
-    message,
-    options?.nodes,
-    options?.source,
-    options?.positions,
-    options?.path,
-    options?.originalError,
-    options?.extensions,
-  );
+
+  return error;
+}
+
+type SchemaCoordinateInfo = { fieldName: string; parentType: { name: string } };
+
+export function getSchemaCoordinate(error: GraphQLError): string | undefined {
+  return error.coordinate;
+}
+
+export function locatedError(
+  rawError: unknown,
+  nodes: ASTNode | ReadonlyArray<ASTNode> | undefined,
+  path: Maybe<ReadonlyArray<string | number>>,
+  info: SchemaCoordinateInfo | false | null | undefined,
+): GraphQLError {
+  const error = _locatedError(rawError, nodes, path) as GraphQLError;
+
+  // `graphql` locatedError is only changing path and nodes if it is not already defined
+  if (!error.coordinate && info && error.coordinate == null) {
+    const coordinate = `${info.parentType.name}.${info.fieldName}`;
+    Object.defineProperties(error, {
+      coordinate: { value: coordinate, enumerable: true, configurable: true },
+      toJSON: { value: toJSON },
+    });
+  }
+
+  return error;
 }
 
 export function relocatedError(
   originalError: GraphQLError,
   path?: ReadonlyArray<string | number>,
+  info?: SchemaCoordinateInfo | false | null | undefined,
 ): GraphQLError {
   return createGraphQLError(originalError.message, {
     nodes: originalError.nodes,
@@ -71,5 +135,6 @@ export function relocatedError(
     path: path == null ? originalError.path : path,
     originalError,
     extensions: originalError.extensions,
+    coordinate: info ? `${info.parentType.name}.${info.fieldName}` : undefined,
   });
 }
