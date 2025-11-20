@@ -22,13 +22,6 @@ declare module 'graphql' {
      */
     readonly coordinate?: string;
   }
-
-  interface GraphQLFormattedError {
-    /**
-     * An optional schema coordinate (e.g. "MyType.myField") associated with this error.
-     */
-    readonly coordinate?: string;
-  }
 }
 
 const possibleGraphQLErrorProperties = [
@@ -52,13 +45,6 @@ export function isGraphQLErrorLike(error: any) {
     Object.keys(error).every(key => possibleGraphQLErrorProperties.includes(key))
   );
 }
-
-export const toJSON: GraphQLError['toJSON'] = function toJSON(this: GraphQLError) {
-  const formattedError = GraphQLError.prototype.toJSON.apply(this);
-  // @ts-expect-error coordinate is readonly
-  formattedError.coordinate = this.coordinate;
-  return formattedError;
-};
 
 export function createGraphQLError(message: string, options?: GraphQLErrorOptions): GraphQLError {
   if (
@@ -90,7 +76,6 @@ export function createGraphQLError(message: string, options?: GraphQLErrorOption
   if (options?.coordinate && error.coordinate == null) {
     Object.defineProperties(error, {
       coordinate: { value: options.coordinate, enumerable: true, configurable: true },
-      toJSON: { value: toJSON },
     });
   }
 
@@ -116,7 +101,6 @@ export function locatedError(
     const coordinate = `${info.parentType.name}.${info.fieldName}`;
     Object.defineProperties(error, {
       coordinate: { value: coordinate, enumerable: true, configurable: true },
-      toJSON: { value: toJSON },
     });
   }
 

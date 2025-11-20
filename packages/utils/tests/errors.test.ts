@@ -83,11 +83,12 @@ describe('Errors', () => {
       });
     });
 
-    testIf(versionInfo.major >= 16)('should have coordinate in JSON representation', () => {
+    it('should not have coordinate in JSON representation', () => {
+      // Since this an experiment, we don't want coordinate to leak to the client
       const error = createGraphQLError('message', {
         coordinate: 'Query.test',
       });
-      expect(JSON.stringify(error)).toBe('{"message":"message","coordinate":"Query.test"}');
+      expect(JSON.stringify(error)).toBe('{"message":"message"}');
     });
   });
 });
