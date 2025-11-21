@@ -1,5 +1,13 @@
 # @graphql-tools/graphql-file-loader
 
+## 8.1.7
+
+### Patch Changes
+
+- Updated dependencies
+  [[`8a2a507`](https://github.com/ardatan/graphql-tools/commit/8a2a507d8d6415da14e8f31078460b23568f5ae1)]:
+  - @graphql-tools/import@7.1.7
+
 ## 8.1.6
 
 ### Patch Changes

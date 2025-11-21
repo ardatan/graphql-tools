@@ -1,5 +1,14 @@
 # @graphql-tools/import
 
+## 7.1.7
+
+### Patch Changes
+
+- [#7695](https://github.com/ardatan/graphql-tools/pull/7695)
+  [`8a2a507`](https://github.com/ardatan/graphql-tools/commit/8a2a507d8d6415da14e8f31078460b23568f5ae1)
+  Thanks [@hugo-vrijswijk](https://github.com/hugo-vrijswijk)! - Add `oneOf` to built-in directives
+  list
+
 ## 7.1.6
 
 ### Patch Changes
