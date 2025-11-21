@@ -2,7 +2,8 @@ import { GraphQLSchema, graphqlSync } from 'graphql';
 import { printSchemaWithDirectives } from '@graphql-tools/utils';
 import { UrlLoader } from '../src';
 
-describe('sync', () => {
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip);
+describeIf(!globalThis.Bun)('sync', () => {
   const TEST_API = `https://swapi-graphql.netlify.app/graphql`;
   const loader = new UrlLoader();
   it('should handle introspection', () => {
