@@ -31,7 +31,7 @@ jobs:
       - name: Use GraphQL v15
         run: |
           node ./scripts/match-graphql.js 15
-          npm install --ignore-engines
+          npm install
           git checkout package-lock.json
           npx rimraf packages/**/*/node_modules/graphql
           npx rimraf packages/executor/node_modules/graphql
@@ -86,7 +86,7 @@ jobs:
       - name: Use GraphQL v${{matrix.graphql_version}}
         run: |
           node ./scripts/match-graphql.js ${{matrix.graphql_version}}
-          npm install --ignore-engines
+          npm install
           git checkout package-lock.json
           npx rimraf packages/**/*/node_modules/graphql
           npx rimraf packages/executor/node_modules/graphql
