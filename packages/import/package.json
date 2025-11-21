@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/import",
-  "version": "7.1.6",
+  "version": "7.1.7",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
