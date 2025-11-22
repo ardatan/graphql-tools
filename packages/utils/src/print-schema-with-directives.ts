@@ -29,7 +29,6 @@ import {
   isIntrospectionType,
   isObjectType,
   isScalarType,
-  isSpecifiedDirective,
   isSpecifiedScalarType,
   isUnionType,
   Kind,
@@ -75,7 +74,7 @@ export function getDocumentNodeFromSchema(
 
   const directives = schema.getDirectives();
   for (const directive of directives) {
-    if (isSpecifiedDirective(directive)) {
+    if (specifiedDirectives.some(specifiedDirective => specifiedDirective === directive)) {
       continue;
     }
 
