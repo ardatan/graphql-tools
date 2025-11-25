@@ -16,7 +16,7 @@
     "packages/executors/*",
     "website"
   ],
-  "packageManager": "npm@11.6.3",
+  "packageManager": "npm@11.6.4",
   "keywords": [
     "GraphQL",
     "Apollo",
