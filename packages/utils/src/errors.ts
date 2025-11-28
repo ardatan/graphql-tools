@@ -92,7 +92,7 @@ export function locatedError(
   rawError: unknown,
   nodes: ASTNode | ReadonlyArray<ASTNode> | undefined,
   path: Maybe<ReadonlyArray<string | number>>,
-  info: SchemaCoordinateInfo | false | null | undefined,
+  info?: SchemaCoordinateInfo | false | null | undefined,
 ): GraphQLError {
   const error = _locatedError(rawError, nodes, path) as GraphQLError;
 
