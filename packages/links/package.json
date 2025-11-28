@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/links",
-  "version": "10.0.4",
+  "version": "10.0.5",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@graphql-tools/delegate": "^11.1.2",
-    "@graphql-tools/utils": "^10.10.3",
+    "@graphql-tools/utils": "^10.11.0",
     "apollo-upload-client": "^19.0.0",
     "form-data": "^4.0.0",
     "node-fetch": "^2.6.5",

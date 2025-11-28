@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/load",
-  "version": "8.1.6",
+  "version": "8.1.7",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
@@ -51,8 +51,8 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/schema": "^10.0.29",
-    "@graphql-tools/utils": "^10.10.3",
+    "@graphql-tools/schema": "^10.0.30",
+    "@graphql-tools/utils": "^10.11.0",
     "p-limit": "3.1.0",
     "tslib": "^2.4.0"
   },

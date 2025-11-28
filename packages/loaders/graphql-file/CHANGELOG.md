@@ -1,5 +1,22 @@
 # @graphql-tools/graphql-file-loader
 
+## 8.1.8
+
+### Patch Changes
+
+- [#7588](https://github.com/ardatan/graphql-tools/pull/7588)
+  [`2118a80`](https://github.com/ardatan/graphql-tools/commit/2118a80e2658076745ef314fc10e2030d7148394)
+  Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/import@7.1.7` ↗︎](https://www.npmjs.com/package/@graphql-tools/import/v/7.1.7)
+    (from `7.1.6`, in `dependencies`)
+- Updated dependencies
+  [[`2118a80`](https://github.com/ardatan/graphql-tools/commit/2118a80e2658076745ef314fc10e2030d7148394),
+  [`92f1622`](https://github.com/ardatan/graphql-tools/commit/92f1622b89d56e80983d9c50312159c0d8270ecb),
+  [`2118a80`](https://github.com/ardatan/graphql-tools/commit/2118a80e2658076745ef314fc10e2030d7148394)]:
+  - @graphql-tools/import@7.1.8
+  - @graphql-tools/utils@10.11.0
+
 ## 8.1.7
 
 ### Patch Changes
