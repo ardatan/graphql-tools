@@ -49,6 +49,7 @@ export const executorFromSchema = memoize1(function executorFromSchema(
       rootValue: request.rootValue,
       contextValue: request.context,
       signal: request.signal || request.info?.signal,
+      schemaCoordinateInErrors: request.schemaCoordinateInErrors,
     });
   };
 });
