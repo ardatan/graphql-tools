@@ -15,8 +15,7 @@ export interface GraphQLSchemaWithContext<TContext> extends GraphQLSchema {
  * Configuration object for creating an executable schema
  */
 export interface IExecutableSchemaDefinition<TContext = any>
-  extends BuildSchemaOptions,
-    GraphQLParseOptions {
+  extends BuildSchemaOptions, GraphQLParseOptions {
   /**
    * The type definitions used to create the schema
    */
