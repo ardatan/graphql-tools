@@ -1,5 +1,49 @@
 # @graphql-tools/executor
 
+## 1.5.0
+
+### Minor Changes
+
+- [#7588](https://github.com/ardatan/graphql-tools/pull/7588)
+  [`2118a80`](https://github.com/ardatan/graphql-tools/commit/2118a80e2658076745ef314fc10e2030d7148394)
+  Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - Add optional schema coordinate in error
+  extensions. This extension allows to precisely identify the source of the error by automated tools
+  like tracing or monitoring.
+
+  This new feature is opt-in, you have to enable it using `schemaCoordinateInErrors` executor
+  option.
+
+  **Caution:** This feature, when enabled, will expose information about your schema. If you need to
+  keep your schema private and secret, you should strip this attribute at serialization time before
+  sending errors to the client.
+
+  ```ts
+  import { parse } from 'graphql'
+  import { normalizedExecutor } from '@graphql-tools/executor'
+  import { getSchemaCoordinate } from '@graphql-tools/utils'
+  import schema from './schema'
+
+  const result = await normalizedExecutor({
+    schema,
+    document: parse(`...`),
+    schemaCoordinateInErrors: true // enable adding schema coordinate to graphql errors
+  })
+
+  if (result.errors) {
+    for (const error of result.errors) {
+      console.log('Error in resolver ', error.coordinate, ':', error.message)
+      // or with `getSchemaCoordinate` util, to workaround types if needed
+      console.log('Error in resolver', getSchemaCoordinate(error), ':', error.message)
+    }
+  }
+  ```
+
+### Patch Changes
+
+- Updated dependencies
+  [[`2118a80`](https://github.com/ardatan/graphql-tools/commit/2118a80e2658076745ef314fc10e2030d7148394)]:
+  - @graphql-tools/utils@10.11.0
+
 ## 1.4.13
 
 ### Patch Changes
