@@ -64,9 +64,7 @@ export enum SubscriptionProtocol {
  * Additional options for loading from a URL
  */
 export interface LoadFromUrlOptions
-  extends BaseLoaderOptions,
-    Partial<IntrospectionOptions>,
-    HTTPExecutorOptions {
+  extends BaseLoaderOptions, Partial<IntrospectionOptions>, HTTPExecutorOptions {
   /**
    * A custom `fetch` implementation to use when querying the original schema.
    * Defaults to `cross-fetch`
