@@ -15,6 +15,7 @@ sending errors to the client.
 ```ts
 import { parse } from 'graphql'
 import { normalizedExecutor } from '@graphql-tools/executor'
+import { getSchemaCoordinate } from '@graphql-tools/utils'
 import schema from './schema'
 
 const result = await normalizedExecutor({
