@@ -21,9 +21,9 @@ import {
   isNonNullType,
   isObjectType,
   isScalarType,
-  isSpecifiedDirective,
   isSpecifiedScalarType,
   isUnionType,
+  specifiedDirectives,
 } from 'graphql';
 import { getBuiltInForStub, isNamedStub } from './stub.js';
 
@@ -74,7 +74,7 @@ export function rewireTypes(
   };
 
   function rewireDirective(directive: GraphQLDirective): GraphQLDirective {
-    if (isSpecifiedDirective(directive)) {
+    if (specifiedDirectives.some(specifiedDirective => specifiedDirective === directive)) {
       return directive;
     }
     const directiveConfig = directive.toConfig();
