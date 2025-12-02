@@ -524,30 +524,18 @@ describe('Schema URL Loader', () => {
     const customFetch: AsyncFetchFn = async (_, options) => {
       const bodyStr = String(options?.body);
       if (bodyStr.includes('IntrospectionQuery')) {
-        return new Response(
-          JSON.stringify({
-            data: introspectionFromSchema(testSchema),
-          }),
-          {
-            headers: {
-              'content-type': 'application/json',
-            },
-          },
-        );
+        return Response.json({
+          data: introspectionFromSchema(testSchema),
+        });
       }
-      return new Response(
-        JSON.stringify(
-          await execute({
-            schema: testSchema,
-            document: parse(JSON.parse(bodyStr).query),
-          }),
-        ),
-        {
-          headers: {
-            'content-type': 'application/json',
-          },
-        },
-      );
+      const body = JSON.parse(bodyStr);
+      const result = await execute({
+        schema: testSchema,
+        document: parse(body.query),
+        variableValues: body.variables,
+        operationName: body.operationName,
+      });
+      return Response.json(result);
     };
     const schema = await loadSchema(`http://0.0.0.0:8081/graphql`, {
       loaders: [loader],
