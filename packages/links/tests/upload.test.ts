@@ -7,7 +7,6 @@ import { buildSchema, GraphQLSchema, parse } from 'graphql';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';
 import fetch from 'node-fetch';
-import { SubschemaConfig } from '@graphql-tools/delegate';
 import { execute } from '@graphql-tools/executor';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
@@ -124,17 +123,17 @@ describeIf(!globalThis.Bun)('graphql upload', () => {
       }
     `);
 
-    const subschema: SubschemaConfig = {
-      schema: nonExecutableSchema,
-      executor: linkToExecutor(
-        createServerHttpLink({
-          uri: `http://localhost:${remotePort.toString()}`,
-        }),
-      ),
-    };
-
     const gatewaySchema = stitchSchemas({
-      subschemas: [subschema],
+      subschemas: [
+        {
+          schema: nonExecutableSchema,
+          executor: linkToExecutor(
+            createServerHttpLink({
+              uri: `http://localhost:${remotePort.toString()}`,
+            }),
+          ),
+        },
+      ],
       resolvers: {
         Upload: ServerGraphQLUpload,
       },

@@ -90,10 +90,13 @@ describe('GraphQL Upload compatibility', () => {
       },
     });
     if (isIncrementalResult(result)) throw Error('result is incremental');
-    expect(result.errors).toBeFalsy();
-    assertNonMaybe(result.data);
-    const uploadFileData: any = result.data?.['uploadFile'];
-    expect(uploadFileData?.filename).toBe(fileName);
-    expect(uploadFileData?.content).toBe(content);
+    expect(result).toEqual({
+      data: {
+        uploadFile: expect.objectContaining({
+          filename: fileName,
+          content,
+        }),
+      },
+    });
   });
 });

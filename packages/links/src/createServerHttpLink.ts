@@ -1,8 +1,6 @@
 import formDataAppendFile from 'apollo-upload-client/formDataAppendFile.mjs';
 import isExtractableFile from 'apollo-upload-client/isExtractableFile.mjs';
 import UploadHttpLink from 'apollo-upload-client/UploadHttpLink.mjs';
-import FormData from 'form-data';
-import fetch from 'node-fetch';
 import * as apolloImport from '@apollo/client';
 import { AwaitVariablesLink } from './AwaitVariablesLink.js';
 
@@ -18,6 +16,7 @@ export const createServerHttpLink = (options: any) =>
       isExtractableFile: (value: any) => isExtractableFile(value) || value?.createReadStream,
       formDataAppendFile: (form: FormData, index: string, file: any) => {
         if (file.createReadStream != null) {
+          // @ts-expect-error - apollo-upload-client types are not up to date
           form.append(index, file.createReadStream(), {
             filename: file.filename,
             contentType: file.mimetype,

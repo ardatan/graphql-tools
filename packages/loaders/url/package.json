@@ -55,7 +55,7 @@
     "@graphql-tools/executor-http": "^3.0.6",
     "@graphql-tools/executor-legacy-ws": "^1.1.24",
     "@graphql-tools/utils": "^10.11.0",
-    "@graphql-tools/wrap": "^11.0.0",
+    "@graphql-tools/wrap": "^11.1.1",
     "@types/ws": "^8.0.0",
     "@whatwg-node/fetch": "^0.10.13",
     "@whatwg-node/promise-helpers": "^1.0.0",
