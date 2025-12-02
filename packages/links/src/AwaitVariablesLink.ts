@@ -1,3 +1,4 @@
+import { Readable } from 'stream';
 import * as apolloImport from '@apollo/client';
 import { mapMaybePromise } from '@graphql-tools/utils';
 
@@ -12,6 +13,14 @@ function getFinalPromise(object: any): Promise<any> {
     if (Array.isArray(resolvedObject)) {
       return Promise.all(resolvedObject.map(o => getFinalPromise(o)));
     } else if (typeof resolvedObject === 'object') {
+      if (resolvedObject?.createReadStream != null) {
+        const readable: Readable = resolvedObject.createReadStream();
+        return readable
+          .toArray()
+          .then(
+            chunks => new File(chunks, resolvedObject.filename, { type: resolvedObject.mimetype }),
+          );
+      }
       const keys = Object.keys(resolvedObject);
       return Promise.all(keys.map(key => getFinalPromise(resolvedObject[key]))).then(
         awaitedValues => {
