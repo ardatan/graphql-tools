@@ -1,6 +1,7 @@
 import { Readable } from 'stream';
 import * as apolloImport from '@apollo/client';
 import { mapMaybePromise } from '@graphql-tools/utils';
+import { File } from '@whatwg-node/fetch';
 
 const apollo: typeof apolloImport = (apolloImport as any)?.default ?? apolloImport;
 

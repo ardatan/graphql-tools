@@ -2,14 +2,13 @@ import { Server } from 'http';
 import { AddressInfo } from 'net';
 import { Readable } from 'stream';
 import express, { Express } from 'express';
-import FormData from 'form-data';
 import { buildSchema, GraphQLSchema, parse } from 'graphql';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';
-import fetch from 'node-fetch';
 import { execute } from '@graphql-tools/executor';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
+import { fetch, File, FormData } from '@whatwg-node/fetch';
 import { describeIf } from '../../../packages/testing/utils.js';
 import {
   createServerHttpLink,
@@ -51,7 +50,8 @@ function testGraphqlMultipartRequest(query: string, port: number) {
     }),
   );
   body.append('map', '{ "1": ["variables.file"] }');
-  body.append('1', 'abc', { filename: __filename });
+  const file = new File(['abc'], __filename);
+  body.append('1', file);
 
   return fetch(`http://localhost:${port.toString()}`, {
     method: 'POST',

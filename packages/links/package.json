@@ -52,6 +52,7 @@
   },
   "dependencies": {
     "@graphql-tools/utils": "^10.11.0",
+    "@whatwg-node/fetch": "^0.10.13",
     "apollo-upload-client": "^19.0.0",
     "tslib": "^2.4.0"
   },
