@@ -12,9 +12,10 @@ import {
   print,
 } from 'graphql';
 import gql from 'graphql-tag';
+import { buildSubgraphSchema } from '@apollo/subgraph';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
-import { assertSome } from '@graphql-tools/utils';
+import { assertSome, printSchemaWithDirectives } from '@graphql-tools/utils';
 import { mergeDirectives, mergeGraphQLTypes, mergeTypeDefs } from '../src/index.js';
 import { stripWhitespaces } from './utils.js';
 
@@ -1847,4 +1848,55 @@ describe('Merge TypeDefs', () => {
   //   const merged = mergeTypeDefs([ast]);
   //   expect(print(merged)).toBeSimilarString(print(ast));
   // })
+  it('should allow duplicate directives', () => {
+    const schemaWithFedDeclaration = gql`
+      extend schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.5"
+          import: ["@key", "@shareable", "@tag"]
+        )
+
+      scalar DateTimeISO @tag(name: "nameA") @tag(name: "nameB")
+    `;
+    const schemaWithConflictingScalar = gql`
+      scalar DateTimeISO
+    `;
+
+    const schemaWithExpandedFederatedTagDirective = gql`
+      extend schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.5"
+          import: ["@key", "@shareable", "@tag"]
+        )
+
+      directive @tag(
+        name: String!
+      ) repeatable on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION | SCHEMA
+      scalar DateTimeISO @tag(name: "nameA") @tag(name: "nameB")
+    `;
+
+    const schemaWithoutExpandedTagDirective = buildSubgraphSchema({
+      typeDefs: mergeTypeDefs([schemaWithFedDeclaration, schemaWithConflictingScalar]),
+    });
+    const schemaWithExpandedTagDirective = buildSubgraphSchema({
+      typeDefs: mergeTypeDefs([
+        schemaWithExpandedFederatedTagDirective,
+        schemaWithConflictingScalar,
+      ]),
+    });
+
+    const problematicSchema = printSchemaWithDirectives(schemaWithoutExpandedTagDirective);
+    const successfulSchema = printSchemaWithDirectives(schemaWithExpandedTagDirective);
+
+    expect(successfulSchema).toContain('nameA');
+    expect(successfulSchema).toContain('nameB');
+    console.log('firstSchemaPasses');
+
+    expect(problematicSchema).toContain('nameB');
+    // should fail, as only the last directive was kept by mergeTypeDefs
+    console.log(
+      'test will fail, nameA not found, due to mergeTypeDefs stripping the first tag directive',
+    );
+    expect(problematicSchema).toContain('nameA');
+  });
 });

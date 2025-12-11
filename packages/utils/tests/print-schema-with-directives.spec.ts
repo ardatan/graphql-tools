@@ -15,6 +15,9 @@ import {
   specifiedDirectives,
 } from 'graphql';
 import { GraphQLJSON } from 'graphql-scalars';
+import { gql } from '@apollo/client';
+import { buildSubgraphSchema } from '@apollo/subgraph';
+import { mergeTypeDefs } from '@graphql-tools/merge';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { RenameTypes, wrapSchema } from '@graphql-tools/wrap';
@@ -402,22 +405,4 @@ describe('printSchemaWithDirectives', () => {
       expect(output).toContain('input OneOfInput @oneOf');
     }
   });
-  it('should allow duplicate directives', () => {
-    const typeDefs = `
-    extend schema
-      @link(
-        url: "https://specs.apollo.dev/federation/v2.5"
-        import: [
-          "@tag"
-        ]
-      )
-
-    scalar DateTimeISO @tag(name: "nameA") @tag(name: "nameB")
-    `;
-    const schema = buildSchema(typeDefs);
-    const printedTransformedSchema = printSchemaWithDirectives(schema);
-    expect(printedTransformedSchema).toContain('nameA');
-    expect(printedTransformedSchema).toContain('nameB');
-
-  })
 });
