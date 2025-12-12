@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@graphql-tools/utils": "^10.11.0",
-    "@theguild/federation-composition": "^0.21.0",
+    "@theguild/federation-composition": "^0.21.1",
     "resolve-from": "5.0.0",
     "tslib": "^2.4.0"
   },
