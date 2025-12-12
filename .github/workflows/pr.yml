@@ -13,7 +13,7 @@ jobs:
     uses: the-guild-org/shared-config/.github/workflows/changesets-dependencies.yaml@main
     if: ${{ github.event.pull_request.title != 'Upcoming Release Changes' }}
     secrets:
-      githubToken: ${{ secrets.GITHUB_TOKEN }}
+      githubToken: ${{ secrets.GH_BOT_TOKEN }}
 
   alpha:
     permissions:
