@@ -1,5 +1,16 @@
 # @graphql-tools/import
 
+## 7.1.9
+
+### Patch Changes
+
+- [#7798](https://github.com/ardatan/graphql-tools/pull/7798)
+  [`86c350d`](https://github.com/ardatan/graphql-tools/commit/86c350d6a4b6964e330609a59f5096820bf2daf0)
+  Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+  - Updated dependency
+    [`@theguild/federation-composition@^0.21.1` ↗︎](https://www.npmjs.com/package/@theguild/federation-composition/v/0.21.1)
+    (from `^0.21.0`, in `dependencies`)
+
 ## 7.1.8
 
 ### Patch Changes
