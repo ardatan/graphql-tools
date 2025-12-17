@@ -46,7 +46,7 @@
     "version": "npx changeset version"
   },
   "optionalDependencies": {
-    "bun": "1.3.4"
+    "bun": "1.3.5"
   },
   "devDependencies": {
     "@apollo/client": "4.0.11",
