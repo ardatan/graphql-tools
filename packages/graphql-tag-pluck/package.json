@@ -65,7 +65,7 @@
     "astrojs-compiler-sync": "1.1.1",
     "content-tag": "4.0.0",
     "svelte": "5.46.0",
-    "svelte2tsx": "0.7.45"
+    "svelte2tsx": "0.7.46"
   },
   "publishConfig": {
     "directory": "dist",
