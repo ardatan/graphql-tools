@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/url-loader",
-  "version": "9.0.5",
+  "version": "9.0.6",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
@@ -53,8 +53,8 @@
   "dependencies": {
     "@graphql-tools/executor-graphql-ws": "^3.1.2",
     "@graphql-tools/executor-http": "^3.0.6",
-    "@graphql-tools/executor-legacy-ws": "^1.1.24",
-    "@graphql-tools/utils": "^10.11.0",
+    "@graphql-tools/executor-legacy-ws": "^1.1.25",
+    "@graphql-tools/utils": "^11.0.0",
     "@graphql-tools/wrap": "^11.1.1",
     "@types/ws": "^8.0.0",
     "@whatwg-node/fetch": "^0.10.13",
