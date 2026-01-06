@@ -1,5 +1,18 @@
 # @graphql-tools/executor-legacy-ws
 
+## 1.1.25
+
+### Patch Changes
+
+- [#7834](https://github.com/ardatan/graphql-tools/pull/7834)
+  [`f794c47`](https://github.com/ardatan/graphql-tools/commit/f794c47eeff46d97918bc0b92695934ffdd7012d)
+  Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+  - Updated dependency [`ws@^8.19.0` ↗︎](https://www.npmjs.com/package/ws/v/8.19.0) (from `^8.17.1`,
+    in `dependencies`)
+- Updated dependencies
+  [[`6f3776c`](https://github.com/ardatan/graphql-tools/commit/6f3776c06e80aa6b793be9742e9b2453f8746276)]:
+  - @graphql-tools/utils@11.0.0
+
 ## 1.1.24
 
 ### Patch Changes
@@ -237,8 +250,8 @@
 - [#5762](https://github.com/ardatan/graphql-tools/pull/5762)
   [`701cfd3`](https://github.com/ardatan/graphql-tools/commit/701cfd331e60b5d77563be140671d52691aa7348)
   Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-  - Updated dependency [`ws@8.15.0` ↗︎](https://www.npmjs.com/package/ws/v/8.15.0) (from `8.14.2`,
-    in `dependencies`)
+  - Updated dependency [`ws@8.15.0` ↗︎](https://www.npmjs.com/package/ws/v/8.15.0) (from `8.14.2`, in
+    `dependencies`)
 
 ## 1.0.4
 
@@ -247,8 +260,8 @@
 - [#5603](https://github.com/ardatan/graphql-tools/pull/5603)
   [`6c26c4fb`](https://github.com/ardatan/graphql-tools/commit/6c26c4fb51649449593fd55c04f8678048165db0)
   Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-  - Updated dependency [`ws@8.14.2` ↗︎](https://www.npmjs.com/package/ws/v/8.14.2) (from `8.14.1`,
-    in `dependencies`)
+  - Updated dependency [`ws@8.14.2` ↗︎](https://www.npmjs.com/package/ws/v/8.14.2) (from `8.14.1`, in
+    `dependencies`)
 
 ## 1.0.3
 
@@ -257,8 +270,8 @@
 - [#5575](https://github.com/ardatan/graphql-tools/pull/5575)
   [`b1531913`](https://github.com/ardatan/graphql-tools/commit/b1531913e1ec3838b147bc4c4295b63d112006e4)
   Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-  - Updated dependency [`ws@8.14.1` ↗︎](https://www.npmjs.com/package/ws/v/8.14.1) (from `8.14.0`,
-    in `dependencies`)
+  - Updated dependency [`ws@8.14.1` ↗︎](https://www.npmjs.com/package/ws/v/8.14.1) (from `8.14.0`, in
+    `dependencies`)
 
 ## 1.0.2
 
@@ -267,8 +280,8 @@
 - [#5570](https://github.com/ardatan/graphql-tools/pull/5570)
   [`4f6f5642`](https://github.com/ardatan/graphql-tools/commit/4f6f56422246ae4b69c4cc38447c5f7a29b961c1)
   Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-  - Updated dependency [`ws@8.14.0` ↗︎](https://www.npmjs.com/package/ws/v/8.14.0) (from `8.13.0`,
-    in `dependencies`)
+  - Updated dependency [`ws@8.14.0` ↗︎](https://www.npmjs.com/package/ws/v/8.14.0) (from `8.13.0`, in
+    `dependencies`)
 
 ## 1.0.1
 
@@ -310,8 +323,8 @@
 - [#5112](https://github.com/ardatan/graphql-tools/pull/5112)
   [`828fbf93`](https://github.com/ardatan/graphql-tools/commit/828fbf93ff317d00577c9a94402736bac5f4be39)
   Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-  - Updated dependency [`ws@8.13.0` ↗︎](https://www.npmjs.com/package/ws/v/8.13.0) (from `8.12.1`,
-    in `dependencies`)
+  - Updated dependency [`ws@8.13.0` ↗︎](https://www.npmjs.com/package/ws/v/8.13.0) (from `8.12.1`, in
+    `dependencies`)
 
 ## 0.0.9
 
@@ -320,8 +333,8 @@
 - [#5058](https://github.com/ardatan/graphql-tools/pull/5058)
   [`1298727c`](https://github.com/ardatan/graphql-tools/commit/1298727c629b4d535b023dcf920639ae43571692)
   Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-  - Updated dependency [`ws@8.12.1` ↗︎](https://www.npmjs.com/package/ws/v/8.12.1) (from `8.12.0`,
-    in `dependencies`)
+  - Updated dependency [`ws@8.12.1` ↗︎](https://www.npmjs.com/package/ws/v/8.12.1) (from `8.12.0`, in
+    `dependencies`)
 
 ## 0.0.8
 
@@ -347,8 +360,8 @@
 - [#4952](https://github.com/ardatan/graphql-tools/pull/4952)
   [`1c4853cb`](https://github.com/ardatan/graphql-tools/commit/1c4853cb8563d83c0d862d3c11257c48c7d1469c)
   Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-  - Updated dependency [`ws@8.12.0` ↗︎](https://www.npmjs.com/package/ws/v/8.12.0) (from `8.11.0`,
-    in `dependencies`)
+  - Updated dependency [`ws@8.12.0` ↗︎](https://www.npmjs.com/package/ws/v/8.12.0) (from `8.11.0`, in
+    `dependencies`)
 - Updated dependencies
   [[`e3ec35ed`](https://github.com/ardatan/graphql-tools/commit/e3ec35ed27d4a329739c8da6be06ce74c8f25591)]:
   - @graphql-tools/utils@9.1.4

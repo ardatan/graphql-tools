@@ -1,5 +1,13 @@
 # @graphql-tools/executor-apollo-link
 
+## 2.0.6
+
+### Patch Changes
+
+- Updated dependencies
+  [[`6f3776c`](https://github.com/ardatan/graphql-tools/commit/6f3776c06e80aa6b793be9742e9b2453f8746276)]:
+  - @graphql-tools/utils@11.0.0
+
 ## 2.0.5
 
 ### Patch Changes
