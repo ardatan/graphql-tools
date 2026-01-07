@@ -1,5 +1,37 @@
 # @graphql-tools/utils
 
+## 11.0.0
+
+### Major Changes
+
+- [#7685](https://github.com/ardatan/graphql-tools/pull/7685)
+  [`6f3776c`](https://github.com/ardatan/graphql-tools/commit/6f3776c06e80aa6b793be9742e9b2453f8746276)
+  Thanks [@ardatan](https://github.com/ardatan)! - Support "federation/subgraph style" schemas in
+  `astFromSchema` and `printSchemaWithDirectives`
+
+  If a `GraphQLSchema` doesn't have any defined operation types, we should print the schema
+  definition as an extension rather than omitting it entirely. They are not a valid schema on their
+  own, but they are valid subgraph schemas in a federation setup, and it is possible to build such
+  schemas with `assumeValid` options.
+
+  ```ts
+  // A schema without defined root types
+  buildSchema(
+    /* GraphQL */ `
+      extend schema @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key"])
+
+      type User @key(fields: "id") {
+        id: ID!
+        username: String
+      }
+    `,
+    { assumeValid: true, assumeValidSDL: true }
+  )
+  ```
+
+  **POTENTIAL BREAKING CHANGE**: This can be a breaking change because now the schema above will be
+  printed as the input, previously `extend schema` was converted to `schema {}`.
+
 ## 10.11.0
 
 ### Minor Changes
@@ -234,8 +266,8 @@
 - [#6822](https://github.com/ardatan/graphql-tools/pull/6822)
   [`53bb601`](https://github.com/ardatan/graphql-tools/commit/53bb60104782738f51a2c2de42d6da7aba191537)
   Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-  - Updated dependency [`dset@^3.1.4` ↗︎](https://www.npmjs.com/package/dset/v/3.1.4) (from
-    `^3.1.2`, in `dependencies`)
+  - Updated dependency [`dset@^3.1.4` ↗︎](https://www.npmjs.com/package/dset/v/3.1.4) (from `^3.1.2`,
+    in `dependencies`)
 
 - [#6822](https://github.com/ardatan/graphql-tools/pull/6822)
   [`53bb601`](https://github.com/ardatan/graphql-tools/commit/53bb60104782738f51a2c2de42d6da7aba191537)

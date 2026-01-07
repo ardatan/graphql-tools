@@ -1,5 +1,13 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 8.3.27
+
+### Patch Changes
+
+- Updated dependencies
+  [[`6f3776c`](https://github.com/ardatan/graphql-tools/commit/6f3776c06e80aa6b793be9742e9b2453f8746276)]:
+  - @graphql-tools/utils@11.0.0
+
 ## 8.3.26
 
 ### Patch Changes
@@ -75,8 +83,8 @@
   [`6bb35f4`](https://github.com/ardatan/graphql-tools/commit/6bb35f44d67638e222af9ec68f16a1762d373b0f)
   Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
   - Updated dependency
-    [`@babel/core@^7.26.10` ↗︎](https://www.npmjs.com/package/@babel/core/v/7.26.10) (from
-    `^7.22.9`, in `dependencies`)
+    [`@babel/core@^7.26.10` ↗︎](https://www.npmjs.com/package/@babel/core/v/7.26.10) (from `^7.22.9`,
+    in `dependencies`)
   - Updated dependency
     [`@babel/parser@^7.26.10` ↗︎](https://www.npmjs.com/package/@babel/parser/v/7.26.10) (from
     `^7.16.8`, in `dependencies`)
