@@ -1,11 +1,21 @@
+interface I {
+  c4: ID
+}
+
 type C1 {
   c1: ID
 }
 
 type C2 {
-  c2: ID
+  c2: C3
 }
 
-type C3 {
-  c3: ID
+union C3 = C4 | C5
+
+type C4 implements I {
+  c4: ID
+}
+
+type C5 {
+  C5: ID
 }
