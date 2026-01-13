@@ -54,7 +54,7 @@
     "tslib": "^2.4.0"
   },
   "optionalDependencies": {
-    "@apollo/client": "~4.0.9"
+    "@apollo/client": "~4.0.13"
   },
   "publishConfig": {
     "directory": "dist",
