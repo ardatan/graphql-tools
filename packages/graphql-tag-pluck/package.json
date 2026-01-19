@@ -61,7 +61,7 @@
   "devDependencies": {
     "@astrojs/compiler": "2.13.0",
     "@types/babel__traverse": "7.28.0",
-    "@vue/compiler-sfc": "3.5.26",
+    "@vue/compiler-sfc": "3.5.27",
     "astrojs-compiler-sync": "1.1.1",
     "content-tag": "4.1.0",
     "svelte": "5.47.0",
