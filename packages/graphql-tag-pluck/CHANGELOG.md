@@ -1,5 +1,15 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 8.3.28
+
+### Patch Changes
+
+- [#7850](https://github.com/ardatan/graphql-tools/pull/7850)
+  [`6047348`](https://github.com/ardatan/graphql-tools/commit/60473486b0c65a4334389456081003785db9c9ac)
+  Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+  - Updated dependency [`@babel/core@^7.28.6` ↗︎](https://www.npmjs.com/package/@babel/core/v/7.28.6)
+    (from `^7.26.10`, in `dependencies`)
+
 ## 8.3.27
 
 ### Patch Changes

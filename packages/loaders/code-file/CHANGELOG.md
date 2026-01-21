@@ -1,5 +1,13 @@
 # @graphql-tools/code-file-loader
 
+## 8.1.29
+
+### Patch Changes
+
+- Updated dependencies
+  [[`6047348`](https://github.com/ardatan/graphql-tools/commit/60473486b0c65a4334389456081003785db9c9ac)]:
+  - @graphql-tools/graphql-tag-pluck@8.3.28
+
 ## 8.1.28
 
 ### Patch Changes
