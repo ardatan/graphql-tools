@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/resolvers-composition",
-  "version": "7.0.26",
+  "version": "7.0.27",
   "type": "module",
   "description": "Common package containing utils and types for GraphQL tools",
   "repository": {

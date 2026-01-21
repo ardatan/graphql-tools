@@ -1,5 +1,19 @@
 # @graphql-tools/github-loader
 
+## 9.0.7
+
+### Patch Changes
+
+- [#7840](https://github.com/ardatan/graphql-tools/pull/7840)
+  [`26e2a54`](https://github.com/ardatan/graphql-tools/commit/26e2a54a57ee3309aac5c301cd7c65f7c691c92a)
+  Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/executor-http@^3.1.0` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-http/v/3.1.0)
+    (from `^3.0.6`, in `dependencies`)
+- Updated dependencies
+  [[`6047348`](https://github.com/ardatan/graphql-tools/commit/60473486b0c65a4334389456081003785db9c9ac)]:
+  - @graphql-tools/graphql-tag-pluck@8.3.28
+
 ## 9.0.6
 
 ### Patch Changes

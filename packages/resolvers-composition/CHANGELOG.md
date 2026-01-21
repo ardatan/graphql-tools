@@ -1,5 +1,33 @@
 # @graphql-tools/resolvers-composition
 
+## 7.0.27
+
+### Patch Changes
+
+- [#7875](https://github.com/ardatan/graphql-tools/pull/7875)
+  [`aeaa3c2`](https://github.com/ardatan/graphql-tools/commit/aeaa3c24b7c057ce589c2cf8eaa1dacf15e86fc8)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency [`lodash@4.17.23` ↗︎](https://www.npmjs.com/package/lodash/v/4.17.23) (from
+    `4.17.21`, in `dependencies`)
+
+- [#7876](https://github.com/ardatan/graphql-tools/pull/7876)
+  [`e1d1389`](https://github.com/ardatan/graphql-tools/commit/e1d138908d16ffce996f36a0120920727e415166)
+  Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+  - Updated dependency [`lodash@4.17.23` ↗︎](https://www.npmjs.com/package/lodash/v/4.17.23) (from
+    `4.17.21`, in `dependencies`)
+
+- [#7877](https://github.com/ardatan/graphql-tools/pull/7877)
+  [`84879ff`](https://github.com/ardatan/graphql-tools/commit/84879ff438d4a42c7b8d0b5a61db675f9028c4f8)
+  Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+  - Updated dependency [`lodash@4.17.23` ↗︎](https://www.npmjs.com/package/lodash/v/4.17.23) (from
+    `4.17.21`, in `dependencies`)
+
+- [#7879](https://github.com/ardatan/graphql-tools/pull/7879)
+  [`1a1cc32`](https://github.com/ardatan/graphql-tools/commit/1a1cc32595957544544afcc53f8368da9e95e989)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency [`lodash@4.17.23` ↗︎](https://www.npmjs.com/package/lodash/v/4.17.23) (from
+    `4.17.21`, in `dependencies`)
+
 ## 7.0.26
 
 ### Patch Changes
