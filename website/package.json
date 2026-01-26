@@ -13,7 +13,7 @@
   "dependencies": {
     "@theguild/components": "9.11.3",
     "@theguild/remark-mermaid": "0.3.0",
-    "next": "16.1.4",
+    "next": "16.1.5",
     "next-sitemap": "4.2.3",
     "react": "19.2.3",
     "react-dom": "19.2.3"
