@@ -86,8 +86,8 @@
     "patch-package": "8.0.1",
     "prettier": "3.8.1",
     "prettier-plugin-tailwindcss": "0.7.2",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
     "rimraf": "6.1.2",
     "ts-jest": "29.4.6",
     "tsx": "4.21.0",
@@ -102,8 +102,8 @@
     "esbuild": "0.27.2",
     "estree-util-value-to-estree": "3.5.0",
     "graphql": "16.12.0",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
     "tmp": "0.2.5"
   },
   "lint-staged": {
