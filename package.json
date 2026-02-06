@@ -92,7 +92,7 @@
     "ts-jest": "29.4.6",
     "tsx": "4.21.0",
     "typedoc": "0.25.13",
-    "typedoc-plugin-markdown": "3.17.1",
+    "typedoc-plugin-markdown": "4.10.0",
     "typedoc-plugin-rename-defaults": "0.7.3",
     "typescript": "5.9.3",
     "wonka": "6.3.5"
