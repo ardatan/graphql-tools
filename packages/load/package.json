@@ -53,7 +53,7 @@
   "dependencies": {
     "@graphql-tools/schema": "^10.0.31",
     "@graphql-tools/utils": "^11.0.0",
-    "p-limit": "3.1.0",
+    "p-limit": "7.3.0",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
