@@ -57,7 +57,7 @@
     "@babel/preset-typescript": "7.28.5",
     "@changesets/changelog-github": "0.5.2",
     "@changesets/cli": "2.29.8",
-    "@envelop/core": "5.5.0",
+    "@envelop/core": "5.5.1",
     "@graphql-tools/delegate": "12.0.6",
     "@theguild/prettier-config": "3.0.1",
     "@theguild/remark-mermaid": "0.3.0",
