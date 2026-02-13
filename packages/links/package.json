@@ -58,7 +58,7 @@
   },
   "devDependencies": {
     "@apollo/client": "4.1.4",
-    "@graphql-tools/stitch": "^10.1.10",
+    "@graphql-tools/stitch": "^10.1.11",
     "@types/apollo-upload-client": "19.0.0",
     "@types/node-fetch": "^2",
     "graphql-upload": "17.0.0"
