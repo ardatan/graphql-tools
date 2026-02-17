@@ -77,7 +77,6 @@ export function mapSchema(schema: GraphQLSchema, schemaMapper: SchemaMapper = {}
   const newDirectives = mapDirectives(originalDirectives, schema, schemaMapper);
 
   const { typeMap, directives } = rewireTypes(newTypeMap, newDirectives);
-
   return new GraphQLSchema({
     ...schema.toConfig(),
     query: getObjectTypeFromTypeMap(
