@@ -16,7 +16,7 @@
     "packages/executors/*",
     "website"
   ],
-  "packageManager": "npm@11.10.0",
+  "packageManager": "npm@11.10.1",
   "keywords": [
     "GraphQL",
     "Apollo",
@@ -49,7 +49,7 @@
     "bun": "1.3.9"
   },
   "devDependencies": {
-    "@apollo/client": "4.1.4",
+    "@apollo/client": "4.1.5",
     "@babel/core": "7.29.0",
     "@babel/plugin-proposal-class-properties": "7.18.6",
     "@babel/plugin-proposal-explicit-resource-management": "7.27.4",
@@ -71,7 +71,7 @@
     "concurrently": "9.2.1",
     "cookie": "1.1.1",
     "cross-env": "10.1.0",
-    "eslint": "9.39.2",
+    "eslint": "9.39.3",
     "eslint-config-prettier": "10.1.8",
     "eslint-config-standard": "17.1.0",
     "eslint-plugin-import": "2.32.0",
