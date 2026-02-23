@@ -71,7 +71,7 @@
     "concurrently": "9.2.1",
     "cookie": "1.1.1",
     "cross-env": "10.1.0",
-    "eslint": "9.39.3",
+    "eslint": "10.0.2",
     "eslint-config-prettier": "10.1.8",
     "eslint-config-standard": "17.1.0",
     "eslint-plugin-import": "2.32.0",
