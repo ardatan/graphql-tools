@@ -55,7 +55,7 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@graphql-tools/stitch": "^10.1.10"
+    "@graphql-tools/stitch": "^10.1.12"
   },
   "publishConfig": {
     "directory": "dist",
