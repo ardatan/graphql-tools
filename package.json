@@ -82,7 +82,7 @@
     "graphql-yoga": "5.18.0",
     "husky": "9.1.7",
     "jest": "30.2.0",
-    "lint-staged": "16.2.7",
+    "lint-staged": "16.3.0",
     "patch-package": "8.0.1",
     "prettier": "3.8.1",
     "prettier-plugin-tailwindcss": "0.7.2",
