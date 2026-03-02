@@ -1,5 +1,15 @@
 # @graphql-tools/resolvers-composition
 
+## 7.0.28
+
+### Patch Changes
+
+- [#7878](https://github.com/ardatan/graphql-tools/pull/7878)
+  [`9521344`](https://github.com/ardatan/graphql-tools/commit/9521344b48e9ae1cb6b9ca1084515761571f8374)
+  Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+  - Updated dependency [`lodash@4.17.23` ↗︎](https://www.npmjs.com/package/lodash/v/4.17.23) (from
+    `4.17.21`, in `dependencies`)
+
 ## 7.0.27
 
 ### Patch Changes
