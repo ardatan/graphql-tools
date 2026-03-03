@@ -55,7 +55,7 @@
     "@babel/plugin-proposal-explicit-resource-management": "7.27.4",
     "@babel/preset-env": "7.29.0",
     "@babel/preset-typescript": "7.28.5",
-    "@changesets/changelog-github": "0.5.2",
+    "@changesets/changelog-github": "0.6.0",
     "@changesets/cli": "2.30.0",
     "@envelop/core": "5.5.1",
     "@graphql-tools/delegate": "12.0.8",
