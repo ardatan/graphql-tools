@@ -1,6 +1,6 @@
 {
   "name": "@ardatan/relay-compiler",
-  "version": "12.2.0",
+  "version": "12.3.0",
   "description": "Fork of `relay-compiler`",
   "repository": {
     "type": "git",
