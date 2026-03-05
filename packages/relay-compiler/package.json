@@ -29,7 +29,7 @@
     "immutable": "^5.1.5",
     "invariant": "^2.2.4",
     "nullthrows": "^1.1.1",
-    "relay-runtime": "12.0.0",
+    "relay-runtime": "20.1.1",
     "signedsource": "^1.0.0"
   },
   "publishConfig": {
