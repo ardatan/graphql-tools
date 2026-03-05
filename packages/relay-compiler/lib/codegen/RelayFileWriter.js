@@ -40,7 +40,7 @@ var invariant = require('invariant');
 
 var md5 = require('../util/md5');
 
-var nullthrows = require('nullthrows');
+var nullthrows = require('../util/nullthrowsOSS');
 
 var path = require('path');
 
