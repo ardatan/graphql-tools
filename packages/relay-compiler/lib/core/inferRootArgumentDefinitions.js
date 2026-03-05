@@ -4,17 +4,19 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _interopRequireDefault = require('@babel/runtime/helpers/interopRequireDefault');
 
-var _createForOfIteratorHelper2 = _interopRequireDefault(require("@babel/runtime/helpers/createForOfIteratorHelper"));
+var _createForOfIteratorHelper2 = _interopRequireDefault(
+  require('@babel/runtime/helpers/createForOfIteratorHelper'),
+);
 
-var _objectSpread2 = _interopRequireDefault(require("@babel/runtime/helpers/objectSpread2"));
+var _objectSpread2 = _interopRequireDefault(require('@babel/runtime/helpers/objectSpread2'));
 
 var CompilerContext = require('./CompilerContext');
 
@@ -23,7 +25,7 @@ var IRVisitor = require('./IRVisitor');
 var SchemaUtils = require('./SchemaUtils');
 
 var _require = require('./CompilerError'),
-    createCompilerError = _require.createCompilerError;
+  createCompilerError = _require.createCompilerError;
 
 /**
  * Returns a transformed version of the input context where each document's
@@ -51,33 +53,37 @@ function inferRootArgumentDefinitions(context) {
   // each reachable fragment only has to be checked once.
   var transformed = new Map();
   var nextContext = new CompilerContext(context.getSchema());
-  return nextContext.addAll(Array.from(context.documents(), function (node) {
-    switch (node.kind) {
-      case 'Fragment':
-        {
+  return nextContext.addAll(
+    Array.from(context.documents(), function (node) {
+      switch (node.kind) {
+        case 'Fragment': {
           var argumentDefinitions = transformFragmentArguments(context, transformed, node);
-          return (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, node), {}, {
-            argumentDefinitions: Array.from(argumentDefinitions.values())
-          });
+          return (0, _objectSpread2['default'])(
+            (0, _objectSpread2['default'])({}, node),
+            {},
+            {
+              argumentDefinitions: Array.from(argumentDefinitions.values()),
+            },
+          );
         }
 
-      case 'Root':
-        {
+        case 'Root': {
           return transformRoot(context, transformed, node);
         }
 
-      case 'SplitOperation':
-        {
+        case 'SplitOperation': {
           return node;
         }
 
-      default:
-        {
+        default: {
           node;
-          throw createCompilerError("inferRootArgumentDefinitions: Unsupported kind '".concat(node.kind, "'."));
+          throw createCompilerError(
+            "inferRootArgumentDefinitions: Unsupported kind '".concat(node.kind, "'."),
+          );
         }
-    }
-  }));
+      }
+    }),
+  );
 }
 
 function transformRoot(context, transformed, root) {
@@ -86,14 +92,14 @@ function transformRoot(context, transformed, root) {
   var argumentDefinitions = new Map();
   var localArgumentDefinitions = new Map();
 
-  var _iterator = (0, _createForOfIteratorHelper2["default"])(root.argumentDefinitions.entries()),
-      _step;
+  var _iterator = (0, _createForOfIteratorHelper2['default'])(root.argumentDefinitions.entries()),
+    _step;
 
   try {
-    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
       var _step$value = _step.value,
-          name = _step$value[0],
-          argDef = _step$value[1];
+        name = _step$value[0],
+        argDef = _step$value[1];
 
       if (argDef.kind === 'LocalArgumentDefinition') {
         localArgumentDefinitions.set(name, argDef);
@@ -106,25 +112,47 @@ function transformRoot(context, transformed, root) {
   }
 
   visit(context, transformed, argumentDefinitions, root);
-  return (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, root), {}, {
-    argumentDefinitions: Array.from(argumentDefinitions.values(), function (argDef) {
-      var _localDefinition$type, _localDefinition$defa;
+  return (0, _objectSpread2['default'])(
+    (0, _objectSpread2['default'])({}, root),
+    {},
+    {
+      argumentDefinitions: Array.from(argumentDefinitions.values(), function (argDef) {
+        var _localDefinition$type, _localDefinition$defa;
 
-      if (argDef.kind !== 'RootArgumentDefinition') {
-        throw createCompilerError("inferRootArgumentDefinitions: Expected inferred variable '$".concat(argDef.name, "' to be a root variables."), [argDef.loc]);
-      }
+        if (argDef.kind !== 'RootArgumentDefinition') {
+          throw createCompilerError(
+            "inferRootArgumentDefinitions: Expected inferred variable '$".concat(
+              argDef.name,
+              "' to be a root variables.",
+            ),
+            [argDef.loc],
+          );
+        }
 
-      var localDefinition = localArgumentDefinitions.get(argDef.name);
-      var type = (_localDefinition$type = localDefinition === null || localDefinition === void 0 ? void 0 : localDefinition.type) !== null && _localDefinition$type !== void 0 ? _localDefinition$type : argDef.type;
-      return {
-        defaultValue: (_localDefinition$defa = localDefinition === null || localDefinition === void 0 ? void 0 : localDefinition.defaultValue) !== null && _localDefinition$defa !== void 0 ? _localDefinition$defa : null,
-        kind: 'LocalArgumentDefinition',
-        loc: argDef.loc,
-        name: argDef.name,
-        type: type
-      };
-    })
-  });
+        var localDefinition = localArgumentDefinitions.get(argDef.name);
+        var type =
+          (_localDefinition$type =
+            localDefinition === null || localDefinition === void 0
+              ? void 0
+              : localDefinition.type) !== null && _localDefinition$type !== void 0
+            ? _localDefinition$type
+            : argDef.type;
+        return {
+          defaultValue:
+            (_localDefinition$defa =
+              localDefinition === null || localDefinition === void 0
+                ? void 0
+                : localDefinition.defaultValue) !== null && _localDefinition$defa !== void 0
+              ? _localDefinition$defa
+              : null,
+          kind: 'LocalArgumentDefinition',
+          loc: argDef.loc,
+          name: argDef.name,
+          type: type,
+        };
+      }),
+    },
+  );
 }
 
 function transformFragmentArguments(context, transformed, fragment) {
@@ -135,7 +163,6 @@ function transformFragmentArguments(context, transformed, fragment) {
     return transformedArguments;
   } // Start with only the explicitly defined local arguments, recover the
   // correct set of root variables excluding invalid @arguments values.
-
 
   var argumentDefinitions = new Map();
   fragment.argumentDefinitions.forEach(function (argDef) {
@@ -164,25 +191,31 @@ function visit(context, transformed, argumentDefinitions, node) {
       fragmentSpread.args.forEach(function (arg) {
         var argDef = referencedFragmentArguments.get(arg.name);
 
-        if (argDef != null && arg.value.kind === 'Variable' && !argumentDefinitions.has(arg.value.variableName)) {
+        if (
+          argDef != null &&
+          arg.value.kind === 'Variable' &&
+          !argumentDefinitions.has(arg.value.variableName)
+        ) {
           argumentDefinitions.set(arg.value.variableName, {
             kind: 'RootArgumentDefinition',
             loc: {
               kind: 'Derived',
-              source: arg.loc
+              source: arg.loc,
             },
             name: arg.value.variableName,
-            type: argDef.type
+            type: argDef.type,
           });
         }
       }); // Merge any root variables referenced by the spread fragment
       // into this (parent) fragment's arguments.
 
-      var _iterator2 = (0, _createForOfIteratorHelper2["default"])(referencedFragmentArguments.values()),
-          _step2;
+      var _iterator2 = (0, _createForOfIteratorHelper2['default'])(
+          referencedFragmentArguments.values(),
+        ),
+        _step2;
 
       try {
-        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
           var argDef = _step2.value;
 
           if (argDef.kind === 'RootArgumentDefinition') {
@@ -208,7 +241,10 @@ function visit(context, transformed, argumentDefinitions, node) {
         if (currentValue.kind === 'Variable') {
           var _currentValue$type;
 
-          var type = (_currentValue$type = currentValue.type) !== null && _currentValue$type !== void 0 ? _currentValue$type : argument.type;
+          var type =
+            (_currentValue$type = currentValue.type) !== null && _currentValue$type !== void 0
+              ? _currentValue$type
+              : argument.type;
 
           if (type == null) {
             continue;
@@ -220,10 +256,10 @@ function visit(context, transformed, argumentDefinitions, node) {
               kind: 'RootArgumentDefinition',
               loc: {
                 kind: 'Derived',
-                source: argument.loc
+                source: argument.loc,
               },
               name: currentValue.variableName,
-              type: type
+              type: type,
             });
           }
         } else if (currentValue.kind === 'ObjectValue') {
@@ -252,7 +288,10 @@ function visit(context, transformed, argumentDefinitions, node) {
         return;
       }
 
-      var type = (_variable$type = variable.type) !== null && _variable$type !== void 0 ? _variable$type : SchemaUtils.getNonNullBooleanInput(context.getSchema());
+      var type =
+        (_variable$type = variable.type) !== null && _variable$type !== void 0
+          ? _variable$type
+          : SchemaUtils.getNonNullBooleanInput(context.getSchema());
 
       if (!argumentDefinitions.has(variable.variableName)) {
         // root variable
@@ -260,23 +299,26 @@ function visit(context, transformed, argumentDefinitions, node) {
           kind: 'RootArgumentDefinition',
           loc: {
             kind: 'Derived',
-            source: variable.loc
+            source: variable.loc,
           },
           name: variable.variableName,
-          type: type
+          type: type,
         });
       }
     },
     Defer: function Defer(defer) {
       var _variable$type2;
 
-      var variable = defer["if"];
+      var variable = defer['if'];
 
       if (variable == null || variable.kind !== 'Variable') {
         return;
       }
 
-      var type = (_variable$type2 = variable.type) !== null && _variable$type2 !== void 0 ? _variable$type2 : SchemaUtils.getNonNullBooleanInput(context.getSchema());
+      var type =
+        (_variable$type2 = variable.type) !== null && _variable$type2 !== void 0
+          ? _variable$type2
+          : SchemaUtils.getNonNullBooleanInput(context.getSchema());
 
       if (!argumentDefinitions.has(variable.variableName)) {
         // root variable
@@ -284,22 +326,25 @@ function visit(context, transformed, argumentDefinitions, node) {
           kind: 'RootArgumentDefinition',
           loc: {
             kind: 'Derived',
-            source: variable.loc
+            source: variable.loc,
           },
           name: variable.variableName,
-          type: type
+          type: type,
         });
       }
     },
     Stream: function Stream(stream) {
-      [stream["if"], stream.initialCount].forEach(function (variable) {
+      [stream['if'], stream.initialCount].forEach(function (variable) {
         var _variable$type3;
 
         if (variable == null || variable.kind !== 'Variable') {
           return;
         }
 
-        var type = (_variable$type3 = variable.type) !== null && _variable$type3 !== void 0 ? _variable$type3 : SchemaUtils.getNonNullBooleanInput(context.getSchema());
+        var type =
+          (_variable$type3 = variable.type) !== null && _variable$type3 !== void 0
+            ? _variable$type3
+            : SchemaUtils.getNonNullBooleanInput(context.getSchema());
 
         if (!argumentDefinitions.has(variable.variableName)) {
           // root variable
@@ -307,10 +352,10 @@ function visit(context, transformed, argumentDefinitions, node) {
             kind: 'RootArgumentDefinition',
             loc: {
               kind: 'Derived',
-              source: variable.loc
+              source: variable.loc,
             },
             name: variable.variableName,
-            type: type
+            type: type,
           });
         }
       });
@@ -329,7 +374,10 @@ function visit(context, transformed, argumentDefinitions, node) {
           return;
         }
 
-        var type = (_variable$type4 = variable.type) !== null && _variable$type4 !== void 0 ? _variable$type4 : SchemaUtils.getNullableStringInput(context.getSchema());
+        var type =
+          (_variable$type4 = variable.type) !== null && _variable$type4 !== void 0
+            ? _variable$type4
+            : SchemaUtils.getNullableStringInput(context.getSchema());
 
         if (!argumentDefinitions.has(variable.variableName)) {
           // root variable
@@ -337,14 +385,14 @@ function visit(context, transformed, argumentDefinitions, node) {
             kind: 'RootArgumentDefinition',
             loc: {
               kind: 'Derived',
-              source: variable.loc
+              source: variable.loc,
             },
             name: variable.variableName,
-            type: type
+            type: type,
           });
         }
       });
-    }
+    },
   });
 }
 

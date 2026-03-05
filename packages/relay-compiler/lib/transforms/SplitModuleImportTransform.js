@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
@@ -19,16 +19,20 @@ var getNormalizationOperationName = require('../core/getNormalizationOperationNa
  */
 function splitMatchTransform(context) {
   var splitOperations = new Map();
-  var transformedContext = IRTransformer.transform(context, {
-    LinkedField: visitLinkedField,
-    InlineFragment: visitInlineFragment,
-    ModuleImport: visitModuleImport
-  }, function (node) {
-    return {
-      parentType: node.type,
-      splitOperations: splitOperations
-    };
-  });
+  var transformedContext = IRTransformer.transform(
+    context,
+    {
+      LinkedField: visitLinkedField,
+      InlineFragment: visitInlineFragment,
+      ModuleImport: visitModuleImport,
+    },
+    function (node) {
+      return {
+        parentType: node.type,
+        splitOperations: splitOperations,
+      };
+    },
+  );
   return transformedContext.addAll(Array.from(splitOperations.values()));
 }
 
@@ -36,7 +40,7 @@ function visitLinkedField(field, state) {
   // $FlowFixMe[incompatible-use]
   return this.traverse(field, {
     parentType: field.type,
-    splitOperations: state.splitOperations
+    splitOperations: state.splitOperations,
   });
 }
 
@@ -44,7 +48,7 @@ function visitInlineFragment(fragment, state) {
   // $FlowFixMe[incompatible-use]
   return this.traverse(fragment, {
     parentType: fragment.typeCondition,
-    splitOperations: state.splitOperations
+    splitOperations: state.splitOperations,
   });
 }
 
@@ -60,7 +64,6 @@ function visitModuleImport(node, state) {
     return node;
   } // $FlowFixMe[incompatible-use]
 
-
   var transformedNode = this.traverse(node, state);
   var splitOperation = {
     kind: 'SplitOperation',
@@ -68,18 +71,18 @@ function visitModuleImport(node, state) {
     selections: transformedNode.selections,
     loc: {
       kind: 'Derived',
-      source: node.loc
+      source: node.loc,
     },
     parentSources: new Set([node.sourceDocument]),
     metadata: {
-      derivedFrom: transformedNode.name
+      derivedFrom: transformedNode.name,
     },
-    type: state.parentType
+    type: state.parentType,
   };
   state.splitOperations.set(normalizationName, splitOperation);
   return transformedNode;
 }
 
 module.exports = {
-  transform: splitMatchTransform
+  transform: splitMatchTransform,
 };

@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
@@ -22,7 +22,9 @@ function dedupeJSONStringify(jsonValue) {
   collectMetadata(jsonValue);
   collectDuplicates(jsonValue);
   var code = printJSCode(false, '', jsonValue);
-  return varDefs.length === 0 ? code : "(function(){\nvar ".concat(varDefs.join(',\n'), ";\nreturn ").concat(code, ";\n})()"); // Collect common metadata for each object in the value tree, ensuring that
+  return varDefs.length === 0
+    ? code
+    : '(function(){\nvar '.concat(varDefs.join(',\n'), ';\nreturn ').concat(code, ';\n})()'); // Collect common metadata for each object in the value tree, ensuring that
   // equivalent values have the *same reference* to the same metadata. Note that
   // the hashes generated are not exactly JSON, but still identify equivalent
   // values. Runs in linear time due to hashing in a bottom-up recursion.
@@ -57,7 +59,7 @@ function dedupeJSONStringify(jsonValue) {
       metadata = {
         value: value,
         hash: hash,
-        count: 0
+        count: 0,
       };
       metadataForHash.set(hash, metadata);
     }
@@ -66,7 +68,6 @@ function dedupeJSONStringify(jsonValue) {
     return hash;
   } // Using top-down recursion, linearly scan the JSON tree to determine which
   // values should be deduplicated.
-
 
   function collectDuplicates(value) {
     if (value == null || typeof value !== 'object') {
@@ -96,13 +97,11 @@ function dedupeJSONStringify(jsonValue) {
     }
   } // Stringify JS, replacing duplicates with variable references.
 
-
   function printJSCode(isDupedVar, depth, value) {
     if (value == null || typeof value !== 'object') {
       // $FlowFixMe[incompatible-return] : JSON.stringify can return undefined
       return JSON.stringify(value);
     } // Only use variable references at depth beyond the top level.
-
 
     if (depth !== '') {
       var metadata = metadataForVal.get(value);
@@ -139,18 +138,23 @@ function dedupeJSONStringify(jsonValue) {
         isEmpty = false;
       }
 
-      str += isEmpty ? ']' : "\n".concat(depth, "]");
+      str += isEmpty ? ']' : '\n'.concat(depth, ']');
     } else {
       str = '{';
 
       for (var k in value) {
         if (value.hasOwnProperty(k) && value[k] !== undefined) {
-          str += (isEmpty ? '\n' : ',\n') + depth2 + JSON.stringify(k) + ': ' + printJSCode(isDupedVar, depth2, value[k]);
+          str +=
+            (isEmpty ? '\n' : ',\n') +
+            depth2 +
+            JSON.stringify(k) +
+            ': ' +
+            printJSCode(isDupedVar, depth2, value[k]);
           isEmpty = false;
         }
       }
 
-      str += isEmpty ? '}' : "\n".concat(depth, "}");
+      str += isEmpty ? '}' : '\n'.concat(depth, '}');
     }
 
     return str;

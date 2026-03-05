@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
@@ -13,7 +13,7 @@
 var OR_LIST_MAX_LENGTH = 5;
 
 var _require = require('../core/CompilerError'),
-    createCompilerError = _require.createCompilerError;
+  createCompilerError = _require.createCompilerError;
 
 function orList(items) {
   if (items.length === 0) {

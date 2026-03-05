@@ -5,16 +5,16 @@
  * LICENSE file in the root directory of this source tree.
  *
  * @format
- * 
+ *
  * @emails oncall+relay
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _asyncToGenerator = require("@babel/runtime/helpers/asyncToGenerator");
+var _asyncToGenerator = require('@babel/runtime/helpers/asyncToGenerator');
 
 var _require = require('relay-runtime'),
-    isPromise = _require.isPromise;
+  isPromise = _require.isPromise;
 
 function reportTime(reporter, message, fn) {
   return reportAndReturnTime(reporter, message, fn)[0];
@@ -25,7 +25,10 @@ function reportAndReturnTime(reporter, message, fn) {
   var result = fn();
 
   if (isPromise(result)) {
-    throw new Error('reportAndReturnTime: fn(...) returned an unexpected promise.' + ' Please use `reportAndReturnAsyncTime` method instead.');
+    throw new Error(
+      'reportAndReturnTime: fn(...) returned an unexpected promise.' +
+        ' Please use `reportAndReturnAsyncTime` method instead.',
+    );
   }
 
   var elapsedTime = Date.now() - startTime;
@@ -79,5 +82,5 @@ module.exports = {
   reportTime: reportTime,
   reportAndReturnTime: reportAndReturnTime,
   reportAsyncTime: reportAsyncTime,
-  reportAndReturnAsyncTime: reportAndReturnAsyncTime
+  reportAndReturnAsyncTime: reportAndReturnAsyncTime,
 };

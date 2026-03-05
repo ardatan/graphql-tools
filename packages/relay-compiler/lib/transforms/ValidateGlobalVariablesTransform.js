@@ -4,21 +4,23 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _interopRequireDefault = require('@babel/runtime/helpers/interopRequireDefault');
 
-var _createForOfIteratorHelper2 = _interopRequireDefault(require("@babel/runtime/helpers/createForOfIteratorHelper"));
+var _createForOfIteratorHelper2 = _interopRequireDefault(
+  require('@babel/runtime/helpers/createForOfIteratorHelper'),
+);
 
 var inferRootArgumentDefinitions = require('../core/inferRootArgumentDefinitions');
 
 var _require = require('../core/CompilerError'),
-    createUserError = _require.createUserError,
-    eachWithCombinedError = _require.eachWithCombinedError;
+  createUserError = _require.createUserError,
+  eachWithCombinedError = _require.eachWithCombinedError;
 
 /**
  * Validates that all global variables used in operations are defined at the
@@ -38,11 +40,11 @@ function validateGlobalVariablesTransform(context) {
 
     var undefinedVariables = [];
 
-    var _iterator = (0, _createForOfIteratorHelper2["default"])(usedArguments.values()),
-        _step;
+    var _iterator = (0, _createForOfIteratorHelper2['default'])(usedArguments.values()),
+      _step;
 
     try {
-      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      for (_iterator.s(); !(_step = _iterator.n()).done; ) {
         var argDef = _step.value;
 
         if (!definedArguments.has(argDef.name)) {
@@ -56,11 +58,21 @@ function validateGlobalVariablesTransform(context) {
     }
 
     if (undefinedVariables.length !== 0) {
-      throw createUserError("Operation '".concat(node.name, "' references undefined variable(s):\n").concat(undefinedVariables.map(function (argDef) {
-        return "- $".concat(argDef.name, ": ").concat(context.getSchema().getTypeString(argDef.type));
-      }).join('\n'), "."), undefinedVariables.map(function (argDef) {
-        return argDef.loc;
-      }));
+      throw createUserError(
+        "Operation '".concat(node.name, "' references undefined variable(s):\n").concat(
+          undefinedVariables
+            .map(function (argDef) {
+              return '- $'
+                .concat(argDef.name, ': ')
+                .concat(context.getSchema().getTypeString(argDef.type));
+            })
+            .join('\n'),
+          '.',
+        ),
+        undefinedVariables.map(function (argDef) {
+          return argDef.loc;
+        }),
+      );
     }
   });
   return context;
@@ -69,11 +81,11 @@ function validateGlobalVariablesTransform(context) {
 function argumentDefinitionsToMap(argDefs) {
   var map = new Map();
 
-  var _iterator2 = (0, _createForOfIteratorHelper2["default"])(argDefs),
-      _step2;
+  var _iterator2 = (0, _createForOfIteratorHelper2['default'])(argDefs),
+    _step2;
 
   try {
-    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+    for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
       var argDef = _step2.value;
       map.set(argDef.name, argDef);
     }
@@ -87,5 +99,5 @@ function argumentDefinitionsToMap(argDefs) {
 }
 
 module.exports = {
-  transform: validateGlobalVariablesTransform
+  transform: validateGlobalVariablesTransform,
 };

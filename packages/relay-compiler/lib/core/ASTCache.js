@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
@@ -12,11 +12,10 @@
 
 var Profiler = require('./GraphQLCompilerProfiler'); // $FlowFixMe[untyped-import] : Immutable is not typed
 
-
 var _require = require('immutable'),
-    ImmutableMap = _require.Map;
+  ImmutableMap = _require.Map;
 
-var ASTCache = /*#__PURE__*/function () {
+var ASTCache = /*#__PURE__*/ (function () {
   function ASTCache(config) {
     this._documents = new Map();
     this._baseDir = config.baseDir;
@@ -24,13 +23,11 @@ var ASTCache = /*#__PURE__*/function () {
   } // Short-term: we don't do subscriptions/delta updates, instead always use all definitions
   // $FlowFixMe[value-as-type]
 
-
   var _proto = ASTCache.prototype;
 
   _proto.documents = function documents() {
     return ImmutableMap(this._documents);
-  } // parse should return the set of changes
-  ;
+  }; // parse should return the set of changes
 
   _proto.parseFiles = function parseFiles(files) {
     var _this = this;
@@ -38,21 +35,21 @@ var ASTCache = /*#__PURE__*/function () {
     var documents = ImmutableMap();
     files.forEach(function (file) {
       if (!file.exists) {
-        _this._documents["delete"](file.relPath);
+        _this._documents['delete'](file.relPath);
 
         return;
       }
 
-      var doc = function () {
+      var doc = (function () {
         try {
           return _this._parse(_this._baseDir, file);
         } catch (error) {
-          throw new Error("Parse error: ".concat(error, " in \"").concat(file.relPath, "\""));
+          throw new Error('Parse error: '.concat(error, ' in "').concat(file.relPath, '"'));
         }
-      }();
+      })();
 
       if (!doc) {
-        _this._documents["delete"](file.relPath);
+        _this._documents['delete'](file.relPath);
 
         return;
       }
@@ -65,6 +62,6 @@ var ASTCache = /*#__PURE__*/function () {
   };
 
   return ASTCache;
-}();
+})();
 
 module.exports = ASTCache;

@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
@@ -13,8 +13,8 @@
 var t = require('@babel/types');
 
 var _require = require('./RelayFlowBabelFactories'),
-    exactObjectTypeAnnotation = _require.exactObjectTypeAnnotation,
-    readOnlyArrayOfType = _require.readOnlyArrayOfType;
+  exactObjectTypeAnnotation = _require.exactObjectTypeAnnotation,
+  readOnlyArrayOfType = _require.readOnlyArrayOfType;
 
 function getInputObjectTypeIdentifier(schema, typeID) {
   return schema.getTypeString(typeID);
@@ -24,13 +24,17 @@ function transformScalarType(schema, type, state, objectProps) {
   if (schema.isNonNull(type)) {
     return transformNonNullableScalarType(schema, schema.getNullableType(type), state, objectProps);
   } else {
-    return t.nullableTypeAnnotation(transformNonNullableScalarType(schema, type, state, objectProps));
+    return t.nullableTypeAnnotation(
+      transformNonNullableScalarType(schema, type, state, objectProps),
+    );
   }
 }
 
 function transformNonNullableScalarType(schema, type, state, objectProps) {
   if (schema.isList(type)) {
-    return readOnlyArrayOfType(transformScalarType(schema, schema.getListItemType(type), state, objectProps));
+    return readOnlyArrayOfType(
+      transformScalarType(schema, schema.getListItemType(type), state, objectProps),
+    );
   } else if (schema.isObject(type) || schema.isUnion(type) || schema.isInterface(type)) {
     return objectProps;
   } else if (schema.isScalar(type)) {
@@ -38,7 +42,7 @@ function transformNonNullableScalarType(schema, type, state, objectProps) {
   } else if (schema.isEnum(type)) {
     return transformGraphQLEnumType(schema, schema.assertEnumType(type), state);
   } else {
-    throw new Error("Could not convert from GraphQL type ".concat(String(type)));
+    throw new Error('Could not convert from GraphQL type '.concat(String(type)));
   }
 }
 
@@ -62,7 +66,9 @@ function transformGraphQLScalarType(typeName, state) {
       return t.booleanTypeAnnotation();
 
     default:
-      return customType == null ? t.anyTypeAnnotation() : t.genericTypeAnnotation(t.identifier(customType));
+      return customType == null
+        ? t.anyTypeAnnotation()
+        : t.genericTypeAnnotation(t.identifier(customType));
   }
 }
 
@@ -98,7 +104,10 @@ function transformNonNullableInputType(schema, type, state) {
     var props = fields.map(function (fieldID) {
       var fieldType = schema.getFieldType(fieldID);
       var fieldName = schema.getFieldName(fieldID);
-      var property = t.objectTypeProperty(t.identifier(fieldName), transformInputType(schema, fieldType, state));
+      var property = t.objectTypeProperty(
+        t.identifier(fieldName),
+        transformInputType(schema, fieldType, state),
+      );
 
       if (state.optionalInputFields.indexOf(fieldName) >= 0 || !schema.isNonNull(fieldType)) {
         property.optional = true;
@@ -109,11 +118,11 @@ function transformNonNullableInputType(schema, type, state) {
     state.generatedInputObjectTypes[typeIdentifier] = exactObjectTypeAnnotation(props);
     return t.genericTypeAnnotation(t.identifier(typeIdentifier));
   } else {
-    throw new Error("Could not convert from GraphQL type ".concat(schema.getTypeString(type)));
+    throw new Error('Could not convert from GraphQL type '.concat(schema.getTypeString(type)));
   }
 }
 
 module.exports = {
   transformInputType: transformInputType,
-  transformScalarType: transformScalarType
+  transformScalarType: transformScalarType,
 };

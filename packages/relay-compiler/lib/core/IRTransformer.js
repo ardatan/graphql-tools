@@ -10,14 +10,14 @@
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _interopRequireDefault = require('@babel/runtime/helpers/interopRequireDefault');
 
-var _objectSpread2 = _interopRequireDefault(require("@babel/runtime/helpers/objectSpread2"));
+var _objectSpread2 = _interopRequireDefault(require('@babel/runtime/helpers/objectSpread2'));
 
 var invariant = require('invariant');
 
 var _require = require('./CompilerError'),
-    eachWithCombinedError = _require.eachWithCombinedError;
+  eachWithCombinedError = _require.eachWithCombinedError;
 
 /**
  * @public
@@ -90,8 +90,7 @@ function transform(context, visitor, stateInitializer) {
  * @internal
  */
 
-
-var Transformer = /*#__PURE__*/function () {
+var Transformer = /*#__PURE__*/ (function () {
   function Transformer(context, visitor) {
     this._context = context;
     this._states = [];
@@ -104,12 +103,11 @@ var Transformer = /*#__PURE__*/function () {
    * be used to look up fragments by name, for example.
    */
 
-
   var _proto = Transformer.prototype;
 
   _proto.getContext = function getContext() {
     return this._context;
-  }
+  };
   /**
    * @public
    *
@@ -119,7 +117,6 @@ var Transformer = /*#__PURE__*/function () {
    * Note: This differs from `traverse` in that it calls a visitor function for
    * the node itself.
    */
-  ;
 
   _proto.visit = function visit(node, state) {
     this._states.push(state);
@@ -129,7 +126,7 @@ var Transformer = /*#__PURE__*/function () {
     this._states.pop();
 
     return nextNode;
-  }
+  };
   /**
    * @public
    *
@@ -140,7 +137,6 @@ var Transformer = /*#__PURE__*/function () {
    * Note: This differs from `visit` in that it does not call a visitor function
    * for the node itself.
    */
-  ;
 
   _proto.traverse = function traverse(node, state) {
     this._states.push(state);
@@ -163,7 +159,6 @@ var Transformer = /*#__PURE__*/function () {
       var nextNode = nodeVisitor.call(this, node, _state2);
       return nextNode;
     } // Otherwise traverse is called automatically.
-
 
     return this._traverse(node);
   };
@@ -258,7 +253,11 @@ var Transformer = /*#__PURE__*/function () {
 
       case 'Fragment':
       case 'Root':
-        nextNode = this._traverseChildren(prevNode, ['argumentDefinitions', 'directives', 'selections']);
+        nextNode = this._traverseChildren(prevNode, [
+          'argumentDefinitions',
+          'directives',
+          'selections',
+        ]);
         break;
 
       case 'Request':
@@ -271,7 +270,11 @@ var Transformer = /*#__PURE__*/function () {
 
       default:
         prevNode;
-        !false ? process.env.NODE_ENV !== "production" ? invariant(false, 'IRTransformer: Unknown kind `%s`.', prevNode.kind) : invariant(false) : void 0;
+        !false
+          ? process.env.NODE_ENV !== 'production'
+            ? invariant(false, 'IRTransformer: Unknown kind `%s`.', prevNode.kind)
+            : invariant(false)
+          : void 0;
     }
 
     return nextNode;
@@ -281,36 +284,47 @@ var Transformer = /*#__PURE__*/function () {
     var _this = this;
 
     var nextNode;
-    pluralKeys && pluralKeys.forEach(function (key) {
-      var prevItems = prevNode[key];
+    pluralKeys &&
+      pluralKeys.forEach(function (key) {
+        var prevItems = prevNode[key];
 
-      if (!prevItems) {
-        return;
-      }
+        if (!prevItems) {
+          return;
+        }
 
-      !Array.isArray(prevItems) ? process.env.NODE_ENV !== "production" ? invariant(false, 'IRTransformer: Expected data for `%s` to be an array, got `%s`.', key, prevItems) : invariant(false) : void 0;
+        !Array.isArray(prevItems)
+          ? process.env.NODE_ENV !== 'production'
+            ? invariant(
+                false,
+                'IRTransformer: Expected data for `%s` to be an array, got `%s`.',
+                key,
+                prevItems,
+              )
+            : invariant(false)
+          : void 0;
 
-      var nextItems = _this._map(prevItems);
+        var nextItems = _this._map(prevItems);
 
-      if (nextNode || nextItems !== prevItems) {
-        nextNode = nextNode || (0, _objectSpread2["default"])({}, prevNode);
-        nextNode[key] = nextItems;
-      }
-    });
-    singularKeys && singularKeys.forEach(function (key) {
-      var prevItem = prevNode[key];
+        if (nextNode || nextItems !== prevItems) {
+          nextNode = nextNode || (0, _objectSpread2['default'])({}, prevNode);
+          nextNode[key] = nextItems;
+        }
+      });
+    singularKeys &&
+      singularKeys.forEach(function (key) {
+        var prevItem = prevNode[key];
 
-      if (!prevItem) {
-        return;
-      }
+        if (!prevItem) {
+          return;
+        }
 
-      var nextItem = _this._visit(prevItem);
+        var nextItem = _this._visit(prevItem);
 
-      if (nextNode || nextItem !== prevItem) {
-        nextNode = nextNode || (0, _objectSpread2["default"])({}, prevNode);
-        nextNode[key] = nextItem;
-      }
-    });
+        if (nextNode || nextItem !== prevItem) {
+          nextNode = nextNode || (0, _objectSpread2['default'])({}, prevNode);
+          nextNode[key] = nextItem;
+        }
+      });
     return nextNode || prevNode;
   };
 
@@ -333,13 +347,22 @@ var Transformer = /*#__PURE__*/function () {
   };
 
   _proto._getState = function _getState() {
-    !this._states.length ? process.env.NODE_ENV !== "production" ? invariant(false, 'IRTransformer: Expected a current state to be set but found none. ' + 'This is usually the result of mismatched number of pushState()/popState() ' + 'calls.') : invariant(false) : void 0;
+    !this._states.length
+      ? process.env.NODE_ENV !== 'production'
+        ? invariant(
+            false,
+            'IRTransformer: Expected a current state to be set but found none. ' +
+              'This is usually the result of mismatched number of pushState()/popState() ' +
+              'calls.',
+          )
+        : invariant(false)
+      : void 0;
     return this._states[this._states.length - 1];
   };
 
   return Transformer;
-}();
+})();
 
 module.exports = {
-  transform: transform
+  transform: transform,
 };

@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
@@ -105,16 +105,16 @@ var md5 = require('./util/md5');
 var writeRelayGeneratedFile = require('./codegen/writeRelayGeneratedFile');
 
 var _require = require('./bin/RelayCompilerMain'),
-    main = _require.main;
+  main = _require.main;
 
 var _require2 = require('./codegen/SourceControl'),
-    SourceControlMercurial = _require2.SourceControlMercurial;
+  SourceControlMercurial = _require2.SourceControlMercurial;
 
 var _require3 = require('./core/GraphQLDerivedFromMetadata'),
-    getReaderSourceDefinitionName = _require3.getReaderSourceDefinitionName;
+  getReaderSourceDefinitionName = _require3.getReaderSourceDefinitionName;
 
 var _require4 = require('./language/javascript/formatGeneratedModule'),
-    formatGeneratedModule = _require4.formatGeneratedCommonjsModule;
+  formatGeneratedModule = _require4.formatGeneratedCommonjsModule;
 
 module.exports = {
   relayCompiler: main,
@@ -173,6 +173,6 @@ module.exports = {
     getSchemaInstance: getSchemaInstance,
     md5: md5,
     parseExecutableNode: extractAST.parseExecutableNode,
-    toASTRecord: extractAST.toASTRecord
-  }
+    toASTRecord: extractAST.toASTRecord,
+  },
 };

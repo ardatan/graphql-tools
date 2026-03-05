@@ -4,15 +4,15 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _interopRequireDefault = require('@babel/runtime/helpers/interopRequireDefault');
 
-var _objectSpread2 = _interopRequireDefault(require("@babel/runtime/helpers/objectSpread2"));
+var _objectSpread2 = _interopRequireDefault(require('@babel/runtime/helpers/objectSpread2'));
 
 var IRTransformer = require('../core/IRTransformer');
 
@@ -23,7 +23,7 @@ var IRTransformer = require('../core/IRTransformer');
 function skipHandleFieldTransform(context) {
   return IRTransformer.transform(context, {
     LinkedField: visitField,
-    ScalarField: visitField
+    ScalarField: visitField,
   });
 }
 
@@ -32,14 +32,18 @@ function visitField(field) {
   var transformedNode = this.traverse(field);
 
   if (transformedNode.handles) {
-    return (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, transformedNode), {}, {
-      handles: null
-    });
+    return (0, _objectSpread2['default'])(
+      (0, _objectSpread2['default'])({}, transformedNode),
+      {},
+      {
+        handles: null,
+      },
+    );
   }
 
   return transformedNode;
 }
 
 module.exports = {
-  transform: skipHandleFieldTransform
+  transform: skipHandleFieldTransform,
 };

@@ -4,40 +4,42 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  * @emails oncall+relay
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _interopRequireDefault = require('@babel/runtime/helpers/interopRequireDefault');
 
-var _createForOfIteratorHelper2 = _interopRequireDefault(require("@babel/runtime/helpers/createForOfIteratorHelper"));
+var _createForOfIteratorHelper2 = _interopRequireDefault(
+  require('@babel/runtime/helpers/createForOfIteratorHelper'),
+);
 
-var _inheritsLoose2 = _interopRequireDefault(require("@babel/runtime/helpers/inheritsLoose"));
+var _inheritsLoose2 = _interopRequireDefault(require('@babel/runtime/helpers/inheritsLoose'));
 
 var _require = require('./CompilerError'),
-    createCompilerError = _require.createCompilerError;
+  createCompilerError = _require.createCompilerError;
 
 var _require2 = require('./SchemaUtils'),
-    isSchemaDefinitionAST = _require2.isSchemaDefinitionAST;
+  isSchemaDefinitionAST = _require2.isSchemaDefinitionAST;
 
 var _require3 = require('graphql'),
-    GraphQLFloat = _require3.GraphQLFloat,
-    GraphQLInt = _require3.GraphQLInt,
-    GraphQLBoolean = _require3.GraphQLBoolean,
-    GraphQLString = _require3.GraphQLString,
-    GraphQLID = _require3.GraphQLID,
-    parse = _require3.parse,
-    parseType = _require3.parseType,
-    print = _require3.print,
-    valueFromASTUntyped = _require3.valueFromASTUntyped;
+  GraphQLFloat = _require3.GraphQLFloat,
+  GraphQLInt = _require3.GraphQLInt,
+  GraphQLBoolean = _require3.GraphQLBoolean,
+  GraphQLString = _require3.GraphQLString,
+  GraphQLID = _require3.GraphQLID,
+  parse = _require3.parse,
+  parseType = _require3.parseType,
+  print = _require3.print,
+  valueFromASTUntyped = _require3.valueFromASTUntyped;
 
 /**
  * @private
  */
-var Type = /*#__PURE__*/function () {
+var Type = /*#__PURE__*/ (function () {
   function Type(name, isClient) {
     this.name = name;
     this.isClient = isClient;
@@ -54,28 +56,26 @@ var Type = /*#__PURE__*/function () {
   };
 
   return Type;
-}();
+})();
 /**
  * @private
  */
 
-
-var ScalarType = /*#__PURE__*/function (_Type) {
-  (0, _inheritsLoose2["default"])(ScalarType, _Type);
+var ScalarType = /*#__PURE__*/ (function (_Type) {
+  (0, _inheritsLoose2['default'])(ScalarType, _Type);
 
   function ScalarType() {
     return _Type.apply(this, arguments) || this;
   }
 
   return ScalarType;
-}(Type);
+})(Type);
 /**
  * @private
  */
 
-
-var EnumType = /*#__PURE__*/function (_Type2) {
-  (0, _inheritsLoose2["default"])(EnumType, _Type2);
+var EnumType = /*#__PURE__*/ (function (_Type2) {
+  (0, _inheritsLoose2['default'])(EnumType, _Type2);
 
   function EnumType(name, values, isClient) {
     var _this;
@@ -86,72 +86,67 @@ var EnumType = /*#__PURE__*/function (_Type2) {
   }
 
   return EnumType;
-}(Type);
+})(Type);
 /**
  * @private
  */
 
-
-var UnionType = /*#__PURE__*/function (_Type3) {
-  (0, _inheritsLoose2["default"])(UnionType, _Type3);
+var UnionType = /*#__PURE__*/ (function (_Type3) {
+  (0, _inheritsLoose2['default'])(UnionType, _Type3);
 
   function UnionType() {
     return _Type3.apply(this, arguments) || this;
   }
 
   return UnionType;
-}(Type);
+})(Type);
 /**
  * @private
  */
 
-
-var ObjectType = /*#__PURE__*/function (_Type4) {
-  (0, _inheritsLoose2["default"])(ObjectType, _Type4);
+var ObjectType = /*#__PURE__*/ (function (_Type4) {
+  (0, _inheritsLoose2['default'])(ObjectType, _Type4);
 
   function ObjectType() {
     return _Type4.apply(this, arguments) || this;
   }
 
   return ObjectType;
-}(Type);
+})(Type);
 /**
  * @private
  */
 
-
-var InputObjectType = /*#__PURE__*/function (_Type5) {
-  (0, _inheritsLoose2["default"])(InputObjectType, _Type5);
+var InputObjectType = /*#__PURE__*/ (function (_Type5) {
+  (0, _inheritsLoose2['default'])(InputObjectType, _Type5);
 
   function InputObjectType() {
     return _Type5.apply(this, arguments) || this;
   }
 
   return InputObjectType;
-}(Type);
+})(Type);
 /**
  * @private
  */
 
-
-var InterfaceType = /*#__PURE__*/function (_Type6) {
-  (0, _inheritsLoose2["default"])(InterfaceType, _Type6);
+var InterfaceType = /*#__PURE__*/ (function (_Type6) {
+  (0, _inheritsLoose2['default'])(InterfaceType, _Type6);
 
   function InterfaceType() {
     return _Type6.apply(this, arguments) || this;
   }
 
   return InterfaceType;
-}(Type);
+})(Type);
 /**
  * @private
  */
 
-
-var List = /*#__PURE__*/function () {
+var List = /*#__PURE__*/ (function () {
   function List(type) {
     this.ofType = type;
-    this._typeString = "[".concat(String(this.ofType), "]");
+    this._typeString = '['.concat(String(this.ofType), ']');
   }
 
   var _proto2 = List.prototype;
@@ -165,16 +160,15 @@ var List = /*#__PURE__*/function () {
   };
 
   return List;
-}();
+})();
 /**
  * @private
  */
 
-
-var NonNull = /*#__PURE__*/function () {
+var NonNull = /*#__PURE__*/ (function () {
   function NonNull(type) {
     this.ofType = type;
-    this._typeString = "".concat(String(this.ofType), "!");
+    this._typeString = ''.concat(String(this.ofType), '!');
   }
 
   var _proto3 = NonNull.prototype;
@@ -188,11 +182,10 @@ var NonNull = /*#__PURE__*/function () {
   };
 
   return NonNull;
-}();
+})();
 /**
  * @private
  */
-
 
 var Field = function Field(schema, name, type, belongsTo, args, directives, isClient) {
   this.name = name;
@@ -206,7 +199,6 @@ var Field = function Field(schema, name, type, belongsTo, args, directives, isCl
  * @private
  */
 
-
 function unwrap(type) {
   if (type instanceof NonNull || type instanceof List) {
     return unwrap(type.ofType);
@@ -218,16 +210,17 @@ function unwrap(type) {
  * @private
  */
 
-
 function hasConcreteTypeThatImplements(schema, type, interfaceType) {
-  return _isAbstractType(type) && getConcreteTypes(schema, type).some(function (concreteType) {
-    return schema.implementsInterface(schema.assertCompositeType(concreteType), interfaceType);
-  });
+  return (
+    _isAbstractType(type) &&
+    getConcreteTypes(schema, type).some(function (concreteType) {
+      return schema.implementsInterface(schema.assertCompositeType(concreteType), interfaceType);
+    })
+  );
 }
 /**
  * @private
  */
-
 
 function getConcreteTypes(schema, type) {
   var concreteTypes = new Set();
@@ -274,7 +267,14 @@ function _isWrapper(type) {
 }
 
 function isBaseType(type) {
-  return type instanceof ScalarType || type instanceof ObjectType || type instanceof EnumType || type instanceof UnionType || type instanceof InputObjectType || type instanceof InterfaceType;
+  return (
+    type instanceof ScalarType ||
+    type instanceof ObjectType ||
+    type instanceof EnumType ||
+    type instanceof UnionType ||
+    type instanceof InputObjectType ||
+    type instanceof InterfaceType
+  );
 }
 
 function _isAbstractType(type) {
@@ -289,7 +289,7 @@ function _isInputType(type) {
   return type instanceof InputObjectType || type instanceof ScalarType || type instanceof EnumType;
 }
 
-var Schema = /*#__PURE__*/function () {
+var Schema = /*#__PURE__*/ (function () {
   /**
    * @private
    */
@@ -301,14 +301,19 @@ var Schema = /*#__PURE__*/function () {
     this._fieldsMap = new Map();
     this._typeNameMap = new Map();
     this._clientIdMap = new Map();
-    this._directiveMap = new Map(typeMap.getDirectives().map(function (directive) {
-      return [directive.name, {
-        locations: directive.locations,
-        args: parseInputArgumentDefinitions(_this2, directive.args),
-        name: directive.name,
-        isClient: directive.isClient
-      }];
-    }));
+    this._directiveMap = new Map(
+      typeMap.getDirectives().map(function (directive) {
+        return [
+          directive.name,
+          {
+            locations: directive.locations,
+            args: parseInputArgumentDefinitions(_this2, directive.args),
+            name: directive.name,
+            isClient: directive.isClient,
+          },
+        ];
+      }),
+    );
   }
 
   var _proto4 = Schema.prototype;
@@ -329,7 +334,7 @@ var Schema = /*#__PURE__*/function () {
         throw createCompilerError('Unable to wrap non-nullable type with non-null wrapper.');
       }
 
-      var cacheKey = "".concat(this.getTypeString(innerType), "!");
+      var cacheKey = ''.concat(this.getTypeString(innerType), '!');
 
       var type = this._typeWrappersMap.get(cacheKey);
 
@@ -349,7 +354,7 @@ var Schema = /*#__PURE__*/function () {
         return;
       }
 
-      var _cacheKey = "[".concat(this.getTypeString(_innerType), "]");
+      var _cacheKey = '['.concat(this.getTypeString(_innerType), ']');
 
       var _type = this._typeWrappersMap.get(_cacheKey);
 
@@ -422,7 +427,7 @@ var Schema = /*#__PURE__*/function () {
       return type;
     }
 
-    var cacheKey = "".concat(String(type), "!");
+    var cacheKey = ''.concat(String(type), '!');
 
     var nonNullType = this._typeWrappersMap.get(cacheKey);
 
@@ -463,7 +468,7 @@ var Schema = /*#__PURE__*/function () {
     }
 
     var innerType = mapper(type.ofType);
-    var cacheKey = "[".concat(this.getTypeString(innerType), "]");
+    var cacheKey = '['.concat(this.getTypeString(innerType), ']');
 
     var newType = this._typeWrappersMap.get(cacheKey);
 
@@ -496,7 +501,7 @@ var Schema = /*#__PURE__*/function () {
     }
 
     return false;
-  }
+  };
   /**
    * Determine if the given type may implement the named type:
    * - it is the named type
@@ -504,10 +509,13 @@ var Schema = /*#__PURE__*/function () {
    * - it is an abstract type and *some* of its concrete types may
    *   implement the named type
    */
-  ;
 
   _proto4.mayImplement = function mayImplement(type, interfaceType) {
-    return this.areEqualTypes(type, interfaceType) || this.implementsInterface(type, interfaceType) || this.isAbstractType(type) && hasConcreteTypeThatImplements(this, type, interfaceType);
+    return (
+      this.areEqualTypes(type, interfaceType) ||
+      this.implementsInterface(type, interfaceType) ||
+      (this.isAbstractType(type) && hasConcreteTypeThatImplements(this, type, interfaceType))
+    );
   };
 
   _proto4.implementsInterface = function implementsInterface(type, interfaceType) {
@@ -532,7 +540,6 @@ var Schema = /*#__PURE__*/function () {
       return true;
     } // If superType is non-null, maybeSubType must also be non-null.
 
-
     if (superType instanceof NonNull) {
       if (maybeSubType instanceof NonNull) {
         return this.isTypeSubTypeOf(maybeSubType.ofType, superType.ofType);
@@ -545,7 +552,6 @@ var Schema = /*#__PURE__*/function () {
       // If superType is nullable, maybeSubType may be non-null or nullable.
       return this.isTypeSubTypeOf(maybeSubType.ofType, superType);
     } // If superType type is a list, maybeSubType type must also be a list.
-
 
     if (superType instanceof List) {
       if (maybeSubType instanceof List) {
@@ -561,14 +567,16 @@ var Schema = /*#__PURE__*/function () {
     } // If superType type is an abstract type, maybeSubType type may be a currently
     // possible object type.
 
-
-    if (this.isAbstractType(superType) && this.isObject(maybeSubType) && this.isPossibleType(this.assertAbstractType(superType), this.assertObjectType(maybeSubType))) {
+    if (
+      this.isAbstractType(superType) &&
+      this.isObject(maybeSubType) &&
+      this.isPossibleType(this.assertAbstractType(superType), this.assertObjectType(maybeSubType))
+    ) {
       return true;
     } // Otherwise, maybeSubType is not a valid subtype of the superType.
 
-
     return false;
-  }
+  };
   /**
    * Provided two composite types, determine if they "overlap". Two composite
    * types overlap when the Sets of possible concrete types for each intersect.
@@ -578,7 +586,6 @@ var Schema = /*#__PURE__*/function () {
    *
    * This function is commutative.
    */
-  ;
 
   _proto4.doTypesOverlap = function doTypesOverlap(typeA, typeB) {
     var _this4 = this;
@@ -599,7 +606,6 @@ var Schema = /*#__PURE__*/function () {
         });
       } // Determine if the latter type is a possible concrete type of the former.
 
-
       return this.isPossibleType(typeA, typeB);
     }
 
@@ -607,7 +613,6 @@ var Schema = /*#__PURE__*/function () {
       // Determine if the former type is a possible concrete type of the latter.
       return this.isPossibleType(typeB, typeA);
     } // Otherwise the types do not overlap.
-
 
     return false;
   };
@@ -618,8 +623,11 @@ var Schema = /*#__PURE__*/function () {
 
   _proto4.assertScalarFieldType = function assertScalarFieldType(type) {
     // Scalar type fields can be wrappers / or can be scalars/enums
-    if (_isWrapper(type) && !_isScalar(unwrap(type)) && !_isEnum(unwrap(type)) || !_isWrapper(type) && !_isScalar(type) && !_isEnum(type)) {
-      throw createCompilerError("Expected ".concat(String(type), " to be a Scalar or Enum type."));
+    if (
+      (_isWrapper(type) && !_isScalar(unwrap(type)) && !_isEnum(unwrap(type))) ||
+      (!_isWrapper(type) && !_isScalar(type) && !_isEnum(type))
+    ) {
+      throw createCompilerError('Expected '.concat(String(type), ' to be a Scalar or Enum type.'));
     }
 
     return type;
@@ -627,8 +635,13 @@ var Schema = /*#__PURE__*/function () {
 
   _proto4.assertLinkedFieldType = function assertLinkedFieldType(type) {
     // Linked Field types can be wrappers / or can be composite types
-    if (_isWrapper(type) && !_isCompositeType(unwrap(type)) || !_isWrapper(type) && !_isCompositeType(type)) {
-      throw createCompilerError("Expected ".concat(String(type), " to be a Object, Interface or a Union Type."));
+    if (
+      (_isWrapper(type) && !_isCompositeType(unwrap(type))) ||
+      (!_isWrapper(type) && !_isCompositeType(type))
+    ) {
+      throw createCompilerError(
+        'Expected '.concat(String(type), ' to be a Object, Interface or a Union Type.'),
+      );
     }
 
     return type;
@@ -636,8 +649,13 @@ var Schema = /*#__PURE__*/function () {
 
   _proto4.assertInputType = function assertInputType(type) {
     // Input type fields can be wrappers / or can be scalars/enums
-    if (_isWrapper(type) && !_isInputType(unwrap(type)) || !_isWrapper(type) && !_isInputType(type)) {
-      throw createCompilerError("Expected ".concat(String(type), " to be a Input, Scalar or Enum type."));
+    if (
+      (_isWrapper(type) && !_isInputType(unwrap(type))) ||
+      (!_isWrapper(type) && !_isInputType(type))
+    ) {
+      throw createCompilerError(
+        'Expected '.concat(String(type), ' to be a Input, Scalar or Enum type.'),
+      );
     }
 
     return type;
@@ -650,7 +668,10 @@ var Schema = /*#__PURE__*/function () {
   };
 
   _proto4.asInputType = function asInputType(type) {
-    if (_isWrapper(type) && _isInputType(unwrap(type)) || !_isWrapper(type) && _isInputType(type)) {
+    if (
+      (_isWrapper(type) && _isInputType(unwrap(type))) ||
+      (!_isWrapper(type) && _isInputType(type))
+    ) {
       return type;
     }
   };
@@ -663,7 +684,11 @@ var Schema = /*#__PURE__*/function () {
 
   _proto4.assertScalarType = function assertScalarType(type) {
     if (!_isScalar(type)) {
-      throw createCompilerError("Expected ".concat(this.getTypeString(type), " to be a scalar type, got ").concat(this.getTypeString(type), "."));
+      throw createCompilerError(
+        'Expected '
+          .concat(this.getTypeString(type), ' to be a scalar type, got ')
+          .concat(this.getTypeString(type), '.'),
+      );
     }
 
     return type;
@@ -671,7 +696,9 @@ var Schema = /*#__PURE__*/function () {
 
   _proto4.assertObjectType = function assertObjectType(type) {
     if (!_isObject(type)) {
-      throw createCompilerError("Expected ".concat(this.getTypeString(type), " to be an object type."));
+      throw createCompilerError(
+        'Expected '.concat(this.getTypeString(type), ' to be an object type.'),
+      );
     }
 
     return type;
@@ -679,7 +706,9 @@ var Schema = /*#__PURE__*/function () {
 
   _proto4.assertInputObjectType = function assertInputObjectType(type) {
     if (!_isInputObject(type)) {
-      throw createCompilerError("Expected ".concat(this.getTypeString(type), " to be an input type."));
+      throw createCompilerError(
+        'Expected '.concat(this.getTypeString(type), ' to be an input type.'),
+      );
     }
 
     return type;
@@ -695,7 +724,9 @@ var Schema = /*#__PURE__*/function () {
 
   _proto4.assertInterfaceType = function assertInterfaceType(type) {
     if (!_isInterface(type)) {
-      throw createCompilerError("Expected ".concat(this.getTypeString(type), " to be an interface type."));
+      throw createCompilerError(
+        'Expected '.concat(this.getTypeString(type), ' to be an interface type.'),
+      );
     }
 
     return type;
@@ -703,7 +734,9 @@ var Schema = /*#__PURE__*/function () {
 
   _proto4.assertCompositeType = function assertCompositeType(type) {
     if (!_isCompositeType(type)) {
-      throw createCompilerError("Expected ".concat(this.getTypeString(type), " to be a composite type."));
+      throw createCompilerError(
+        'Expected '.concat(this.getTypeString(type), ' to be a composite type.'),
+      );
     }
 
     return type;
@@ -711,7 +744,9 @@ var Schema = /*#__PURE__*/function () {
 
   _proto4.assertAbstractType = function assertAbstractType(type) {
     if (!_isAbstractType(type)) {
-      throw createCompilerError("Expected ".concat(this.getTypeString(type), " to be an abstract type."));
+      throw createCompilerError(
+        'Expected '.concat(this.getTypeString(type), ' to be an abstract type.'),
+      );
     }
 
     return type;
@@ -719,7 +754,9 @@ var Schema = /*#__PURE__*/function () {
 
   _proto4.assertLeafType = function assertLeafType(type) {
     if (!this.isLeafType(type)) {
-      throw createCompilerError("Expected ".concat(this.getTypeString(type), " to be a leaf type."));
+      throw createCompilerError(
+        'Expected '.concat(this.getTypeString(type), ' to be a leaf type.'),
+      );
     }
 
     return type;
@@ -727,7 +764,9 @@ var Schema = /*#__PURE__*/function () {
 
   _proto4.assertUnionType = function assertUnionType(type) {
     if (!_isUnion(type)) {
-      throw createCompilerError("Expected ".concat(this.getTypeString(type), " to be a union type."));
+      throw createCompilerError(
+        'Expected '.concat(this.getTypeString(type), ' to be a union type.'),
+      );
     }
 
     return type;
@@ -735,7 +774,7 @@ var Schema = /*#__PURE__*/function () {
 
   _proto4.assertEnumType = function assertEnumType(type) {
     if (!_isEnum(type)) {
-      throw createCompilerError("Expected ".concat(String(type), " to be an enum type."));
+      throw createCompilerError('Expected '.concat(String(type), ' to be an enum type.'));
     }
 
     return type;
@@ -743,7 +782,7 @@ var Schema = /*#__PURE__*/function () {
 
   _proto4.assertIntType = function assertIntType(type) {
     if (!_isScalar(type) || !this.isInt(type)) {
-      throw createCompilerError("Expected ".concat(String(type), " to be an 'Int' type."));
+      throw createCompilerError('Expected '.concat(String(type), " to be an 'Int' type."));
     }
 
     return type;
@@ -751,7 +790,9 @@ var Schema = /*#__PURE__*/function () {
 
   _proto4.assertFloatType = function assertFloatType(type) {
     if (!_isScalar(type) || !this.isFloat(type)) {
-      throw createCompilerError("Expected ".concat(this.getTypeString(type), " to be a 'Float' type."));
+      throw createCompilerError(
+        'Expected '.concat(this.getTypeString(type), " to be a 'Float' type."),
+      );
     }
 
     return type;
@@ -759,7 +800,9 @@ var Schema = /*#__PURE__*/function () {
 
   _proto4.assertBooleanType = function assertBooleanType(type) {
     if (!_isScalar(type) || !this.isBoolean(type)) {
-      throw createCompilerError("Expected ".concat(this.getTypeString(type), " to be a 'Boolean' type."));
+      throw createCompilerError(
+        'Expected '.concat(this.getTypeString(type), " to be a 'Boolean' type."),
+      );
     }
 
     return type;
@@ -767,7 +810,9 @@ var Schema = /*#__PURE__*/function () {
 
   _proto4.assertStringType = function assertStringType(type) {
     if (!_isScalar(type) || !this.isString(type)) {
-      throw createCompilerError("Expected ".concat(this.getTypeString(type), " to be a 'String' type."));
+      throw createCompilerError(
+        'Expected '.concat(this.getTypeString(type), " to be a 'String' type."),
+      );
     }
 
     return type;
@@ -775,7 +820,7 @@ var Schema = /*#__PURE__*/function () {
 
   _proto4.assertIdType = function assertIdType(type) {
     if (!_isScalar(type) || !this.isId(type)) {
-      throw createCompilerError("Expected ".concat(this.getTypeString(type), " to be an ID type."));
+      throw createCompilerError('Expected '.concat(this.getTypeString(type), ' to be an ID type.'));
     }
 
     return type;
@@ -893,7 +938,7 @@ var Schema = /*#__PURE__*/function () {
 
   _proto4.isInputType = function isInputType(type) {
     // Wrappers can be input types (so it's save to check unwrapped type here)
-    return _isInputType(type) || _isWrapper(type) && _isInputType(unwrap(type));
+    return _isInputType(type) || (_isWrapper(type) && _isInputType(unwrap(type)));
   };
 
   _proto4.isCompositeType = function isCompositeType(type) {
@@ -970,7 +1015,10 @@ var Schema = /*#__PURE__*/function () {
     }
 
     var idField = this.expectField(type, 'id');
-    return this.areEqualTypes(this.getNullableType(this.getFieldType(idField)), this.expectIdType());
+    return this.areEqualTypes(
+      this.getNullableType(this.getFieldType(idField)),
+      this.expectIdType(),
+    );
   };
 
   _proto4.getFields = function getFields(type) {
@@ -992,16 +1040,27 @@ var Schema = /*#__PURE__*/function () {
       var fields = this._typeMap.getFieldMap(type);
 
       if (fields) {
-        var _iterator = (0, _createForOfIteratorHelper2["default"])(fields),
-            _step;
+        var _iterator = (0, _createForOfIteratorHelper2['default'])(fields),
+          _step;
 
         try {
-          for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          for (_iterator.s(); !(_step = _iterator.n()).done; ) {
             var _step$value = _step.value,
-                fieldName = _step$value[0],
-                fieldDefinition = _step$value[1];
+              fieldName = _step$value[0],
+              fieldDefinition = _step$value[1];
             var fieldType = this.expectTypeFromAST(fieldDefinition.type);
-            fieldsMap.set(fieldName, new Field(this, fieldName, fieldType, this.assertCompositeType(type), fieldDefinition.arguments, fieldDefinition.directives, fieldDefinition.isClient));
+            fieldsMap.set(
+              fieldName,
+              new Field(
+                this,
+                fieldName,
+                fieldType,
+                this.assertCompositeType(type),
+                fieldDefinition.arguments,
+                fieldDefinition.directives,
+                fieldDefinition.isClient,
+              ),
+            );
           }
         } catch (err) {
           _iterator.e(err);
@@ -1013,18 +1072,21 @@ var Schema = /*#__PURE__*/function () {
       var _fields = this._typeMap.getInputFieldMap(type);
 
       if (_fields) {
-        var _iterator2 = (0, _createForOfIteratorHelper2["default"])(_fields),
-            _step2;
+        var _iterator2 = (0, _createForOfIteratorHelper2['default'])(_fields),
+          _step2;
 
         try {
-          for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
             var _step2$value = _step2.value,
-                _fieldName = _step2$value[0],
-                typeNode = _step2$value[1];
+              _fieldName = _step2$value[0],
+              typeNode = _step2$value[1];
 
             var _fieldType = this.expectTypeFromAST(typeNode);
 
-            fieldsMap.set(_fieldName, new Field(this, _fieldName, _fieldType, type, [], null, false));
+            fieldsMap.set(
+              _fieldName,
+              new Field(this, _fieldName, _fieldType, type, [], null, false),
+            );
           }
         } catch (err) {
           _iterator2.e(err);
@@ -1049,12 +1111,19 @@ var Schema = /*#__PURE__*/function () {
     } // A "special" case for __typename and __id fields - which should
     // not be in the list of type fields, but should be fine to select
 
-
     if (fieldName === TYPENAME_FIELD) {
       var typename = this._typeNameMap.get(type);
 
       if (!typename) {
-        typename = new Field(this, TYPENAME_FIELD, this.getNonNullType(this.expectStringType()), type, [], null, false);
+        typename = new Field(
+          this,
+          TYPENAME_FIELD,
+          this.getNonNullType(this.expectStringType()),
+          type,
+          [],
+          null,
+          false,
+        );
 
         this._typeNameMap.set(type, typename);
       }
@@ -1066,7 +1135,15 @@ var Schema = /*#__PURE__*/function () {
       var clientId = this._clientIdMap.get(type);
 
       if (!clientId) {
-        clientId = new Field(this, CLIENT_ID_FIELD, this.getNonNullType(this.expectIdType()), type, [], null, true);
+        clientId = new Field(
+          this,
+          CLIENT_ID_FIELD,
+          this.getNonNullType(this.expectIdType()),
+          type,
+          [],
+          null,
+          true,
+        );
 
         this._clientIdMap.set(type, clientId);
       }
@@ -1075,7 +1152,12 @@ var Schema = /*#__PURE__*/function () {
     }
 
     if (_isUnion(type)) {
-      throw createCompilerError("Unexpected union type '".concat(this.getTypeString(type), "' in the 'getFieldByName(...)'. Expected type with fields"));
+      throw createCompilerError(
+        "Unexpected union type '".concat(
+          this.getTypeString(type),
+          "' in the 'getFieldByName(...)'. Expected type with fields",
+        ),
+      );
     }
 
     var fieldsMap = this._getFieldsMap(type);
@@ -1087,7 +1169,9 @@ var Schema = /*#__PURE__*/function () {
     var field = this.getFieldByName(type, fieldName);
 
     if (!field) {
-      throw createCompilerError("Unknown field '".concat(fieldName, "' on type '").concat(this.getTypeString(type), "'."));
+      throw createCompilerError(
+        "Unknown field '".concat(fieldName, "' on type '").concat(this.getTypeString(type), "'."),
+      );
     }
 
     return field;
@@ -1096,7 +1180,7 @@ var Schema = /*#__PURE__*/function () {
   _proto4.getFieldConfig = function getFieldConfig(field) {
     return {
       type: field.type,
-      args: Array.from(field.args.values())
+      args: Array.from(field.args.values()),
     };
   };
 
@@ -1152,9 +1236,15 @@ var Schema = /*#__PURE__*/function () {
         return GraphQLBoolean.parseLiteral(valueNode);
       } else if (valueNode.kind === 'FloatValue' && type.name === 'Float') {
         return GraphQLFloat.parseLiteral(valueNode);
-      } else if (valueNode.kind === 'IntValue' && (type.name === 'Int' || type.name === 'ID' || type.name === 'Float')) {
+      } else if (
+        valueNode.kind === 'IntValue' &&
+        (type.name === 'Int' || type.name === 'ID' || type.name === 'Float')
+      ) {
         return GraphQLInt.parseLiteral(valueNode);
-      } else if (valueNode.kind === 'StringValue' && (type.name === 'String' || type.name === 'ID')) {
+      } else if (
+        valueNode.kind === 'StringValue' &&
+        (type.name === 'String' || type.name === 'ID')
+      ) {
         return GraphQLString.parseLiteral(valueNode);
       } else if (!isDefaultScalar(type.name)) {
         return valueFromASTUntyped(valueNode);
@@ -1238,10 +1328,14 @@ var Schema = /*#__PURE__*/function () {
   };
 
   _proto4.isServerDefinedField = function isServerDefinedField(type, field) {
-    return this.isAbstractType(type) && field.directives.some(function (_ref) {
-      var name = _ref.name;
-      return name === 'fixme_fat_interface';
-    }) || this.hasField(type, field.name) && this.isServerField(this.expectField(type, field.name));
+    return (
+      (this.isAbstractType(type) &&
+        field.directives.some(function (_ref) {
+          var name = _ref.name;
+          return name === 'fixme_fat_interface';
+        })) ||
+      (this.hasField(type, field.name) && this.isServerField(this.expectField(type, field.name)))
+    );
   };
 
   _proto4.isClientDefinedField = function isClientDefinedField(type, field) {
@@ -1265,47 +1359,72 @@ var Schema = /*#__PURE__*/function () {
   };
 
   return Schema;
-}();
+})();
 
-var TypeMap = /*#__PURE__*/function () {
+var TypeMap = /*#__PURE__*/ (function () {
   function TypeMap(source, extensions) {
-    this._types = new Map([['ID', new ScalarType('ID', false)], ['String', new ScalarType('String', false)], ['Boolean', new ScalarType('Boolean', false)], ['Float', new ScalarType('Float', false)], ['Int', new ScalarType('Int', false)]]);
+    this._types = new Map([
+      ['ID', new ScalarType('ID', false)],
+      ['String', new ScalarType('String', false)],
+      ['Boolean', new ScalarType('Boolean', false)],
+      ['Float', new ScalarType('Float', false)],
+      ['Int', new ScalarType('Int', false)],
+    ]);
     this._typeInterfaces = new Map();
     this._unionTypes = new Map();
     this._interfaceImplementations = new Map();
     this._fields = new Map();
     this._inputFields = new Map();
-    this._directives = new Map([['include', {
-      name: 'include',
-      isClient: false,
-      locations: ['FIELD', 'FRAGMENT_SPREAD', 'INLINE_FRAGMENT'],
-      args: [{
-        name: 'if',
-        typeNode: parseType('Boolean!'),
-        defaultValue: undefined
-      }]
-    }], ['skip', {
-      name: 'skip',
-      isClient: false,
-      locations: ['FIELD', 'FRAGMENT_SPREAD', 'INLINE_FRAGMENT'],
-      args: [{
-        name: 'if',
-        typeNode: parseType('Boolean!'),
-        defaultValue: undefined
-      }]
-    }], ['deprecated', {
-      name: 'deprecated',
-      isClient: false,
-      locations: ['FIELD_DEFINITION', 'ENUM_VALUE'],
-      args: [{
-        name: 'reason',
-        typeNode: parseType('String'),
-        defaultValue: {
-          kind: 'StringValue',
-          value: 'No longer supported'
-        }
-      }]
-    }]]);
+    this._directives = new Map([
+      [
+        'include',
+        {
+          name: 'include',
+          isClient: false,
+          locations: ['FIELD', 'FRAGMENT_SPREAD', 'INLINE_FRAGMENT'],
+          args: [
+            {
+              name: 'if',
+              typeNode: parseType('Boolean!'),
+              defaultValue: undefined,
+            },
+          ],
+        },
+      ],
+      [
+        'skip',
+        {
+          name: 'skip',
+          isClient: false,
+          locations: ['FIELD', 'FRAGMENT_SPREAD', 'INLINE_FRAGMENT'],
+          args: [
+            {
+              name: 'if',
+              typeNode: parseType('Boolean!'),
+              defaultValue: undefined,
+            },
+          ],
+        },
+      ],
+      [
+        'deprecated',
+        {
+          name: 'deprecated',
+          isClient: false,
+          locations: ['FIELD_DEFINITION', 'ENUM_VALUE'],
+          args: [
+            {
+              name: 'reason',
+              typeNode: parseType('String'),
+              defaultValue: {
+                kind: 'StringValue',
+                value: 'No longer supported',
+              },
+            },
+          ],
+        },
+      ],
+    ]);
     this._queryTypeName = 'Query';
     this._mutationTypeName = 'Mutation';
     this._subscriptionTypeName = 'Subscription';
@@ -1324,65 +1443,57 @@ var TypeMap = /*#__PURE__*/function () {
     var _this5 = this;
 
     var document = parse(source, {
-      noLocation: true
+      noLocation: true,
     });
     document.definitions.forEach(function (definition) {
       switch (definition.kind) {
-        case 'SchemaDefinition':
-          {
-            _this5._parseSchemaDefinition(definition);
+        case 'SchemaDefinition': {
+          _this5._parseSchemaDefinition(definition);
 
-            break;
-          }
+          break;
+        }
 
-        case 'ScalarTypeDefinition':
-          {
-            _this5._parseScalarNode(definition, false);
+        case 'ScalarTypeDefinition': {
+          _this5._parseScalarNode(definition, false);
 
-            break;
-          }
+          break;
+        }
 
-        case 'EnumTypeDefinition':
-          {
-            _this5._parseEnumNode(definition, false);
+        case 'EnumTypeDefinition': {
+          _this5._parseEnumNode(definition, false);
 
-            break;
-          }
+          break;
+        }
 
-        case 'ObjectTypeDefinition':
-          {
-            _this5._parseObjectTypeNode(definition, false);
+        case 'ObjectTypeDefinition': {
+          _this5._parseObjectTypeNode(definition, false);
 
-            break;
-          }
+          break;
+        }
 
-        case 'InputObjectTypeDefinition':
-          {
-            _this5._parseInputObjectTypeNode(definition, false);
+        case 'InputObjectTypeDefinition': {
+          _this5._parseInputObjectTypeNode(definition, false);
 
-            break;
-          }
+          break;
+        }
 
-        case 'UnionTypeDefinition':
-          {
-            _this5._parseUnionNode(definition, false);
+        case 'UnionTypeDefinition': {
+          _this5._parseUnionNode(definition, false);
 
-            break;
-          }
+          break;
+        }
 
-        case 'InterfaceTypeDefinition':
-          {
-            _this5._parseInterfaceNode(definition, false);
+        case 'InterfaceTypeDefinition': {
+          _this5._parseInterfaceNode(definition, false);
 
-            break;
-          }
+          break;
+        }
 
-        case 'DirectiveDefinition':
-          {
-            _this5._parseDirective(definition, false);
+        case 'DirectiveDefinition': {
+          _this5._parseDirective(definition, false);
 
-            break;
-          }
+          break;
+        }
       }
     });
   };
@@ -1411,7 +1522,11 @@ var TypeMap = /*#__PURE__*/function () {
     var name = node.name.value;
 
     if (!isDefaultScalar(name) && this._types.has(name)) {
-      throw createCompilerError("_parseScalarNode: Duplicate definition for type ".concat(name, "."), null, [node]);
+      throw createCompilerError(
+        '_parseScalarNode: Duplicate definition for type '.concat(name, '.'),
+        null,
+        [node],
+      );
     }
 
     this._types.set(name, new ScalarType(name, isClient));
@@ -1421,13 +1536,18 @@ var TypeMap = /*#__PURE__*/function () {
     var name = node.name.value;
 
     if (this._types.has(name)) {
-      throw createCompilerError("_parseEnumNode: Duplicate definition for type ".concat(name, "."), null, [node]);
+      throw createCompilerError(
+        '_parseEnumNode: Duplicate definition for type '.concat(name, '.'),
+        null,
+        [node],
+      );
     } // SDL doesn't have information about the actual ENUM values
 
-
-    var values = node.values ? node.values.map(function (value) {
-      return value.name.value;
-    }) : [];
+    var values = node.values
+      ? node.values.map(function (value) {
+          return value.name.value;
+        })
+      : [];
 
     this._types.set(name, new EnumType(name, values, isClient));
   };
@@ -1439,55 +1559,79 @@ var TypeMap = /*#__PURE__*/function () {
 
     var name = node.name.value; // Objects may be created by _parseUnionNode
 
-    var type = (_this$_types$get = this._types.get(name)) !== null && _this$_types$get !== void 0 ? _this$_types$get : new ObjectType(name, isClient);
+    var type =
+      (_this$_types$get = this._types.get(name)) !== null && _this$_types$get !== void 0
+        ? _this$_types$get
+        : new ObjectType(name, isClient);
 
     if (!(type instanceof ObjectType)) {
-      throw createCompilerError("_parseObjectTypeNode: Expected object type, got ".concat(String(type)), null, [node]);
+      throw createCompilerError(
+        '_parseObjectTypeNode: Expected object type, got '.concat(String(type)),
+        null,
+        [node],
+      );
     }
 
     if (type.isClient !== isClient) {
-      throw createCompilerError("_parseObjectTypeNode: Cannot create object type '".concat(name, "' defined as a client type."), null, [node]);
+      throw createCompilerError(
+        "_parseObjectTypeNode: Cannot create object type '".concat(
+          name,
+          "' defined as a client type.",
+        ),
+        null,
+        [node],
+      );
     }
 
     var typeInterfaces = [];
-    node.interfaces && node.interfaces.forEach(function (interfaceTypeNode) {
-      var _this$_interfaceImple;
+    node.interfaces &&
+      node.interfaces.forEach(function (interfaceTypeNode) {
+        var _this$_interfaceImple;
 
-      var interfaceName = interfaceTypeNode.name.value;
+        var interfaceName = interfaceTypeNode.name.value;
 
-      var interfaceType = _this7._types.get(interfaceName);
+        var interfaceType = _this7._types.get(interfaceName);
 
-      if (!interfaceType) {
-        interfaceType = new InterfaceType(interfaceName, isClient);
+        if (!interfaceType) {
+          interfaceType = new InterfaceType(interfaceName, isClient);
 
-        _this7._types.set(interfaceName, interfaceType);
-      }
-
-      if (!(interfaceType instanceof InterfaceType)) {
-        throw createCompilerError('_parseObjectTypeNode: Expected interface type', null, [interfaceTypeNode]);
-      }
-
-      var implementations = (_this$_interfaceImple = _this7._interfaceImplementations.get(interfaceType)) !== null && _this$_interfaceImple !== void 0 ? _this$_interfaceImple : new Set();
-      implementations.add(type);
-
-      _this7._interfaceImplementations.set(interfaceType, implementations);
-
-      typeInterfaces.push(interfaceType);
-    });
-    var fetchable = null;
-    node.directives && node.directives.forEach(function (directiveNode) {
-      if (directiveNode.name.value === 'fetchable') {
-        var field_name_arg = directiveNode.arguments && directiveNode.arguments.find(function (arg) {
-          return arg.name.value === 'field_name';
-        });
-
-        if (field_name_arg != null && field_name_arg.value.kind === 'StringValue') {
-          fetchable = {
-            field_name: field_name_arg.value.value
-          };
+          _this7._types.set(interfaceName, interfaceType);
         }
-      }
-    });
+
+        if (!(interfaceType instanceof InterfaceType)) {
+          throw createCompilerError('_parseObjectTypeNode: Expected interface type', null, [
+            interfaceTypeNode,
+          ]);
+        }
+
+        var implementations =
+          (_this$_interfaceImple = _this7._interfaceImplementations.get(interfaceType)) !== null &&
+          _this$_interfaceImple !== void 0
+            ? _this$_interfaceImple
+            : new Set();
+        implementations.add(type);
+
+        _this7._interfaceImplementations.set(interfaceType, implementations);
+
+        typeInterfaces.push(interfaceType);
+      });
+    var fetchable = null;
+    node.directives &&
+      node.directives.forEach(function (directiveNode) {
+        if (directiveNode.name.value === 'fetchable') {
+          var field_name_arg =
+            directiveNode.arguments &&
+            directiveNode.arguments.find(function (arg) {
+              return arg.name.value === 'field_name';
+            });
+
+          if (field_name_arg != null && field_name_arg.value.kind === 'StringValue') {
+            fetchable = {
+              field_name: field_name_arg.value.value,
+            };
+          }
+        }
+      });
 
     this._typeInterfaces.set(type, typeInterfaces);
 
@@ -1504,7 +1648,11 @@ var TypeMap = /*#__PURE__*/function () {
     var name = node.name.value;
 
     if (this._types.has(name)) {
-      throw createCompilerError('_parseInputObjectTypeNode: Unable to parse schema file. Duplicate definition for object type', null, [node]);
+      throw createCompilerError(
+        '_parseInputObjectTypeNode: Unable to parse schema file. Duplicate definition for object type',
+        null,
+        [node],
+      );
     }
 
     var type = new InputObjectType(name, isClient);
@@ -1520,27 +1668,44 @@ var TypeMap = /*#__PURE__*/function () {
     var name = node.name.value;
 
     if (this._types.has(name)) {
-      throw createCompilerError('_parseUnionNode: Unable to parse schema file. Duplicate definition for object type', null, [node]);
+      throw createCompilerError(
+        '_parseUnionNode: Unable to parse schema file. Duplicate definition for object type',
+        null,
+        [node],
+      );
     }
 
     var union = new UnionType(name, isClient);
 
     this._types.set(name, union);
 
-    this._unionTypes.set(union, new Set(node.types ? node.types.map(function (typeInUnion) {
-      var _this$_types$get2;
+    this._unionTypes.set(
+      union,
+      new Set(
+        node.types
+          ? node.types.map(function (typeInUnion) {
+              var _this$_types$get2;
 
-      var typeInUnionName = typeInUnion.name.value;
-      var object = (_this$_types$get2 = _this8._types.get(typeInUnionName)) !== null && _this$_types$get2 !== void 0 ? _this$_types$get2 : new ObjectType(typeInUnionName, false);
+              var typeInUnionName = typeInUnion.name.value;
+              var object =
+                (_this$_types$get2 = _this8._types.get(typeInUnionName)) !== null &&
+                _this$_types$get2 !== void 0
+                  ? _this$_types$get2
+                  : new ObjectType(typeInUnionName, false);
 
-      if (!(object instanceof ObjectType)) {
-        throw createCompilerError('_parseUnionNode: Expected object type', null, [typeInUnion]);
-      }
+              if (!(object instanceof ObjectType)) {
+                throw createCompilerError('_parseUnionNode: Expected object type', null, [
+                  typeInUnion,
+                ]);
+              }
 
-      _this8._types.set(typeInUnionName, object);
+              _this8._types.set(typeInUnionName, object);
 
-      return object;
-    }) : []));
+              return object;
+            })
+          : [],
+      ),
+    );
   };
 
   _proto5._parseInterfaceNode = function _parseInterfaceNode(node, isClient) {
@@ -1555,11 +1720,22 @@ var TypeMap = /*#__PURE__*/function () {
     }
 
     if (!(type instanceof InterfaceType)) {
-      throw createCompilerError("_parseInterfaceNode: Expected interface type. Got ".concat(String(type)), null, [node]);
+      throw createCompilerError(
+        '_parseInterfaceNode: Expected interface type. Got '.concat(String(type)),
+        null,
+        [node],
+      );
     }
 
     if (type.isClient !== isClient) {
-      throw createCompilerError("_parseInterfaceNode: Cannot create interface '".concat(name, "' defined as a client interface"), null, [node]);
+      throw createCompilerError(
+        "_parseInterfaceNode: Cannot create interface '".concat(
+          name,
+          "' defined as a client interface",
+        ),
+        null,
+        [node],
+      );
     }
 
     node.fields && this._handleTypeFieldsStrict(type, node.fields, isClient);
@@ -1567,7 +1743,9 @@ var TypeMap = /*#__PURE__*/function () {
 
   _proto5._handleTypeFieldsStrict = function _handleTypeFieldsStrict(type, fields, isClient) {
     if (this._fields.has(type)) {
-      throw createCompilerError('_handleTypeFieldsStrict: Unable to parse schema file. Duplicate definition for object type');
+      throw createCompilerError(
+        '_handleTypeFieldsStrict: Unable to parse schema file. Duplicate definition for object type',
+      );
     }
 
     this._handleTypeFields(type, fields, isClient);
@@ -1576,35 +1754,46 @@ var TypeMap = /*#__PURE__*/function () {
   _proto5._handleTypeFields = function _handleTypeFields(type, fields, isClient) {
     var _this$_fields$get;
 
-    var fieldsMap = (_this$_fields$get = this._fields.get(type)) !== null && _this$_fields$get !== void 0 ? _this$_fields$get : new Map();
+    var fieldsMap =
+      (_this$_fields$get = this._fields.get(type)) !== null && _this$_fields$get !== void 0
+        ? _this$_fields$get
+        : new Map();
     fields.forEach(function (fieldNode) {
       var fieldName = fieldNode.name.value;
 
       if (fieldsMap.has(fieldName)) {
-        throw createCompilerError("_handleTypeFields: Duplicate definition for field '".concat(fieldName, "'."));
+        throw createCompilerError(
+          "_handleTypeFields: Duplicate definition for field '".concat(fieldName, "'."),
+        );
       }
 
       fieldsMap.set(fieldName, {
-        arguments: fieldNode.arguments ? fieldNode.arguments.map(function (arg) {
-          return {
-            name: arg.name.value,
-            typeNode: arg.type,
-            defaultValue: arg.defaultValue
-          };
-        }) : [],
-        directives: fieldNode.directives ? fieldNode.directives.map(function (directive) {
-          return {
-            name: directive.name.value,
-            args: directive.arguments ? directive.arguments.map(function (arg) {
+        arguments: fieldNode.arguments
+          ? fieldNode.arguments.map(function (arg) {
               return {
                 name: arg.name.value,
-                value: arg.value
+                typeNode: arg.type,
+                defaultValue: arg.defaultValue,
               };
-            }) : []
-          };
-        }) : null,
+            })
+          : [],
+        directives: fieldNode.directives
+          ? fieldNode.directives.map(function (directive) {
+              return {
+                name: directive.name.value,
+                args: directive.arguments
+                  ? directive.arguments.map(function (arg) {
+                      return {
+                        name: arg.name.value,
+                        value: arg.value,
+                      };
+                    })
+                  : [],
+              };
+            })
+          : null,
         type: fieldNode.type,
-        isClient: isClient
+        isClient: isClient,
       });
     });
 
@@ -1613,7 +1802,11 @@ var TypeMap = /*#__PURE__*/function () {
 
   _proto5._parseInputObjectFields = function _parseInputObjectFields(type, node) {
     if (this._inputFields.has(type)) {
-      throw createCompilerError('_parseInputObjectFields: Unable to parse schema file. Duplicate definition for type', null, [node]);
+      throw createCompilerError(
+        '_parseInputObjectFields: Unable to parse schema file. Duplicate definition for type',
+        null,
+        [node],
+      );
     }
 
     var fields = new Map();
@@ -1632,13 +1825,15 @@ var TypeMap = /*#__PURE__*/function () {
 
     this._directives.set(name, {
       name: name,
-      args: node.arguments ? node.arguments.map(function (arg) {
-        return {
-          name: arg.name.value,
-          typeNode: arg.type,
-          defaultValue: arg.defaultValue
-        };
-      }) : [],
+      args: node.arguments
+        ? node.arguments.map(function (arg) {
+            return {
+              name: arg.name.value,
+              typeNode: arg.type,
+              defaultValue: arg.defaultValue,
+            };
+          })
+        : [],
       locations: node.locations.map(function (location) {
         switch (location.value) {
           case 'QUERY':
@@ -1666,7 +1861,7 @@ var TypeMap = /*#__PURE__*/function () {
             throw createCompilerError('Invalid directive location');
         }
       }),
-      isClient: isClient
+      isClient: isClient,
     });
   };
 
@@ -1674,12 +1869,23 @@ var TypeMap = /*#__PURE__*/function () {
     var type = this._types.get(node.name.value);
 
     if (!(type instanceof ObjectType)) {
-      throw createCompilerError("_parseObjectTypeExtension: Expected to find type with the name '".concat(node.name.value, "'"), null, [node]);
+      throw createCompilerError(
+        "_parseObjectTypeExtension: Expected to find type with the name '".concat(
+          node.name.value,
+          "'",
+        ),
+        null,
+        [node],
+      );
     }
 
-    node.fields && this._handleTypeFields(type, node.fields, true
-    /** client fields */
-    );
+    node.fields &&
+      this._handleTypeFields(
+        type,
+        node.fields,
+        true,
+        /** client fields */
+      );
   };
 
   _proto5._parseInterfaceTypeExtension = function _parseInterfaceTypeExtension(node) {
@@ -1709,11 +1915,17 @@ var TypeMap = /*#__PURE__*/function () {
       } else if (definition.kind === 'ObjectTypeExtension') {
         _this9._parseObjectTypeExtension(definition);
       } else if (definition.kind === 'DirectiveDefinition') {
-        _this9._parseDirective(definition, true
-        /* client directive */
+        _this9._parseDirective(
+          definition,
+          true,
+          /* client directive */
         );
       } else {
-        throw createCompilerError("Unexpected extension kind: '".concat(definition.kind, "'"), null, [definition]);
+        throw createCompilerError(
+          "Unexpected extension kind: '".concat(definition.kind, "'"),
+          null,
+          [definition],
+        );
       }
     });
   };
@@ -1729,7 +1941,10 @@ var TypeMap = /*#__PURE__*/function () {
   _proto5.getInterfaces = function getInterfaces(type) {
     var _this$_typeInterfaces;
 
-    return (_this$_typeInterfaces = this._typeInterfaces.get(type)) !== null && _this$_typeInterfaces !== void 0 ? _this$_typeInterfaces : [];
+    return (_this$_typeInterfaces = this._typeInterfaces.get(type)) !== null &&
+      _this$_typeInterfaces !== void 0
+      ? _this$_typeInterfaces
+      : [];
   };
 
   _proto5.getPossibleTypeSet = function getPossibleTypeSet(type) {
@@ -1738,17 +1953,25 @@ var TypeMap = /*#__PURE__*/function () {
     if (type instanceof InterfaceType) {
       var _this$_interfaceImple2;
 
-      set = (_this$_interfaceImple2 = this._interfaceImplementations.get(type)) !== null && _this$_interfaceImple2 !== void 0 ? _this$_interfaceImple2 : new Set();
+      set =
+        (_this$_interfaceImple2 = this._interfaceImplementations.get(type)) !== null &&
+        _this$_interfaceImple2 !== void 0
+          ? _this$_interfaceImple2
+          : new Set();
     } else if (type instanceof UnionType) {
       var _this$_unionTypes$get;
 
-      set = (_this$_unionTypes$get = this._unionTypes.get(type)) !== null && _this$_unionTypes$get !== void 0 ? _this$_unionTypes$get : new Set();
+      set =
+        (_this$_unionTypes$get = this._unionTypes.get(type)) !== null &&
+        _this$_unionTypes$get !== void 0
+          ? _this$_unionTypes$get
+          : new Set();
     } else {
       throw createCompilerError('Invalid type supplied to "getPossibleTypeSet"');
     }
 
     if (!set) {
-      throw createCompilerError("Unable to find possible types for ".concat(type.name));
+      throw createCompilerError('Unable to find possible types for '.concat(type.name));
     }
 
     return set;
@@ -1757,7 +1980,12 @@ var TypeMap = /*#__PURE__*/function () {
   _proto5.getFetchableFieldName = function getFetchableFieldName(type) {
     var _this$_fetchable$get$, _this$_fetchable$get;
 
-    return (_this$_fetchable$get$ = (_this$_fetchable$get = this._fetchable.get(type)) === null || _this$_fetchable$get === void 0 ? void 0 : _this$_fetchable$get.field_name) !== null && _this$_fetchable$get$ !== void 0 ? _this$_fetchable$get$ : null;
+    return (_this$_fetchable$get$ =
+      (_this$_fetchable$get = this._fetchable.get(type)) === null || _this$_fetchable$get === void 0
+        ? void 0
+        : _this$_fetchable$get.field_name) !== null && _this$_fetchable$get$ !== void 0
+      ? _this$_fetchable$get$
+      : null;
   };
 
   _proto5.getQueryType = function getQueryType() {
@@ -1805,27 +2033,29 @@ var TypeMap = /*#__PURE__*/function () {
   };
 
   return TypeMap;
-}();
+})();
 
 function create(baseSchema, schemaExtensionDocuments, schemaExtensions) {
   var extensions = [];
-  schemaExtensions && schemaExtensions.forEach(function (source) {
-    var doc = parse(source, {
-      noLocation: true
+  schemaExtensions &&
+    schemaExtensions.forEach(function (source) {
+      var doc = parse(source, {
+        noLocation: true,
+      });
+      doc.definitions.forEach(function (definition) {
+        if (isSchemaDefinitionAST(definition)) {
+          extensions.push(definition);
+        }
+      });
     });
-    doc.definitions.forEach(function (definition) {
-      if (isSchemaDefinitionAST(definition)) {
-        extensions.push(definition);
-      }
+  schemaExtensionDocuments &&
+    schemaExtensionDocuments.forEach(function (doc) {
+      doc.definitions.forEach(function (definition) {
+        if (isSchemaDefinitionAST(definition)) {
+          extensions.push(definition);
+        }
+      });
     });
-  });
-  schemaExtensionDocuments && schemaExtensionDocuments.forEach(function (doc) {
-    doc.definitions.forEach(function (definition) {
-      if (isSchemaDefinitionAST(definition)) {
-        extensions.push(definition);
-      }
-    });
-  });
   return new Schema(new TypeMap(baseSchema, extensions));
 }
 
@@ -1844,28 +2074,37 @@ function parseInputArgumentDefinitions(schema, args) {
       } else {
         if (nullableType instanceof ScalarType || nullableType instanceof EnumType) {
           defaultValue = schema.parseLiteral(nullableType, defaultValueNode);
-        } else if (nullableType instanceof List && defaultValueNode.kind === 'ListValue' || nullableType instanceof InputObjectType && defaultValueNode.kind === 'ObjectValue') {
+        } else if (
+          (nullableType instanceof List && defaultValueNode.kind === 'ListValue') ||
+          (nullableType instanceof InputObjectType && defaultValueNode.kind === 'ObjectValue')
+        ) {
           defaultValue = valueFromASTUntyped(defaultValueNode);
         }
       }
 
       if (defaultValue === undefined) {
-        throw createCompilerError("parseInputArgumentDefinitions: Unexpected default value: ".concat(String(defaultValueNode), ". Expected to have a value of type ").concat(String(nullableType), "."));
+        throw createCompilerError(
+          'parseInputArgumentDefinitions: Unexpected default value: '
+            .concat(String(defaultValueNode), '. Expected to have a value of type ')
+            .concat(String(nullableType), '.'),
+        );
       }
     }
 
     return {
       name: arg.name,
       type: argType,
-      defaultValue: defaultValue
+      defaultValue: defaultValue,
     };
   });
 }
 
 function parseInputArgumentDefinitionsMap(schema, args) {
-  return new Map(parseInputArgumentDefinitions(schema, args).map(function (arg) {
-    return [arg.name, arg];
-  }));
+  return new Map(
+    parseInputArgumentDefinitions(schema, args).map(function (arg) {
+      return [arg.name, arg];
+    }),
+  );
 }
 
 function isDefaultScalar(name) {
@@ -1873,5 +2112,5 @@ function isDefaultScalar(name) {
 }
 
 module.exports = {
-  create: create
+  create: create,
 };

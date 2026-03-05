@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  *
  * @format
- * 
+ *
  */
 // flowlint ambiguous-object-type:error
 'use strict';
@@ -19,5 +19,5 @@ function getName(node) {
 }
 
 module.exports = {
-  getName: getName
+  getName: getName,
 };

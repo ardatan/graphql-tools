@@ -4,14 +4,14 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
 var _require = require('../core/CompilerError'),
-    createUserError = _require.createUserError;
+  createUserError = _require.createUserError;
 
 /**
  * Attempts to join the argument definitions for a root fragment
@@ -26,7 +26,10 @@ function joinArgumentDefinitions(schema, fragment, reachableArguments, directive
   });
   reachableArguments.forEach(function (nextArgDef) {
     var prevArgDef = joinedArgumentDefinitions.get(nextArgDef.name);
-    var joinedArgDef = prevArgDef == null ? nextArgDef : joinArgumentDefinition(schema, prevArgDef, nextArgDef, directiveName);
+    var joinedArgDef =
+      prevArgDef == null
+        ? nextArgDef
+        : joinArgumentDefinition(schema, prevArgDef, nextArgDef, directiveName);
     joinedArgumentDefinitions.set(joinedArgDef.name, joinedArgDef);
   });
   return Array.from(joinedArgumentDefinitions.values());
@@ -45,12 +48,22 @@ function joinArgumentDefinitions(schema, fragment, reachableArguments, directive
  *   null to indicate they cannot be joined.
  */
 
-
 function joinArgumentDefinition(schema, prevArgDef, nextArgDef, directiveName) {
   if (prevArgDef.kind !== nextArgDef.kind) {
-    throw createUserError('Cannot combine global and local variables when applying ' + "".concat(directiveName, "."), [prevArgDef.loc, nextArgDef.loc]);
-  } else if (prevArgDef.kind === 'LocalArgumentDefinition' && nextArgDef.kind === 'LocalArgumentDefinition' && prevArgDef.defaultValue !== nextArgDef.defaultValue) {
-    throw createUserError('Cannot combine local variables with different defaultValues when ' + "applying ".concat(directiveName, "."), [prevArgDef.loc, nextArgDef.loc]);
+    throw createUserError(
+      'Cannot combine global and local variables when applying ' + ''.concat(directiveName, '.'),
+      [prevArgDef.loc, nextArgDef.loc],
+    );
+  } else if (
+    prevArgDef.kind === 'LocalArgumentDefinition' &&
+    nextArgDef.kind === 'LocalArgumentDefinition' &&
+    prevArgDef.defaultValue !== nextArgDef.defaultValue
+  ) {
+    throw createUserError(
+      'Cannot combine local variables with different defaultValues when ' +
+        'applying '.concat(directiveName, '.'),
+      [prevArgDef.loc, nextArgDef.loc],
+    );
   } else if (schema.isTypeSubTypeOf(nextArgDef.type, prevArgDef.type)) {
     // prevArgDef is less strict than nextArgDef
     return nextArgDef;
@@ -59,7 +72,12 @@ function joinArgumentDefinition(schema, prevArgDef, nextArgDef, directiveName) {
   } else {
     var prevArgType = prevArgDef.type != null ? schema.getTypeString(prevArgDef.type) : 'unknown';
     var nextArgType = nextArgDef.type != null ? schema.getTypeString(nextArgDef.type) : 'unknown';
-    throw createUserError('Cannot combine variables with incompatible types ' + "".concat(prevArgType, " and ").concat(nextArgType, " ") + "when applying ".concat(directiveName, "."), [prevArgDef.loc, nextArgDef.loc]);
+    throw createUserError(
+      'Cannot combine variables with incompatible types ' +
+        ''.concat(prevArgType, ' and ').concat(nextArgType, ' ') +
+        'when applying '.concat(directiveName, '.'),
+      [prevArgDef.loc, nextArgDef.loc],
+    );
   }
 }
 

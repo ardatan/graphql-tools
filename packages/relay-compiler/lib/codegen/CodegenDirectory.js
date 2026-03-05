@@ -4,17 +4,19 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _interopRequireDefault = require('@babel/runtime/helpers/interopRequireDefault');
 
-var _asyncToGenerator = require("@babel/runtime/helpers/asyncToGenerator");
+var _asyncToGenerator = require('@babel/runtime/helpers/asyncToGenerator');
 
-var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
+var _toConsumableArray2 = _interopRequireDefault(
+  require('@babel/runtime/helpers/toConsumableArray'),
+);
 
 var Profiler = require('../core/GraphQLCompilerProfiler');
 
@@ -24,19 +26,28 @@ var invariant = require('invariant');
 
 var path = require('path'); // flowlint nonstrict-import:warn
 
-
-var CodegenDirectory = /*#__PURE__*/function () {
+var CodegenDirectory = /*#__PURE__*/ (function () {
   function CodegenDirectory(dir, options) {
     var _this = this;
 
     var _options$filesystem, _options$shards;
 
-    this._filesystem = (_options$filesystem = options.filesystem) !== null && _options$filesystem !== void 0 ? _options$filesystem : require('fs');
+    this._filesystem =
+      (_options$filesystem = options.filesystem) !== null && _options$filesystem !== void 0
+        ? _options$filesystem
+        : require('fs');
     this.onlyValidate = options.onlyValidate;
-    this._shards = (_options$shards = options.shards) !== null && _options$shards !== void 0 ? _options$shards : 1;
+    this._shards =
+      (_options$shards = options.shards) !== null && _options$shards !== void 0
+        ? _options$shards
+        : 1;
 
     if (this._filesystem.existsSync(dir)) {
-      !this._filesystem.statSync(dir).isDirectory() ? process.env.NODE_ENV !== "production" ? invariant(false, 'Expected `%s` to be a directory.', dir) : invariant(false) : void 0;
+      !this._filesystem.statSync(dir).isDirectory()
+        ? process.env.NODE_ENV !== 'production'
+          ? invariant(false, 'Expected `%s` to be a directory.', dir)
+          : invariant(false)
+        : void 0;
     }
 
     if (!this.onlyValidate) {
@@ -57,7 +68,11 @@ var CodegenDirectory = /*#__PURE__*/function () {
           var shardDir = path.join(dir, this._getShardName(shard));
 
           if (this._filesystem.existsSync(shardDir)) {
-            !this._filesystem.statSync(dir).isDirectory() ? process.env.NODE_ENV !== "production" ? invariant(false, 'Expected `%s` to be a directory.', dir) : invariant(false) : void 0;
+            !this._filesystem.statSync(dir).isDirectory()
+              ? process.env.NODE_ENV !== 'production'
+                ? invariant(false, 'Expected `%s` to be a directory.', dir)
+                : invariant(false)
+              : void 0;
           } else {
             this._filesystem.mkdirSync(shardDir);
           }
@@ -70,7 +85,7 @@ var CodegenDirectory = /*#__PURE__*/function () {
       deleted: [],
       updated: [],
       created: [],
-      unchanged: []
+      unchanged: [],
     };
     this._dir = dir;
   }
@@ -80,18 +95,30 @@ var CodegenDirectory = /*#__PURE__*/function () {
       deleted: [],
       updated: [],
       created: [],
-      unchanged: []
+      unchanged: [],
     };
     dirs.forEach(function (dir) {
       var _changes$deleted, _changes$updated, _changes$created, _changes$unchanged;
 
-      (_changes$deleted = changes.deleted).push.apply(_changes$deleted, (0, _toConsumableArray2["default"])(dir.changes.deleted));
+      (_changes$deleted = changes.deleted).push.apply(
+        _changes$deleted,
+        (0, _toConsumableArray2['default'])(dir.changes.deleted),
+      );
 
-      (_changes$updated = changes.updated).push.apply(_changes$updated, (0, _toConsumableArray2["default"])(dir.changes.updated));
+      (_changes$updated = changes.updated).push.apply(
+        _changes$updated,
+        (0, _toConsumableArray2['default'])(dir.changes.updated),
+      );
 
-      (_changes$created = changes.created).push.apply(_changes$created, (0, _toConsumableArray2["default"])(dir.changes.created));
+      (_changes$created = changes.created).push.apply(
+        _changes$created,
+        (0, _toConsumableArray2['default'])(dir.changes.created),
+      );
 
-      (_changes$unchanged = changes.unchanged).push.apply(_changes$unchanged, (0, _toConsumableArray2["default"])(dir.changes.unchanged));
+      (_changes$unchanged = changes.unchanged).push.apply(
+        _changes$unchanged,
+        (0, _toConsumableArray2['default'])(dir.changes.unchanged),
+      );
     });
     return changes;
   };
@@ -120,7 +147,7 @@ var CodegenDirectory = /*#__PURE__*/function () {
       formatFiles('Created', changes.created);
       formatFiles('Updated', changes.updated);
       formatFiles('Deleted', changes.deleted);
-      output.push("Unchanged: ".concat(changes.unchanged.length, " files"));
+      output.push('Unchanged: '.concat(changes.unchanged.length, ' files'));
     }
 
     return output.join('\n');
@@ -147,15 +174,15 @@ var CodegenDirectory = /*#__PURE__*/function () {
     });
     return {
       added: added,
-      removed: removed
+      removed: removed,
     };
   };
 
-  CodegenDirectory.sourceControlAddRemove = /*#__PURE__*/function () {
+  CodegenDirectory.sourceControlAddRemove = /*#__PURE__*/ (function () {
     var _sourceControlAddRemove = _asyncToGenerator(function* (sourceControl, dirs) {
       var _CodegenDirectory$get = CodegenDirectory.getAddedRemovedFiles(dirs),
-          added = _CodegenDirectory$get.added,
-          removed = _CodegenDirectory$get.removed;
+        added = _CodegenDirectory$get.added,
+        removed = _CodegenDirectory$get.removed;
 
       sourceControl.addRemove(added, removed);
     });
@@ -165,13 +192,13 @@ var CodegenDirectory = /*#__PURE__*/function () {
     }
 
     return sourceControlAddRemove;
-  }();
+  })();
 
   var _proto = CodegenDirectory.prototype;
 
   _proto.printChanges = function printChanges() {
     CodegenDirectory.printChanges(this.changes, {
-      onlyValidate: this.onlyValidate
+      onlyValidate: this.onlyValidate,
     });
   };
 
@@ -189,13 +216,12 @@ var CodegenDirectory = /*#__PURE__*/function () {
     this._addGenerated(filename);
 
     this.changes.unchanged.push(filename);
-  }
+  };
   /**
    * Marks a files as updated or out of date without actually writing the file.
    * This is probably only be useful when doing validation without intention to
    * actually write to disk.
    */
-  ;
 
   _proto.markUpdated = function markUpdated(filename) {
     this._addGenerated(filename);
@@ -234,12 +260,11 @@ var CodegenDirectory = /*#__PURE__*/function () {
     if (!this.onlyValidate) {
       this._filesystem.writeFileSync(filePath, content, 'utf8');
     }
-  }
+  };
   /**
    * Deletes all non-generated files, except for invisible "dot" files (ie.
    * files with names starting with ".").
    */
-  ;
 
   _proto.deleteExtraFiles = function deleteExtraFiles(keepExtraFile) {
     var _this3 = this;
@@ -275,7 +300,13 @@ var CodegenDirectory = /*#__PURE__*/function () {
               try {
                 _this3._filesystem.unlinkSync(path.join(firstLevelPath, actualFile));
               } catch (_unused) {
-                throw new Error('CodegenDirectory: Failed to delete `' + actualFile + '` in `' + _this3._dir + '`.');
+                throw new Error(
+                  'CodegenDirectory: Failed to delete `' +
+                    actualFile +
+                    '` in `' +
+                    _this3._dir +
+                    '`.',
+                );
               }
             }
 
@@ -296,7 +327,9 @@ var CodegenDirectory = /*#__PURE__*/function () {
             try {
               _this3._filesystem.unlinkSync(path.join(_this3._dir, actualFile));
             } catch (_unused2) {
-              throw new Error('CodegenDirectory: Failed to delete `' + actualFile + '` in `' + _this3._dir + '`.');
+              throw new Error(
+                'CodegenDirectory: Failed to delete `' + actualFile + '` in `' + _this3._dir + '`.',
+              );
             }
           }
 
@@ -325,12 +358,21 @@ var CodegenDirectory = /*#__PURE__*/function () {
   };
 
   _proto._addGenerated = function _addGenerated(filename) {
-    !!this._files.has(filename) ? process.env.NODE_ENV !== "production" ? invariant(false, 'CodegenDirectory: Tried to generate `%s` twice in `%s`.', filename, this._dir) : invariant(false) : void 0;
+    !!this._files.has(filename)
+      ? process.env.NODE_ENV !== 'production'
+        ? invariant(
+            false,
+            'CodegenDirectory: Tried to generate `%s` twice in `%s`.',
+            filename,
+            this._dir,
+          )
+        : invariant(false)
+      : void 0;
 
     this._files.add(filename);
   };
 
   return CodegenDirectory;
-}();
+})();
 
 module.exports = CodegenDirectory;

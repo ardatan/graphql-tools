@@ -4,23 +4,25 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _interopRequireDefault = require('@babel/runtime/helpers/interopRequireDefault');
 
-var _objectSpread2 = _interopRequireDefault(require("@babel/runtime/helpers/objectSpread2"));
+var _objectSpread2 = _interopRequireDefault(require('@babel/runtime/helpers/objectSpread2'));
 
-var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
+var _toConsumableArray2 = _interopRequireDefault(
+  require('@babel/runtime/helpers/toConsumableArray'),
+);
 
 var IRTransformer = require('../core/IRTransformer');
 
 var _require = require('../core/CompilerError'),
-    createCompilerError = _require.createCompilerError,
-    createUserError = _require.createUserError;
+  createCompilerError = _require.createCompilerError,
+  createUserError = _require.createUserError;
 
 var cachesByNode = new Map();
 
@@ -29,7 +31,7 @@ function clientExtensionTransform(context) {
   return IRTransformer.transform(context, {
     Fragment: traverseDefinition,
     Root: traverseDefinition,
-    SplitOperation: traverseDefinition
+    SplitOperation: traverseDefinition,
   });
 }
 
@@ -62,7 +64,11 @@ function traverseDefinition(node) {
 
     case 'SplitOperation':
       if (!schema.isServerType(node.type)) {
-        throw createUserError('ClientExtensionTransform: SplitOperation (@module) can be created ' + 'only for fragments that defined on a server type', [node.loc]);
+        throw createUserError(
+          'ClientExtensionTransform: SplitOperation (@module) can be created ' +
+            'only for fragments that defined on a server type',
+          [node.loc],
+        );
       }
 
       rootType = node.type;
@@ -77,7 +83,13 @@ function traverseDefinition(node) {
   }
 
   if (rootType == null) {
-    throw createUserError("ClientExtensionTransform: Expected the type of `".concat(node.name, "` to have been defined in the schema. Make sure both server and ") + 'client schema are up to date.', [node.loc]);
+    throw createUserError(
+      'ClientExtensionTransform: Expected the type of `'.concat(
+        node.name,
+        '` to have been defined in the schema. Make sure both server and ',
+      ) + 'client schema are up to date.',
+      [node.loc],
+    );
   }
 
   return traverseSelections(node, compilerContext, rootType);
@@ -106,7 +118,10 @@ function traverseSelections(node, compilerContext, parentType) {
   var serverSelections = cowMap(node.selections, function (selection) {
     switch (selection.kind) {
       case 'ClientExtension':
-        throw createCompilerError('Unexpected ClientExtension node before ClientExtensionTransform', [selection.loc]);
+        throw createCompilerError(
+          'Unexpected ClientExtension node before ClientExtensionTransform',
+          [selection.loc],
+        );
 
       case 'Condition':
       case 'Defer':
@@ -116,43 +131,53 @@ function traverseSelections(node, compilerContext, parentType) {
         return traverseSelections(selection, compilerContext, parentType);
 
       case 'ScalarField':
-        if (schema.isClientDefinedField(schema.assertCompositeType(schema.getRawType(parentType)), selection)) {
+        if (
+          schema.isClientDefinedField(
+            schema.assertCompositeType(schema.getRawType(parentType)),
+            selection,
+          )
+        ) {
           clientSelections.push(selection);
           return null;
         } else {
           return selection;
         }
 
-      case 'LinkedField':
-        {
-          if (schema.isClientDefinedField(schema.assertCompositeType(schema.getRawType(parentType)), selection)) {
-            clientSelections.push(selection);
-            return null;
-          }
-
-          return traverseSelections(selection, compilerContext, selection.type);
+      case 'LinkedField': {
+        if (
+          schema.isClientDefinedField(
+            schema.assertCompositeType(schema.getRawType(parentType)),
+            selection,
+          )
+        ) {
+          clientSelections.push(selection);
+          return null;
         }
 
-      case 'InlineFragment':
-        {
-          var isClientType = !schema.isServerType(selection.typeCondition);
+        return traverseSelections(selection, compilerContext, selection.type);
+      }
 
-          if (isClientType) {
-            clientSelections.push(selection);
-            return null;
-          }
+      case 'InlineFragment': {
+        var isClientType = !schema.isServerType(selection.typeCondition);
 
-          return traverseSelections(selection, compilerContext, selection.typeCondition);
+        if (isClientType) {
+          clientSelections.push(selection);
+          return null;
         }
 
-      case 'FragmentSpread':
-        {
-          return selection;
-        }
+        return traverseSelections(selection, compilerContext, selection.typeCondition);
+      }
+
+      case 'FragmentSpread': {
+        return selection;
+      }
 
       default:
         selection;
-        throw createCompilerError("ClientExtensionTransform: Unexpected selection of kind `".concat(selection.kind, "`."), [selection.loc]);
+        throw createCompilerError(
+          'ClientExtensionTransform: Unexpected selection of kind `'.concat(selection.kind, '`.'),
+          [selection.loc],
+        );
     }
   });
 
@@ -160,22 +185,31 @@ function traverseSelections(node, compilerContext, parentType) {
     if (serverSelections === node.selections) {
       result = node;
     } else {
-      result = (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, node), {}, {
-        selections: serverSelections
-      });
+      result = (0, _objectSpread2['default'])(
+        (0, _objectSpread2['default'])({}, node),
+        {},
+        {
+          selections: serverSelections,
+        },
+      );
     }
   } else {
-    result = (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, node), {}, {
-      selections: [].concat((0, _toConsumableArray2["default"])(serverSelections), [// Group client fields under a single ClientExtension node
+    result = (0, _objectSpread2['default'])(
+      (0, _objectSpread2['default'])({}, node),
+      {},
       {
-        kind: 'ClientExtension',
-        loc: node.loc,
-        metadata: null,
-        selections: clientSelections
-      }])
-    });
+        selections: [].concat((0, _toConsumableArray2['default'])(serverSelections), [
+          // Group client fields under a single ClientExtension node
+          {
+            kind: 'ClientExtension',
+            loc: node.loc,
+            metadata: null,
+            selections: clientSelections,
+          },
+        ]),
+      },
+    );
   } // $FlowFixMe[escaped-generic]
-
 
   nodeCache.set(parentType, result);
   /* $FlowFixMe[incompatible-return] - TODO: type IRTransformer to allow
@@ -187,7 +221,6 @@ function traverseSelections(node, compilerContext, parentType) {
  * Maps an array with copy-on-write semantics.
  * `null` return values from the map function are removals.
  */
-
 
 function cowMap(selections, f) {
   for (var i = 0; i < selections.length; i++) {
@@ -213,10 +246,9 @@ function cowMap(selections, f) {
     }
   } // nothing changed, return original
 
-
   return selections;
 }
 
 module.exports = {
-  transform: clientExtensionTransform
+  transform: clientExtensionTransform,
 };

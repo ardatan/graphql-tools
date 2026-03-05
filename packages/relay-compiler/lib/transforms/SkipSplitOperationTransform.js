@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
@@ -20,13 +20,12 @@ function skipNode() {
  * printing queries to send to a GraphQL server.
  */
 
-
 function skipSplitOperationTransform(context) {
   return IRTransformer.transform(context, {
-    SplitOperation: skipNode
+    SplitOperation: skipNode,
   });
 }
 
 module.exports = {
-  transform: skipSplitOperationTransform
+  transform: skipSplitOperationTransform,
 };

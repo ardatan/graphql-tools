@@ -5,38 +5,42 @@
  * LICENSE file in the root directory of this source tree.
  *
  * @format
- * 
+ *
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _interopRequireDefault = require('@babel/runtime/helpers/interopRequireDefault');
 
-var _createForOfIteratorHelper2 = _interopRequireDefault(require("@babel/runtime/helpers/createForOfIteratorHelper"));
+var _createForOfIteratorHelper2 = _interopRequireDefault(
+  require('@babel/runtime/helpers/createForOfIteratorHelper'),
+);
 
-var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
+var _toConsumableArray2 = _interopRequireDefault(
+  require('@babel/runtime/helpers/toConsumableArray'),
+);
 
 var GraphQLNodeMap = require('./GraphQLNodeMap');
 
 var _require = require('./GraphQLASTUtils'),
-    getName = _require.getName;
+  getName = _require.getName;
 
 var _require2 = require('graphql'),
-    visit = _require2.visit;
+  visit = _require2.visit;
 
 function buildDependencyMap(nodes) {
   var dependencyMap = new Map();
 
-  var _iterator = (0, _createForOfIteratorHelper2["default"])(nodes.values()),
-      _step;
+  var _iterator = (0, _createForOfIteratorHelper2['default'])(nodes.values()),
+    _step;
 
   try {
-    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
       var node = _step.value;
       var name = getName(node);
 
       if (dependencyMap.has(name)) {
-        throw new Error("Duplicated definition for ".concat(name));
+        throw new Error('Duplicated definition for '.concat(name));
       }
 
       dependencyMap.set(name, findIncludedFragments(node));
@@ -53,21 +57,21 @@ function buildDependencyMap(nodes) {
 function mergeMaps(maps) {
   var result = new Map();
 
-  var _iterator2 = (0, _createForOfIteratorHelper2["default"])(maps),
-      _step2;
+  var _iterator2 = (0, _createForOfIteratorHelper2['default'])(maps),
+    _step2;
 
   try {
-    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+    for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
       var source = _step2.value;
 
-      var _iterator3 = (0, _createForOfIteratorHelper2["default"])(source.entries()),
-          _step3;
+      var _iterator3 = (0, _createForOfIteratorHelper2['default'])(source.entries()),
+        _step3;
 
       try {
-        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+        for (_iterator3.s(); !(_step3 = _iterator3.n()).done; ) {
           var _step3$value = _step3.value,
-              key = _step3$value[0],
-              value = _step3$value[1];
+            key = _step3$value[0],
+            value = _step3$value[1];
 
           if (result.has(key)) {
             throw new Error("Duplicate entry for '".concat(key, "'."));
@@ -91,7 +95,9 @@ function mergeMaps(maps) {
 }
 
 function forFullBuild(nodes, baseNodes) {
-  var dependencyMap = mergeMaps([nodes].concat((0, _toConsumableArray2["default"])(baseNodes)).map(buildDependencyMap));
+  var dependencyMap = mergeMaps(
+    [nodes].concat((0, _toConsumableArray2['default'])(baseNodes)).map(buildDependencyMap),
+  );
   var includedNames = includeReachable(new Set(nodes.keys()), dependencyMap);
   return buildResult(includedNames, nodes, mergeMaps(baseNodes));
 }
@@ -109,11 +115,11 @@ function forChanges(nodes, changedNames) {
 
   var directlyChangedRelatedToProject = new Set();
 
-  var _iterator4 = (0, _createForOfIteratorHelper2["default"])(directlyChangedAndAncestors),
-      _step4;
+  var _iterator4 = (0, _createForOfIteratorHelper2['default'])(directlyChangedAndAncestors),
+    _step4;
 
   try {
-    for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+    for (_iterator4.s(); !(_step4 = _iterator4.n()).done; ) {
       var node = _step4.value;
 
       if (nodes.has(node)) {
@@ -121,7 +127,6 @@ function forChanges(nodes, changedNames) {
       }
     } // Finally, we need to find all descendants of project-related changed nodes
     // in the complete dependency map (project + base)
-
   } catch (err) {
     _iterator4.e(err);
   } finally {
@@ -136,11 +141,11 @@ function buildResult(includedNames, nameToNode, baseNameToNode) {
   var baseNames = new Set();
   var nodes = [];
 
-  var _iterator5 = (0, _createForOfIteratorHelper2["default"])(includedNames),
-      _step5;
+  var _iterator5 = (0, _createForOfIteratorHelper2['default'])(includedNames),
+    _step5;
 
   try {
-    for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+    for (_iterator5.s(); !(_step5 = _iterator5.n()).done; ) {
       var name = _step5.value;
       var baseNode = baseNameToNode.get(name);
 
@@ -163,7 +168,7 @@ function buildResult(includedNames, nameToNode, baseNameToNode) {
 
   return {
     baseNames: baseNames,
-    nodes: GraphQLNodeMap.from(nodes)
+    nodes: GraphQLNodeMap.from(nodes),
   };
 }
 
@@ -175,11 +180,11 @@ function includeReachable(changed, deps) {
     var current = toVisit.pop();
     visited.add(current);
 
-    var _iterator6 = (0, _createForOfIteratorHelper2["default"])(deps.get(current) || []),
-        _step6;
+    var _iterator6 = (0, _createForOfIteratorHelper2['default'])(deps.get(current) || []),
+      _step6;
 
     try {
-      for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+      for (_iterator6.s(); !(_step6 = _iterator6.n()).done; ) {
         var dep = _step6.value;
 
         if (!visited.has(dep)) {
@@ -201,7 +206,7 @@ function findIncludedFragments(node) {
   visit(node, {
     FragmentSpread: function FragmentSpread(spread) {
       result.push(spread.name.value);
-    }
+    },
   });
   return result;
 }
@@ -209,21 +214,21 @@ function findIncludedFragments(node) {
 function inverseDependencyMap(map) {
   var invertedMap = new Map();
 
-  var _iterator7 = (0, _createForOfIteratorHelper2["default"])(map.entries()),
-      _step7;
+  var _iterator7 = (0, _createForOfIteratorHelper2['default'])(map.entries()),
+    _step7;
 
   try {
-    for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+    for (_iterator7.s(); !(_step7 = _iterator7.n()).done; ) {
       var _step7$value = _step7.value,
-          source = _step7$value[0],
-          dests = _step7$value[1];
+        source = _step7$value[0],
+        dests = _step7$value[1];
       var inverseDest = source;
 
-      var _iterator8 = (0, _createForOfIteratorHelper2["default"])(dests),
-          _step8;
+      var _iterator8 = (0, _createForOfIteratorHelper2['default'])(dests),
+        _step8;
 
       try {
-        for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+        for (_iterator8.s(); !(_step8 = _iterator8.n()).done; ) {
           var dest = _step8.value;
           var inverseSource = dest;
           var inverseDests = invertedMap.get(inverseSource);
@@ -252,5 +257,5 @@ function inverseDependencyMap(map) {
 
 module.exports = {
   forChanges: forChanges,
-  forFullBuild: forFullBuild
+  forFullBuild: forFullBuild,
 };

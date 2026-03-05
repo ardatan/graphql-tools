@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
@@ -21,7 +21,7 @@ function inlineFragmentsTransform(context) {
   var visitFragmentSpread = fragmentSpreadVisitor(new Map());
   return IRTransformer.transform(context, {
     Fragment: visitFragment,
-    FragmentSpread: visitFragmentSpread
+    FragmentSpread: visitFragmentSpread,
   });
 }
 
@@ -37,7 +37,16 @@ function fragmentSpreadVisitor(cache) {
       return traverseResult;
     }
 
-    !(fragmentSpread.args.length === 0) ? process.env.NODE_ENV !== "production" ? invariant(false, 'InlineFragmentsTransform: Cannot flatten fragment spread `%s` with ' + 'arguments. Use the `ApplyFragmentArgumentTransform` before flattening', fragmentSpread.name) : invariant(false) : void 0; // $FlowFixMe[incompatible-use]
+    !(fragmentSpread.args.length === 0)
+      ? process.env.NODE_ENV !== 'production'
+        ? invariant(
+            false,
+            'InlineFragmentsTransform: Cannot flatten fragment spread `%s` with ' +
+              'arguments. Use the `ApplyFragmentArgumentTransform` before flattening',
+            fragmentSpread.name,
+          )
+        : invariant(false)
+      : void 0; // $FlowFixMe[incompatible-use]
 
     var fragment = this.getContext().getFragment(fragmentSpread.name, fragmentSpread.loc);
     var result = {
@@ -45,11 +54,11 @@ function fragmentSpreadVisitor(cache) {
       directives: fragmentSpread.directives,
       loc: {
         kind: 'Derived',
-        source: fragmentSpread.loc
+        source: fragmentSpread.loc,
       },
       metadata: fragmentSpread.metadata,
       selections: fragment.selections,
-      typeCondition: fragment.type
+      typeCondition: fragment.type,
     }; // $FlowFixMe[incompatible-use]
 
     traverseResult = this.traverse(result);
@@ -59,5 +68,5 @@ function fragmentSpreadVisitor(cache) {
 }
 
 module.exports = {
-  transform: inlineFragmentsTransform
+  transform: inlineFragmentsTransform,
 };

@@ -5,28 +5,30 @@
  * LICENSE file in the root directory of this source tree.
  *
  * @format
- * 
+ *
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _interopRequireDefault = require('@babel/runtime/helpers/interopRequireDefault');
 
-var _createForOfIteratorHelper2 = _interopRequireDefault(require("@babel/runtime/helpers/createForOfIteratorHelper"));
+var _createForOfIteratorHelper2 = _interopRequireDefault(
+  require('@babel/runtime/helpers/createForOfIteratorHelper'),
+);
 
-var _inheritsLoose2 = _interopRequireDefault(require("@babel/runtime/helpers/inheritsLoose"));
+var _inheritsLoose2 = _interopRequireDefault(require('@babel/runtime/helpers/inheritsLoose'));
 
-var _wrapNativeSuper2 = _interopRequireDefault(require("@babel/runtime/helpers/wrapNativeSuper"));
+var _wrapNativeSuper2 = _interopRequireDefault(require('@babel/runtime/helpers/wrapNativeSuper'));
 
 var _require = require('../core/CompilerError'),
-    createUserError = _require.createUserError,
-    createCompilerError = _require.createCompilerError;
+  createUserError = _require.createUserError,
+  createCompilerError = _require.createCompilerError;
 
 var _require2 = require('./GraphQLASTUtils'),
-    getName = _require2.getName;
+  getName = _require2.getName;
 
-var GraphQLNodeMap = /*#__PURE__*/function (_Map) {
-  (0, _inheritsLoose2["default"])(GraphQLNodeMap, _Map);
+var GraphQLNodeMap = /*#__PURE__*/ (function (_Map) {
+  (0, _inheritsLoose2['default'])(GraphQLNodeMap, _Map);
 
   function GraphQLNodeMap() {
     return _Map.apply(this, arguments) || this;
@@ -35,11 +37,11 @@ var GraphQLNodeMap = /*#__PURE__*/function (_Map) {
   GraphQLNodeMap.from = function from(nodes) {
     var result = new GraphQLNodeMap();
 
-    var _iterator = (0, _createForOfIteratorHelper2["default"])(nodes),
-        _step;
+    var _iterator = (0, _createForOfIteratorHelper2['default'])(nodes),
+      _step;
 
     try {
-      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      for (_iterator.s(); !(_step = _iterator.n()).done; ) {
         var node = _step.value;
         var name = getName(node);
         var prevNode = result.get(name);
@@ -69,13 +71,13 @@ var GraphQLNodeMap = /*#__PURE__*/function (_Map) {
     var node = this.get(name);
 
     if (!node) {
-      throw createCompilerError("GraphQLNodeMap: expected to have a node named ".concat(name, "."));
+      throw createCompilerError('GraphQLNodeMap: expected to have a node named '.concat(name, '.'));
     }
 
     return node;
   };
 
   return GraphQLNodeMap;
-}( /*#__PURE__*/(0, _wrapNativeSuper2["default"])(Map));
+})(/*#__PURE__*/ (0, _wrapNativeSuper2['default'])(Map));
 
 module.exports = GraphQLNodeMap;

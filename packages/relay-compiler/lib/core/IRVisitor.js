@@ -4,14 +4,14 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
 var _require = require('graphql'),
-    visit = _require.visit;
+  visit = _require.visit;
 
 var NodeKeys = {
   Argument: ['value'],
@@ -33,7 +33,7 @@ var NodeKeys = {
   ScalarField: ['args', 'directives'],
   SplitOperation: ['selections'],
   Stream: ['selections', 'if', 'initialCount'],
-  Variable: []
+  Variable: [],
 };
 
 function visitIR(root, visitor) {
@@ -41,5 +41,5 @@ function visitIR(root, visitor) {
 }
 
 module.exports = {
-  visit: visitIR
+  visit: visitIR,
 };

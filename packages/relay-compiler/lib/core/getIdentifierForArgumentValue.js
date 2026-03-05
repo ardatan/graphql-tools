@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
@@ -20,19 +20,19 @@ function getIdentifierForArgumentValue(value) {
   switch (value.kind) {
     case 'Variable':
       return {
-        variable: value.variableName
+        variable: value.variableName,
       };
 
     case 'Literal':
       return {
-        value: value.value
+        value: value.value,
       };
 
     case 'ListValue':
       return {
         list: value.items.map(function (item) {
           return getIdentifierForArgumentValue(item);
-        })
+        }),
       };
 
     case 'ObjectValue':
@@ -40,13 +40,21 @@ function getIdentifierForArgumentValue(value) {
         object: value.fields.map(function (field) {
           return {
             name: field.name,
-            value: getIdentifierForArgumentValue(field.value)
+            value: getIdentifierForArgumentValue(field.value),
           };
-        })
+        }),
       };
 
     default:
-      !false ? process.env.NODE_ENV !== "production" ? invariant(false, 'getIdentifierForArgumentValue(): Unsupported AST kind `%s`.', value.kind) : invariant(false) : void 0;
+      !false
+        ? process.env.NODE_ENV !== 'production'
+          ? invariant(
+              false,
+              'getIdentifierForArgumentValue(): Unsupported AST kind `%s`.',
+              value.kind,
+            )
+          : invariant(false)
+        : void 0;
   }
 }
 

@@ -15,17 +15,16 @@ var Profiler = require('./GraphQLCompilerProfiler');
 var invariant = require('invariant');
 
 var _require = require('./CompilerError'),
-    createUserError = _require.createUserError; // $FlowFixMe[untyped-import] - immutable.js is not flow-typed
-
+  createUserError = _require.createUserError; // $FlowFixMe[untyped-import] - immutable.js is not flow-typed
 
 var _require2 = require('immutable'),
-    ImmutableOrderedMap = _require2.OrderedMap;
+  ImmutableOrderedMap = _require2.OrderedMap;
 
 /**
  * An immutable representation of a corpus of documents being compiled together.
  * For each document, the context stores the IR and any validation errors.
  */
-var CompilerContext = /*#__PURE__*/function () {
+var CompilerContext = /*#__PURE__*/ (function () {
   // $FlowFixMe[value-as-type]
   function CompilerContext(schema) {
     this._isMutable = false;
@@ -36,7 +35,6 @@ var CompilerContext = /*#__PURE__*/function () {
   /**
    * Returns the documents for the context in the order they were added.
    */
-
 
   var _proto = CompilerContext.prototype;
 
@@ -49,17 +47,39 @@ var CompilerContext = /*#__PURE__*/function () {
   };
 
   _proto.replace = function replace(node) {
-    return this._update(this._documents.update(node.name, function (existing) {
-      !existing ? process.env.NODE_ENV !== "production" ? invariant(false, 'CompilerContext: Expected to replace existing node %s, but ' + 'one was not found in the context.', node.name) : invariant(false) : void 0;
-      return node;
-    }));
+    return this._update(
+      this._documents.update(node.name, function (existing) {
+        !existing
+          ? process.env.NODE_ENV !== 'production'
+            ? invariant(
+                false,
+                'CompilerContext: Expected to replace existing node %s, but ' +
+                  'one was not found in the context.',
+                node.name,
+              )
+            : invariant(false)
+          : void 0;
+        return node;
+      }),
+    );
   };
 
   _proto.add = function add(node) {
-    return this._update(this._documents.update(node.name, function (existing) {
-      !!existing ? process.env.NODE_ENV !== "production" ? invariant(false, 'CompilerContext: Duplicate document named `%s`. GraphQL ' + 'fragments and roots must have unique names.', node.name) : invariant(false) : void 0;
-      return node;
-    }));
+    return this._update(
+      this._documents.update(node.name, function (existing) {
+        !!existing
+          ? process.env.NODE_ENV !== 'production'
+            ? invariant(
+                false,
+                'CompilerContext: Duplicate document named `%s`. GraphQL ' +
+                  'fragments and roots must have unique names.',
+                node.name,
+              )
+            : invariant(false)
+          : void 0;
+        return node;
+      }),
+    );
   };
 
   _proto.addAll = function addAll(nodes) {
@@ -68,11 +88,10 @@ var CompilerContext = /*#__PURE__*/function () {
         return ctx.add(definition);
       }, mutable);
     });
-  }
+  };
   /**
    * Apply a list of compiler transforms and return a new compiler context.
    */
-  ;
 
   _proto.applyTransforms = function applyTransforms(transforms, reporter) {
     var _this = this;
@@ -82,14 +101,13 @@ var CompilerContext = /*#__PURE__*/function () {
         return ctx.applyTransform(transform, reporter);
       }, _this);
     });
-  }
+  };
   /**
    * Applies a transform to this context, returning a new context.
    *
    * This is memoized such that applying the same sequence of transforms will
    * not result in duplicated work.
    */
-  ;
 
   _proto.applyTransform = function applyTransform(transform, reporter) {
     var transformed = this._withTransform.get(transform);
@@ -115,9 +133,16 @@ var CompilerContext = /*#__PURE__*/function () {
     var node = this._documents.get(name);
 
     if (node == null) {
-      throw createUserError("Cannot find fragment '".concat(name, "'."), referencedFrom != null ? [referencedFrom] : null);
+      throw createUserError(
+        "Cannot find fragment '".concat(name, "'."),
+        referencedFrom != null ? [referencedFrom] : null,
+      );
     } else if (node.kind !== 'Fragment') {
-      throw createUserError("Cannot find fragment '".concat(name, "', a document with this name exists ") + 'but is not a fragment.', [node.loc, referencedFrom].filter(Boolean));
+      throw createUserError(
+        "Cannot find fragment '".concat(name, "', a document with this name exists ") +
+          'but is not a fragment.',
+        [node.loc, referencedFrom].filter(Boolean),
+      );
     }
 
     return node;
@@ -129,14 +154,18 @@ var CompilerContext = /*#__PURE__*/function () {
     if (node == null) {
       throw createUserError("Cannot find root '".concat(name, "'."));
     } else if (node.kind !== 'Root') {
-      throw createUserError("Cannot find root '".concat(name, "', a document with this name exists but ") + 'is not a root.', [node.loc]);
+      throw createUserError(
+        "Cannot find root '".concat(name, "', a document with this name exists but ") +
+          'is not a root.',
+        [node.loc],
+      );
     }
 
     return node;
   };
 
   _proto.remove = function remove(name) {
-    return this._update(this._documents["delete"](name));
+    return this._update(this._documents['delete'](name));
   };
 
   _proto.withMutations = function withMutations(fn) {
@@ -160,6 +189,6 @@ var CompilerContext = /*#__PURE__*/function () {
   };
 
   return CompilerContext;
-}();
+})();
 
 module.exports = CompilerContext;

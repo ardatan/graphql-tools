@@ -4,24 +4,26 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _interopRequireDefault = require('@babel/runtime/helpers/interopRequireDefault');
 
-var _createForOfIteratorHelper2 = _interopRequireDefault(require("@babel/runtime/helpers/createForOfIteratorHelper"));
+var _createForOfIteratorHelper2 = _interopRequireDefault(
+  require('@babel/runtime/helpers/createForOfIteratorHelper'),
+);
 
 function buildFragmentSpread(fragment) {
   var args = [];
 
-  var _iterator = (0, _createForOfIteratorHelper2["default"])(fragment.argumentDefinitions),
-      _step;
+  var _iterator = (0, _createForOfIteratorHelper2['default'])(fragment.argumentDefinitions),
+    _step;
 
   try {
-    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
       var argDef = _step.value;
 
       if (argDef.kind !== 'LocalArgumentDefinition') {
@@ -32,7 +34,7 @@ function buildFragmentSpread(fragment) {
         kind: 'Argument',
         loc: {
           kind: 'Derived',
-          source: argDef.loc
+          source: argDef.loc,
         },
         name: argDef.name,
         type: argDef.type,
@@ -40,11 +42,11 @@ function buildFragmentSpread(fragment) {
           kind: 'Variable',
           loc: {
             kind: 'Derived',
-            source: argDef.loc
+            source: argDef.loc,
           },
           variableName: argDef.name,
-          type: argDef.type
-        }
+          type: argDef.type,
+        },
       });
     }
   } catch (err) {
@@ -59,10 +61,10 @@ function buildFragmentSpread(fragment) {
     kind: 'FragmentSpread',
     loc: {
       kind: 'Derived',
-      source: fragment.loc
+      source: fragment.loc,
     },
     metadata: null,
-    name: fragment.name
+    name: fragment.name,
   };
 }
 
@@ -76,7 +78,7 @@ function buildOperationArgumentDefinitions(argumentDefinitions) {
         name: argDef.name,
         type: argDef.type,
         defaultValue: null,
-        loc: argDef.loc
+        loc: argDef.loc,
       };
     }
   });
@@ -88,5 +90,5 @@ function buildOperationArgumentDefinitions(argumentDefinitions) {
 
 module.exports = {
   buildFragmentSpread: buildFragmentSpread,
-  buildOperationArgumentDefinitions: buildOperationArgumentDefinitions
+  buildOperationArgumentDefinitions: buildOperationArgumentDefinitions,
 };

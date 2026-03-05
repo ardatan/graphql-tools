@@ -4,15 +4,15 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _interopRequireDefault = require('@babel/runtime/helpers/interopRequireDefault');
 
-var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+var _defineProperty2 = _interopRequireDefault(require('@babel/runtime/helpers/defineProperty'));
 
 var Profiler = require('../core/GraphQLCompilerProfiler');
 
@@ -28,15 +28,14 @@ var path = require('path');
  * serializable values should be used.
  */
 
-
-var RelayCompilerCache = /*#__PURE__*/function () {
+var RelayCompilerCache = /*#__PURE__*/ (function () {
   /**
    * @param name         Human readable identifier for the cache
    * @param cacheBreaker This should be changed in order to invalidate existing
    *                     caches.
    */
   function RelayCompilerCache(name, cacheBreaker) {
-    (0, _defineProperty2["default"])(this, "_dir", null);
+    (0, _defineProperty2['default'])(this, '_dir', null);
     this._name = name;
     this._cacheBreaker = cacheBreaker;
   }
@@ -48,8 +47,12 @@ var RelayCompilerCache = /*#__PURE__*/function () {
       // Include username in the cache dir to avoid issues with directories being
       // owned by a different user.
       var username = os.userInfo().username;
-      var cacheID = crypto.createHash('md5').update(this._cacheBreaker).update(username).digest('hex');
-      var dir = path.join(os.tmpdir(), "".concat(this._name, "-").concat(cacheID));
+      var cacheID = crypto
+        .createHash('md5')
+        .update(this._cacheBreaker)
+        .update(username)
+        .digest('hex');
+      var dir = path.join(os.tmpdir(), ''.concat(this._name, '-').concat(cacheID));
 
       if (!fs.existsSync(dir)) {
         try {
@@ -76,7 +79,8 @@ var RelayCompilerCache = /*#__PURE__*/function () {
       if (fs.existsSync(cacheFile)) {
         try {
           return JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
-        } catch (_unused) {// ignore
+        } catch (_unused) {
+          // ignore
         }
       }
 
@@ -85,7 +89,8 @@ var RelayCompilerCache = /*#__PURE__*/function () {
       try {
         // $FlowFixMe[incompatible-call] JSON.stringify can return undefined
         fs.writeFileSync(cacheFile, JSON.stringify(value), 'utf8');
-      } catch (_unused2) {// ignore
+      } catch (_unused2) {
+        // ignore
       }
 
       return value;
@@ -93,6 +98,6 @@ var RelayCompilerCache = /*#__PURE__*/function () {
   };
 
   return RelayCompilerCache;
-}();
+})();
 
 module.exports = RelayCompilerCache;

@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
@@ -13,14 +13,14 @@
 var Profiler = require('./GraphQLCompilerProfiler');
 
 var _require = require('./SchemaUtils'),
-    isExecutableDefinitionAST = _require.isExecutableDefinitionAST,
-    isSchemaDefinitionAST = _require.isSchemaDefinitionAST;
+  isExecutableDefinitionAST = _require.isExecutableDefinitionAST,
+  isSchemaDefinitionAST = _require.isSchemaDefinitionAST;
 
 var _require2 = require('graphql'),
-    extendSchema = _require2.extendSchema,
-    parse = _require2.parse,
-    print = _require2.print,
-    visit = _require2.visit;
+  extendSchema = _require2.extendSchema,
+  parse = _require2.parse,
+  print = _require2.print,
+  visit = _require2.visit;
 
 function convertASTDocuments(schema, documents, transform) {
   return Profiler.run('ASTConvert.convertASTDocuments', function () {
@@ -89,7 +89,7 @@ function convertASTDocumentsWithBase(schema, baseDocuments, documents, transform
             // in definitions
             definitionsToVisit.push(baseDefinition);
           }
-        }
+        },
       });
     }
 
@@ -124,7 +124,6 @@ function definitionsFromDocuments(documents) {
  * Extends a GraphQLSchema with a list of schema extensions in string form.
  */
 
-
 function transformASTSchema(schema, schemaExtensions) {
   return Profiler.run('ASTConvert.transformASTSchema', function () {
     if (schemaExtensions.length === 0) {
@@ -140,7 +139,6 @@ function transformASTSchema(schema, schemaExtensions) {
 /**
  * Extends a GraphQLSchema with a list of schema extensions in AST form.
  */
-
 
 function extendASTSchema(baseSchema, documents) {
   return Profiler.run('ASTConvert.extendASTSchema', function () {
@@ -159,13 +157,16 @@ function extendASTSchema(baseSchema, documents) {
 
     var key = schemaExtensions.map(print).join('\n');
     return cachedExtend(baseSchema, key, function () {
-      return extendSchema(baseSchema, {
-        kind: 'Document',
-        definitions: schemaExtensions
-      }, // TODO T24511737 figure out if this is dangerous
-      {
-        assumeValid: true
-      });
+      return extendSchema(
+        baseSchema,
+        {
+          kind: 'Document',
+          definitions: schemaExtensions,
+        }, // TODO T24511737 figure out if this is dangerous
+        {
+          assumeValid: true,
+        },
+      );
     });
   });
 }
@@ -194,5 +195,5 @@ module.exports = {
   convertASTDocuments: convertASTDocuments,
   convertASTDocumentsWithBase: convertASTDocumentsWithBase,
   extendASTSchema: extendASTSchema,
-  transformASTSchema: transformASTSchema
+  transformASTSchema: transformASTSchema,
 };

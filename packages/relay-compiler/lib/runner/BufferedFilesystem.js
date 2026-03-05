@@ -5,19 +5,21 @@
  * LICENSE file in the root directory of this source tree.
  *
  * @emails oncall+relay
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _interopRequireDefault = require('@babel/runtime/helpers/interopRequireDefault');
 
-var _asyncToGenerator = require("@babel/runtime/helpers/asyncToGenerator");
+var _asyncToGenerator = require('@babel/runtime/helpers/asyncToGenerator');
 
-var _createForOfIteratorHelper2 = _interopRequireDefault(require("@babel/runtime/helpers/createForOfIteratorHelper"));
+var _createForOfIteratorHelper2 = _interopRequireDefault(
+  require('@babel/runtime/helpers/createForOfIteratorHelper'),
+);
 
-var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+var _defineProperty2 = _interopRequireDefault(require('@babel/runtime/helpers/defineProperty'));
 
 var fs = require('fs');
 
@@ -27,19 +29,23 @@ var invariant = require('invariant');
  * A filesystem wrapper that buffers file reads and writes until `commit()` is
  * called.
  */
-var BufferedFilesystem = /*#__PURE__*/function () {
+var BufferedFilesystem = /*#__PURE__*/ (function () {
   function BufferedFilesystem() {
-    (0, _defineProperty2["default"])(this, "buffer", new Map());
-    (0, _defineProperty2["default"])(this, "committed", false);
+    (0, _defineProperty2['default'])(this, 'buffer', new Map());
+    (0, _defineProperty2['default'])(this, 'committed', false);
   }
 
   var _proto = BufferedFilesystem.prototype;
 
   _proto._assertNotComitted = function _assertNotComitted() {
-    !!this.committed ? process.env.NODE_ENV !== "production" ? invariant(false, 'BufferedFilesystem: no operations allowed after commit().') : invariant(false) : void 0;
+    !!this.committed
+      ? process.env.NODE_ENV !== 'production'
+        ? invariant(false, 'BufferedFilesystem: no operations allowed after commit().')
+        : invariant(false)
+      : void 0;
   };
 
-  _proto.commit = /*#__PURE__*/function () {
+  _proto.commit = /*#__PURE__*/ (function () {
     var _commit = _asyncToGenerator(function* (sourceControl) {
       this._assertNotComitted();
 
@@ -47,14 +53,14 @@ var BufferedFilesystem = /*#__PURE__*/function () {
       var removed = [];
       var added = [];
 
-      var _iterator = (0, _createForOfIteratorHelper2["default"])(this.buffer),
-          _step;
+      var _iterator = (0, _createForOfIteratorHelper2['default'])(this.buffer),
+        _step;
 
       try {
-        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        for (_iterator.s(); !(_step = _iterator.n()).done; ) {
           var _step$value = _step.value,
-              path = _step$value[0],
-              data = _step$value[1];
+            path = _step$value[0],
+            data = _step$value[1];
 
           if (data == null) {
             removed.push(path);
@@ -85,7 +91,7 @@ var BufferedFilesystem = /*#__PURE__*/function () {
     }
 
     return commit;
-  }();
+  })();
 
   _proto.hasChanges = function hasChanges() {
     this._assertNotComitted();
@@ -100,14 +106,14 @@ var BufferedFilesystem = /*#__PURE__*/function () {
     var updated = [];
     var removed = [];
 
-    var _iterator2 = (0, _createForOfIteratorHelper2["default"])(this.buffer),
-        _step2;
+    var _iterator2 = (0, _createForOfIteratorHelper2['default'])(this.buffer),
+      _step2;
 
     try {
-      for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+      for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
         var _step2$value = _step2.value,
-            path = _step2$value[0],
-            data = _step2$value[1];
+          path = _step2$value[0],
+          data = _step2$value[1];
 
         if (data == null) {
           removed.push(path);
@@ -125,7 +131,13 @@ var BufferedFilesystem = /*#__PURE__*/function () {
       _iterator2.f();
     }
 
-    return [added.length > 0 ? "Added:\n".concat(added.map(formatFilepath).join('')) : '', updated.length > 0 ? "Updated:\n".concat(updated.map(formatFilepath).join('')) : '', removed.length > 0 ? "Removed:\n".concat(removed.map(formatFilepath).join('')) : ''].filter(Boolean).join('\n');
+    return [
+      added.length > 0 ? 'Added:\n'.concat(added.map(formatFilepath).join('')) : '',
+      updated.length > 0 ? 'Updated:\n'.concat(updated.map(formatFilepath).join('')) : '',
+      removed.length > 0 ? 'Removed:\n'.concat(removed.map(formatFilepath).join('')) : '',
+    ]
+      .filter(Boolean)
+      .join('\n');
   };
 
   _proto.getAddedRemovedFiles = function getAddedRemovedFiles() {
@@ -134,14 +146,14 @@ var BufferedFilesystem = /*#__PURE__*/function () {
     var added = [];
     var removed = [];
 
-    var _iterator3 = (0, _createForOfIteratorHelper2["default"])(this.buffer),
-        _step3;
+    var _iterator3 = (0, _createForOfIteratorHelper2['default'])(this.buffer),
+      _step3;
 
     try {
-      for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+      for (_iterator3.s(); !(_step3 = _iterator3.n()).done; ) {
         var _step3$value = _step3.value,
-            path = _step3$value[0],
-            data = _step3$value[1];
+          path = _step3$value[0],
+          data = _step3$value[1];
 
         if (data == null) {
           removed.push(path);
@@ -159,7 +171,7 @@ var BufferedFilesystem = /*#__PURE__*/function () {
 
     return {
       added: added,
-      removed: removed
+      removed: removed,
     };
   };
 
@@ -186,7 +198,11 @@ var BufferedFilesystem = /*#__PURE__*/function () {
 
     if (this.buffer.has(path)) {
       var data = this.buffer.get(path);
-      !(data != null) ? process.env.NODE_ENV !== "production" ? invariant(false, 'BufferedFilesystem: trying to read deleted file.') : invariant(false) : void 0;
+      !(data != null)
+        ? process.env.NODE_ENV !== 'production'
+          ? invariant(false, 'BufferedFilesystem: trying to read deleted file.')
+          : invariant(false)
+        : void 0;
       return data;
     }
 
@@ -217,23 +233,23 @@ var BufferedFilesystem = /*#__PURE__*/function () {
     var changed = [];
     var removed = [];
 
-    var _iterator4 = (0, _createForOfIteratorHelper2["default"])(this.buffer),
-        _step4;
+    var _iterator4 = (0, _createForOfIteratorHelper2['default'])(this.buffer),
+      _step4;
 
     try {
-      for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+      for (_iterator4.s(); !(_step4 = _iterator4.n()).done; ) {
         var _step4$value = _step4.value,
-            path = _step4$value[0],
-            data = _step4$value[1];
+          path = _step4$value[0],
+          data = _step4$value[1];
 
         if (data == null) {
           removed.push({
-            path: path
+            path: path,
           });
         } else {
           changed.push({
             path: path,
-            data: data
+            data: data,
           });
         }
       }
@@ -245,16 +261,16 @@ var BufferedFilesystem = /*#__PURE__*/function () {
 
     return {
       removed: removed,
-      changed: changed
+      changed: changed,
     };
   };
 
   return BufferedFilesystem;
-}();
+})();
 
 function formatFilepath(filepath) {
   var startIndex = filepath.length - 80;
-  var prefix = startIndex > 0 ? "\t - ".concat(filepath.substr(0, 8), "...") : '\t - ';
+  var prefix = startIndex > 0 ? '\t - '.concat(filepath.substr(0, 8), '...') : '\t - ';
   return prefix + filepath.substr(startIndex, filepath.length) + '\n';
 }
 

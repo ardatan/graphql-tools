@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
@@ -13,7 +13,7 @@
 var invariant = require('invariant');
 
 var _require = require('./CompilerError'),
-    eachWithCombinedError = _require.eachWithCombinedError;
+  eachWithCombinedError = _require.eachWithCombinedError;
 
 /**
  * @public
@@ -40,8 +40,7 @@ function validate(context, visitor, stateInitializer) {
  * @internal
  */
 
-
-var Validator = /*#__PURE__*/function () {
+var Validator = /*#__PURE__*/ (function () {
   function Validator(context, visitor) {
     this._context = context;
     this._states = [];
@@ -81,7 +80,6 @@ var Validator = /*#__PURE__*/function () {
       nodeVisitor.call(this, node, _state2);
       return;
     } // Otherwise traverse is called automatically.
-
 
     this._traverse(node);
   };
@@ -183,44 +181,68 @@ var Validator = /*#__PURE__*/function () {
 
       default:
         prevNode;
-        !false ? process.env.NODE_ENV !== "production" ? invariant(false, 'IRValidator: Unknown kind `%s`.', prevNode.kind) : invariant(false) : void 0;
+        !false
+          ? process.env.NODE_ENV !== 'production'
+            ? invariant(false, 'IRValidator: Unknown kind `%s`.', prevNode.kind)
+            : invariant(false)
+          : void 0;
     }
   };
 
   _proto._traverseChildren = function _traverseChildren(prevNode, pluralKeys, singularKeys) {
     var _this = this;
 
-    pluralKeys && pluralKeys.forEach(function (key) {
-      var prevItems = prevNode[key];
+    pluralKeys &&
+      pluralKeys.forEach(function (key) {
+        var prevItems = prevNode[key];
 
-      if (!prevItems) {
-        return;
-      }
+        if (!prevItems) {
+          return;
+        }
 
-      !Array.isArray(prevItems) ? process.env.NODE_ENV !== "production" ? invariant(false, 'IRValidator: Expected data for `%s` to be an array, got `%s`.', key, prevItems) : invariant(false) : void 0;
-      prevItems.forEach(function (prevItem) {
-        return _this._visit(prevItem);
+        !Array.isArray(prevItems)
+          ? process.env.NODE_ENV !== 'production'
+            ? invariant(
+                false,
+                'IRValidator: Expected data for `%s` to be an array, got `%s`.',
+                key,
+                prevItems,
+              )
+            : invariant(false)
+          : void 0;
+        prevItems.forEach(function (prevItem) {
+          return _this._visit(prevItem);
+        });
       });
-    });
-    singularKeys && singularKeys.forEach(function (key) {
-      var prevItem = prevNode[key];
+    singularKeys &&
+      singularKeys.forEach(function (key) {
+        var prevItem = prevNode[key];
 
-      if (!prevItem) {
-        return;
-      }
+        if (!prevItem) {
+          return;
+        }
 
-      _this._visit(prevItem);
-    });
+        _this._visit(prevItem);
+      });
   };
 
   _proto._getState = function _getState() {
-    !this._states.length ? process.env.NODE_ENV !== "production" ? invariant(false, 'IRValidator: Expected a current state to be set but found none. ' + 'This is usually the result of mismatched number of pushState()/popState() ' + 'calls.') : invariant(false) : void 0;
+    !this._states.length
+      ? process.env.NODE_ENV !== 'production'
+        ? invariant(
+            false,
+            'IRValidator: Expected a current state to be set but found none. ' +
+              'This is usually the result of mismatched number of pushState()/popState() ' +
+              'calls.',
+          )
+        : invariant(false)
+      : void 0;
     return this._states[this._states.length - 1];
   };
 
   return Validator;
-}();
+})();
 
 module.exports = {
-  validate: validate
+  validate: validate,
 };

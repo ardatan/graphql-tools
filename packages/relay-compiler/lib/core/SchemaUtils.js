@@ -4,14 +4,14 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
 var _require = require('./CompilerError'),
-    createCompilerError = _require.createCompilerError;
+  createCompilerError = _require.createCompilerError;
 
 var ID = 'id';
 /**
@@ -29,20 +29,35 @@ function isExecutableDefinitionAST(ast) {
  * Determine if an AST node contains a schema definition.
  */
 
-
 function isSchemaDefinitionAST(ast) {
-  return ast.kind === 'SchemaDefinition' || ast.kind === 'ScalarTypeDefinition' || ast.kind === 'ObjectTypeDefinition' || ast.kind === 'InterfaceTypeDefinition' || ast.kind === 'UnionTypeDefinition' || ast.kind === 'EnumTypeDefinition' || ast.kind === 'InputObjectTypeDefinition' || ast.kind === 'DirectiveDefinition' || ast.kind === 'ScalarTypeExtension' || ast.kind === 'ObjectTypeExtension' || ast.kind === 'InterfaceTypeExtension' || ast.kind === 'UnionTypeExtension' || ast.kind === 'EnumTypeExtension' || ast.kind === 'InputObjectTypeExtension';
+  return (
+    ast.kind === 'SchemaDefinition' ||
+    ast.kind === 'ScalarTypeDefinition' ||
+    ast.kind === 'ObjectTypeDefinition' ||
+    ast.kind === 'InterfaceTypeDefinition' ||
+    ast.kind === 'UnionTypeDefinition' ||
+    ast.kind === 'EnumTypeDefinition' ||
+    ast.kind === 'InputObjectTypeDefinition' ||
+    ast.kind === 'DirectiveDefinition' ||
+    ast.kind === 'ScalarTypeExtension' ||
+    ast.kind === 'ObjectTypeExtension' ||
+    ast.kind === 'InterfaceTypeExtension' ||
+    ast.kind === 'UnionTypeExtension' ||
+    ast.kind === 'EnumTypeExtension' ||
+    ast.kind === 'InputObjectTypeExtension'
+  );
 }
 /**
  * Generates an id field on the given type.
  */
 
-
 function generateIDField(schema, type) {
   var idField = schema.getFieldByName(type, 'id');
 
   if (idField == null) {
-    throw new createCompilerError("Expected an 'id' field on type '".concat(schema.getTypeString(type), "'."));
+    throw new createCompilerError(
+      "Expected an 'id' field on type '".concat(schema.getTypeString(type), "'."),
+    );
   }
 
   var idType = schema.assertScalarFieldType(schema.getFieldType(idField));
@@ -53,11 +68,11 @@ function generateIDField(schema, type) {
     directives: [],
     handles: null,
     loc: {
-      kind: 'Generated'
+      kind: 'Generated',
     },
     metadata: null,
     name: ID,
-    type: idType
+    type: idType,
   };
 }
 
@@ -94,5 +109,5 @@ module.exports = {
   getNullableStringInput: getNullableStringInput,
   getNonNullStringInput: getNonNullStringInput,
   getNullableIdInput: getNullableIdInput,
-  getNonNullIdInput: getNonNullIdInput
+  getNonNullIdInput: getNonNullIdInput,
 };

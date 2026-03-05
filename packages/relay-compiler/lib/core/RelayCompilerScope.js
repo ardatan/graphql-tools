@@ -4,15 +4,15 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
 var _require = require('./CompilerError'),
-    createUserError = _require.createUserError,
-    eachWithCombinedError = _require.eachWithCombinedError;
+  createUserError = _require.createUserError,
+  eachWithCombinedError = _require.eachWithCombinedError;
 
 /**
  * Creates a scope for a `Root`, with each argument mapped to a variable of the
@@ -38,7 +38,7 @@ function getRootScope(definitions) {
       kind: 'Variable',
       loc: definition.loc,
       variableName: definition.name,
-      type: definition.type
+      type: definition.type,
     };
   });
   return scope;
@@ -86,7 +86,6 @@ function getRootScope(definitions) {
  * }
  */
 
-
 function getFragmentScope(schema, definitions, args, parentScope, spread) {
   var argMap = new Map();
   args.forEach(function (arg) {
@@ -105,19 +104,32 @@ function getFragmentScope(schema, definitions, args, parentScope, spread) {
         var argNode = args.find(function (a) {
           return a.name === definition.name;
         });
-        throw createUserError("Unexpected argument '".concat(definition.name, "' supplied to fragment '").concat(spread.name, "'. @arguments may only be provided for variables defined in the fragment's @argumentDefinitions."), [(_argNode$loc = argNode === null || argNode === void 0 ? void 0 : argNode.loc) !== null && _argNode$loc !== void 0 ? _argNode$loc : spread.loc]);
+        throw createUserError(
+          "Unexpected argument '"
+            .concat(definition.name, "' supplied to fragment '")
+            .concat(
+              spread.name,
+              "'. @arguments may only be provided for variables defined in the fragment's @argumentDefinitions.",
+            ),
+          [
+            (_argNode$loc = argNode === null || argNode === void 0 ? void 0 : argNode.loc) !==
+              null && _argNode$loc !== void 0
+              ? _argNode$loc
+              : spread.loc,
+          ],
+        );
       }
 
       fragmentScope[definition.name] = {
         kind: 'Variable',
         loc: definition.loc,
         variableName: definition.name,
-        type: definition.type
+        type: definition.type,
       };
     } else {
       var arg = argMap.get(definition.name);
 
-      if (arg == null || arg.kind === 'Literal' && arg.value == null) {
+      if (arg == null || (arg.kind === 'Literal' && arg.value == null)) {
         // No variable or literal null was passed, fall back to default
         // value.
         if (definition.defaultValue == null && schema.isNonNull(definition.type)) {
@@ -127,12 +139,23 @@ function getFragmentScope(schema, definitions, args, parentScope, spread) {
             return a.name === definition.name;
           });
 
-          throw createUserError("No value found for required argument '".concat(definition.name, ": ").concat(schema.getTypeString(definition.type), "' on fragment '").concat(spread.name, "'."), [(_argNode$loc2 = _argNode === null || _argNode === void 0 ? void 0 : _argNode.loc) !== null && _argNode$loc2 !== void 0 ? _argNode$loc2 : spread.loc]);
+          throw createUserError(
+            "No value found for required argument '"
+              .concat(definition.name, ': ')
+              .concat(schema.getTypeString(definition.type), "' on fragment '")
+              .concat(spread.name, "'."),
+            [
+              (_argNode$loc2 = _argNode === null || _argNode === void 0 ? void 0 : _argNode.loc) !==
+                null && _argNode$loc2 !== void 0
+                ? _argNode$loc2
+                : spread.loc,
+            ],
+          );
         }
 
         fragmentScope[definition.name] = {
           kind: 'Literal',
-          value: definition.defaultValue
+          value: definition.defaultValue,
         };
       } else {
         // Variable or non-null literal.
@@ -145,5 +168,5 @@ function getFragmentScope(schema, definitions, args, parentScope, spread) {
 
 module.exports = {
   getFragmentScope: getFragmentScope,
-  getRootScope: getRootScope
+  getRootScope: getRootScope,
 };

@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
@@ -22,12 +22,33 @@ var BABYLON_OPTIONS = {
   allowReturnOutsideFunction: true,
   allowSuperOutsideMethod: true,
   sourceType: 'module',
-  plugins: ['asyncGenerators', 'classProperties', ['decorators', {
-    decoratorsBeforeExport: true
-  }], 'doExpressions', 'dynamicImport', 'exportExtensions', ['flow', {
-    enums: true
-  }], 'functionBind', 'functionSent', 'jsx', 'nullishCoalescingOperator', 'objectRestSpread', 'optionalChaining', 'optionalCatchBinding'],
-  strictMode: false
+  plugins: [
+    'asyncGenerators',
+    'classProperties',
+    [
+      'decorators',
+      {
+        decoratorsBeforeExport: true,
+      },
+    ],
+    'doExpressions',
+    'dynamicImport',
+    'exportExtensions',
+    [
+      'flow',
+      {
+        enums: true,
+      },
+    ],
+    'functionBind',
+    'functionSent',
+    'jsx',
+    'nullishCoalescingOperator',
+    'objectRestSpread',
+    'optionalChaining',
+    'optionalCatchBinding',
+  ],
+  strictMode: false,
 };
 
 function find(text) {
@@ -40,10 +61,10 @@ function find(text) {
         result.push({
           keyName: null,
           template: node.quasi.quasis[0].value.raw,
-          sourceLocationOffset: getSourceLocationOffset(node.quasi)
+          sourceLocationOffset: getSourceLocationOffset(node.quasi),
         });
       }
-    }
+    },
   };
   visit(ast, visitors);
   return result;
@@ -57,7 +78,7 @@ var IGNORED_KEYS = {
   name: true,
   start: true,
   trailingComments: true,
-  type: true
+  type: true,
 };
 
 function isGraphQLTag(tag) {
@@ -66,7 +87,11 @@ function isGraphQLTag(tag) {
 
 function getTemplateNode(quasi) {
   var quasis = quasi.quasis;
-  !(quasis && quasis.length === 1) ? process.env.NODE_ENV !== "production" ? invariant(false, 'FindGraphQLTags: Substitutions are not allowed in graphql tags.') : invariant(false) : void 0;
+  !(quasis && quasis.length === 1)
+    ? process.env.NODE_ENV !== 'production'
+      ? invariant(false, 'FindGraphQLTags: Substitutions are not allowed in graphql tags.')
+      : invariant(false)
+    : void 0;
   return quasis[0];
 }
 
@@ -74,14 +99,17 @@ function getSourceLocationOffset(quasi) {
   var loc = getTemplateNode(quasi).loc.start;
   return {
     line: loc.line,
-    column: loc.column + 1 // babylon is 0-indexed, graphql expects 1-indexed
-
+    column: loc.column + 1, // babylon is 0-indexed, graphql expects 1-indexed
   };
 }
 
 function invariant(condition, msg) {
   if (!condition) {
-    for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+    for (
+      var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2;
+      _key < _len;
+      _key++
+    ) {
       args[_key - 2] = arguments[_key];
     }
 
@@ -122,5 +150,5 @@ function traverse(node, visitors) {
 }
 
 module.exports = {
-  find: Profiler.instrument(find, 'FindGraphQLTags.find')
+  find: Profiler.instrument(find, 'FindGraphQLTags.find'),
 };

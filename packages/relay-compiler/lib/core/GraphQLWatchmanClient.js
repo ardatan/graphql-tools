@@ -4,14 +4,14 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  * @emails oncall+relay
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _asyncToGenerator = require("@babel/runtime/helpers/asyncToGenerator");
+var _asyncToGenerator = require('@babel/runtime/helpers/asyncToGenerator');
 
 var childProcess = require('child_process');
 
@@ -25,7 +25,7 @@ function delay(delayMs) {
   });
 }
 
-var GraphQLWatchmanClient = /*#__PURE__*/function () {
+var GraphQLWatchmanClient = /*#__PURE__*/ (function () {
   GraphQLWatchmanClient.isAvailable = function isAvailable() {
     return new Promise(function (resolve) {
       // This command not only will verify that watchman CLI is available
@@ -69,11 +69,15 @@ var GraphQLWatchmanClient = /*#__PURE__*/function () {
     });
   };
 
-  _proto.command = /*#__PURE__*/function () {
+  _proto.command = /*#__PURE__*/ (function () {
     var _command2 = _asyncToGenerator(function* () {
       var attempt = 0;
 
-      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+      for (
+        var _len2 = arguments.length, args = new Array(_len2), _key2 = 0;
+        _key2 < _len2;
+        _key2++
+      ) {
         args[_key2] = arguments[_key2];
       }
 
@@ -100,9 +104,9 @@ var GraphQLWatchmanClient = /*#__PURE__*/function () {
     }
 
     return command;
-  }();
+  })();
 
-  _proto.hasCapability = /*#__PURE__*/function () {
+  _proto.hasCapability = /*#__PURE__*/ (function () {
     var _hasCapability = _asyncToGenerator(function* (capability) {
       var resp = yield this.command('list-capabilities');
       return resp.capabilities.includes(capability);
@@ -113,9 +117,9 @@ var GraphQLWatchmanClient = /*#__PURE__*/function () {
     }
 
     return hasCapability;
-  }();
+  })();
 
-  _proto.watchProject = /*#__PURE__*/function () {
+  _proto.watchProject = /*#__PURE__*/ (function () {
     var _watchProject = _asyncToGenerator(function* (baseDir) {
       var resp = yield this.command('watch-project', baseDir);
 
@@ -125,7 +129,7 @@ var GraphQLWatchmanClient = /*#__PURE__*/function () {
 
       return {
         root: resp.watch,
-        relativePath: resp.relative_path
+        relativePath: resp.relative_path,
       };
     });
 
@@ -134,7 +138,7 @@ var GraphQLWatchmanClient = /*#__PURE__*/function () {
     }
 
     return watchProject;
-  }();
+  })();
 
   _proto.on = function on(event, callback) {
     this._client.on(event, callback);
@@ -145,6 +149,6 @@ var GraphQLWatchmanClient = /*#__PURE__*/function () {
   };
 
   return GraphQLWatchmanClient;
-}();
+})();
 
 module.exports = GraphQLWatchmanClient;

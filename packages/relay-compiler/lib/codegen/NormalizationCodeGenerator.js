@@ -4,17 +4,19 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _interopRequireDefault = require('@babel/runtime/helpers/interopRequireDefault');
 
-var _objectSpread2 = _interopRequireDefault(require("@babel/runtime/helpers/objectSpread2"));
+var _objectSpread2 = _interopRequireDefault(require('@babel/runtime/helpers/objectSpread2'));
 
-var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
+var _toConsumableArray2 = _interopRequireDefault(
+  require('@babel/runtime/helpers/toConsumableArray'),
+);
 
 var argumentContainsVariables = require('../util/argumentContainsVariables');
 
@@ -25,12 +27,12 @@ var partitionArray = require('../util/partitionArray');
 var sortObjectByKey = require('./sortObjectByKey');
 
 var _require = require('../core/CompilerError'),
-    createCompilerError = _require.createCompilerError,
-    createUserError = _require.createUserError;
+  createCompilerError = _require.createCompilerError,
+  createUserError = _require.createUserError;
 
 var _require2 = require('relay-runtime'),
-    getStorageKey = _require2.getStorageKey,
-    stableCopy = _require2.stableCopy;
+  getStorageKey = _require2.getStorageKey,
+  stableCopy = _require2.stableCopy;
 
 function generate(schema, node) {
   switch (node.kind) {
@@ -41,7 +43,10 @@ function generate(schema, node) {
       return generateSplitOperation(schema, node);
 
     default:
-      throw createCompilerError("NormalizationCodeGenerator: Unsupported AST kind '".concat(node.kind, "'."), [node.loc]);
+      throw createCompilerError(
+        "NormalizationCodeGenerator: Unsupported AST kind '".concat(node.kind, "'."),
+        [node.loc],
+      );
   }
 }
 
@@ -50,7 +55,7 @@ function generateRoot(schema, node) {
     argumentDefinitions: generateArgumentDefinitions(schema, node.argumentDefinitions),
     kind: 'Operation',
     name: node.name,
-    selections: generateSelections(schema, node.selections)
+    selections: generateSelections(schema, node.selections),
   };
 }
 
@@ -59,7 +64,7 @@ function generateSplitOperation(schema, node) {
     kind: 'SplitOperation',
     metadata: sortObjectByKey(node.metadata),
     name: node.name,
-    selections: generateSelections(schema, node.selections)
+    selections: generateSelections(schema, node.selections),
   };
 }
 
@@ -82,12 +87,18 @@ function generateSelections(schema, selections) {
         // but we skip the corresponding ScalarField for the type discriminator
         // selection, since it's guaranteed to be a duplicate of a parent __typename
         // selection.
-        var abstractKey = (_selection$metadata = selection.metadata) === null || _selection$metadata === void 0 ? void 0 : _selection$metadata.abstractKey;
+        var abstractKey =
+          (_selection$metadata = selection.metadata) === null || _selection$metadata === void 0
+            ? void 0
+            : _selection$metadata.abstractKey;
 
         if (typeof abstractKey === 'string') {
           normalizationSelections.push(generateTypeDiscriminator(abstractKey));
         } else {
-          normalizationSelections.push.apply(normalizationSelections, (0, _toConsumableArray2["default"])(generateScalarField(selection)));
+          normalizationSelections.push.apply(
+            normalizationSelections,
+            (0, _toConsumableArray2['default'])(generateScalarField(selection)),
+          );
         }
 
         break;
@@ -101,7 +112,10 @@ function generateSelections(schema, selections) {
         break;
 
       case 'LinkedField':
-        normalizationSelections.push.apply(normalizationSelections, (0, _toConsumableArray2["default"])(generateLinkedField(schema, selection)));
+        normalizationSelections.push.apply(
+          normalizationSelections,
+          (0, _toConsumableArray2['default'])(generateLinkedField(schema, selection)),
+        );
         break;
 
       case 'Defer':
@@ -114,7 +128,10 @@ function generateSelections(schema, selections) {
 
       case 'InlineDataFragmentSpread':
       case 'FragmentSpread':
-        throw new createCompilerError("NormalizationCodeGenerator: Unexpected IR node ".concat(selection.kind, "."), [selection.loc]);
+        throw new createCompilerError(
+          'NormalizationCodeGenerator: Unexpected IR node '.concat(selection.kind, '.'),
+          [selection.loc],
+        );
 
       default:
         selection;
@@ -129,7 +146,7 @@ function generateArgumentDefinitions(schema, nodes) {
     return {
       defaultValue: stableCopy(node.defaultValue),
       kind: 'LocalArgument',
-      name: node.name
+      name: node.name,
     };
   });
 }
@@ -137,35 +154,55 @@ function generateArgumentDefinitions(schema, nodes) {
 function generateClientExtension(schema, node) {
   return {
     kind: 'ClientExtension',
-    selections: generateSelections(schema, node.selections)
+    selections: generateSelections(schema, node.selections),
   };
 }
 
 function generateCondition(schema, node) {
   if (node.condition.kind !== 'Variable') {
-    throw createCompilerError("NormalizationCodeGenerator: Expected 'Condition' with static " + 'value to be pruned or inlined', [node.condition.loc]);
+    throw createCompilerError(
+      "NormalizationCodeGenerator: Expected 'Condition' with static " +
+        'value to be pruned or inlined',
+      [node.condition.loc],
+    );
   }
 
   return {
     condition: node.condition.variableName,
     kind: 'Condition',
     passingValue: node.passingValue,
-    selections: generateSelections(schema, node.selections)
+    selections: generateSelections(schema, node.selections),
   };
 }
 
 function generateDefer(schema, node) {
-  if (!(node["if"] == null || node["if"].kind === 'Variable' || node["if"].kind === 'Literal' && node["if"].value === true)) {
+  if (
+    !(
+      node['if'] == null ||
+      node['if'].kind === 'Variable' ||
+      (node['if'].kind === 'Literal' && node['if'].value === true)
+    )
+  ) {
     var _node$if$loc, _node$if;
 
-    throw createCompilerError('NormalizationCodeGenerator: Expected @defer `if` condition to be ' + 'a variable, unspecified, or the literal `true`.', [(_node$if$loc = (_node$if = node["if"]) === null || _node$if === void 0 ? void 0 : _node$if.loc) !== null && _node$if$loc !== void 0 ? _node$if$loc : node.loc]);
+    throw createCompilerError(
+      'NormalizationCodeGenerator: Expected @defer `if` condition to be ' +
+        'a variable, unspecified, or the literal `true`.',
+      [
+        (_node$if$loc =
+          (_node$if = node['if']) === null || _node$if === void 0 ? void 0 : _node$if.loc) !==
+          null && _node$if$loc !== void 0
+          ? _node$if$loc
+          : node.loc,
+      ],
+    );
   }
 
   return {
-    "if": node["if"] != null && node["if"].kind === 'Variable' ? node["if"].variableName : null,
+    if: node['if'] != null && node['if'].kind === 'Variable' ? node['if'].variableName : null,
     kind: 'Defer',
     label: node.label,
-    selections: generateSelections(schema, node.selections)
+    selections: generateSelections(schema, node.selections),
   };
 }
 
@@ -186,10 +223,10 @@ function generateInlineFragment(schema, node) {
     // - The inline fragment contains other selections: return all the selections
     //   minus any Discriminators w the same key
     var _partitionArray = partitionArray(selections, function (selection) {
-      return selection.kind === 'TypeDiscriminator' && selection.abstractKey === abstractKey;
-    }),
-        discriminators = _partitionArray[0],
-        otherSelections = _partitionArray[1];
+        return selection.kind === 'TypeDiscriminator' && selection.abstractKey === abstractKey;
+      }),
+      discriminators = _partitionArray[0],
+      otherSelections = _partitionArray[1];
 
     var discriminator = discriminators[0];
 
@@ -204,7 +241,7 @@ function generateInlineFragment(schema, node) {
     kind: 'InlineFragment',
     selections: selections,
     type: schema.getTypeString(rawType),
-    abstractKey: abstractKey
+    abstractKey: abstractKey,
   };
 }
 
@@ -212,42 +249,53 @@ function generateLinkedField(schema, node) {
   // Note: it is important that the arguments of this field be sorted to
   // ensure stable generation of storage keys for equivalent arguments
   // which may have originally appeared in different orders across an app.
-  var handles = node.handles && node.handles.map(function (handle) {
-    var handleNode = {
-      alias: node.alias === node.name ? null : node.alias,
-      args: generateArgs(node.args),
-      filters: handle.filters,
-      handle: handle.name,
-      key: handle.key,
-      kind: 'LinkedHandle',
-      name: node.name
-    }; // NOTE: this intentionally adds a dynamic key in order to avoid
-    // triggering updates to existing queries that do not use dynamic
-    // keys.
+  var handles =
+    (node.handles &&
+      node.handles.map(function (handle) {
+        var handleNode = {
+          alias: node.alias === node.name ? null : node.alias,
+          args: generateArgs(node.args),
+          filters: handle.filters,
+          handle: handle.name,
+          key: handle.key,
+          kind: 'LinkedHandle',
+          name: node.name,
+        }; // NOTE: this intentionally adds a dynamic key in order to avoid
+        // triggering updates to existing queries that do not use dynamic
+        // keys.
 
-    if (handle.dynamicKey != null) {
-      var dynamicKeyArgName = '__dynamicKey';
-      handleNode = (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, handleNode), {}, {
-        dynamicKey: {
-          kind: 'Variable',
-          name: dynamicKeyArgName,
-          variableName: handle.dynamicKey.variableName
+        if (handle.dynamicKey != null) {
+          var dynamicKeyArgName = '__dynamicKey';
+          handleNode = (0, _objectSpread2['default'])(
+            (0, _objectSpread2['default'])({}, handleNode),
+            {},
+            {
+              dynamicKey: {
+                kind: 'Variable',
+                name: dynamicKeyArgName,
+                variableName: handle.dynamicKey.variableName,
+              },
+            },
+          );
         }
-      });
-    }
 
-    if (handle.handleArgs != null) {
-      var handleArgs = generateArgs(handle.handleArgs);
+        if (handle.handleArgs != null) {
+          var handleArgs = generateArgs(handle.handleArgs);
 
-      if (handleArgs != null) {
-        handleNode = (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, handleNode), {}, {
-          handleArgs: handleArgs
-        });
-      }
-    }
+          if (handleArgs != null) {
+            handleNode = (0, _objectSpread2['default'])(
+              (0, _objectSpread2['default'])({}, handleNode),
+              {},
+              {
+                handleArgs: handleArgs,
+              },
+            );
+          }
+        }
 
-    return handleNode;
-  }) || [];
+        return handleNode;
+      })) ||
+    [];
   var type = schema.getRawType(node.type);
   var field = {
     alias: node.alias === node.name ? null : node.alias,
@@ -257,15 +305,19 @@ function generateLinkedField(schema, node) {
     name: node.name,
     plural: isPlural(schema, node.type),
     selections: generateSelections(schema, node.selections),
-    storageKey: null
+    storageKey: null,
   }; // Precompute storageKey if possible
 
   var storageKey = getStaticStorageKey(field, node.metadata);
 
   if (storageKey != null) {
-    field = (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, field), {}, {
-      storageKey: storageKey
-    });
+    field = (0, _objectSpread2['default'])(
+      (0, _objectSpread2['default'])({}, field),
+      {},
+      {
+        storageKey: storageKey,
+      },
+    );
   }
 
   return [field].concat(handles);
@@ -276,13 +328,21 @@ function generateModuleImport(node) {
   var regExpMatch = fragmentName.match(/^([a-zA-Z][a-zA-Z0-9]*)(?:_([a-zA-Z][_a-zA-Z0-9]*))?$/);
 
   if (!regExpMatch) {
-    throw createCompilerError('NormalizationCodeGenerator: @module fragments should be named ' + "'FragmentName_propName', got '".concat(fragmentName, "'."), [node.loc]);
+    throw createCompilerError(
+      'NormalizationCodeGenerator: @module fragments should be named ' +
+        "'FragmentName_propName', got '".concat(fragmentName, "'."),
+      [node.loc],
+    );
   }
 
   var fragmentPropName = regExpMatch[2];
 
   if (typeof fragmentPropName !== 'string') {
-    throw createCompilerError('NormalizationCodeGenerator: @module fragments should be named ' + "'FragmentName_propName', got '".concat(fragmentName, "'."), [node.loc]);
+    throw createCompilerError(
+      'NormalizationCodeGenerator: @module fragments should be named ' +
+        "'FragmentName_propName', got '".concat(fragmentName, "'."),
+      [node.loc],
+    );
   }
 
   return {
@@ -290,14 +350,14 @@ function generateModuleImport(node) {
     documentName: node.key,
     fragmentName: fragmentName,
     fragmentPropName: fragmentPropName,
-    kind: 'ModuleImport'
+    kind: 'ModuleImport',
   };
 }
 
 function generateTypeDiscriminator(abstractKey) {
   return {
     kind: 'TypeDiscriminator',
-    abstractKey: abstractKey
+    abstractKey: abstractKey,
   };
 }
 
@@ -305,72 +365,108 @@ function generateScalarField(node) {
   var _node$metadata, _node$metadata2;
 
   // flowlint-next-line sketchy-null-mixed:off
-  if ((_node$metadata = node.metadata) === null || _node$metadata === void 0 ? void 0 : _node$metadata.skipNormalizationNode) {
+  if (
+    (_node$metadata = node.metadata) === null || _node$metadata === void 0
+      ? void 0
+      : _node$metadata.skipNormalizationNode
+  ) {
     return [];
   } // Note: it is important that the arguments of this field be sorted to
   // ensure stable generation of storage keys for equivalent arguments
   // which may have originally appeared in different orders across an app.
 
+  var handles =
+    (node.handles &&
+      node.handles.map(function (handle) {
+        if (handle.dynamicKey != null) {
+          throw createUserError('Dynamic key values are not supported on scalar fields.', [
+            handle.dynamicKey.loc,
+          ]);
+        }
 
-  var handles = node.handles && node.handles.map(function (handle) {
-    if (handle.dynamicKey != null) {
-      throw createUserError('Dynamic key values are not supported on scalar fields.', [handle.dynamicKey.loc]);
-    }
+        var nodeHandle = {
+          alias: node.alias === node.name ? null : node.alias,
+          args: generateArgs(node.args),
+          filters: handle.filters,
+          handle: handle.name,
+          key: handle.key,
+          kind: 'ScalarHandle',
+          name: node.name,
+        };
 
-    var nodeHandle = {
-      alias: node.alias === node.name ? null : node.alias,
-      args: generateArgs(node.args),
-      filters: handle.filters,
-      handle: handle.name,
-      key: handle.key,
-      kind: 'ScalarHandle',
-      name: node.name
-    };
+        if (handle.handleArgs != null) {
+          // $FlowFixMe handleArgs exists in Handle
+          nodeHandle.handleArgs = generateArgs(handle.handleArgs);
+        }
 
-    if (handle.handleArgs != null) {
-      // $FlowFixMe handleArgs exists in Handle
-      nodeHandle.handleArgs = generateArgs(handle.handleArgs);
-    }
-
-    return nodeHandle;
-  }) || [];
+        return nodeHandle;
+      })) ||
+    [];
   var field = {
     alias: node.alias === node.name ? null : node.alias,
     args: generateArgs(node.args),
     kind: 'ScalarField',
     name: node.name,
-    storageKey: null
+    storageKey: null,
   }; // Precompute storageKey if possible
 
   var storageKey = getStaticStorageKey(field, node.metadata);
 
   if (storageKey != null) {
-    field = (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, field), {}, {
-      storageKey: storageKey
-    });
+    field = (0, _objectSpread2['default'])(
+      (0, _objectSpread2['default'])({}, field),
+      {},
+      {
+        storageKey: storageKey,
+      },
+    );
   }
 
-  if (((_node$metadata2 = node.metadata) === null || _node$metadata2 === void 0 ? void 0 : _node$metadata2.flight) === true) {
-    field = (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, field), {}, {
-      kind: 'FlightField'
-    });
+  if (
+    ((_node$metadata2 = node.metadata) === null || _node$metadata2 === void 0
+      ? void 0
+      : _node$metadata2.flight) === true
+  ) {
+    field = (0, _objectSpread2['default'])(
+      (0, _objectSpread2['default'])({}, field),
+      {},
+      {
+        kind: 'FlightField',
+      },
+    );
   }
 
   return [field].concat(handles);
 }
 
 function generateStream(schema, node) {
-  if (!(node["if"] == null || node["if"].kind === 'Variable' || node["if"].kind === 'Literal' && node["if"].value === true)) {
+  if (
+    !(
+      node['if'] == null ||
+      node['if'].kind === 'Variable' ||
+      (node['if'].kind === 'Literal' && node['if'].value === true)
+    )
+  ) {
     var _node$if$loc2, _node$if2;
 
-    throw createCompilerError('NormalizationCodeGenerator: Expected @stream `if` condition to be ' + 'a variable, unspecified, or the literal `true`.', [(_node$if$loc2 = (_node$if2 = node["if"]) === null || _node$if2 === void 0 ? void 0 : _node$if2.loc) !== null && _node$if$loc2 !== void 0 ? _node$if$loc2 : node.loc]);
+    throw createCompilerError(
+      'NormalizationCodeGenerator: Expected @stream `if` condition to be ' +
+        'a variable, unspecified, or the literal `true`.',
+      [
+        (_node$if$loc2 =
+          (_node$if2 = node['if']) === null || _node$if2 === void 0 ? void 0 : _node$if2.loc) !==
+          null && _node$if$loc2 !== void 0
+          ? _node$if$loc2
+          : node.loc,
+      ],
+    );
   }
 
   return {
-    "if": node["if"] != null && node["if"].kind === 'Variable' ? node["if"].variableName : null,
+    if: node['if'] != null && node['if'].kind === 'Variable' ? node['if'].variableName : null,
     kind: 'Stream',
     label: node.label,
-    selections: generateSelections(schema, node.selections)
+    selections: generateSelections(schema, node.selections),
   };
 }
 
@@ -380,58 +476,69 @@ function generateArgumentValue(name, value) {
       return {
         kind: 'Variable',
         name: name,
-        variableName: value.variableName
+        variableName: value.variableName,
       };
 
     case 'Literal':
-      return value.value === null ? null : {
-        kind: 'Literal',
-        name: name,
-        value: stableCopy(value.value)
-      };
+      return value.value === null
+        ? null
+        : {
+            kind: 'Literal',
+            name: name,
+            value: stableCopy(value.value),
+          };
 
-    case 'ObjectValue':
-      {
-        var objectKeys = value.fields.map(function (field) {
+    case 'ObjectValue': {
+      var objectKeys = value.fields
+        .map(function (field) {
           return field.name;
-        }).sort();
-        var objectValues = new Map(value.fields.map(function (field) {
+        })
+        .sort();
+      var objectValues = new Map(
+        value.fields.map(function (field) {
           return [field.name, field.value];
-        }));
-        return {
-          fields: objectKeys.map(function (fieldName) {
-            var _generateArgumentValu;
+        }),
+      );
+      return {
+        fields: objectKeys.map(function (fieldName) {
+          var _generateArgumentValu;
 
-            var fieldValue = objectValues.get(fieldName);
+          var fieldValue = objectValues.get(fieldName);
 
-            if (fieldValue == null) {
-              throw createCompilerError('Expected to have object field value');
-            }
+          if (fieldValue == null) {
+            throw createCompilerError('Expected to have object field value');
+          }
 
-            return (_generateArgumentValu = generateArgumentValue(fieldName, fieldValue)) !== null && _generateArgumentValu !== void 0 ? _generateArgumentValu : {
-              kind: 'Literal',
-              name: fieldName,
-              value: null
-            };
-          }),
-          kind: 'ObjectValue',
-          name: name
-        };
-      }
+          return (_generateArgumentValu = generateArgumentValue(fieldName, fieldValue)) !== null &&
+            _generateArgumentValu !== void 0
+            ? _generateArgumentValu
+            : {
+                kind: 'Literal',
+                name: fieldName,
+                value: null,
+              };
+        }),
+        kind: 'ObjectValue',
+        name: name,
+      };
+    }
 
-    case 'ListValue':
-      {
-        return {
-          items: value.items.map(function (item, index) {
-            return generateArgumentValue("".concat(name, ".").concat(index), item);
-          }),
-          kind: 'ListValue',
-          name: name
-        };
-      }
+    case 'ListValue': {
+      return {
+        items: value.items.map(function (item, index) {
+          return generateArgumentValue(''.concat(name, '.').concat(index), item);
+        }),
+        kind: 'ListValue',
+        name: name,
+      };
+    }
 
     default:
-      throw createUserError('NormalizationCodeGenerator: Complex argument values (Lists or ' + 'InputObjects with nested variables) are not supported.', [value.loc]);
+      throw createUserError(
+        'NormalizationCodeGenerator: Complex argument values (Lists or ' +
+          'InputObjects with nested variables) are not supported.',
+        [value.loc],
+      );
   }
 }
 
@@ -456,7 +563,6 @@ function nameComparator(a, b) {
  * (ie. literals, no variables) at build time.
  */
 
-
 function getStaticStorageKey(field, metadata) {
   var metadataStorageKey = metadata === null || metadata === void 0 ? void 0 : metadata.storageKey;
 
@@ -476,5 +582,5 @@ function isPlural(schema, type) {
 }
 
 module.exports = {
-  generate: generate
+  generate: generate,
 };

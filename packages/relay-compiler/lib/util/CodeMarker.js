@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
@@ -14,7 +14,7 @@
  */
 
 function moduleDependency(code) {
-  return "@@MODULE_START@@".concat(code, "@@MODULE_END@@");
+  return '@@MODULE_START@@'.concat(code, '@@MODULE_END@@');
 }
 /**
  * After JSON.stringify'ing some code that contained parts marked with `mark()`,
@@ -26,9 +26,8 @@ function moduleDependency(code) {
  *   )
  */
 
-
 function postProcess(json, printModule) {
-  return json.replace(/"@@MODULE_START@@(.*?)@@MODULE_END@@"/g, function (_, moduleName) {
+  return json.replace(/"@@MODULE_START@@([^"]*)@@MODULE_END@@"/g, function (_, moduleName) {
     return printModule(moduleName);
   });
 }
@@ -36,7 +35,6 @@ function postProcess(json, printModule) {
  * Transforms a value such that any transitive CodeMarker strings are replaced
  * with the value of the named module in the given module map.
  */
-
 
 function transform(node, moduleMap) {
   if (node == null) {
@@ -60,7 +58,10 @@ function transform(node, moduleMap) {
       if (moduleMap.hasOwnProperty(moduleName)) {
         return moduleMap[moduleName];
       } else {
-        throw new Error("Could not find a value for CodeMarker value '".concat(moduleName, "', ") + 'make sure to supply one in the module mapping.');
+        throw new Error(
+          "Could not find a value for CodeMarker value '".concat(moduleName, "', ") +
+            'make sure to supply one in the module mapping.',
+        );
       }
     } else if (node.indexOf('@@MODULE_START') >= 0) {
       throw new Error("Found unprocessed CodeMarker value '".concat(node, "'."));
@@ -76,5 +77,5 @@ function transform(node, moduleMap) {
 module.exports = {
   moduleDependency: moduleDependency,
   postProcess: postProcess,
-  transform: transform
+  transform: transform,
 };

@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
@@ -17,11 +17,17 @@ var IRTransformer = require('../core/IRTransformer');
  * server schema.
  */
 function filterDirectivesTransform(context) {
-  var schemaDirectives = new Set(context.getSchema().getDirectives().filter(function (directive) {
-    return !directive.isClient;
-  }).map(function (schemaDirective) {
-    return schemaDirective.name;
-  }));
+  var schemaDirectives = new Set(
+    context
+      .getSchema()
+      .getDirectives()
+      .filter(function (directive) {
+        return !directive.isClient;
+      })
+      .map(function (schemaDirective) {
+        return schemaDirective.name;
+      }),
+  );
 
   var visitDirective = function visitDirective(directive) {
     if (schemaDirectives.has(directive.name)) {
@@ -32,10 +38,10 @@ function filterDirectivesTransform(context) {
   };
 
   return IRTransformer.transform(context, {
-    Directive: visitDirective
+    Directive: visitDirective,
   });
 }
 
 module.exports = {
-  transform: filterDirectivesTransform
+  transform: filterDirectivesTransform,
 };

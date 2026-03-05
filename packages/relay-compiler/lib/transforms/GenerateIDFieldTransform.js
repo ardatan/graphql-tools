@@ -4,25 +4,27 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _interopRequireDefault = require('@babel/runtime/helpers/interopRequireDefault');
 
-var _objectSpread2 = _interopRequireDefault(require("@babel/runtime/helpers/objectSpread2"));
+var _objectSpread2 = _interopRequireDefault(require('@babel/runtime/helpers/objectSpread2'));
 
-var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
+var _toConsumableArray2 = _interopRequireDefault(
+  require('@babel/runtime/helpers/toConsumableArray'),
+);
 
 var IRTransformer = require('../core/IRTransformer');
 
 var _require = require('../core/SchemaUtils'),
-    generateIDField = _require.generateIDField;
+  generateIDField = _require.generateIDField;
 
 var _require2 = require('./TransformUtils'),
-    hasUnaliasedSelection = _require2.hasUnaliasedSelection;
+  hasUnaliasedSelection = _require2.hasUnaliasedSelection;
 
 var ID = 'id';
 var NODE_TYPE = 'Node';
@@ -56,11 +58,11 @@ function generateIDFieldTransform(context) {
         kind: 'InlineFragment',
         directives: [],
         loc: {
-          kind: 'Generated'
+          kind: 'Generated',
         },
         metadata: null,
         selections: [idFieldForType(type)],
-        typeCondition: type
+        typeCondition: type,
       };
       typeToIDFragment.set(type, fragment);
     }
@@ -70,13 +72,17 @@ function generateIDFieldTransform(context) {
 
   var state = {
     idFieldForType: idFieldForType,
-    idFragmentForType: idFragmentForType
+    idFragmentForType: idFragmentForType,
   };
-  return IRTransformer.transform(context, {
-    LinkedField: visitLinkedField
-  }, function () {
-    return state;
-  });
+  return IRTransformer.transform(
+    context,
+    {
+      LinkedField: visitLinkedField,
+    },
+    function () {
+      return state;
+    },
+  );
 }
 
 function visitLinkedField(field, state) {
@@ -87,20 +93,24 @@ function visitLinkedField(field, state) {
     return transformedNode;
   } // $FlowFixMe[incompatible-use]
 
-
   var context = this.getContext();
   var schema = context.getSchema();
   var unmodifiedType = schema.assertCompositeType(schema.getRawType(field.type)); // If the field type has an `id` subfield add an `id` selection
 
   if (schema.canHaveSelections(unmodifiedType) && schema.hasId(unmodifiedType)) {
-    return (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, transformedNode), {}, {
-      selections: [].concat((0, _toConsumableArray2["default"])(transformedNode.selections), [state.idFieldForType(unmodifiedType)])
-    });
+    return (0, _objectSpread2['default'])(
+      (0, _objectSpread2['default'])({}, transformedNode),
+      {},
+      {
+        selections: [].concat((0, _toConsumableArray2['default'])(transformedNode.selections), [
+          state.idFieldForType(unmodifiedType),
+        ]),
+      },
+    );
   } // If the field type is abstract, then generate a `... on Node { id }`
   // fragment if *any* concrete type implements Node. Then generate a
   // `... on PossibleType { id }` for every concrete type that does *not*
   // implement `Node`
-
 
   var nodeType = schema.getTypeFromString(NODE_TYPE);
 
@@ -111,27 +121,37 @@ function visitLinkedField(field, state) {
   var nodeInterface = schema.assertInterfaceType(nodeType);
 
   if (schema.isAbstractType(unmodifiedType)) {
-    var selections = (0, _toConsumableArray2["default"])(transformedNode.selections);
+    var selections = (0, _toConsumableArray2['default'])(transformedNode.selections);
 
     if (schema.mayImplement(unmodifiedType, nodeInterface)) {
       selections.push(state.idFragmentForType(nodeInterface));
     }
 
-    Array.from(schema.getPossibleTypes(schema.assertAbstractType(unmodifiedType)).values()).filter(function (concreteType) {
-      return !schema.implementsInterface(schema.assertCompositeType(concreteType), nodeInterface) && schema.hasId(concreteType);
-    }).sort(function (a, b) {
-      return schema.getTypeString(a) < schema.getTypeString(b) ? -1 : 1;
-    }).forEach(function (concreteType) {
-      selections.push(state.idFragmentForType(concreteType));
-    });
-    return (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, transformedNode), {}, {
-      selections: selections
-    });
+    Array.from(schema.getPossibleTypes(schema.assertAbstractType(unmodifiedType)).values())
+      .filter(function (concreteType) {
+        return (
+          !schema.implementsInterface(schema.assertCompositeType(concreteType), nodeInterface) &&
+          schema.hasId(concreteType)
+        );
+      })
+      .sort(function (a, b) {
+        return schema.getTypeString(a) < schema.getTypeString(b) ? -1 : 1;
+      })
+      .forEach(function (concreteType) {
+        selections.push(state.idFragmentForType(concreteType));
+      });
+    return (0, _objectSpread2['default'])(
+      (0, _objectSpread2['default'])({}, transformedNode),
+      {},
+      {
+        selections: selections,
+      },
+    );
   }
 
   return transformedNode;
 }
 
 module.exports = {
-  transform: generateIDFieldTransform
+  transform: generateIDFieldTransform,
 };

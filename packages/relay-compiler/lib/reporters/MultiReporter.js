@@ -4,13 +4,13 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var MultiReporter = /*#__PURE__*/function () {
+var MultiReporter = /*#__PURE__*/ (function () {
   function MultiReporter() {
     for (var _len = arguments.length, reporters = new Array(_len), _key = 0; _key < _len; _key++) {
       reporters[_key] = arguments[_key];
@@ -40,6 +40,6 @@ var MultiReporter = /*#__PURE__*/function () {
   };
 
   return MultiReporter;
-}();
+})();
 
 module.exports = MultiReporter;

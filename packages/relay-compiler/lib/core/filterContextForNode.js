@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
@@ -13,7 +13,7 @@
 var CompilerContext = require('./CompilerContext');
 
 var _require = require('./IRVisitor'),
-    visit = _require.visit;
+  visit = _require.visit;
 
 /**
  * Returns a CompilerContext containing only the documents referenced
@@ -36,7 +36,7 @@ function filterContextForNode(node, context) {
   var visitorConfig = {
     FragmentSpread: function FragmentSpread(fragmentSpread) {
       visitFragmentSpread(fragmentSpread);
-    }
+    },
   };
 
   while (queue.length) {

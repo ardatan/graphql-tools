@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // TODO: This is only used with `ArgumentValue` types, so it could be simpler.
@@ -48,7 +48,6 @@ function eq(a, b, aStack, bStack) {
     return false;
   } // $FlowFixMe[method-unbinding] added when improving typing for this parameters
 
-
   var objToStr = Object.prototype.toString;
   var className = objToStr.call(a);
 
@@ -68,9 +67,13 @@ function eq(a, b, aStack, bStack) {
       return +a === +b;
 
     case '[object RegExp]':
-      return a.source === b.source && a.global === b.global && a.multiline === b.multiline && a.ignoreCase === b.ignoreCase;
+      return (
+        a.source === b.source &&
+        a.global === b.global &&
+        a.multiline === b.multiline &&
+        a.ignoreCase === b.ignoreCase
+      );
   } // Assume equality for cyclic structures.
-
 
   var length = aStack.length;
 
@@ -90,7 +93,6 @@ function eq(a, b, aStack, bStack) {
     if (size !== b.length) {
       return false;
     } // Deep compare the contents, ignoring non-numeric properties.
-
 
     while (size--) {
       if (!eq(a[size], b[size], aStack, bStack)) {

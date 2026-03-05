@@ -1,7 +1,7 @@
 {
   "name": "@ardatan/relay-compiler",
   "version": "12.2.0",
-  "description": "A compiler tool for building GraphQL-driven applications.",
+  "description": "Fork of `relay-compiler`",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ardatan/graphql-tools.git"

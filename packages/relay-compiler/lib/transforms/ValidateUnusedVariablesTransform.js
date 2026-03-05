@@ -4,23 +4,26 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _interopRequireDefault = require('@babel/runtime/helpers/interopRequireDefault');
 
-var _createForOfIteratorHelper2 = _interopRequireDefault(require("@babel/runtime/helpers/createForOfIteratorHelper"));
+var _createForOfIteratorHelper2 = _interopRequireDefault(
+  require('@babel/runtime/helpers/createForOfIteratorHelper'),
+);
 
 var inferRootArgumentDefinitions = require('../core/inferRootArgumentDefinitions');
 
 var _require = require('../core/CompilerError'),
-    createUserError = _require.createUserError,
-    eachWithCombinedError = _require.eachWithCombinedError;
+  createUserError = _require.createUserError,
+  eachWithCombinedError = _require.eachWithCombinedError;
 
-var SCHEMA_EXTENSION = 'directive @DEPRECATED__relay_ignore_unused_variables_error on QUERY | MUTATION | SUBSCRIPTION';
+var SCHEMA_EXTENSION =
+  'directive @DEPRECATED__relay_ignore_unused_variables_error on QUERY | MUTATION | SUBSCRIPTION';
 /**
  * Validates that there are no unused variables in the operation.
  * former `graphql-js`` NoUnusedVariablesRule
@@ -33,19 +36,21 @@ function validateUnusedVariablesTransform(context) {
       return;
     }
 
-    var rootArgumentLocations = new Map(node.argumentDefinitions.map(function (arg) {
-      return [arg.name, arg.loc];
-    }));
+    var rootArgumentLocations = new Map(
+      node.argumentDefinitions.map(function (arg) {
+        return [arg.name, arg.loc];
+      }),
+    );
     var nodeWithUsedArguments = contextWithUsedArguments.getRoot(node.name);
     var usedArguments = argumentDefinitionsToMap(nodeWithUsedArguments.argumentDefinitions);
 
-    var _iterator = (0, _createForOfIteratorHelper2["default"])(usedArguments.keys()),
-        _step;
+    var _iterator = (0, _createForOfIteratorHelper2['default'])(usedArguments.keys()),
+      _step;
 
     try {
-      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      for (_iterator.s(); !(_step = _iterator.n()).done; ) {
         var usedArgumentName = _step.value;
-        rootArgumentLocations["delete"](usedArgumentName);
+        rootArgumentLocations['delete'](usedArgumentName);
       }
     } catch (err) {
       _iterator.e(err);
@@ -60,11 +65,22 @@ function validateUnusedVariablesTransform(context) {
 
     if (rootArgumentLocations.size > 0 && !ignoreErrorDirective) {
       var isPlural = rootArgumentLocations.size > 1;
-      throw createUserError("Variable".concat(isPlural ? 's' : '', " '$").concat(Array.from(rootArgumentLocations.keys()).join("', '$"), "' ").concat(isPlural ? 'are' : 'is', " never used in operation '").concat(node.name, "'."), Array.from(rootArgumentLocations.values()));
+      throw createUserError(
+        'Variable'
+          .concat(isPlural ? 's' : '', " '$")
+          .concat(Array.from(rootArgumentLocations.keys()).join("', '$"), "' ")
+          .concat(isPlural ? 'are' : 'is', " never used in operation '")
+          .concat(node.name, "'."),
+        Array.from(rootArgumentLocations.values()),
+      );
     }
 
     if (rootArgumentLocations.size === 0 && ignoreErrorDirective) {
-      throw createUserError("Invalid usage of '@DEPRECATED__relay_ignore_unused_variables_error.'" + "No unused variables found in the query '".concat(node.name, "'"), [ignoreErrorDirective.loc]);
+      throw createUserError(
+        "Invalid usage of '@DEPRECATED__relay_ignore_unused_variables_error.'" +
+          "No unused variables found in the query '".concat(node.name, "'"),
+        [ignoreErrorDirective.loc],
+      );
     }
   });
   return context;
@@ -73,11 +89,11 @@ function validateUnusedVariablesTransform(context) {
 function argumentDefinitionsToMap(argDefs) {
   var map = new Map();
 
-  var _iterator2 = (0, _createForOfIteratorHelper2["default"])(argDefs),
-      _step2;
+  var _iterator2 = (0, _createForOfIteratorHelper2['default'])(argDefs),
+    _step2;
 
   try {
-    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+    for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
       var argDef = _step2.value;
       map.set(argDef.name, argDef);
     }
@@ -92,5 +108,5 @@ function argumentDefinitionsToMap(argDefs) {
 
 module.exports = {
   transform: validateUnusedVariablesTransform,
-  SCHEMA_EXTENSION: SCHEMA_EXTENSION
+  SCHEMA_EXTENSION: SCHEMA_EXTENSION,
 };

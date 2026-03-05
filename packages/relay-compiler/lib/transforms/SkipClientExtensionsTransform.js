@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
@@ -16,7 +16,7 @@ function skipClientExtensionTransform(context) {
   return IRTransformer.transform(context, {
     Fragment: visitFragment,
     FragmentSpread: vistFragmentSpread,
-    ClientExtension: visitClientExtension
+    ClientExtension: visitClientExtension,
   });
 }
 
@@ -45,5 +45,5 @@ function visitClientExtension(node, state) {
 }
 
 module.exports = {
-  transform: skipClientExtensionTransform
+  transform: skipClientExtensionTransform,
 };

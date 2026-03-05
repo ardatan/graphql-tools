@@ -4,13 +4,13 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _asyncToGenerator = require("@babel/runtime/helpers/asyncToGenerator");
+var _asyncToGenerator = require('@babel/runtime/helpers/asyncToGenerator');
 
 var GraphQLWatchmanClient = require('../core/GraphQLWatchmanClient');
 
@@ -31,21 +31,27 @@ function queryFiles(_x, _x2, _x3) {
 
 function _queryFiles() {
   _queryFiles = _asyncToGenerator(function* (baseDir, expression, filter) {
-    return yield Profiler.waitFor('Watchman:query', /*#__PURE__*/_asyncToGenerator(function* () {
-      var client = new GraphQLWatchmanClient(QUERY_RETRIES);
+    return yield Profiler.waitFor(
+      'Watchman:query',
+      /*#__PURE__*/ _asyncToGenerator(function* () {
+        var client = new GraphQLWatchmanClient(QUERY_RETRIES);
 
-      var _await$Promise$all = yield Promise.all([client.watchProject(baseDir), getFields(client)]),
+        var _await$Promise$all = yield Promise.all([
+            client.watchProject(baseDir),
+            getFields(client),
+          ]),
           watchResp = _await$Promise$all[0],
           fields = _await$Promise$all[1];
 
-      var resp = yield client.command('query', watchResp.root, {
-        expression: expression,
-        fields: fields,
-        relative_root: watchResp.relativePath
-      });
-      client.end();
-      return updateFiles(new Set(), baseDir, filter, resp.files);
-    }));
+        var resp = yield client.command('query', watchResp.root, {
+          expression: expression,
+          fields: fields,
+          relative_root: watchResp.relativePath,
+        });
+        client.end();
+        return updateFiles(new Set(), baseDir, filter, resp.files);
+      }),
+    );
   });
   return _queryFiles.apply(this, arguments);
 }
@@ -56,17 +62,20 @@ function queryDirectories(_x4, _x5) {
 
 function _queryDirectories() {
   _queryDirectories = _asyncToGenerator(function* (baseDir, expression) {
-    return yield Profiler.waitFor('Watchman:query', /*#__PURE__*/_asyncToGenerator(function* () {
-      var client = new GraphQLWatchmanClient();
-      var watchResp = yield client.watchProject(baseDir);
-      var resp = yield client.command('query', watchResp.root, {
-        expression: expression,
-        fields: ['name'],
-        relative_root: watchResp.relativePath
-      });
-      client.end();
-      return resp.files;
-    }));
+    return yield Profiler.waitFor(
+      'Watchman:query',
+      /*#__PURE__*/ _asyncToGenerator(function* () {
+        var client = new GraphQLWatchmanClient();
+        var watchResp = yield client.watchProject(baseDir);
+        var resp = yield client.command('query', watchResp.root, {
+          expression: expression,
+          fields: ['name'],
+          relative_root: watchResp.relativePath,
+        });
+        client.end();
+        return resp.files;
+      }),
+    );
   });
   return _queryDirectories.apply(this, arguments);
 }
@@ -74,7 +83,6 @@ function _queryDirectories() {
 function getFields(_x6) {
   return _getFields.apply(this, arguments);
 } // For use when not using Watchman.
-
 
 function _getFields() {
   _getFields = _asyncToGenerator(function* (client) {
@@ -98,7 +106,6 @@ function queryFilepaths(_x7, _x8, _x9) {
  * with watchman change events on file changes.
  */
 
-
 function _queryFilepaths() {
   _queryFilepaths = _asyncToGenerator(function* (baseDir, filepaths, filter) {
     // Construct WatchmanChange objects as an intermediate step before
@@ -107,7 +114,7 @@ function _queryFilepaths() {
       return {
         name: filepath,
         exists: true,
-        'content.sha1hex': null
+        'content.sha1hex': null,
       };
     });
     return updateFiles(new Set(), baseDir, filter, files);
@@ -121,11 +128,20 @@ function watch(_x10, _x11, _x12) {
 
 function _watch() {
   _watch = _asyncToGenerator(function* (baseDir, expression, callback) {
-    return yield Profiler.waitFor('Watchman:subscribe', /*#__PURE__*/_asyncToGenerator(function* () {
-      var client = new GraphQLWatchmanClient();
-      var watchResp = yield client.watchProject(baseDir);
-      yield makeSubscription(client, watchResp.root, watchResp.relativePath, expression, callback);
-    }));
+    return yield Profiler.waitFor(
+      'Watchman:subscribe',
+      /*#__PURE__*/ _asyncToGenerator(function* () {
+        var client = new GraphQLWatchmanClient();
+        var watchResp = yield client.watchProject(baseDir);
+        yield makeSubscription(
+          client,
+          watchResp.root,
+          watchResp.relativePath,
+          expression,
+          callback,
+        );
+      }),
+    );
   });
   return _watch.apply(this, arguments);
 }
@@ -138,21 +154,22 @@ function makeSubscription(_x13, _x14, _x15, _x16, _x17) {
  * full list of files that match the conditions.
  */
 
-
 function _makeSubscription() {
-  _makeSubscription = _asyncToGenerator(function* (client, root, relativePath, expression, callback) {
-    client.on('subscription', function (resp) {
-      if (resp.subscription === SUBSCRIPTION_NAME) {
-        callback(resp);
-      }
-    });
-    var fields = yield getFields(client);
-    yield client.command('subscribe', root, SUBSCRIPTION_NAME, {
-      expression: expression,
-      fields: fields,
-      relative_root: relativePath
-    });
-  });
+  _makeSubscription = _asyncToGenerator(
+    function* (client, root, relativePath, expression, callback) {
+      client.on('subscription', function (resp) {
+        if (resp.subscription === SUBSCRIPTION_NAME) {
+          callback(resp);
+        }
+      });
+      var fields = yield getFields(client);
+      yield client.command('subscribe', root, SUBSCRIPTION_NAME, {
+        expression: expression,
+        fields: fields,
+        relative_root: relativePath,
+      });
+    },
+  );
   return _makeSubscription.apply(this, arguments);
 }
 
@@ -168,7 +185,6 @@ function watchFiles(_x18, _x19, _x20, _x21) {
  * TODO: Consider changing from a Promise to abortable, so we can abort mid
  *       compilation.
  */
-
 
 function _watchFiles() {
   _watchFiles = _asyncToGenerator(function* (baseDir, expression, filter, callback) {
@@ -196,29 +212,34 @@ function _watchCompile() {
     var compiling = false;
     var needsCompiling = false;
     var latestFiles = null;
-    watchFiles(baseDir, expression, filter, /*#__PURE__*/function () {
-      var _ref5 = _asyncToGenerator(function* (files) {
-        needsCompiling = true;
-        latestFiles = files;
+    watchFiles(
+      baseDir,
+      expression,
+      filter,
+      /*#__PURE__*/ (function () {
+        var _ref5 = _asyncToGenerator(function* (files) {
+          needsCompiling = true;
+          latestFiles = files;
 
-        if (compiling) {
-          return;
-        }
+          if (compiling) {
+            return;
+          }
 
-        compiling = true;
+          compiling = true;
 
-        while (needsCompiling) {
-          needsCompiling = false;
-          yield compile(latestFiles);
-        }
+          while (needsCompiling) {
+            needsCompiling = false;
+            yield compile(latestFiles);
+          }
 
-        compiling = false;
-      });
+          compiling = false;
+        });
 
-      return function (_x26) {
-        return _ref5.apply(this, arguments);
-      };
-    }());
+        return function (_x26) {
+          return _ref5.apply(this, arguments);
+        };
+      })(),
+    );
   });
   return _watchCompile.apply(this, arguments);
 }
@@ -230,15 +251,15 @@ function updateFiles(files, baseDir, filter, fileChanges) {
   });
   fileChanges.forEach(function (_ref) {
     var name = _ref.name,
-        exists = _ref.exists,
-        hash = _ref['content.sha1hex'];
+      exists = _ref.exists,
+      hash = _ref['content.sha1hex'];
     var shouldRemove = !exists;
 
     if (!shouldRemove) {
       var _file = {
         exists: true,
         relPath: name,
-        hash: hash || hashFile(path.join(baseDir, name))
+        hash: hash || hashFile(path.join(baseDir, name)),
       };
 
       if (filter(_file)) {
@@ -248,10 +269,11 @@ function updateFiles(files, baseDir, filter, fileChanges) {
       }
     }
 
-    shouldRemove && fileMap.set(name, {
-      exists: false,
-      relPath: name
-    });
+    shouldRemove &&
+      fileMap.set(name, {
+        exists: false,
+        relPath: name,
+      });
   });
   return new Set(fileMap.values());
 }
@@ -267,5 +289,5 @@ module.exports = {
   queryFilepaths: queryFilepaths,
   watch: watch,
   watchFiles: watchFiles,
-  watchCompile: watchCompile
+  watchCompile: watchCompile,
 };

@@ -4,19 +4,23 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _interopRequireDefault = require('@babel/runtime/helpers/interopRequireDefault');
 
-var _objectSpread2 = _interopRequireDefault(require("@babel/runtime/helpers/objectSpread2"));
+var _objectSpread2 = _interopRequireDefault(require('@babel/runtime/helpers/objectSpread2'));
 
-var _createForOfIteratorHelper2 = _interopRequireDefault(require("@babel/runtime/helpers/createForOfIteratorHelper"));
+var _createForOfIteratorHelper2 = _interopRequireDefault(
+  require('@babel/runtime/helpers/createForOfIteratorHelper'),
+);
 
-var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
+var _toConsumableArray2 = _interopRequireDefault(
+  require('@babel/runtime/helpers/toConsumableArray'),
+);
 
 var IRTransformer = require('../core/IRTransformer');
 
@@ -27,11 +31,11 @@ var getIdentifierForArgumentValue = require('../core/getIdentifierForArgumentVal
 var murmurHash = require('../util/murmurHash');
 
 var _require = require('../core/CompilerError'),
-    createCompilerError = _require.createCompilerError,
-    createNonRecoverableUserError = _require.createNonRecoverableUserError;
+  createCompilerError = _require.createCompilerError,
+  createNonRecoverableUserError = _require.createNonRecoverableUserError;
 
 var getFragmentScope = RelayCompilerScope.getFragmentScope,
-    getRootScope = RelayCompilerScope.getRootScope;
+  getRootScope = RelayCompilerScope.getRootScope;
 
 /**
  * A transform that converts a set of documents containing fragments/fragment
@@ -69,14 +73,14 @@ function applyFragmentArgumentTransform(context) {
     // Unreferenced fragments are not included.
     Fragment: function Fragment() {
       return null;
-    }
+    },
   });
 
-  var _iterator = (0, _createForOfIteratorHelper2["default"])(fragments.values()),
-      _step;
+  var _iterator = (0, _createForOfIteratorHelper2['default'])(fragments.values()),
+    _step;
 
   try {
-    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
       var pendingFragment = _step.value;
 
       if (pendingFragment.kind === 'resolved' && pendingFragment.value) {
@@ -101,15 +105,23 @@ function transformNode(context, fragments, scope, node, errorContext) {
 
   if (node.hasOwnProperty('directives')) {
     var directives = transformDirectives(scope, node.directives, errorContext);
-    return (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, node), {}, {
-      directives: directives,
-      selections: selections
-    });
+    return (0, _objectSpread2['default'])(
+      (0, _objectSpread2['default'])({}, node),
+      {},
+      {
+        directives: directives,
+        selections: selections,
+      },
+    );
   }
 
-  return (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, node), {}, {
-    selections: selections
-  });
+  return (0, _objectSpread2['default'])(
+    (0, _objectSpread2['default'])({}, node),
+    {},
+    {
+      selections: selections,
+    },
+  );
 }
 
 function transformDeferStreamNode(context, fragments, scope, node, errorContext) {
@@ -121,16 +133,20 @@ function transformDeferStreamNode(context, fragments, scope, node, errorContext)
 
   nextNode;
 
-  if (nextNode["if"]) {
-    var ifVal = transformValue(scope, nextNode["if"], errorContext);
+  if (nextNode['if']) {
+    var ifVal = transformValue(scope, nextNode['if'], errorContext);
 
-    if (ifVal.kind === 'Literal' && ifVal.value === false && node.selections && node.selections.length === 1) {
+    if (
+      ifVal.kind === 'Literal' &&
+      ifVal.value === false &&
+      node.selections &&
+      node.selections.length === 1
+    ) {
       // Skip Defer/Stream wrapper with literal if: false
       return node.selections[0];
     } // $FlowFixMe[cannot-write] nextNode is uniquely owned
 
-
-    nextNode["if"] = ifVal;
+    nextNode['if'] = ifVal;
   }
 
   if (nextNode.useCustomizedBatch) {
@@ -148,18 +164,29 @@ function transformDeferStreamNode(context, fragments, scope, node, errorContext)
 
 function transformFragmentSpread(context, fragments, scope, spread, errorContext) {
   var directives = transformDirectives(scope, spread.directives, errorContext);
-  var appliedFragment = transformFragment(context, fragments, scope, spread, spread.args, [].concat((0, _toConsumableArray2["default"])(errorContext), [spread]));
+  var appliedFragment = transformFragment(
+    context,
+    fragments,
+    scope,
+    spread,
+    spread.args,
+    [].concat((0, _toConsumableArray2['default'])(errorContext), [spread]),
+  );
 
   if (!appliedFragment) {
     return null;
   }
 
-  var transformed = (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, spread), {}, {
-    kind: 'FragmentSpread',
-    args: [],
-    directives: directives,
-    name: appliedFragment.name
-  });
+  var transformed = (0, _objectSpread2['default'])(
+    (0, _objectSpread2['default'])({}, spread),
+    {},
+    {
+      kind: 'FragmentSpread',
+      args: [],
+      directives: directives,
+      name: appliedFragment.name,
+    },
+  );
   return transformed;
 }
 
@@ -174,16 +201,24 @@ function transformField(context, fragments, scope, field, errorContext) {
       return null;
     }
 
-    return (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, field), {}, {
-      args: args,
-      directives: directives,
-      selections: selections
-    });
+    return (0, _objectSpread2['default'])(
+      (0, _objectSpread2['default'])({}, field),
+      {},
+      {
+        args: args,
+        directives: directives,
+        selections: selections,
+      },
+    );
   } else {
-    return (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, field), {}, {
-      args: args,
-      directives: directives
-    });
+    return (0, _objectSpread2['default'])(
+      (0, _objectSpread2['default'])({}, field),
+      {},
+      {
+        args: args,
+        directives: directives,
+      },
+    );
   }
 }
 
@@ -194,7 +229,12 @@ function transformCondition(context, fragments, scope, node, errorContext) {
     // This transform does whole-program optimization, errors in
     // a single document could break invariants and/or cause
     // additional spurious errors.
-    throw createNonRecoverableUserError('A non-scalar value was applied to an @include or @skip directive, ' + 'the `if` argument value must be a ' + 'variable or a literal Boolean.', [condition.loc]);
+    throw createNonRecoverableUserError(
+      'A non-scalar value was applied to an @include or @skip directive, ' +
+        'the `if` argument value must be a ' +
+        'variable or a literal Boolean.',
+      [condition.loc],
+    );
   }
 
   if (condition.kind === 'Literal' && condition.value !== node.passingValue) {
@@ -213,10 +253,16 @@ function transformCondition(context, fragments, scope, node, errorContext) {
     return selections;
   }
 
-  return [(0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, node), {}, {
-    condition: condition,
-    selections: selections
-  })];
+  return [
+    (0, _objectSpread2['default'])(
+      (0, _objectSpread2['default'])({}, node),
+      {},
+      {
+        condition: condition,
+        selections: selections,
+      },
+    ),
+  ];
 }
 
 function transformSelections(context, fragments, scope, selections, errorContext) {
@@ -224,27 +270,44 @@ function transformSelections(context, fragments, scope, selections, errorContext
   selections.forEach(function (selection) {
     var nextSelection;
 
-    if (selection.kind === 'ClientExtension' || selection.kind === 'InlineDataFragmentSpread' || selection.kind === 'InlineFragment' || selection.kind === 'ModuleImport') {
+    if (
+      selection.kind === 'ClientExtension' ||
+      selection.kind === 'InlineDataFragmentSpread' ||
+      selection.kind === 'InlineFragment' ||
+      selection.kind === 'ModuleImport'
+    ) {
       nextSelection = transformNode(context, fragments, scope, selection, errorContext);
     } else if (selection.kind === 'Defer' || selection.kind === 'Stream') {
       nextSelection = transformDeferStreamNode(context, fragments, scope, selection, errorContext);
     } else if (selection.kind === 'FragmentSpread') {
       nextSelection = transformFragmentSpread(context, fragments, scope, selection, errorContext);
     } else if (selection.kind === 'Condition') {
-      var conditionSelections = transformCondition(context, fragments, scope, selection, errorContext);
+      var conditionSelections = transformCondition(
+        context,
+        fragments,
+        scope,
+        selection,
+        errorContext,
+      );
 
       if (conditionSelections) {
         var _nextSelections;
 
         nextSelections = nextSelections || [];
 
-        (_nextSelections = nextSelections).push.apply(_nextSelections, (0, _toConsumableArray2["default"])(conditionSelections));
+        (_nextSelections = nextSelections).push.apply(
+          _nextSelections,
+          (0, _toConsumableArray2['default'])(conditionSelections),
+        );
       }
     } else if (selection.kind === 'LinkedField' || selection.kind === 'ScalarField') {
       nextSelection = transformField(context, fragments, scope, selection, errorContext);
     } else {
       selection;
-      throw createCompilerError("ApplyFragmentArgumentTransform: Unsupported kind '".concat(selection.kind, "'."), [selection.loc]);
+      throw createCompilerError(
+        "ApplyFragmentArgumentTransform: Unsupported kind '".concat(selection.kind, "'."),
+        [selection.loc],
+      );
     }
 
     if (nextSelection) {
@@ -258,18 +321,28 @@ function transformSelections(context, fragments, scope, selections, errorContext
 function transformDirectives(scope, directives, errorContext) {
   return directives.map(function (directive) {
     var args = transformArguments(scope, directive.args, errorContext);
-    return (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, directive), {}, {
-      args: args
-    });
+    return (0, _objectSpread2['default'])(
+      (0, _objectSpread2['default'])({}, directive),
+      {},
+      {
+        args: args,
+      },
+    );
   });
 }
 
 function transformArguments(scope, args, errorContext) {
   return args.map(function (arg) {
     var value = transformValue(scope, arg.value, errorContext);
-    return value === arg.value ? arg : (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, arg), {}, {
-      value: value
-    });
+    return value === arg.value
+      ? arg
+      : (0, _objectSpread2['default'])(
+          (0, _objectSpread2['default'])({}, arg),
+          {},
+          {
+            value: value,
+          },
+        );
   });
 }
 
@@ -283,24 +356,44 @@ function transformValue(scope, value, errorContext) {
       // This transform does whole-program optimization, errors in
       // a single document could break invariants and/or cause
       // additional spurious errors.
-      throw createNonRecoverableUserError("Variable '$".concat(value.variableName, "' is not in scope."), [(_errorContext$ = errorContext[0]) === null || _errorContext$ === void 0 ? void 0 : _errorContext$.loc, value.loc].filter(Boolean));
+      throw createNonRecoverableUserError(
+        "Variable '$".concat(value.variableName, "' is not in scope."),
+        [
+          (_errorContext$ = errorContext[0]) === null || _errorContext$ === void 0
+            ? void 0
+            : _errorContext$.loc,
+          value.loc,
+        ].filter(Boolean),
+      );
     }
 
     return scopeValue;
   } else if (value.kind === 'ObjectValue') {
-    return (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, value), {}, {
-      fields: value.fields.map(function (field) {
-        return (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, field), {}, {
-          value: transformValue(scope, field.value, errorContext)
-        });
-      })
-    });
+    return (0, _objectSpread2['default'])(
+      (0, _objectSpread2['default'])({}, value),
+      {},
+      {
+        fields: value.fields.map(function (field) {
+          return (0, _objectSpread2['default'])(
+            (0, _objectSpread2['default'])({}, field),
+            {},
+            {
+              value: transformValue(scope, field.value, errorContext),
+            },
+          );
+        }),
+      },
+    );
   } else if (value.kind === 'ListValue') {
-    return (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, value), {}, {
-      items: value.items.map(function (item) {
-        return transformValue(scope, item, errorContext);
-      })
-    });
+    return (0, _objectSpread2['default'])(
+      (0, _objectSpread2['default'])({}, value),
+      {},
+      {
+        items: value.items.map(function (item) {
+          return transformValue(scope, item, errorContext);
+        }),
+      },
+    );
   }
 
   return value;
@@ -310,12 +403,13 @@ function transformValue(scope, value, errorContext) {
  * with all values recursively applied.
  */
 
-
 function transformFragment(context, fragments, parentScope, spread, args, errorContext) {
   var schema = context.getSchema();
   var fragment = context.getFragment(spread.name, spread.loc);
   var argumentsHash = hashArguments(args, parentScope, errorContext);
-  var fragmentName = argumentsHash ? "".concat(fragment.name, "_").concat(argumentsHash) : fragment.name;
+  var fragmentName = argumentsHash
+    ? ''.concat(fragment.name, '_').concat(argumentsHash)
+    : fragment.name;
   var appliedFragment = fragments.get(fragmentName);
 
   if (appliedFragment) {
@@ -325,31 +419,50 @@ function transformFragment(context, fragments, parentScope, spread, args, errorC
       // This transform does whole-program optimization, errors in
       // a single document could break invariants and/or cause
       // additional spurious errors.
-      throw createNonRecoverableUserError("Found a circular reference from fragment '".concat(fragment.name, "'."), errorContext.map(function (node) {
-        return node.loc;
-      }));
+      throw createNonRecoverableUserError(
+        "Found a circular reference from fragment '".concat(fragment.name, "'."),
+        errorContext.map(function (node) {
+          return node.loc;
+        }),
+      );
     }
   }
 
-  var fragmentScope = getFragmentScope(schema, fragment.argumentDefinitions, args, parentScope, spread); // record that this fragment is pending to detect circular references
+  var fragmentScope = getFragmentScope(
+    schema,
+    fragment.argumentDefinitions,
+    args,
+    parentScope,
+    spread,
+  ); // record that this fragment is pending to detect circular references
 
   fragments.set(fragmentName, {
-    kind: 'pending'
+    kind: 'pending',
   });
   var transformedFragment = null;
-  var selections = transformSelections(context, fragments, fragmentScope, fragment.selections, errorContext);
+  var selections = transformSelections(
+    context,
+    fragments,
+    fragmentScope,
+    fragment.selections,
+    errorContext,
+  );
 
   if (selections) {
-    transformedFragment = (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, fragment), {}, {
-      selections: selections,
-      name: fragmentName,
-      argumentDefinitions: []
-    });
+    transformedFragment = (0, _objectSpread2['default'])(
+      (0, _objectSpread2['default'])({}, fragment),
+      {},
+      {
+        selections: selections,
+        name: fragmentName,
+        argumentDefinitions: [],
+      },
+    );
   }
 
   fragments.set(fragmentName, {
     kind: 'resolved',
-    value: transformedFragment
+    value: transformedFragment,
   });
   return transformedFragment;
 }
@@ -359,35 +472,45 @@ function hashArguments(args, scope, errorContext) {
     return null;
   }
 
-  var sortedArgs = (0, _toConsumableArray2["default"])(args).sort(function (a, b) {
+  var sortedArgs = (0, _toConsumableArray2['default'])(args).sort(function (a, b) {
     return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
   });
-  var printedArgs = JSON.stringify(sortedArgs.map(function (arg) {
-    var value;
+  var printedArgs = JSON.stringify(
+    sortedArgs.map(function (arg) {
+      var value;
 
-    if (arg.value.kind === 'Variable') {
-      value = scope[arg.value.variableName];
+      if (arg.value.kind === 'Variable') {
+        value = scope[arg.value.variableName];
 
-      if (value == null) {
-        var _errorContext$2;
+        if (value == null) {
+          var _errorContext$2;
 
-        // This transform does whole-program optimization, errors in
-        // a single document could break invariants and/or cause
-        // additional spurious errors.
-        throw createNonRecoverableUserError("Variable '$".concat(arg.value.variableName, "' is not in scope."), [(_errorContext$2 = errorContext[0]) === null || _errorContext$2 === void 0 ? void 0 : _errorContext$2.loc, arg.value.loc].filter(Boolean));
+          // This transform does whole-program optimization, errors in
+          // a single document could break invariants and/or cause
+          // additional spurious errors.
+          throw createNonRecoverableUserError(
+            "Variable '$".concat(arg.value.variableName, "' is not in scope."),
+            [
+              (_errorContext$2 = errorContext[0]) === null || _errorContext$2 === void 0
+                ? void 0
+                : _errorContext$2.loc,
+              arg.value.loc,
+            ].filter(Boolean),
+          );
+        }
+      } else {
+        value = arg.value;
       }
-    } else {
-      value = arg.value;
-    }
 
-    return {
-      name: arg.name,
-      value: getIdentifierForArgumentValue(value)
-    };
-  }));
+      return {
+        name: arg.name,
+        value: getIdentifierForArgumentValue(value),
+      };
+    }),
+  );
   return murmurHash(printedArgs);
 }
 
 module.exports = {
-  transform: applyFragmentArgumentTransform
+  transform: applyFragmentArgumentTransform,
 };

@@ -4,19 +4,23 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _interopRequireDefault = require('@babel/runtime/helpers/interopRequireDefault');
 
-var _objectSpread2 = _interopRequireDefault(require("@babel/runtime/helpers/objectSpread2"));
+var _objectSpread2 = _interopRequireDefault(require('@babel/runtime/helpers/objectSpread2'));
 
-var _createForOfIteratorHelper2 = _interopRequireDefault(require("@babel/runtime/helpers/createForOfIteratorHelper"));
+var _createForOfIteratorHelper2 = _interopRequireDefault(
+  require('@babel/runtime/helpers/createForOfIteratorHelper'),
+);
 
-var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
+var _toConsumableArray2 = _interopRequireDefault(
+  require('@babel/runtime/helpers/toConsumableArray'),
+);
 
 var Profiler = require('./GraphQLCompilerProfiler');
 
@@ -25,29 +29,33 @@ var orList = require('../util/orList');
 var partitionArray = require('../util/partitionArray');
 
 var _require = require('../util/DefaultHandleKey'),
-    DEFAULT_HANDLE_KEY = _require.DEFAULT_HANDLE_KEY;
+  DEFAULT_HANDLE_KEY = _require.DEFAULT_HANDLE_KEY;
 
 var _require2 = require('./CompilerError'),
-    createCompilerError = _require2.createCompilerError,
-    createUserError = _require2.createUserError,
-    eachWithCombinedError = _require2.eachWithCombinedError;
+  createCompilerError = _require2.createCompilerError,
+  createUserError = _require2.createUserError,
+  eachWithCombinedError = _require2.eachWithCombinedError;
 
 var _require3 = require('./SchemaUtils'),
-    isExecutableDefinitionAST = _require3.isExecutableDefinitionAST;
+  isExecutableDefinitionAST = _require3.isExecutableDefinitionAST;
 
 var _require4 = require('./getFieldDefinition'),
-    getFieldDefinitionLegacy = _require4.getFieldDefinitionLegacy;
+  getFieldDefinitionLegacy = _require4.getFieldDefinitionLegacy;
 
 var _require5 = require('graphql'),
-    parseGraphQL = _require5.parse,
-    parseType = _require5.parseType,
-    print = _require5.print,
-    Source = _require5.Source;
+  parseGraphQL = _require5.parse,
+  parseType = _require5.parseType,
+  print = _require5.print,
+  Source = _require5.Source;
 
 var ARGUMENT_DEFINITIONS = 'argumentDefinitions';
 var ARGUMENTS = 'arguments';
 var DEPRECATED_UNCHECKED_ARGUMENTS = 'uncheckedArguments_DEPRECATED';
-var DIRECTIVE_WHITELIST = new Set([ARGUMENT_DEFINITIONS, DEPRECATED_UNCHECKED_ARGUMENTS, ARGUMENTS]);
+var DIRECTIVE_WHITELIST = new Set([
+  ARGUMENT_DEFINITIONS,
+  DEPRECATED_UNCHECKED_ARGUMENTS,
+  ARGUMENTS,
+]);
 /**
  * @internal
  *
@@ -77,7 +85,6 @@ function parse(schema, text, filename) {
  * internal, strongly-typed intermediate representation (IR).
  */
 
-
 function transform(schema, definitions) {
   return Profiler.run('RelayParser.transform', function () {
     var parser = new RelayParser(schema, definitions);
@@ -88,8 +95,7 @@ function transform(schema, definitions) {
  * @private
  */
 
-
-var RelayParser = /*#__PURE__*/function () {
+var RelayParser = /*#__PURE__*/ (function () {
   function RelayParser(schema, definitions) {
     var _this = this;
 
@@ -112,9 +118,13 @@ var RelayParser = /*#__PURE__*/function () {
     });
 
     if (duplicated.size) {
-      throw createUserError('RelayParser: Encountered duplicate definitions for one or more ' + 'documents: each document must have a unique name. Duplicated documents:\n' + Array.from(duplicated, function (name) {
-        return "- ".concat(name);
-      }).join('\n'));
+      throw createUserError(
+        'RelayParser: Encountered duplicate definitions for one or more ' +
+          'documents: each document must have a unique name. Duplicated documents:\n' +
+          Array.from(duplicated, function (name) {
+            return '- '.concat(name);
+          }).join('\n'),
+      );
     }
   }
 
@@ -130,29 +140,34 @@ var RelayParser = /*#__PURE__*/function () {
 
     eachWithCombinedError(this._definitions, function (_ref) {
       var name = _ref[0],
-          definition = _ref[1];
+        definition = _ref[1];
 
       var variableDefinitions = _this2._buildArgumentDefinitions(definition);
 
       entries.set(name, {
         definition: definition,
-        variableDefinitions: variableDefinitions
+        variableDefinitions: variableDefinitions,
       });
     }); // Convert the ASTs to IR.
 
     eachWithCombinedError(entries.values(), function (_ref2) {
       var definition = _ref2.definition,
-          variableDefinitions = _ref2.variableDefinitions;
-      var node = parseDefinition(_this2._schema, _this2._getFieldDefinition, entries, definition, variableDefinitions);
+        variableDefinitions = _ref2.variableDefinitions;
+      var node = parseDefinition(
+        _this2._schema,
+        _this2._getFieldDefinition,
+        entries,
+        definition,
+        variableDefinitions,
+      );
       nodes.push(node);
     });
     return nodes;
-  }
+  };
   /**
    * Constructs a mapping of variable names to definitions for the given
    * operation/fragment definition.
    */
-  ;
 
   _proto._buildArgumentDefinitions = function _buildArgumentDefinitions(definition) {
     switch (definition.kind) {
@@ -164,14 +179,15 @@ var RelayParser = /*#__PURE__*/function () {
 
       default:
         definition;
-        throw createCompilerError("Unexpected ast kind '".concat(definition.kind, "'."), [definition]);
+        throw createCompilerError("Unexpected ast kind '".concat(definition.kind, "'."), [
+          definition,
+        ]);
     }
-  }
+  };
   /**
    * Constructs a mapping of variable names to definitions using the
    * variables defined in `@argumentDefinitions`.
    */
-  ;
 
   _proto._buildFragmentArgumentDefinitions = function _buildFragmentArgumentDefinitions(fragment) {
     var _this3 = this;
@@ -185,7 +201,12 @@ var RelayParser = /*#__PURE__*/function () {
     }
 
     if (variableDirectives.length !== 1) {
-      throw createUserError("Directive @".concat(ARGUMENT_DEFINITIONS, " may be defined at most once per ") + 'fragment.', null, variableDirectives);
+      throw createUserError(
+        'Directive @'.concat(ARGUMENT_DEFINITIONS, ' may be defined at most once per ') +
+          'fragment.',
+        null,
+        variableDirectives,
+      );
     }
 
     var variableDirective = variableDirectives[0]; // work, below accesses all report arguments could still be null/undefined.
@@ -197,7 +218,12 @@ var RelayParser = /*#__PURE__*/function () {
     }
 
     if (!args.length) {
-      throw createUserError("Directive @".concat(ARGUMENT_DEFINITIONS, " requires arguments: remove the ") + 'directive to skip defining local variables for this fragment.', null, [variableDirective]);
+      throw createUserError(
+        'Directive @'.concat(ARGUMENT_DEFINITIONS, ' requires arguments: remove the ') +
+          'directive to skip defining local variables for this fragment.',
+        null,
+        [variableDirective],
+      );
     }
 
     var variables = new Map();
@@ -208,11 +234,19 @@ var RelayParser = /*#__PURE__*/function () {
       var previousVariable = variables.get(argName);
 
       if (previousVariable != null) {
-        throw createUserError("Duplicate definition for variable '$".concat(argName, "'."), null, [previousVariable.ast, arg]);
+        throw createUserError("Duplicate definition for variable '$".concat(argName, "'."), null, [
+          previousVariable.ast,
+          arg,
+        ]);
       }
 
       if (arg.value.kind !== 'ObjectValue') {
-        throw createUserError("Expected definition for variable '$".concat(argName, "' to be an object ") + "with the shape: '{type: string, defaultValue?: mixed}.", null, [arg.value]);
+        throw createUserError(
+          "Expected definition for variable '$".concat(argName, "' to be an object ") +
+            "with the shape: '{type: string, defaultValue?: mixed}.",
+          null,
+          [arg.value],
+        );
       }
 
       var defaultValueNode;
@@ -225,53 +259,88 @@ var RelayParser = /*#__PURE__*/function () {
         } else if (name === 'defaultValue') {
           defaultValueNode = field.value;
         } else {
-          throw createUserError("Expected definition for variable '$".concat(argName, "' to be an object ") + "with the shape: '{type: string, defaultValue?: mixed}.", null, [arg.value]);
+          throw createUserError(
+            "Expected definition for variable '$".concat(argName, "' to be an object ") +
+              "with the shape: '{type: string, defaultValue?: mixed}.",
+            null,
+            [arg.value],
+          );
         }
       });
 
       if (typeof typeString !== 'string') {
-        throw createUserError("Expected definition for variable '$".concat(argName, "' to be an object ") + "with the shape: '{type: string, defaultValue?: mixed}.", null, [arg.value]);
+        throw createUserError(
+          "Expected definition for variable '$".concat(argName, "' to be an object ") +
+            "with the shape: '{type: string, defaultValue?: mixed}.",
+          null,
+          [arg.value],
+        );
       }
 
       var typeFromAST = _this3._schema.getTypeFromAST(parseType(typeString));
 
       if (typeFromAST == null) {
-        throw createUserError( // $FlowFixMe[incompatible-type]
-        "Unknown type \"".concat(typeString, "\" referenced in the argument definitions."), null, [arg]);
+        throw createUserError(
+          // $FlowFixMe[incompatible-type]
+          'Unknown type "'.concat(typeString, '" referenced in the argument definitions.'),
+          null,
+          [arg],
+        );
       }
 
       var type = _this3._schema.asInputType(typeFromAST);
 
       if (type == null) {
-        throw createUserError( // $FlowFixMe[incompatible-type]
-        "Expected type \"".concat(typeString, "\" to be an input type in the \"").concat(arg.name.value, "\" argument definitions."), null, [arg.value]);
+        throw createUserError(
+          // $FlowFixMe[incompatible-type]
+          'Expected type "'
+            .concat(typeString, '" to be an input type in the "')
+            .concat(arg.name.value, '" argument definitions.'),
+          null,
+          [arg.value],
+        );
       }
 
-      var defaultValue = defaultValueNode != null ? transformValue(_this3._schema, defaultValueNode, type, function (variableAst) {
-        throw createUserError("Expected 'defaultValue' to be a literal, got a variable.", null, [variableAst]);
-      }) : null;
+      var defaultValue =
+        defaultValueNode != null
+          ? transformValue(_this3._schema, defaultValueNode, type, function (variableAst) {
+              throw createUserError(
+                "Expected 'defaultValue' to be a literal, got a variable.",
+                null,
+                [variableAst],
+              );
+            })
+          : null;
 
       if (defaultValue != null && defaultValue.kind !== 'Literal') {
-        throw createUserError("Expected 'defaultValue' to be a literal, got a variable.", [defaultValue.loc]);
+        throw createUserError("Expected 'defaultValue' to be a literal, got a variable.", [
+          defaultValue.loc,
+        ]);
       }
 
       variables.set(argName, {
         ast: arg,
-        defaultValue: (_defaultValue$value = defaultValue === null || defaultValue === void 0 ? void 0 : defaultValue.value) !== null && _defaultValue$value !== void 0 ? _defaultValue$value : null,
+        defaultValue:
+          (_defaultValue$value =
+            defaultValue === null || defaultValue === void 0 ? void 0 : defaultValue.value) !==
+            null && _defaultValue$value !== void 0
+            ? _defaultValue$value
+            : null,
         defined: true,
         name: argName,
-        type: type
+        type: type,
       });
     });
     return variables;
-  }
+  };
   /**
    * Constructs a mapping of variable names to definitions using the
    * standard GraphQL syntax for variable definitions.
    */
-  ;
 
-  _proto._buildOperationArgumentDefinitions = function _buildOperationArgumentDefinitions(operation) {
+  _proto._buildOperationArgumentDefinitions = function _buildOperationArgumentDefinitions(
+    operation,
+  ) {
     var schema = this._schema;
     var variableDefinitions = new Map();
     (operation.variableDefinitions || []).forEach(function (def) {
@@ -279,20 +348,29 @@ var RelayParser = /*#__PURE__*/function () {
       var typeFromAST = schema.getTypeFromAST(def.type);
 
       if (typeFromAST == null) {
-        throw createUserError("Unknown type: '".concat(getTypeName(def.type), "'."), null, [def.type]);
+        throw createUserError("Unknown type: '".concat(getTypeName(def.type), "'."), null, [
+          def.type,
+        ]);
       }
 
       var type = schema.asInputType(typeFromAST);
 
       if (type == null) {
-        throw createUserError("Expected type \"".concat(getTypeName(def.type), "\" to be an input type."), null, [def.type]);
+        throw createUserError(
+          'Expected type "'.concat(getTypeName(def.type), '" to be an input type.'),
+          null,
+          [def.type],
+        );
       }
 
       var defaultValue = def.defaultValue ? transformLiteralValue(def.defaultValue, def) : null;
       var previousDefinition = variableDefinitions.get(name);
 
       if (previousDefinition != null) {
-        throw createUserError("Duplicate definition for variable '$".concat(name, "'."), null, [previousDefinition.ast, def]);
+        throw createUserError("Duplicate definition for variable '$".concat(name, "'."), null, [
+          previousDefinition.ast,
+          def,
+        ]);
       }
 
       variableDefinitions.set(name, {
@@ -300,30 +378,40 @@ var RelayParser = /*#__PURE__*/function () {
         defaultValue: defaultValue,
         defined: true,
         name: name,
-        type: type
+        type: type,
       });
     });
     return variableDefinitions;
   };
 
   return RelayParser;
-}();
+})();
 /**
  * @private
  */
 
-
 function parseDefinition(schema, getFieldDefinition, entries, definition, variableDefinitions) {
-  var parser = new GraphQLDefinitionParser(schema, getFieldDefinition, entries, definition, variableDefinitions);
+  var parser = new GraphQLDefinitionParser(
+    schema,
+    getFieldDefinition,
+    entries,
+    definition,
+    variableDefinitions,
+  );
   return parser.transform();
 }
 /**
  * @private
  */
 
-
-var GraphQLDefinitionParser = /*#__PURE__*/function () {
-  function GraphQLDefinitionParser(schema, getFieldDefinition, entries, definition, variableDefinitions) {
+var GraphQLDefinitionParser = /*#__PURE__*/ (function () {
+  function GraphQLDefinitionParser(
+    schema,
+    getFieldDefinition,
+    entries,
+    definition,
+    variableDefinitions,
+  ) {
     this._definition = definition;
     this._entries = entries;
     this._getFieldDefinition = getFieldDefinition;
@@ -346,18 +434,24 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
 
       default:
         definition;
-        throw createCompilerError("Unsupported definition type ".concat(definition.kind), [definition]);
+        throw createCompilerError('Unsupported definition type '.concat(definition.kind), [
+          definition,
+        ]);
     }
   };
 
-  _proto2._recordAndVerifyVariableReference = function _recordAndVerifyVariableReference(variable, name, usedAsType) {
+  _proto2._recordAndVerifyVariableReference = function _recordAndVerifyVariableReference(
+    variable,
+    name,
+    usedAsType,
+  ) {
     // Special case for variables used in @arguments where we currently
     // aren't guaranteed to be able to resolve the type.
     if (usedAsType == null) {
       if (!this._variableDefinitions.has(name) && !this._unknownVariables.has(name)) {
         this._unknownVariables.set(name, {
           ast: variable,
-          type: null
+          type: null,
         });
       }
 
@@ -377,7 +471,17 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
       }
 
       if (!this._schema.isTypeSubTypeOf(effectiveType, usedAsType)) {
-        throw createUserError("Variable '$".concat(name, "' was defined as type '").concat(String(variableDefinition.type), "' but used in a location expecting the type '").concat(String(usedAsType), "'"), null, [variableDefinition.ast, variable]);
+        throw createUserError(
+          "Variable '$"
+            .concat(name, "' was defined as type '")
+            .concat(
+              String(variableDefinition.type),
+              "' but used in a location expecting the type '",
+            )
+            .concat(String(usedAsType), "'"),
+          null,
+          [variableDefinition.ast, variable],
+        );
       }
     } else {
       var previous = this._unknownVariables.get(name);
@@ -386,22 +490,33 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
         // No previous usage, current type is strongest
         this._unknownVariables.set(name, {
           ast: variable,
-          type: usedAsType
+          type: usedAsType,
         });
       } else {
         var previousVariable = previous.ast,
-            previousType = previous.type;
+          previousType = previous.type;
 
-        if (!(this._schema.isTypeSubTypeOf(usedAsType, previousType) || this._schema.isTypeSubTypeOf(previousType, usedAsType))) {
-          throw createUserError("Variable '$".concat(name, "' was used in locations expecting the conflicting types '").concat(String(previousType), "' and '").concat(String(usedAsType), "'."), null, [previousVariable, variable]);
+        if (
+          !(
+            this._schema.isTypeSubTypeOf(usedAsType, previousType) ||
+            this._schema.isTypeSubTypeOf(previousType, usedAsType)
+          )
+        ) {
+          throw createUserError(
+            "Variable '$"
+              .concat(name, "' was used in locations expecting the conflicting types '")
+              .concat(String(previousType), "' and '")
+              .concat(String(usedAsType), "'."),
+            null,
+            [previousVariable, variable],
+          );
         } // If the new used type has stronger requirements, use that type as reference,
         // otherwise keep referencing the previous type
-
 
         if (this._schema.isTypeSubTypeOf(usedAsType, previousType)) {
           this._unknownVariables.set(name, {
             ast: variable,
-            type: usedAsType
+            type: usedAsType,
           });
         }
       }
@@ -414,11 +529,11 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
 
       this._directiveLocations = new Map();
 
-      var _iterator = (0, _createForOfIteratorHelper2["default"])(directiveDefs),
-          _step;
+      var _iterator = (0, _createForOfIteratorHelper2['default'])(directiveDefs),
+        _step;
 
       try {
-        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        for (_iterator.s(); !(_step = _iterator.n()).done; ) {
           var def = _step.value;
 
           this._directiveLocations.set(def.name, def.locations);
@@ -433,7 +548,10 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
     return this._directiveLocations;
   };
 
-  _proto2._validateDirectivesLocation = function _validateDirectivesLocation(directives, allowedLocaction) {
+  _proto2._validateDirectivesLocation = function _validateDirectivesLocation(
+    directives,
+    allowedLocaction,
+  ) {
     if (!directives || !directives.length) {
       return;
     }
@@ -459,47 +577,68 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
     });
 
     if (mismatches.length) {
-      var invalidDirectives = mismatches.map(function (directive) {
-        return '@' + getName(directive);
-      }).join(', ');
-      throw createUserError("Invalid directives ".concat(invalidDirectives, " found on ").concat(allowedLocaction, "."), null, mismatches);
+      var invalidDirectives = mismatches
+        .map(function (directive) {
+          return '@' + getName(directive);
+        })
+        .join(', ');
+      throw createUserError(
+        'Invalid directives '.concat(invalidDirectives, ' found on ').concat(allowedLocaction, '.'),
+        null,
+        mismatches,
+      );
     }
   };
 
   _proto2._transformFragment = function _transformFragment(fragment) {
-    var directives = this._transformDirectives((fragment.directives || []).filter(function (directive) {
-      return getName(directive) !== ARGUMENT_DEFINITIONS;
-    }), 'FRAGMENT_DEFINITION');
+    var directives = this._transformDirectives(
+      (fragment.directives || []).filter(function (directive) {
+        return getName(directive) !== ARGUMENT_DEFINITIONS;
+      }),
+      'FRAGMENT_DEFINITION',
+    );
 
     var typeFromAST = this._schema.getTypeFromAST(fragment.typeCondition);
 
     if (typeFromAST == null) {
-      throw createUserError("Fragment \"".concat(fragment.name.value, "\" cannot condition on unknown ") + "type \"".concat(String(fragment.typeCondition.name.value), "\"."), null, [fragment.typeCondition]);
+      throw createUserError(
+        'Fragment "'.concat(fragment.name.value, '" cannot condition on unknown ') +
+          'type "'.concat(String(fragment.typeCondition.name.value), '".'),
+        null,
+        [fragment.typeCondition],
+      );
     }
 
     var type = this._schema.asCompositeType(typeFromAST);
 
     if (type == null) {
-      throw createUserError("Fragment \"".concat(fragment.name.value, "\" cannot condition on non composite ") + "type \"".concat(String(type), "\"."), null, [fragment.typeCondition]);
+      throw createUserError(
+        'Fragment "'.concat(fragment.name.value, '" cannot condition on non composite ') +
+          'type "'.concat(String(type), '".'),
+        null,
+        [fragment.typeCondition],
+      );
     }
 
     var selections = this._transformSelections(fragment.selectionSet, type, fragment.typeCondition);
 
-    var argumentDefinitions = (0, _toConsumableArray2["default"])(buildArgumentDefinitions(this._variableDefinitions));
+    var argumentDefinitions = (0, _toConsumableArray2['default'])(
+      buildArgumentDefinitions(this._variableDefinitions),
+    );
 
-    var _iterator2 = (0, _createForOfIteratorHelper2["default"])(this._unknownVariables),
-        _step2;
+    var _iterator2 = (0, _createForOfIteratorHelper2['default'])(this._unknownVariables),
+      _step2;
 
     try {
-      for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+      for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
         var _step2$value = _step2.value,
-            name = _step2$value[0],
-            variableReference = _step2$value[1];
+          name = _step2$value[0],
+          variableReference = _step2$value[1];
         argumentDefinitions.push({
           kind: 'RootArgumentDefinition',
           loc: buildLocation(variableReference.ast.loc),
           name: name,
-          type: variableReference.type
+          type: variableReference.type,
         });
       }
     } catch (err) {
@@ -517,7 +656,7 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
       selections: selections,
       type: type,
       // $FlowFixMe[incompatible-return] - could be null
-      argumentDefinitions: argumentDefinitions
+      argumentDefinitions: argumentDefinitions,
     };
   };
 
@@ -534,14 +673,21 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
 
       default:
         definition.operation;
-        throw createCompilerError("Unknown operation type '".concat(definition.operation, "'."), null, [definition]);
+        throw createCompilerError(
+          "Unknown operation type '".concat(definition.operation, "'."),
+          null,
+          [definition],
+        );
     }
   };
 
   _proto2._transformOperation = function _transformOperation(definition) {
     var name = getName(definition);
 
-    var directives = this._transformDirectives(definition.directives || [], this._getLocationFromOperation(definition));
+    var directives = this._transformDirectives(
+      definition.directives || [],
+      this._getLocationFromOperation(definition),
+    );
 
     var type;
     var operation;
@@ -565,7 +711,11 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
 
       default:
         definition.operation;
-        throw createCompilerError("Unknown operation type '".concat(definition.operation, "'."), null, [definition]);
+        throw createCompilerError(
+          "Unknown operation type '".concat(definition.operation, "'."),
+          null,
+          [definition],
+        );
     }
 
     if (!definition.selectionSet) {
@@ -577,9 +727,13 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
     var argumentDefinitions = buildArgumentDefinitions(this._variableDefinitions);
 
     if (this._unknownVariables.size !== 0) {
-      throw createUserError("Query '".concat(name, "' references undefined variables."), null, Array.from(this._unknownVariables.values(), function (variableReference) {
-        return variableReference.ast;
-      }));
+      throw createUserError(
+        "Query '".concat(name, "' references undefined variables."),
+        null,
+        Array.from(this._unknownVariables.values(), function (variableReference) {
+          return variableReference.ast;
+        }),
+      );
     }
 
     return {
@@ -592,11 +746,15 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
       directives: directives,
       selections: selections,
       // $FlowFixMe[incompatible-return]
-      type: type
+      type: type,
     };
   };
 
-  _proto2._transformSelections = function _transformSelections(selectionSet, parentType, parentTypeAST) {
+  _proto2._transformSelections = function _transformSelections(
+    selectionSet,
+    parentType,
+    parentTypeAST,
+  ) {
     var _this4 = this;
 
     return selectionSet.selections.map(function (selection) {
@@ -614,30 +772,57 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
       }
 
       var _this4$_splitConditio = _this4._splitConditions(node.directives),
-          conditions = _this4$_splitConditio[0],
-          directives = _this4$_splitConditio[1];
+        conditions = _this4$_splitConditio[0],
+        directives = _this4$_splitConditio[1];
 
-      var conditionalNodes = applyConditions(conditions, // $FlowFixMe[incompatible-call]
-      [(0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, node), {}, {
-        directives: directives
-      })]);
+      var conditionalNodes = applyConditions(
+        conditions, // $FlowFixMe[incompatible-call]
+        [
+          (0, _objectSpread2['default'])(
+            (0, _objectSpread2['default'])({}, node),
+            {},
+            {
+              directives: directives,
+            },
+          ),
+        ],
+      );
 
       if (conditionalNodes.length !== 1) {
-        throw createCompilerError('Expected exactly one condition node.', null, selection.directives);
+        throw createCompilerError(
+          'Expected exactly one condition node.',
+          null,
+          selection.directives,
+        );
       }
 
       return conditionalNodes[0];
     });
   };
 
-  _proto2._transformInlineFragment = function _transformInlineFragment(fragment, parentType, parentTypeAST) {
+  _proto2._transformInlineFragment = function _transformInlineFragment(
+    fragment,
+    parentType,
+    parentTypeAST,
+  ) {
     var schema = this._schema;
-    var typeCondition = fragment.typeCondition != null ? schema.getTypeFromAST(fragment.typeCondition) : parentType;
+    var typeCondition =
+      fragment.typeCondition != null ? schema.getTypeFromAST(fragment.typeCondition) : parentType;
 
     if (typeCondition == null) {
       var _fragment$typeConditi;
 
-      throw createUserError('Inline fragments can only be on object, interface or union types' + ", got unknown type '".concat(getTypeName(fragment.typeCondition), "'."), null, [(_fragment$typeConditi = fragment.typeCondition) !== null && _fragment$typeConditi !== void 0 ? _fragment$typeConditi : fragment]);
+      throw createUserError(
+        'Inline fragments can only be on object, interface or union types' +
+          ", got unknown type '".concat(getTypeName(fragment.typeCondition), "'."),
+        null,
+        [
+          (_fragment$typeConditi = fragment.typeCondition) !== null &&
+          _fragment$typeConditi !== void 0
+            ? _fragment$typeConditi
+            : fragment,
+        ],
+      );
     }
 
     var typeConditionName = schema.getTypeString(typeCondition);
@@ -646,16 +831,37 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
     if (typeCondition == null) {
       var _fragment$typeConditi2;
 
-      throw createUserError('Inline fragments can only be on object, interface or union types' + ", got '".concat(typeConditionName, "'."), null, [(_fragment$typeConditi2 = fragment.typeCondition) !== null && _fragment$typeConditi2 !== void 0 ? _fragment$typeConditi2 : fragment]);
+      throw createUserError(
+        'Inline fragments can only be on object, interface or union types' +
+          ", got '".concat(typeConditionName, "'."),
+        null,
+        [
+          (_fragment$typeConditi2 = fragment.typeCondition) !== null &&
+          _fragment$typeConditi2 !== void 0
+            ? _fragment$typeConditi2
+            : fragment,
+        ],
+      );
     }
 
     var rawParentType = this._schema.assertCompositeType(this._schema.getRawType(parentType));
 
-    checkFragmentSpreadTypeCompatibility(this._schema, typeCondition, rawParentType, null, fragment.typeCondition, parentTypeAST);
+    checkFragmentSpreadTypeCompatibility(
+      this._schema,
+      typeCondition,
+      rawParentType,
+      null,
+      fragment.typeCondition,
+      parentTypeAST,
+    );
 
     var directives = this._transformDirectives(fragment.directives || [], 'INLINE_FRAGMENT');
 
-    var selections = this._transformSelections(fragment.selectionSet, typeCondition, fragment.typeCondition);
+    var selections = this._transformSelections(
+      fragment.selectionSet,
+      typeCondition,
+      fragment.typeCondition,
+    );
 
     return {
       kind: 'InlineFragment',
@@ -663,45 +869,65 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
       loc: buildLocation(fragment.loc),
       metadata: null,
       selections: selections,
-      typeCondition: typeCondition
+      typeCondition: typeCondition,
     };
   };
 
-  _proto2._transformFragmentSpread = function _transformFragmentSpread(fragmentSpread, parentType, parentTypeAST) {
+  _proto2._transformFragmentSpread = function _transformFragmentSpread(
+    fragmentSpread,
+    parentType,
+    parentTypeAST,
+  ) {
     var _this5 = this;
 
     var fragmentName = getName(fragmentSpread);
 
     var _partitionArray = partitionArray(fragmentSpread.directives || [], function (directive) {
-      var name = getName(directive);
-      return name === ARGUMENTS || name === DEPRECATED_UNCHECKED_ARGUMENTS;
-    }),
-        argumentDirectives = _partitionArray[0],
-        otherDirectives = _partitionArray[1];
+        var name = getName(directive);
+        return name === ARGUMENTS || name === DEPRECATED_UNCHECKED_ARGUMENTS;
+      }),
+      argumentDirectives = _partitionArray[0],
+      otherDirectives = _partitionArray[1];
 
     if (argumentDirectives.length > 1) {
-      throw createUserError("Directive @".concat(ARGUMENTS, " may be used at most once per a fragment spread."), null, argumentDirectives);
+      throw createUserError(
+        'Directive @'.concat(ARGUMENTS, ' may be used at most once per a fragment spread.'),
+        null,
+        argumentDirectives,
+      );
     }
 
     var fragmentDefinition = this._entries.get(fragmentName);
 
     if (fragmentDefinition == null) {
-      throw createUserError("Unknown fragment '".concat(fragmentName, "'."), null, [fragmentSpread.name]);
+      throw createUserError("Unknown fragment '".concat(fragmentName, "'."), null, [
+        fragmentSpread.name,
+      ]);
     }
 
     var fragmentTypeNode = getFragmentType(fragmentDefinition.definition);
 
-    var fragmentType = this._schema.assertCompositeType(this._schema.expectTypeFromAST(fragmentTypeNode));
+    var fragmentType = this._schema.assertCompositeType(
+      this._schema.expectTypeFromAST(fragmentTypeNode),
+    );
 
     var rawParentType = this._schema.assertCompositeType(this._schema.getRawType(parentType));
 
-    checkFragmentSpreadTypeCompatibility(this._schema, fragmentType, rawParentType, fragmentSpread.name.value, fragmentSpread, parentTypeAST);
+    checkFragmentSpreadTypeCompatibility(
+      this._schema,
+      fragmentType,
+      rawParentType,
+      fragmentSpread.name.value,
+      fragmentSpread,
+      parentTypeAST,
+    );
     var fragmentArgumentDefinitions = fragmentDefinition.variableDefinitions;
     var argumentsDirective = argumentDirectives[0];
     var args;
 
     if (argumentsDirective != null) {
-      var isDeprecatedUncheckedArguments = getName(argumentsDirective) === DEPRECATED_UNCHECKED_ARGUMENTS;
+      var isDeprecatedUncheckedArguments =
+        getName(argumentsDirective) === DEPRECATED_UNCHECKED_ARGUMENTS;
       var hasInvalidArgument = false;
       args = (argumentsDirective.arguments || []).map(function (arg) {
         var _argumentDefinition$t;
@@ -709,11 +935,23 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
         var argName = getName(arg);
         var argValue = arg.value;
         var argumentDefinition = fragmentArgumentDefinitions.get(argName);
-        var argumentType = (_argumentDefinition$t = argumentDefinition === null || argumentDefinition === void 0 ? void 0 : argumentDefinition.type) !== null && _argumentDefinition$t !== void 0 ? _argumentDefinition$t : null;
+        var argumentType =
+          (_argumentDefinition$t =
+            argumentDefinition === null || argumentDefinition === void 0
+              ? void 0
+              : argumentDefinition.type) !== null && _argumentDefinition$t !== void 0
+            ? _argumentDefinition$t
+            : null;
 
         if (argValue.kind === 'Variable') {
           if (argumentDefinition == null && !isDeprecatedUncheckedArguments) {
-            throw createUserError("Variable @".concat(ARGUMENTS, " values are only supported when the ") + "argument is defined with @".concat(ARGUMENT_DEFINITIONS, ". Check ") + "the definition of fragment '".concat(fragmentName, "'."), null, [arg.value, fragmentDefinition.definition]);
+            throw createUserError(
+              'Variable @'.concat(ARGUMENTS, ' values are only supported when the ') +
+                'argument is defined with @'.concat(ARGUMENT_DEFINITIONS, '. Check ') +
+                "the definition of fragment '".concat(fragmentName, "'."),
+              null,
+              [arg.value, fragmentDefinition.definition],
+            );
           }
 
           hasInvalidArgument = hasInvalidArgument || argumentDefinition == null; // TODO: check the type of the variable and use the type
@@ -723,11 +961,17 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
             loc: buildLocation(arg.loc),
             name: argName,
             value: _this5._transformVariable(argValue, null),
-            type: null
+            type: null,
           };
         } else {
           if (argumentType == null) {
-            throw createUserError("Literal @".concat(ARGUMENTS, " values are only supported when the ") + "argument is defined with @".concat(ARGUMENT_DEFINITIONS, ". Check ") + "the definition of fragment '".concat(fragmentName, "'."), null, [arg.value, fragmentDefinition.definition]);
+            throw createUserError(
+              'Literal @'.concat(ARGUMENTS, ' values are only supported when the ') +
+                'argument is defined with @'.concat(ARGUMENT_DEFINITIONS, '. Check ') +
+                "the definition of fragment '".concat(fragmentName, "'."),
+              null,
+              [arg.value, fragmentDefinition.definition],
+            );
           }
 
           var value = _this5._transformValue(argValue, argumentType);
@@ -737,13 +981,18 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
             loc: buildLocation(arg.loc),
             name: argName,
             value: value,
-            type: argumentType
+            type: argumentType,
           };
         }
       });
 
       if (isDeprecatedUncheckedArguments && !hasInvalidArgument) {
-        throw createUserError("Invalid use of @".concat(DEPRECATED_UNCHECKED_ARGUMENTS, ": all arguments ") + "are defined, use @".concat(ARGUMENTS, " instead."), null, [argumentsDirective]);
+        throw createUserError(
+          'Invalid use of @'.concat(DEPRECATED_UNCHECKED_ARGUMENTS, ': all arguments ') +
+            'are defined, use @'.concat(ARGUMENTS, ' instead.'),
+          null,
+          [argumentsDirective],
+        );
       }
     }
 
@@ -755,7 +1004,7 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
       metadata: null,
       loc: buildLocation(fragmentSpread.loc),
       name: fragmentName,
-      directives: directives
+      directives: directives,
     };
   };
 
@@ -768,18 +1017,34 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
     var fieldDef = this._getFieldDefinition(schema, parentType, name, field);
 
     if (fieldDef == null) {
-      throw createUserError("Unknown field '".concat(name, "' on type '").concat(schema.getTypeString(parentType), "'."), null, [field]);
+      throw createUserError(
+        "Unknown field '"
+          .concat(name, "' on type '")
+          .concat(schema.getTypeString(parentType), "'."),
+        null,
+        [field],
+      );
     }
 
-    var alias = (_field$alias$value = (_field$alias = field.alias) === null || _field$alias === void 0 ? void 0 : _field$alias.value) !== null && _field$alias$value !== void 0 ? _field$alias$value : name;
+    var alias =
+      (_field$alias$value =
+        (_field$alias = field.alias) === null || _field$alias === void 0
+          ? void 0
+          : _field$alias.value) !== null && _field$alias$value !== void 0
+        ? _field$alias$value
+        : name;
 
-    var args = this._transformArguments(field.arguments || [], schema.getFieldArgs(fieldDef), fieldDef);
+    var args = this._transformArguments(
+      field.arguments || [],
+      schema.getFieldArgs(fieldDef),
+      fieldDef,
+    );
 
     var _partitionArray2 = partitionArray(field.directives || [], function (directive) {
-      return getName(directive) !== CLIENT_FIELD;
-    }),
-        otherDirectives = _partitionArray2[0],
-        clientFieldDirectives = _partitionArray2[1];
+        return getName(directive) !== CLIENT_FIELD;
+      }),
+      otherDirectives = _partitionArray2[0],
+      clientFieldDirectives = _partitionArray2[1];
 
     var directives = this._transformDirectives(otherDirectives, 'FIELD');
 
@@ -788,8 +1053,16 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
     var handles = this._transformHandle(name, args, clientFieldDirectives);
 
     if (schema.isLeafType(schema.getRawType(type))) {
-      if (field.selectionSet && field.selectionSet.selections && field.selectionSet.selections.length) {
-        throw createUserError("Expected no selections for scalar field '".concat(name, "'."), null, [field]);
+      if (
+        field.selectionSet &&
+        field.selectionSet.selections &&
+        field.selectionSet.selections.length
+      ) {
+        throw createUserError(
+          "Expected no selections for scalar field '".concat(name, "'."),
+          null,
+          [field],
+        );
       }
 
       return {
@@ -801,13 +1074,21 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
         loc: buildLocation(field.loc),
         metadata: null,
         name: name,
-        type: schema.assertScalarFieldType(type)
+        type: schema.assertScalarFieldType(type),
       };
     } else {
-      var selections = field.selectionSet ? this._transformSelections(field.selectionSet, type) : null;
+      var selections = field.selectionSet
+        ? this._transformSelections(field.selectionSet, type)
+        : null;
 
       if (selections == null || selections.length === 0) {
-        throw createUserError("Expected at least one selection for non-scalar field '".concat(name, "' on type '").concat(schema.getTypeString(type), "'."), null, [field]);
+        throw createUserError(
+          "Expected at least one selection for non-scalar field '"
+            .concat(name, "' on type '")
+            .concat(schema.getTypeString(type), "'."),
+          null,
+          [field],
+        );
       }
 
       return {
@@ -821,12 +1102,16 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
         metadata: null,
         name: name,
         selections: selections,
-        type: schema.assertLinkedFieldType(type)
+        type: schema.assertLinkedFieldType(type),
       };
     }
   };
 
-  _proto2._transformHandle = function _transformHandle(fieldName, fieldArgs, clientFieldDirectives) {
+  _proto2._transformHandle = function _transformHandle(
+    fieldName,
+    fieldArgs,
+    clientFieldDirectives,
+  ) {
     var handles = null;
     clientFieldDirectives.forEach(function (clientFieldDirective) {
       var handleArgument = (clientFieldDirective.arguments || []).find(function (arg) {
@@ -840,7 +1125,11 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
         var maybeHandle = transformLiteralValue(handleArgument.value, handleArgument);
 
         if (typeof maybeHandle !== 'string') {
-          throw createUserError("Expected a string literal argument for the @".concat(CLIENT_FIELD, " directive."), null, [handleArgument.value]);
+          throw createUserError(
+            'Expected a string literal argument for the @'.concat(CLIENT_FIELD, ' directive.'),
+            null,
+            [handleArgument.value],
+          );
         }
 
         name = maybeHandle;
@@ -852,7 +1141,11 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
           var maybeKey = transformLiteralValue(keyArgument.value, keyArgument);
 
           if (typeof maybeKey !== 'string') {
-            throw createUserError("Expected a string literal argument for the @".concat(CLIENT_FIELD, " directive."), null, [keyArgument.value]);
+            throw createUserError(
+              'Expected a string literal argument for the @'.concat(CLIENT_FIELD, ' directive.'),
+              null,
+              [keyArgument.value],
+            );
           }
 
           key = maybeKey;
@@ -865,14 +1158,25 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
         if (filtersArgument) {
           var maybeFilters = transformLiteralValue(filtersArgument.value, filtersArgument);
 
-          if (!(Array.isArray(maybeFilters) && maybeFilters.every(function (filter) {
-            return typeof filter === 'string' && fieldArgs.some(function (fieldArg) {
-              return fieldArg.name === filter;
-            });
-          }))) {
-            throw createUserError("Expected an array of argument names on field '".concat(fieldName, "'."), null, [filtersArgument.value]);
+          if (
+            !(
+              Array.isArray(maybeFilters) &&
+              maybeFilters.every(function (filter) {
+                return (
+                  typeof filter === 'string' &&
+                  fieldArgs.some(function (fieldArg) {
+                    return fieldArg.name === filter;
+                  })
+                );
+              })
+            )
+          ) {
+            throw createUserError(
+              "Expected an array of argument names on field '".concat(fieldName, "'."),
+              null,
+              [filtersArgument.value],
+            );
           } // $FlowFixMe[incompatible-cast]
-
 
           filters = maybeFilters;
         }
@@ -882,7 +1186,9 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
         });
 
         if (dynamicKeyArgument != null) {
-          throw createUserError('Dynamic keys are only supported with @connection.', null, [dynamicKeyArgument.value]);
+          throw createUserError('Dynamic keys are only supported with @connection.', null, [
+            dynamicKeyArgument.value,
+          ]);
         }
 
         handles = handles || [];
@@ -890,7 +1196,7 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
           name: name,
           key: key,
           filters: filters,
-          dynamicKey: null
+          dynamicKey: null,
         });
       }
     });
@@ -911,24 +1217,34 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
         throw createUserError("Unknown directive '".concat(name, "'."), null, [directive]);
       }
 
-      var args = _this6._transformArguments(directive.arguments || [], directiveDef.args.map(function (item) {
-        return {
-          name: item.name,
-          type: item.type,
-          defaultValue: item.defaultValue
-        };
-      }), null, name);
+      var args = _this6._transformArguments(
+        directive.arguments || [],
+        directiveDef.args.map(function (item) {
+          return {
+            name: item.name,
+            type: item.type,
+            defaultValue: item.defaultValue,
+          };
+        }),
+        null,
+        name,
+      );
 
       return {
         kind: 'Directive',
         loc: buildLocation(directive.loc),
         name: name,
-        args: args
+        args: args,
       };
     });
   };
 
-  _proto2._transformArguments = function _transformArguments(args, argumentDefinitions, field, directiveName) {
+  _proto2._transformArguments = function _transformArguments(
+    args,
+    argumentDefinitions,
+    field,
+    directiveName,
+  ) {
     var _this7 = this;
 
     return args.map(function (arg) {
@@ -938,7 +1254,17 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
       });
 
       if (argDef == null) {
-        var message = "Unknown argument '".concat(argName, "'") + (field ? " on field '".concat(_this7._schema.getFieldName(field), "'") + " of type '".concat(_this7._schema.getTypeString(_this7._schema.getFieldParentType(field)), "'.") : directiveName != null ? " on directive '@".concat(directiveName, "'.") : '.');
+        var message =
+          "Unknown argument '".concat(argName, "'") +
+          (field
+            ? " on field '".concat(_this7._schema.getFieldName(field), "'") +
+              " of type '".concat(
+                _this7._schema.getTypeString(_this7._schema.getFieldParentType(field)),
+                "'.",
+              )
+            : directiveName != null
+              ? " on directive '@".concat(directiveName, "'.")
+              : '.');
         throw createUserError(message, null, [arg]);
       }
 
@@ -949,28 +1275,33 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
         loc: buildLocation(arg.loc),
         name: argName,
         value: value,
-        type: argDef.type
+        type: argDef.type,
       };
     });
   };
 
   _proto2._splitConditions = function _splitConditions(mixedDirectives) {
     var _partitionArray3 = partitionArray(mixedDirectives, function (directive) {
-      return directive.name === INCLUDE || directive.name === SKIP;
-    }),
-        conditionDirectives = _partitionArray3[0],
-        otherDirectives = _partitionArray3[1];
+        return directive.name === INCLUDE || directive.name === SKIP;
+      }),
+      conditionDirectives = _partitionArray3[0],
+      otherDirectives = _partitionArray3[1];
 
     var conditions = conditionDirectives.map(function (directive) {
       var passingValue = directive.name === INCLUDE;
       var arg = directive.args[0];
 
       if (arg == null || arg.name !== IF) {
-        throw createUserError("Expected an 'if' argument to @".concat(directive.name, "."), [directive.loc]);
+        throw createUserError("Expected an 'if' argument to @".concat(directive.name, '.'), [
+          directive.loc,
+        ]);
       }
 
       if (!(arg.value.kind === 'Variable' || arg.value.kind === 'Literal')) {
-        throw createUserError("Expected the 'if' argument to @".concat(directive.name, " to be a variable or literal."), [directive.loc]);
+        throw createUserError(
+          "Expected the 'if' argument to @".concat(directive.name, ' to be a variable or literal.'),
+          [directive.loc],
+        );
       }
 
       return {
@@ -978,12 +1309,16 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
         condition: arg.value,
         loc: directive.loc,
         passingValue: passingValue,
-        selections: []
+        selections: [],
       };
     });
     var sortedConditions = conditions.sort(function (a, b) {
       if (a.condition.kind === 'Variable' && b.condition.kind === 'Variable') {
-        return a.condition.variableName < b.condition.variableName ? -1 : a.condition.variableName > b.condition.variableName ? 1 : 0;
+        return a.condition.variableName < b.condition.variableName
+          ? -1
+          : a.condition.variableName > b.condition.variableName
+            ? 1
+            : 0;
       } else {
         // sort literals earlier, variables later
         return a.condition.kind === 'Variable' ? 1 : b.condition.kind === 'Variable' ? -1 : 0;
@@ -1001,7 +1336,7 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
       kind: 'Variable',
       loc: buildLocation(ast.loc),
       variableName: variableName,
-      type: usedAsType
+      type: usedAsType,
     };
   };
 
@@ -1014,12 +1349,11 @@ var GraphQLDefinitionParser = /*#__PURE__*/function () {
   };
 
   return GraphQLDefinitionParser;
-}();
+})();
 /**
  * Transforms and validates argument values according to the expected
  * type.
  */
-
 
 function transformValue(schema, ast, type, transformVariable) {
   if (ast.kind === 'Variable') {
@@ -1028,13 +1362,15 @@ function transformValue(schema, ast, type, transformVariable) {
   } else if (ast.kind === 'NullValue') {
     // Special case null literals since there is no value to parse
     if (schema.isNonNull(type)) {
-      throw createUserError("Expected a value matching type '".concat(String(type), "'."), null, [ast]);
+      throw createUserError("Expected a value matching type '".concat(String(type), "'."), null, [
+        ast,
+      ]);
     }
 
     return {
       kind: 'Literal',
       loc: buildLocation(ast.loc),
-      value: null
+      value: null,
     };
   } else {
     return transformNonNullLiteral(schema, ast, type, transformVariable);
@@ -1044,7 +1380,6 @@ function transformValue(schema, ast, type, transformVariable) {
  * Transforms and validates non-null literal (non-variable) values
  * according to the expected type.
  */
-
 
 function transformNonNullLiteral(schema, ast, type, transformVariable) {
   // Transform the value based on the type without a non-null wrapper.
@@ -1059,10 +1394,19 @@ function transformNonNullLiteral(schema, ast, type, transformVariable) {
       // Parse singular (non-list) values flowing into a list type
       // as scalars, ie without wrapping them in an array.
       if (!schema.isInputType(schema.getListItemType(nullableType))) {
-        throw createUserError("Expected type ".concat(schema.getTypeString(nullableType), " to be an input type."), null, [ast]);
+        throw createUserError(
+          'Expected type '.concat(schema.getTypeString(nullableType), ' to be an input type.'),
+          null,
+          [ast],
+        );
       }
 
-      return transformValue(schema, ast, schema.assertInputType(schema.getListItemType(nullableType)), transformVariable);
+      return transformValue(
+        schema,
+        ast,
+        schema.assertInputType(schema.getListItemType(nullableType)),
+        transformVariable,
+      );
     }
 
     var itemType = schema.assertInputType(schema.getListItemType(nullableType));
@@ -1084,42 +1428,61 @@ function transformNonNullLiteral(schema, ast, type, transformVariable) {
       return {
         kind: 'Literal',
         loc: buildLocation(ast.loc),
-        value: literalList
+        value: literalList,
       };
     } else {
       return {
         kind: 'ListValue',
         loc: buildLocation(ast.loc),
-        items: items
+        items: items,
       };
     }
   } else if (schema.isInputObject(nullableType)) {
     if (ast.kind !== 'ObjectValue') {
-      throw createUserError("Expected a value matching type '".concat(schema.getTypeString(type), "'."), null, [ast]);
+      throw createUserError(
+        "Expected a value matching type '".concat(schema.getTypeString(type), "'."),
+        null,
+        [ast],
+      );
     }
 
     var literalObject = {};
     var fields = [];
     var areAllFieldsScalar = true;
     var inputType = schema.assertInputObjectType(nullableType);
-    var requiredFieldNames = new Set(schema.getFields(inputType).filter(function (field) {
-      return schema.isNonNull(schema.getFieldType(field));
-    }).map(function (field) {
-      return schema.getFieldName(field);
-    }));
+    var requiredFieldNames = new Set(
+      schema
+        .getFields(inputType)
+        .filter(function (field) {
+          return schema.isNonNull(schema.getFieldType(field));
+        })
+        .map(function (field) {
+          return schema.getFieldName(field);
+        }),
+    );
     var seenFields = new Map();
     ast.fields.forEach(function (field) {
       var fieldName = getName(field);
       var seenField = seenFields.get(fieldName);
 
       if (seenField) {
-        throw createUserError("Duplicated field name '".concat(fieldName, "' in the input object."), null, [field, seenField]);
+        throw createUserError(
+          "Duplicated field name '".concat(fieldName, "' in the input object."),
+          null,
+          [field, seenField],
+        );
       }
 
       var fieldID = schema.getFieldByName(inputType, fieldName);
 
       if (!fieldID) {
-        throw createUserError("Unknown field '".concat(fieldName, "' on type '").concat(schema.getTypeString(inputType), "'."), null, [field]);
+        throw createUserError(
+          "Unknown field '"
+            .concat(fieldName, "' on type '")
+            .concat(schema.getTypeString(inputType), "'."),
+          null,
+          [field],
+        );
       }
 
       var fieldConfig = schema.getFieldConfig(fieldID);
@@ -1134,31 +1497,40 @@ function transformNonNullLiteral(schema, ast, type, transformVariable) {
         kind: 'ObjectFieldValue',
         loc: buildLocation(field.loc),
         name: fieldName,
-        value: fieldValue
+        value: fieldValue,
       });
       seenFields.set(fieldName, field);
-      requiredFieldNames["delete"](fieldName);
+      requiredFieldNames['delete'](fieldName);
       areAllFieldsScalar = areAllFieldsScalar && fieldValue.kind === 'Literal';
     });
 
     if (requiredFieldNames.size > 0) {
-      var requiredFieldStr = Array.from(requiredFieldNames).map(function (item) {
-        return "'".concat(item, "'");
-      }).join(', ');
-      throw createUserError("Missing non-optional field".concat(requiredFieldNames.size > 1 ? 's:' : '', " ").concat(requiredFieldStr, " for input type '").concat(schema.getTypeString(inputType), "'."), null, [ast]);
+      var requiredFieldStr = Array.from(requiredFieldNames)
+        .map(function (item) {
+          return "'".concat(item, "'");
+        })
+        .join(', ');
+      throw createUserError(
+        'Missing non-optional field'
+          .concat(requiredFieldNames.size > 1 ? 's:' : '', ' ')
+          .concat(requiredFieldStr, " for input type '")
+          .concat(schema.getTypeString(inputType), "'."),
+        null,
+        [ast],
+      );
     }
 
     if (areAllFieldsScalar) {
       return {
         kind: 'Literal',
         loc: buildLocation(ast.loc),
-        value: literalObject
+        value: literalObject,
       };
     } else {
       return {
         kind: 'ObjectValue',
         loc: buildLocation(ast.loc),
-        fields: fields
+        fields: fields,
       };
     }
   } else if (schema.isId(nullableType)) {
@@ -1169,16 +1541,20 @@ function transformNonNullLiteral(schema, ast, type, transformVariable) {
       return {
         kind: 'Literal',
         loc: buildLocation(ast.loc),
-        value: parseInt(ast.value, 10)
+        value: parseInt(ast.value, 10),
       };
     } else if (ast.kind === 'StringValue') {
       return {
         kind: 'Literal',
         loc: buildLocation(ast.loc),
-        value: ast.value
+        value: ast.value,
       };
     } else {
-      throw createUserError("Invalid value, expected a value matching type '".concat(schema.getTypeString(type), "'."), null, [ast]);
+      throw createUserError(
+        "Invalid value, expected a value matching type '".concat(schema.getTypeString(type), "'."),
+        null,
+        [ast],
+      );
     }
   } else if (schema.isEnum(nullableType)) {
     var enumType = schema.assertEnumType(nullableType);
@@ -1188,13 +1564,19 @@ function transformNonNullLiteral(schema, ast, type, transformVariable) {
       var suggestions = schema.getEnumValues(enumType); // parseLiteral() should return a non-null JavaScript value
       // if the ast value is valid for the type.
 
-      throw createUserError("Expected a value matching type '".concat(schema.getTypeString(type), "'. Possible values: ").concat(orList(suggestions), "?'"), null, [ast]);
+      throw createUserError(
+        "Expected a value matching type '"
+          .concat(schema.getTypeString(type), "'. Possible values: ")
+          .concat(orList(suggestions), "?'"),
+        null,
+        [ast],
+      );
     }
 
     return {
       kind: 'Literal',
       loc: buildLocation(ast.loc),
-      value: value
+      value: value,
     };
   } else if (schema.isScalar(nullableType)) {
     var _value = schema.parseLiteral(schema.assertScalarType(nullableType), ast);
@@ -1202,22 +1584,32 @@ function transformNonNullLiteral(schema, ast, type, transformVariable) {
     if (_value == null) {
       // parseLiteral() should return a non-null JavaScript value
       // if the ast value is valid for the type.
-      throw createUserError("Expected a value matching type '".concat(schema.getTypeString(type), "'."), null, [ast]);
+      throw createUserError(
+        "Expected a value matching type '".concat(schema.getTypeString(type), "'."),
+        null,
+        [ast],
+      );
     }
 
     return {
       kind: 'Literal',
       loc: buildLocation(ast.loc),
-      value: _value
+      value: _value,
     };
   } else {
-    throw createCompilerError("Unsupported type '".concat(schema.getTypeString(type), "' for input value, expected a GraphQLList, ") + 'GraphQLInputObjectType, GraphQLEnumType, or GraphQLScalarType.', null, [ast]);
+    throw createCompilerError(
+      "Unsupported type '".concat(
+        schema.getTypeString(type),
+        "' for input value, expected a GraphQLList, ",
+      ) + 'GraphQLInputObjectType, GraphQLEnumType, or GraphQLScalarType.',
+      null,
+      [ast],
+    );
   }
 }
 /**
  * @private
  */
-
 
 function transformLiteralValue(ast, context) {
   switch (ast.kind) {
@@ -1246,19 +1638,22 @@ function transformLiteralValue(ast, context) {
     case 'NullValue':
       return null;
 
-    case 'ObjectValue':
-      {
-        var objectValue = {};
-        ast.fields.forEach(function (field) {
-          var fieldName = getName(field);
-          var value = transformLiteralValue(field.value, context);
-          objectValue[fieldName] = value;
-        });
-        return objectValue;
-      }
+    case 'ObjectValue': {
+      var objectValue = {};
+      ast.fields.forEach(function (field) {
+        var fieldName = getName(field);
+        var value = transformLiteralValue(field.value, context);
+        objectValue[fieldName] = value;
+      });
+      return objectValue;
+    }
 
     case 'Variable':
-      throw createUserError('Unexpected variable where a literal (static) value is required.', null, [ast, context]);
+      throw createUserError(
+        'Unexpected variable where a literal (static) value is required.',
+        null,
+        [ast, context],
+      );
 
     default:
       ast.kind;
@@ -1269,19 +1664,18 @@ function transformLiteralValue(ast, context) {
  * @private
  */
 
-
 function buildArgumentDefinitions(variables) {
   return Array.from(variables.values(), function (_ref3) {
     var ast = _ref3.ast,
-        name = _ref3.name,
-        defaultValue = _ref3.defaultValue,
-        type = _ref3.type;
+      name = _ref3.name,
+      defaultValue = _ref3.defaultValue,
+      type = _ref3.type;
     return {
       kind: 'LocalArgumentDefinition',
       loc: buildLocation(ast.loc),
       name: name,
       type: type,
-      defaultValue: defaultValue
+      defaultValue: defaultValue,
     };
   });
 }
@@ -1289,11 +1683,10 @@ function buildArgumentDefinitions(variables) {
  * @private
  */
 
-
 function buildLocation(loc) {
   if (loc == null) {
     return {
-      kind: 'Unknown'
+      kind: 'Unknown',
     };
   }
 
@@ -1301,27 +1694,31 @@ function buildLocation(loc) {
     kind: 'Source',
     start: loc.start,
     end: loc.end,
-    source: loc.source
+    source: loc.source,
   };
 }
 /**
  * @private
  */
 
-
 function applyConditions(conditions, selections) {
   var nextSelections = selections;
   conditions.forEach(function (condition) {
-    nextSelections = [(0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, condition), {}, {
-      selections: nextSelections
-    })];
+    nextSelections = [
+      (0, _objectSpread2['default'])(
+        (0, _objectSpread2['default'])({}, condition),
+        {},
+        {
+          selections: nextSelections,
+        },
+      ),
+    ];
   });
   return nextSelections;
 }
 /**
  * @private
  */
-
 
 function getName(ast) {
   var _ast$name;
@@ -1342,7 +1739,6 @@ function getTypeName(ast) {
  * @private
  */
 
-
 function getFragmentType(ast) {
   if (ast.kind === 'FragmentDefinition') {
     return ast.typeCondition;
@@ -1351,7 +1747,14 @@ function getFragmentType(ast) {
   throw createCompilerError('Expected ast node to be a FragmentDefinition node.', null, [ast]);
 }
 
-function checkFragmentSpreadTypeCompatibility(schema, fragmentType, parentType, fragmentName, fragmentTypeAST, parentTypeAST) {
+function checkFragmentSpreadTypeCompatibility(
+  schema,
+  fragmentType,
+  parentType,
+  fragmentName,
+  fragmentTypeAST,
+  parentTypeAST,
+) {
   if (!schema.doTypesOverlap(fragmentType, schema.assertCompositeType(parentType))) {
     var nodes = [];
 
@@ -1363,20 +1766,38 @@ function checkFragmentSpreadTypeCompatibility(schema, fragmentType, parentType, 
       nodes.push(fragmentTypeAST);
     }
 
-    var possibleConcreteTypes = schema.isAbstractType(parentType) ? Array.from(schema.getPossibleTypes(schema.assertAbstractType(parentType))) : [];
+    var possibleConcreteTypes = schema.isAbstractType(parentType)
+      ? Array.from(schema.getPossibleTypes(schema.assertAbstractType(parentType)))
+      : [];
     var suggestedTypesMessage = '';
 
     if (possibleConcreteTypes.length !== 0) {
-      suggestedTypesMessage = " Possible concrete types include ".concat(possibleConcreteTypes.sort().slice(0, 3).map(function (type) {
-        return "'".concat(schema.getTypeString(type), "'");
-      }).join(', '), ", etc.");
+      suggestedTypesMessage = ' Possible concrete types include '.concat(
+        possibleConcreteTypes
+          .sort()
+          .slice(0, 3)
+          .map(function (type) {
+            return "'".concat(schema.getTypeString(type), "'");
+          })
+          .join(', '),
+        ', etc.',
+      );
     }
 
-    throw createUserError((fragmentName != null ? "Fragment '".concat(fragmentName, "' cannot be spread here as objects of ") : 'Fragment cannot be spread here as objects of ') + "type '".concat(schema.getTypeString(parentType), "' ") + "can never be of type '".concat(schema.getTypeString(fragmentType), "'.") + suggestedTypesMessage, null, nodes);
+    throw createUserError(
+      (fragmentName != null
+        ? "Fragment '".concat(fragmentName, "' cannot be spread here as objects of ")
+        : 'Fragment cannot be spread here as objects of ') +
+        "type '".concat(schema.getTypeString(parentType), "' ") +
+        "can never be of type '".concat(schema.getTypeString(fragmentType), "'.") +
+        suggestedTypesMessage,
+      null,
+      nodes,
+    );
   }
 }
 
 module.exports = {
   parse: parse,
-  transform: transform
+  transform: transform,
 };

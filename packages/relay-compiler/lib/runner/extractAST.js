@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  *
  * @format
- * 
+ *
  */
 // flowlint ambiguous-object-type:error
 'use strict';
@@ -15,8 +15,8 @@ var JSModuleParser = require('../core/JSModuleParser');
 var invariant = require('invariant');
 
 var _require = require('graphql'),
-    parse = _require.parse,
-    print = _require.print;
+  parse = _require.parse,
+  print = _require.print;
 
 function extractFromJS(baseDir, file) {
   if (!file.exists) {
@@ -26,7 +26,7 @@ function extractFromJS(baseDir, file) {
   var f = {
     relPath: file.name,
     exists: true,
-    hash: file['content.sha1hex']
+    hash: file['content.sha1hex'],
   };
   var fileFilter = JSModuleParser.getFileFilter(baseDir);
 
@@ -41,37 +41,45 @@ function extractFromJS(baseDir, file) {
   }
 
   var doc = result.document,
-      sources = result.sources;
+    sources = result.sources;
   var nodes = doc.definitions.map(function (def) {
     if (def.kind === 'FragmentDefinition' || def.kind === 'OperationDefinition') {
       return toASTRecord(def);
     }
 
-    throw new Error("Unexpected definition kind: ".concat(def.kind));
+    throw new Error('Unexpected definition kind: '.concat(def.kind));
   });
   return {
     nodes: nodes,
-    sources: sources
+    sources: sources,
   };
 }
 
 function toASTRecord(node) {
   return {
     ast: node,
-    text: print(node)
+    text: print(node),
   };
 }
 
 function parseExecutableNode(text) {
   var nodes = parse(text).definitions;
-  !(nodes.length === 1) ? process.env.NODE_ENV !== "production" ? invariant(false, 'expected exactly 1 definition') : invariant(false) : void 0;
+  !(nodes.length === 1)
+    ? process.env.NODE_ENV !== 'production'
+      ? invariant(false, 'expected exactly 1 definition')
+      : invariant(false)
+    : void 0;
   var node = nodes[0];
-  !(node.kind === 'OperationDefinition' || node.kind === 'FragmentDefinition') ? process.env.NODE_ENV !== "production" ? invariant(false, 'expected an ExecutableDefinitionNode') : invariant(false) : void 0;
+  !(node.kind === 'OperationDefinition' || node.kind === 'FragmentDefinition')
+    ? process.env.NODE_ENV !== 'production'
+      ? invariant(false, 'expected an ExecutableDefinitionNode')
+      : invariant(false)
+    : void 0;
   return node;
 }
 
 module.exports = {
   parseExecutableNode: parseExecutableNode,
   toASTRecord: toASTRecord,
-  extractFromJS: extractFromJS
+  extractFromJS: extractFromJS,
 };

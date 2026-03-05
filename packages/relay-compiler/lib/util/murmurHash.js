@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
@@ -32,14 +32,19 @@ function murmurHash(str) {
 
   while (i !== len) {
     var ch4 = str.charCodeAt(i + 3);
-    k = str.charCodeAt(i) ^ str.charCodeAt(i + 1) << 8 ^ str.charCodeAt(i + 2) << 16 ^ (ch4 & 0xff) << 24 ^ (ch4 & 0xff00) >> 8;
+    k =
+      str.charCodeAt(i) ^
+      (str.charCodeAt(i + 1) << 8) ^
+      (str.charCodeAt(i + 2) << 16) ^
+      ((ch4 & 0xff) << 24) ^
+      ((ch4 & 0xff00) >> 8);
     i += 4;
-    k = k * 0x2d51 + (k & 0xffff) * 0xcc9e0000 >>> 0;
-    k = k << 15 | k >>> 17;
-    k = k * 0x3593 + (k & 0xffff) * 0x1b870000 >>> 0;
+    k = (k * 0x2d51 + (k & 0xffff) * 0xcc9e0000) >>> 0;
+    k = (k << 15) | (k >>> 17);
+    k = (k * 0x3593 + (k & 0xffff) * 0x1b870000) >>> 0;
     h ^= k;
-    h = h << 13 | h >>> 19;
-    h = h * 5 + 0xe6546b64 >>> 0;
+    h = (h << 13) | (h >>> 19);
+    h = (h * 5 + 0xe6546b64) >>> 0;
   }
 
   k = 0;
@@ -54,17 +59,17 @@ function murmurHash(str) {
 
     case 1:
       k ^= str.charCodeAt(len);
-      k = k * 0x2d51 + (k & 0xffff) * 0xcc9e0000 >>> 0;
-      k = k << 15 | k >>> 17;
-      k = k * 0x3593 + (k & 0xffff) * 0x1b870000 >>> 0;
+      k = (k * 0x2d51 + (k & 0xffff) * 0xcc9e0000) >>> 0;
+      k = (k << 15) | (k >>> 17);
+      k = (k * 0x3593 + (k & 0xffff) * 0x1b870000) >>> 0;
       h ^= k;
   }
 
   h ^= length;
   h ^= h >>> 16;
-  h = h * 0xca6b + (h & 0xffff) * 0x85eb0000 >>> 0;
+  h = (h * 0xca6b + (h & 0xffff) * 0x85eb0000) >>> 0;
   h ^= h >>> 13;
-  h = h * 0xae35 + (h & 0xffff) * 0xc2b20000 >>> 0;
+  h = (h * 0xae35 + (h & 0xffff) * 0xc2b20000) >>> 0;
   h ^= h >>> 16;
   h >>>= 0;
 

@@ -4,17 +4,19 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * 
+ *
  * @format
  */
 // flowlint ambiguous-object-type:error
 'use strict';
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _interopRequireDefault = require('@babel/runtime/helpers/interopRequireDefault');
 
-var _objectSpread2 = _interopRequireDefault(require("@babel/runtime/helpers/objectSpread2"));
+var _objectSpread2 = _interopRequireDefault(require('@babel/runtime/helpers/objectSpread2'));
 
-var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
+var _toConsumableArray2 = _interopRequireDefault(
+  require('@babel/runtime/helpers/toConsumableArray'),
+);
 
 var IRTransformer = require('../core/IRTransformer');
 
@@ -121,7 +123,7 @@ function skipRedundantNodesTransform(context) {
   return IRTransformer.transform(context, {
     Root: visitNode,
     SplitOperation: visitNode,
-    Fragment: visitNode
+    Fragment: visitNode,
   });
 }
 
@@ -147,7 +149,6 @@ function visitNode(node) {
  * prior to the clone.
  */
 
-
 function transformNode(schema, node, selectionMap) {
   // This will optimize a traversal of the same subselections.
   // If it's the same node, and selectionMap is empty
@@ -170,59 +171,78 @@ function transformNode(schema, node, selectionMap) {
 
     switch (selection.kind) {
       case 'ScalarField':
-      case 'FragmentSpread':
-        {
-          if (!selectionMap.has(identifier)) {
-            selections.push(selection);
-            selectionMap = selectionMap.set(identifier, null);
-          }
-
-          break;
+      case 'FragmentSpread': {
+        if (!selectionMap.has(identifier)) {
+          selections.push(selection);
+          selectionMap = selectionMap.set(identifier, null);
         }
+
+        break;
+      }
 
       case 'Defer':
       case 'Stream':
       case 'ModuleImport':
       case 'ClientExtension':
       case 'InlineDataFragmentSpread':
-      case 'LinkedField':
-        {
-          var transformed = transformNode(schema, selection, selectionMap.get(identifier) || new IMap());
+      case 'LinkedField': {
+        var transformed = transformNode(
+          schema,
+          selection,
+          selectionMap.get(identifier) || new IMap(),
+        );
 
-          if (transformed.node) {
-            selections.push(transformed.node);
-            selectionMap = selectionMap.set(identifier, transformed.selectionMap);
-          }
-
-          break;
+        if (transformed.node) {
+          selections.push(transformed.node);
+          selectionMap = selectionMap.set(identifier, transformed.selectionMap);
         }
+
+        break;
+      }
 
       case 'InlineFragment':
-      case 'Condition':
-        {
-          // Fork the selection map to prevent conditional selections from
-          // affecting the outer "guaranteed" selections.
-          var _transformed = transformNode(schema, selection, selectionMap.get(identifier) || selectionMap);
+      case 'Condition': {
+        // Fork the selection map to prevent conditional selections from
+        // affecting the outer "guaranteed" selections.
+        var _transformed = transformNode(
+          schema,
+          selection,
+          selectionMap.get(identifier) || selectionMap,
+        );
 
-          if (_transformed.node) {
-            selections.push(_transformed.node);
-            selectionMap = selectionMap.set(identifier, _transformed.selectionMap);
-          }
-
-          break;
+        if (_transformed.node) {
+          selections.push(_transformed.node);
+          selectionMap = selectionMap.set(identifier, _transformed.selectionMap);
         }
+
+        break;
+      }
 
       default:
         selection;
-        !false ? process.env.NODE_ENV !== "production" ? invariant(false, 'SkipRedundantNodesTransform: Unexpected node kind `%s`.', selection.kind) : invariant(false) : void 0;
+        !false
+          ? process.env.NODE_ENV !== 'production'
+            ? invariant(
+                false,
+                'SkipRedundantNodesTransform: Unexpected node kind `%s`.',
+                selection.kind,
+              )
+            : invariant(false)
+          : void 0;
     }
   });
-  var nextNode = selections.length ? (0, _objectSpread2["default"])((0, _objectSpread2["default"])({}, node), {}, {
-    selections: selections
-  }) : null;
+  var nextNode = selections.length
+    ? (0, _objectSpread2['default'])(
+        (0, _objectSpread2['default'])({}, node),
+        {},
+        {
+          selections: selections,
+        },
+      )
+    : null;
   result = {
     selectionMap: selectionMap,
-    node: nextNode
+    node: nextNode,
   };
 
   if (isEmptySelectionMap) {
@@ -230,13 +250,11 @@ function transformNode(schema, node, selectionMap) {
     cache.set(node, result);
   } // $FlowFixMe[incompatible-return]
 
-
   return result;
 }
 /**
  * Sort inline fragments and conditions after other selections.
  */
-
 
 function sortSelections(selections) {
   var isScalarOrLinkedField = function isScalarOrLinkedField(selection) {
@@ -244,12 +262,15 @@ function sortSelections(selections) {
   };
 
   var _partitionArray = partitionArray(selections, isScalarOrLinkedField),
-      scalarsAndLinkedFields = _partitionArray[0],
-      rest = _partitionArray[1];
+    scalarsAndLinkedFields = _partitionArray[0],
+    rest = _partitionArray[1];
 
-  return [].concat((0, _toConsumableArray2["default"])(scalarsAndLinkedFields), (0, _toConsumableArray2["default"])(rest));
+  return [].concat(
+    (0, _toConsumableArray2['default'])(scalarsAndLinkedFields),
+    (0, _toConsumableArray2['default'])(rest),
+  );
 }
 
 module.exports = {
-  transform: skipRedundantNodesTransform
+  transform: skipRedundantNodesTransform,
 };
