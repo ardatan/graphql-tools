@@ -22,7 +22,7 @@ var _toConsumableArray2 = _interopRequireDefault(
 
 var crypto = require('crypto');
 
-var nullthrows = require('nullthrows');
+var nullthrows = require('./util/nullthrowsOSS');
 
 var _require = require('./GraphQLASTUtils'),
   getName = _require.getName;

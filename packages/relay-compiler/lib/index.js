@@ -56,8 +56,6 @@ var JSModuleParser = require('./core/JSModuleParser');
 
 var MultiReporter = require('./reporters/MultiReporter');
 
-var RelayCodeGenerator = require('./codegen/RelayCodeGenerator');
-
 var RelayFileWriter = require('./codegen/RelayFileWriter');
 
 var RelayFindGraphQLTags = require('./core/RelayFindGraphQLTags');
@@ -77,8 +75,6 @@ var SchemaUtils = require('./core/SchemaUtils');
 var Sources = require('./runner/Sources');
 
 var StrictMap = require('./runner/StrictMap');
-
-var TimeReporter = require('./util/TimeReporter');
 
 var compileArtifacts = require('./runner/compileArtifacts');
 
@@ -142,14 +138,12 @@ module.exports = {
   getLiteralArgumentValues: getLiteralArgumentValues,
   Parser: RelayParser,
   Schema: RelaySchema,
-  CodeGenerator: RelayCodeGenerator,
   FlowGenerator: RelayFlowGenerator,
   FileWriter: RelayFileWriter,
   IRTransforms: RelayIRTransforms,
   JSModuleParser: JSModuleParser,
   MultiReporter: MultiReporter,
   Runner: CodegenRunner,
-  TimeReporter: TimeReporter,
   compileRelayArtifacts: compileRelayArtifacts,
   formatGeneratedModule: formatGeneratedModule,
   convertASTDocuments: ASTConvert.convertASTDocuments,

@@ -20,7 +20,7 @@ var _toConsumableArray2 = _interopRequireDefault(
 
 var SchemaUtils = require('../../core/SchemaUtils');
 
-var nullthrows = require('nullthrows');
+var nullthrows = require('../../util/nullthrowsOSS');
 
 var _require = require('../../core/CompilerError'),
   createUserError = _require.createUserError;
