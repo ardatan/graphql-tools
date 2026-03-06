@@ -111,7 +111,7 @@
     "packages/**/src/**/*.{ts,tsx}": [
       "cross-env \"ESLINT_USE_FLAT_CONFIG=false\" eslint --fix"
     ],
-    "**/*.{ts,tsx,graphql,yml,md,mdx,json}": [
+    "**/*.{ts,tsx,graphql,yml,md,mdx,json,js}": [
       "prettier --write"
     ]
   }

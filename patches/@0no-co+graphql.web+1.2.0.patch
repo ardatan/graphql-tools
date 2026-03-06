@@ -1,0 +1,58 @@
+diff --git a/node_modules/@0no-co/graphql.web/dist/graphql.web.d.ts b/node_modules/@0no-co/graphql.web/dist/graphql.web.d.ts
+index 12ca87a..bf755ba 100644
+--- a/node_modules/@0no-co/graphql.web/dist/graphql.web.d.ts
++++ b/node_modules/@0no-co/graphql.web/dist/graphql.web.d.ts
+@@ -459,7 +459,7 @@ type ArgumentNode = Or<
+   }
+ >;
+ type ConstArgumentNode = Or<
+-  GraphQL.ConstArgumentNode,
++  GraphQL.ArgumentNode,
+   {
+     readonly kind: Kind.ARGUMENT;
+     readonly name: NameNode;
+@@ -513,7 +513,7 @@ type ValueNode = Or<
+   | ObjectValueNode
+ >;
+ type ConstValueNode = Or<
+-  GraphQL.ConstValueNode,
++  GraphQL.ValueNode,
+   | IntValueNode
+   | FloatValueNode
+   | StringValueNode
+@@ -580,7 +580,7 @@ type ListValueNode = Or<
+   }
+ >;
+ type ConstListValueNode = Or<
+-  GraphQL.ConstListValueNode,
++  GraphQL.ListValueNode,
+   {
+     readonly kind: Kind.LIST;
+     readonly values: ReadonlyArray<ConstValueNode>;
+@@ -596,7 +596,7 @@ type ObjectValueNode = Or<
+   }
+ >;
+ type ConstObjectValueNode = Or<
+-  GraphQL.ConstObjectValueNode,
++  GraphQL.ObjectValueNode,
+   {
+     readonly kind: Kind.OBJECT;
+     readonly fields: ReadonlyArray<ConstObjectFieldNode>;
+@@ -613,7 +613,7 @@ type ObjectFieldNode = Or<
+   }
+ >;
+ type ConstObjectFieldNode = Or<
+-  GraphQL.ConstObjectFieldNode,
++  GraphQL.ObjectFieldNode,
+   {
+     readonly kind: Kind.OBJECT_FIELD;
+     readonly name: NameNode;
+@@ -631,7 +631,7 @@ type DirectiveNode = Or<
+   }
+ >;
+ type ConstDirectiveNode = Or<
+-  GraphQL.ConstDirectiveNode,
++  GraphQL.DirectiveNode,
+   {
+     readonly kind: Kind.DIRECTIVE;
+     readonly name: NameNode;

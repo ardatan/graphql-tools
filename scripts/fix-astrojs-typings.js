@@ -1,10 +1,7 @@
 const { readFileSync, writeFileSync } = require('fs');
 const { join } = require('path');
 
-const filePath = join(
-  __dirname,
-  '../node_modules/@astrojs/compiler/package.json',
-);
+const filePath = join(__dirname, '../node_modules/@astrojs/compiler/package.json');
 
 const pkg = JSON.parse(readFileSync(filePath, 'utf8'));
 
