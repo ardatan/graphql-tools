@@ -13,13 +13,12 @@ function linkFromCoreArgs(args: readonly ArgumentNode[]): FederatedLink | undefi
     const url = FederatedLinkUrl.fromUrl((feature.value as StringValueNode).value);
     return new FederatedLink(url, null, []);
   }
-  
 }
 
 function linkFromArgs(args: readonly ArgumentNode[]): FederatedLink | undefined {
   let url: FederatedLinkUrl | undefined;
-    let imports: FederatedLinkImport[] = [];
-    let as: string | null = null;
+  let imports: FederatedLinkImport[] = [];
+  let as: string | null = null;
   for (const arg of args) {
     switch (arg.name.value) {
       case 'url': {
@@ -50,7 +49,6 @@ function linkFromArgs(args: readonly ArgumentNode[]): FederatedLink | undefined 
   if (url !== undefined) {
     return new FederatedLink(url, as, imports);
   }
-  
 }
 
 function namespaced(namespace: string | null, name: string) {

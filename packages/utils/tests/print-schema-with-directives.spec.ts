@@ -15,7 +15,6 @@ import {
   specifiedDirectives,
   stripIgnoredCharacters,
 } from 'graphql';
-import { GraphQLJSON } from 'graphql-scalars';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { RenameTypes, wrapSchema } from '@graphql-tools/wrap';
@@ -201,6 +200,7 @@ describe('printSchemaWithDirectives', () => {
   });
 
   it(`Should print types correctly if they don't have astNode`, () => {
+    const { GraphQLJSON } = require('graphql-scalars');
     const schema = makeExecutableSchema({
       typeDefs: `
       scalar JSON
