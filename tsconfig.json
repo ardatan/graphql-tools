@@ -20,8 +20,6 @@
 
     "ignoreDeprecations": "5.0",
 
-    "skipLibCheck": true,
-
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

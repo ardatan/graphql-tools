@@ -40,7 +40,7 @@ import {
 } from 'graphql';
 import resolveFrom from 'resolve-from';
 import { createGraphQLError, parseGraphQLSDL } from '@graphql-tools/utils';
-import { extractLinkImplementations } from '@theguild/federation-composition';
+import { extractLinkImplementations } from './link/index.js';
 
 const builtinTypes = ['String', 'Float', 'Int', 'Boolean', 'ID', 'Upload'];
 

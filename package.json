@@ -34,7 +34,7 @@
     "clean-dist": "rimraf \"packages/**/dist\" && rimraf \".bob\"",
     "lint": "cross-env \"ESLINT_USE_FLAT_CONFIG=false\" eslint --ext .ts .",
     "postbuild": "tsx scripts/postbuild.ts",
-    "postinstall": "patch-package && husky install",
+    "postinstall": "patch-package && husky install && node scripts/fix-astrojs-typings.js",
     "prerelease": "npm run build",
     "prettier": "prettier --cache --ignore-path .gitignore --ignore-path .prettierignore --write --list-different .",
     "prettier:check": "prettier --cache --ignore-path .gitignore --ignore-path .prettierignore --check .",
@@ -83,6 +83,7 @@
     "husky": "9.1.7",
     "jest": "30.2.0",
     "lint-staged": "16.3.2",
+    "lru-cache": "10.4.3",
     "patch-package": "8.0.1",
     "prettier": "3.8.1",
     "prettier-plugin-tailwindcss": "0.7.2",
@@ -110,7 +111,7 @@
     "packages/**/src/**/*.{ts,tsx}": [
       "cross-env \"ESLINT_USE_FLAT_CONFIG=false\" eslint --fix"
     ],
-    "**/*.{ts,tsx,graphql,yml,md,mdx,json}": [
+    "**/*.{ts,tsx,graphql,yml,md,mdx,json,js}": [
       "prettier --write"
     ]
   }
