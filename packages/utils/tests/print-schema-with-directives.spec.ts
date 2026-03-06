@@ -200,6 +200,7 @@ describe('printSchemaWithDirectives', () => {
   });
 
   it(`Should print types correctly if they don't have astNode`, () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { GraphQLJSON } = require('graphql-scalars');
     const schema = makeExecutableSchema({
       typeDefs: `

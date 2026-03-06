@@ -727,6 +727,7 @@ describe('generating schema from shorthand', () => {
 
   describe('scalar types', () => {
     test('supports passing a GraphQLScalarType in resolveFunctions', () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { typeDefs: scalarTypeDefs, resolvers: scalarResolvers } = require('graphql-scalars');
       const scalarNames = Object.keys(scalarResolvers);
       const shorthand = /* GraphQL */ `
