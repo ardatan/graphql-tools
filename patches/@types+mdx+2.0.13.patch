@@ -1,0 +1,12 @@
+diff --git a/node_modules/@types/mdx/types.d.ts b/node_modules/@types/mdx/types.d.ts
+index 498bb69..6c2e132 100644
+--- a/node_modules/@types/mdx/types.d.ts
++++ b/node_modules/@types/mdx/types.d.ts
+@@ -1,5 +1,7 @@
+ // Internal helper types
+ 
++import { JSX } from "react";
++
+ /**
+  * This is the global JSX.ElementType if it’s defined, otherwise never.
+  */
