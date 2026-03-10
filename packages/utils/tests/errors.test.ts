@@ -7,7 +7,10 @@ import {
   relocatedError,
 } from '../src/errors';
 
-describe('Errors', () => {
+describeIf(
+  // Do not leak test this on Windows
+  !(process.env['LEAK_TEST'] && process.platform === 'win32'),
+)('Errors', () => {
   describe('relocatedError', () => {
     it('should adjust the path of a GraphqlError', () => {
       const originalError = createGraphQLError('test', {
