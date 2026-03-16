@@ -96,7 +96,9 @@
     "typedoc-plugin-markdown": "3.17.1",
     "typedoc-plugin-rename-defaults": "0.7.3",
     "typescript": "5.9.3",
-    "wonka": "6.3.5"
+    "undici": "7.24.3",
+    "wonka": "6.3.5",
+    "yauzl": "3.2.1"
   },
   "overrides": {
     "cookie": "1.1.1",
@@ -105,7 +107,9 @@
     "graphql": "16.13.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "tmp": "0.2.5"
+    "tmp": "0.2.5",
+    "undici": "7.24.3",
+    "yauzl": "3.2.1"
   },
   "lint-staged": {
     "packages/**/src/**/*.{ts,tsx}": [
