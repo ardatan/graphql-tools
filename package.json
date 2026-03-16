@@ -107,7 +107,7 @@
     },
     "graphql": "16.13.1",
     "miniflare": {
-      "undici": "7.24.3"
+      "undici": "7.24.4"
     },
     "react": "19.2.4",
     "react-dom": "19.2.4",
