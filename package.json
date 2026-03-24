@@ -63,8 +63,8 @@
     "@theguild/remark-mermaid": "0.3.0",
     "@types/jest": "30.0.0",
     "@types/node": "25.5.0",
-    "@typescript-eslint/eslint-plugin": "8.57.1",
-    "@typescript-eslint/parser": "8.57.1",
+    "@typescript-eslint/eslint-plugin": "8.57.2",
+    "@typescript-eslint/parser": "8.57.2",
     "@urql/core": "6.0.1",
     "babel-jest": "30.3.0",
     "bob-the-bundler": "7.0.1",
@@ -96,7 +96,7 @@
     "typedoc-plugin-markdown": "3.17.1",
     "typedoc-plugin-rename-defaults": "0.7.3",
     "typescript": "5.9.3",
-    "wonka": "6.3.5"
+    "wonka": "6.3.6"
   },
   "overrides": {
     "cookie": "1.1.1",

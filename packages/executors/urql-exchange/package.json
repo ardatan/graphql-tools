@@ -54,7 +54,7 @@
   },
   "devDependencies": {
     "@urql/core": "6.0.1",
-    "wonka": "6.3.5"
+    "wonka": "6.3.6"
   },
   "publishConfig": {
     "directory": "dist",
