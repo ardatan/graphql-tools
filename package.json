@@ -78,7 +78,7 @@
     "eslint-plugin-n": "17.24.0",
     "eslint-plugin-promise": "7.2.1",
     "globby": "11.1.0",
-    "graphql": "16.13.1",
+    "graphql": "16.13.2",
     "graphql-yoga": "5.18.1",
     "husky": "9.1.7",
     "jest": "30.3.0",
@@ -96,7 +96,7 @@
     "typedoc-plugin-markdown": "3.17.1",
     "typedoc-plugin-rename-defaults": "0.7.3",
     "typescript": "5.9.3",
-    "wonka": "6.3.5"
+    "wonka": "6.3.6"
   },
   "overrides": {
     "cookie": "1.1.1",
@@ -105,9 +105,9 @@
     "extract-zip": {
       "yauzl": "3.2.1"
     },
-    "graphql": "16.13.1",
+    "graphql": "16.13.2",
     "miniflare": {
-      "undici": "7.24.5"
+      "undici": "7.24.6"
     },
     "react": "19.2.4",
     "react-dom": "19.2.4",
