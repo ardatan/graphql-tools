@@ -18,7 +18,8 @@
 
     "noImplicitAny": false,
 
-    "ignoreDeprecations": "5.0",
+    "ignoreDeprecations": "6.0",
+    "rootDir": ".",
 
     "strict": true,
     "noUnusedLocals": true,
