@@ -1,0 +1,17 @@
+diff --git a/node_modules/graphql-yoga/typings/types.d.ts b/node_modules/graphql-yoga/typings/types.d.ts
+index 4ac1d77..d3857e7 100644
+--- a/node_modules/graphql-yoga/typings/types.d.ts
++++ b/node_modules/graphql-yoga/typings/types.d.ts
+@@ -29,11 +29,7 @@ export type CORSOptions = {
+     credentials?: boolean;
+     maxAge?: number;
+ } | false;
+-declare global {
+-    interface ReadableStream<R = any> {
+-        [Symbol.asyncIterator]: () => AsyncIterator<R>;
+-    }
+-}
++
+ export type FetchAPI = ReturnType<typeof createFetch>;
+ export interface FetchEvent extends Event {
+     request: Request;

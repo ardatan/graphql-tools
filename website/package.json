@@ -28,7 +28,7 @@
     "postcss-import": "16.1.1",
     "postcss-lightningcss": "1.1.0",
     "tailwindcss": "3.4.19",
-    "typescript": "5.9.3",
+    "typescript": "6.0.2",
     "wrangler": "4.78.0"
   }
 }
