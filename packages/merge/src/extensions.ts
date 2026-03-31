@@ -1,5 +1,11 @@
 import { GraphQLEnumType, GraphQLObjectType, GraphQLSchema } from 'graphql';
-import { ExtensionsObject, Maybe, mergeDeep, SchemaExtensions } from '@graphql-tools/utils';
+import {
+  asArray,
+  ExtensionsObject,
+  Maybe,
+  mergeDeep,
+  SchemaExtensions,
+} from '@graphql-tools/utils';
 
 export { extractExtensionsFromSchema } from '@graphql-tools/utils';
 
@@ -18,7 +24,25 @@ function applyExtensionObject(
     obj.extensions = extensions;
     return;
   }
+  const existingDirectives = obj.extensions['directives'];
+  const newDirectives = extensions['directives'];
+  if (existingDirectives && newDirectives) {
+    for (const directiveName in newDirectives) {
+      const existingDirective = existingDirectives[directiveName];
+      if (existingDirective) {
+        existingDirectives[directiveName] = asArray(existingDirective).concat(
+          asArray(newDirectives[directiveName]),
+        );
+      } else {
+        existingDirectives[directiveName] = newDirectives[directiveName];
+      }
+    }
+  }
   obj.extensions = mergeDeep([obj.extensions, extensions], false, true);
+  if (existingDirectives) {
+    // @ts-expect-error - we need to restore the directives, as they are merged in a special way
+    obj.extensions['directives'] = existingDirectives;
+  }
 }
 
 export function applyExtensions(
