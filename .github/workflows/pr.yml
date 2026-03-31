@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   dependencies:
-    uses: the-guild-org/shared-config/.github/workflows/changesets-dependencies.yaml@main
+    uses: the-guild-org/shared-config/.github/workflows/changesets-dependencies.yaml@efca92ebf0309a89e2e1bb69b1f52115ff8ee7d6 # main
     if: ${{ github.event.pull_request.title != 'Upcoming Release Changes' }}
     secrets:
       githubToken: ${{ secrets.GH_BOT_TOKEN }}
