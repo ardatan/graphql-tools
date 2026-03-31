@@ -45,7 +45,8 @@ export function mergeDeep<S extends any[]>(
     );
   }
   if (allArrays) {
-    return sources.flat(1);
+    // Last one takes
+    return sources[sources.length - 1];
   }
 
   let output: any;
