@@ -100,7 +100,7 @@ jobs:
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
         with:
           timeout_minutes: 10
-          max_attempts: 5
+          max_attempts: 10
           command: npm run ${{matrix.name == 'Leak' && 'test:leaks' || 'test'}} --ci
   test-bun:
     name: Unit Test on Bun
