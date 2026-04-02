@@ -1,5 +1,5 @@
 diff --git a/node_modules/graphql-ws/dist/use/ws.d.ts b/node_modules/graphql-ws/dist/use/ws.d.ts
-index 60a0262..289168e 100644
+index 60a0262..cd7bac0 100644
 --- a/node_modules/graphql-ws/dist/use/ws.d.ts
 +++ b/node_modules/graphql-ws/dist/use/ws.d.ts
 @@ -5,7 +5,7 @@ import { b as ConnectionInitMessage, a as Disposable } from '../common-DY-PBNYy.
