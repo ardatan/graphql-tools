@@ -79,7 +79,7 @@
     "eslint-plugin-promise": "7.2.1",
     "globby": "11.1.0",
     "graphql": "16.13.2",
-    "graphql-yoga": "5.18.1",
+    "graphql-yoga": "5.19.0",
     "husky": "9.1.7",
     "jest": "30.3.0",
     "lint-staged": "16.4.0",
@@ -90,7 +90,7 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "rimraf": "6.1.3",
-    "ts-jest": "29.4.6",
+    "ts-jest": "29.4.9",
     "tsx": "4.21.0",
     "typedoc": "0.25.13",
     "typedoc-plugin-markdown": "3.17.1",
@@ -100,14 +100,14 @@
   },
   "overrides": {
     "cookie": "1.1.1",
-    "esbuild": "0.27.4",
+    "esbuild": "0.27.5",
     "estree-util-value-to-estree": "3.5.0",
     "extract-zip": {
       "yauzl": "3.3.0"
     },
     "graphql": "16.13.2",
     "miniflare": {
-      "undici": "7.24.6"
+      "undici": "7.24.7"
     },
     "react": "19.2.4",
     "react-dom": "19.2.4",
