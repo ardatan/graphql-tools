@@ -1,5 +1,16 @@
 # @ardatan/relay-compiler
 
+## 13.0.1
+
+### Patch Changes
+
+- [#8056](https://github.com/ardatan/graphql-tools/pull/8056)
+  [`a91a765`](https://github.com/ardatan/graphql-tools/commit/a91a76503c2a8234999ad4379f31da9324b2cba8)
+  Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+  - Updated dependency
+    [`@babel/runtime@^7.29.2` ↗︎](https://www.npmjs.com/package/@babel/runtime/v/7.29.2) (from
+    `^7.26.10`, in `dependencies`)
+
 ## 13.0.0
 
 ### Major Changes
