@@ -1,5 +1,85 @@
 # @graphql-tools/github-loader
 
+## 9.1.0
+
+### Minor Changes
+
+- [#8103](https://github.com/ardatan/graphql-tools/pull/8103)
+  [`db8cde4`](https://github.com/ardatan/graphql-tools/commit/db8cde4bf8d5cb404634655763f55c3b76e89da5)
+  Thanks [@ardatan](https://github.com/ardatan)! - Bump HTTP Executor that introduces
+  `exposeHTTPDetailsInExtensions` option
+
+  ```ts
+  import { parse } from 'graphql'
+  import { UrlLoader } from '@graphql-tools/url-loader'
+
+  const loader = new UrlLoader()
+  const executor = loader.getExecutorAsync('http://localhost:4000/graphql', {
+    exposeHTTPDetailsInExtensions: true
+  })
+
+  const result = await executor({
+    document: parse(/* GraphQL */ `
+      query {
+        hello
+      }
+    `)
+  })
+
+  console.log(result)
+  ```
+
+  ```json
+  {
+    "data": {
+      "hello": "Hello world!"
+    },
+    "extensions": {
+      "request": {
+        "method": "POST",
+        "body": "{\"query\":\"query { hello }\"}",
+        "headers": {
+          "content-type": "application/json"
+        }
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": { "data": { "hello": "Hello world!" } }
+      }
+    }
+  }
+  ```
+
+### Patch Changes
+
+- [#8096](https://github.com/ardatan/graphql-tools/pull/8096)
+  [`c079c3c`](https://github.com/ardatan/graphql-tools/commit/c079c3cc5f14618e16f5b56b7996bb064b564d4e)
+  Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/executor-http@^3.1.4` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-http/v/3.1.4)
+    (from `^3.1.0`, in `dependencies`)
+
+- [#8097](https://github.com/ardatan/graphql-tools/pull/8097)
+  [`688af53`](https://github.com/ardatan/graphql-tools/commit/688af53502c9db48659e82d8499f850d85c9b696)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/executor-http@^3.1.4` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-http/v/3.1.4)
+    (from `^3.1.0`, in `dependencies`)
+
+- [#8103](https://github.com/ardatan/graphql-tools/pull/8103)
+  [`db8cde4`](https://github.com/ardatan/graphql-tools/commit/db8cde4bf8d5cb404634655763f55c3b76e89da5)
+  Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/executor-http@^3.2.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-http/v/3.2.1)
+    (from `^3.1.4`, in `dependencies`)
+- Updated dependencies
+  [[`a91a765`](https://github.com/ardatan/graphql-tools/commit/a91a76503c2a8234999ad4379f31da9324b2cba8)]:
+  - @graphql-tools/graphql-tag-pluck@8.3.29
+
 ## 9.0.7
 
 ### Patch Changes
