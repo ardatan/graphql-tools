@@ -579,4 +579,47 @@ describe('Schema URL Loader', () => {
     const result = await loader.load(testUrl, {});
     expect(result).toEqual([]);
   });
+  it('should expose response details in extensions', async () => {
+    const query = `{hello}`;
+    const data = { hello: 'world' };
+    const headers = { 'x-custom-header': 'CustomValue' };
+    const status = 201;
+    const statusText = 'Created';
+    const responseBody = { data };
+
+    const customFetch: AsyncFetchFn = async () => {
+      return Response.json(responseBody, {
+        headers,
+        status,
+        statusText,
+      });
+    };
+
+    const executor = loader.getExecutorAsync(testUrl, {
+      customFetch,
+      exposeHTTPDetailsInExtensions: true,
+    });
+
+    const res = await executor({
+      document: parse(query, { noLocation: true }),
+    });
+
+    expect(res).toMatchObject({
+      data,
+      extensions: {
+        request: {
+          method: 'POST',
+          body: JSON.stringify({ query }),
+        },
+        response: {
+          status,
+          statusText,
+          headers: expect.objectContaining(headers),
+          body: expect.objectContaining({
+            data,
+          }),
+        },
+      },
+    });
+  });
 });
