@@ -53,6 +53,11 @@ describe('mergeDeep', () => {
     expect(merged.a).toBeUndefined();
   });
 
+  it('merges arrays', () => {
+    const x = { a: [1, 2, 5] };
+    const y = { a: [3, 4] };
+    expect(mergeDeep([x, y], false, true)).toEqual({ a: [1, 2, 5, 3, 4] });
+  });
   it('merges arrays with the same length', () => {
     const x = [{ a: 1 }, { b: 2 }];
     const y = [{ c: 3 }, { d: 4 }];
@@ -78,31 +83,5 @@ describe('mergeDeep', () => {
 
   it('returns undefined when an empty sources array passed', () => {
     expect(mergeDeep([])).toEqual(undefined);
-  });
-
-  // The last one takes it over if arrays are in the same length,
-  it('merges objects with arrays in the same length', () => {
-    const a = {
-      timestamps: [100, 200, 300, 400],
-    };
-    const b = {
-      timestamps: [500, 600, 700, 800],
-    };
-    expect(mergeDeep([a, b], undefined, true)).toEqual({
-      timestamps: [500, 600, 700, 800],
-    });
-  });
-
-  // So it should be the same for the arrays that are not in the same length as well.
-  it('merges objects with arrays in the different length', () => {
-    const a = {
-      timestamps: [100, 200, 300, 400],
-    };
-    const b = {
-      timestamps: [500, 600],
-    };
-    expect(mergeDeep([a, b], undefined, true)).toEqual({
-      timestamps: [500, 600],
-    });
   });
 });
