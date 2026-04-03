@@ -36,7 +36,7 @@ console.log(result);
       "body": "{\"query\":\"query { hello }\"}",
       "headers": {
         "content-type": "application/json"
-      },
+      }
     },
     "response": {
       "status": 200,

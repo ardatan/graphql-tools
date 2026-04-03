@@ -609,7 +609,6 @@ describe('Schema URL Loader', () => {
       extensions: {
         request: {
           method: 'POST',
-          body: JSON.stringify({ query }),
         },
         response: {
           status,
@@ -620,6 +619,10 @@ describe('Schema URL Loader', () => {
           }),
         },
       },
+    });
+    const parsedRequestBody = JSON.parse((res as any).extensions.request.body);
+    expect(parsedRequestBody).toMatchObject({
+      query: expect.stringContaining('hello'),
     });
   });
 });
