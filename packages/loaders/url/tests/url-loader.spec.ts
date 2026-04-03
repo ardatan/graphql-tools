@@ -604,10 +604,11 @@ describe('Schema URL Loader', () => {
       document: parse(query, { noLocation: true }),
     });
 
-    expect(res).toMatchObject({
+    expect(res).toEqual({
       data,
       extensions: {
         request: {
+          body: '{"query":"{hello}"}',
           method: 'POST',
         },
         response: {
