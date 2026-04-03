@@ -1,11 +1,5 @@
 import { GraphQLEnumType, GraphQLObjectType, GraphQLSchema } from 'graphql';
-import {
-  asArray,
-  ExtensionsObject,
-  Maybe,
-  mergeDeep,
-  SchemaExtensions,
-} from '@graphql-tools/utils';
+import { ExtensionsObject, Maybe, mergeDeep, SchemaExtensions } from '@graphql-tools/utils';
 
 export { extractExtensionsFromSchema } from '@graphql-tools/utils';
 
