@@ -79,7 +79,7 @@
     "eslint-plugin-promise": "7.2.1",
     "globby": "11.1.0",
     "graphql": "16.13.2",
-    "graphql-yoga": "5.20.0",
+    "graphql-yoga": "5.21.0",
     "husky": "9.1.7",
     "jest": "30.3.0",
     "lint-staged": "16.4.0",
