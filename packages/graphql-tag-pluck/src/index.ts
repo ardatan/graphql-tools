@@ -165,6 +165,7 @@ function parseWithVue(
   // See https://github.com/ardatan/graphql-tools/pull/7271 for more details.
   //
 
+  // @ts-expect-error - We know TypeScript version matches here
   vueTemplateCompiler.registerTS(() => typescriptPackage);
 
   const { descriptor } = vueTemplateCompiler.parse(fileData, { filename: filePath });
