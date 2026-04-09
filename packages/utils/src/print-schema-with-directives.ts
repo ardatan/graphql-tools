@@ -7,7 +7,6 @@ import {
   EnumTypeDefinitionNode,
   EnumValueDefinitionNode,
   FieldDefinitionNode,
-  getNamedType,
   GraphQLArgument,
   GraphQLDeprecatedDirective,
   GraphQLDirective,
