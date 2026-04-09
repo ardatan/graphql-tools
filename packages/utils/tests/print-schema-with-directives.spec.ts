@@ -404,6 +404,44 @@ describe('printSchemaWithDirectives', () => {
       expect(output).toContain('input OneOfInput @oneOf');
     }
   });
+  it('should print enum directive arg by name when internal value differs', () => {
+    const OAuthScopeEnum = new GraphQLEnumType({
+      name: 'OAuthScopeEnum',
+      values: {
+        TEAMS_WRITE: { value: 'teams:write' },
+      },
+    });
+
+    const scopeDirective = new GraphQLDirective({
+      name: 'scope',
+      args: {
+        name: { type: new GraphQLNonNull(OAuthScopeEnum) },
+      },
+      locations: ['FIELD_DEFINITION'] as any,
+    });
+
+    const schema = new GraphQLSchema({
+      directives: [...specifiedDirectives, scopeDirective],
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          me: {
+            type: GraphQLString,
+            extensions: {
+              directives: {
+                scope: { name: 'TEAMS_WRITE' },
+              },
+            },
+          },
+        },
+      }),
+      types: [OAuthScopeEnum],
+    });
+
+    const output = printSchemaWithDirectives(schema);
+    expect(output).toContain('me: String @scope(name: TEAMS_WRITE)');
+  });
+
   it('prints a federation-style subgraph schema correctly', () => {
     const sdl = stripIgnoredCharacters(/* GraphQL */ `
       extend schema @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key"])
@@ -416,5 +454,43 @@ describe('printSchemaWithDirectives', () => {
     const userSubgraph = buildSchema(sdl, { assumeValid: true, assumeValidSDL: true });
     const printedSchema = stripIgnoredCharacters(printSchemaWithDirectives(userSubgraph));
     expect(printedSchema).toBe(sdl);
+  });
+
+  it('should print enum directive arg by name when internal value differs', () => {
+    const OAuthScopeEnum = new GraphQLEnumType({
+      name: 'OAuthScopeEnum',
+      values: {
+        TEAMS_WRITE: { value: 'teams:write' },
+      },
+    });
+
+    const scopeDirective = new GraphQLDirective({
+      name: 'scope',
+      args: {
+        name: { type: new GraphQLNonNull(OAuthScopeEnum) },
+      },
+      locations: ['FIELD_DEFINITION'] as any,
+    });
+
+    const schema = new GraphQLSchema({
+      directives: [...specifiedDirectives, scopeDirective],
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          me: {
+            type: GraphQLString,
+            extensions: {
+              directives: {
+                scope: { name: 'TEAMS_WRITE' },
+              },
+            },
+          },
+        },
+      }),
+      types: [OAuthScopeEnum],
+    });
+
+    const output = printSchemaWithDirectives(schema);
+    expect(output).toContain('me: String @scope(name: TEAMS_WRITE)');
   });
 });

@@ -1,4 +1,3 @@
-import { inspect } from 'cross-inspect';
 import {
   GraphQLInputType,
   isEnumType,
@@ -95,29 +94,33 @@ export function astFromValue(value: unknown, type: GraphQLInputType): Maybe<Valu
   if (isLeafType(type)) {
     // Since value is an internally represented value, it must be serialized
     // to an externally represented value before converting into an AST.
-    const serialized = type.serialize(value);
-    if (serialized == null) {
+    if (isEnumType(type)) {
+      const values = type.getValues();
+      for (const enumValue of values) {
+        if (enumValue.value === value) {
+          value = enumValue.name;
+          break;
+        }
+        if (enumValue.name === value) {
+          value = enumValue.name;
+          break;
+        }
+      }
+      return { kind: Kind.ENUM, value: value as string };
+    } else {
+      value = type.serialize(value);
+    }
+    if (value == null) {
       return null;
     }
 
-    if (isEnumType(type)) {
-      return { kind: Kind.ENUM, value: serialized as string };
-    }
-
     // ID types can use Int literals.
-    if (
-      type.name === 'ID' &&
-      typeof serialized === 'string' &&
-      integerStringRegExp.test(serialized)
-    ) {
-      return { kind: Kind.INT, value: serialized };
+    if (type.name === 'ID' && typeof value === 'string' && integerStringRegExp.test(value)) {
+      return { kind: Kind.INT, value };
     }
-
-    return astFromValueUntyped(serialized);
   }
-  /* c8 ignore next 3 */
-  // Not reachable, all possible types have been considered.
-  console.assert(false, 'Unexpected input type: ' + inspect(type));
+
+  return astFromValueUntyped(value);
 }
 
 /**
