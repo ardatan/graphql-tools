@@ -1,5 +1,13 @@
 # @graphql-tools/utils
 
+## 11.0.1
+
+### Patch Changes
+
+- [`ae36a0e`](https://github.com/ardatan/graphql-tools/commit/ae36a0ebc2464665d5be13d167485bf173d96313)
+  Thanks [@mattkrick](https://github.com/mattkrick)! - Handle enum values correctly if they are
+  arguments of directives defined in the extensions
+
 ## 11.0.0
 
 ### Major Changes

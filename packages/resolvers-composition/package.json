@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/resolvers-composition",
-  "version": "7.0.29",
+  "version": "7.0.30",
   "type": "module",
   "description": "Common package containing utils and types for GraphQL tools",
   "repository": {
@@ -51,7 +51,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^11.0.0",
+    "@graphql-tools/utils": "^11.0.1",
     "lodash": "4.18.1",
     "micromatch": "^4.0.8",
     "tslib": "^2.4.0"
