@@ -515,15 +515,7 @@ export function makeDirectiveNode<TDirectiveNode extends DirectiveNode>(
     if (directive != null) {
       const arg = directive.args.find(arg => arg.name === argName);
       if (arg) {
-        const namedType = getNamedType(arg.type);
-        let coercedValue = argValue;
-        if (isEnumType(namedType) && typeof argValue === 'string') {
-          const enumValue = namedType.getValue(argValue);
-          if (enumValue) {
-            coercedValue = enumValue.value;
-          }
-        }
-        value = astFromValue(coercedValue, arg.type);
+        value = astFromValue(argValue, arg.type);
       }
     }
     if (value == null) {
