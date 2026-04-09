@@ -1,4 +1,3 @@
-import { inspect } from 'cross-inspect';
 import {
   GraphQLInputType,
   isEnumType,
@@ -112,12 +111,9 @@ export function astFromValue(value: unknown, type: GraphQLInputType): Maybe<Valu
     if (type.name === 'ID' && typeof value === 'string' && integerStringRegExp.test(value)) {
       return { kind: Kind.INT, value };
     }
-
-    return astFromValueUntyped(value);
   }
-  /* c8 ignore next 3 */
-  // Not reachable, all possible types have been considered.
-  console.assert(false, 'Unexpected input type: ' + inspect(type));
+
+  return astFromValueUntyped(value);
 }
 
 /**
