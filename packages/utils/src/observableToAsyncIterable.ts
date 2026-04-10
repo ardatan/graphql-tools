@@ -42,6 +42,8 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
     if (pullQueue.length !== 0) {
       // It is safe to use the ! operator here as we check the length.
       pullQueue.shift()!({ done: true });
+      // Clean up remaining state after signaling done to the pending consumer.
+      emptyQueue();
     } else {
       pushQueue.push({ done: true });
     }
@@ -52,6 +54,10 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
       if (pushQueue.length !== 0) {
         const element = pushQueue.shift();
         // either {value: {errors: [...]}} or {value: ...}
+        if (element.done) {
+          // Clean up references before delivering the done signal.
+          emptyQueue();
+        }
         resolve(element);
       } else {
         pullQueue.push(resolve);
