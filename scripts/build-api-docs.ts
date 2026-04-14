@@ -52,13 +52,16 @@ async function buildApiDocs(): Promise<void> {
       entryPoints: modules.map(([_name, filePath]) => filePath),
       plugin: ['typedoc-plugin-markdown'],
       logLevel: 'Verbose',
+      // typedoc-plugin-markdown v4: output directory and router
+      out: OUTPUT_PATH,
+      router: 'kind',
     },
     [new TSConfigReader()],
   );
 
-  // Generate the API docs
+  // Generate the API docs (typedoc-plugin-markdown v4 uses generateOutputs)
   const project = await typeDoc.convert();
-  await typeDoc.generateDocs(project!, OUTPUT_PATH);
+  await typeDoc.generateOutputs(project!);
 
   async function patchMarkdownFile(filePath: string): Promise<void> {
     const contents = await fsPromises.readFile(filePath, 'utf-8');
@@ -74,7 +77,7 @@ async function buildApiDocs(): Promise<void> {
       // Fix links
       .replace(/\.md/g, '')
       .replace(
-        /\[([^\]]+)]\((\.\.\/(classes|interfaces|enums)\/([^)]+))\)/g,
+        /\[([^\]]+)]\((\.\.\/(classes|interfaces|enums|functions|types|variables)\/([^)]+))\)/g,
         '[$1](/docs/api/$3/$4)',
       );
 
@@ -128,33 +131,40 @@ async function buildApiDocs(): Promise<void> {
   // Patch the generated markdown
   // See https://github.com/tgreyuk/typedoc-plugin-markdown/pull/128
   await Promise.all(
-    ['classes', 'enums', 'interfaces', 'modules'].map(async dirName => {
-      const subDirName = path.join(OUTPUT_PATH, dirName);
-      await visitMarkdownFile(subDirName);
-    }),
+    ['classes', 'enums', 'interfaces', 'modules', 'functions', 'types', 'variables'].map(
+      async dirName => {
+        const subDirName = path.join(OUTPUT_PATH, dirName);
+        await visitMarkdownFile(subDirName);
+      },
+    ),
+  );
+
+  // Dynamically build the root _meta.ts based on which directories were generated
+  const allDirMeta: Record<string, string> = {
+    modules: 'Packages',
+    classes: 'Classes',
+    enums: 'Enums',
+    interfaces: 'Interfaces',
+    functions: 'Functions',
+    types: 'Types',
+    variables: 'Variables',
+  };
+  const existingDirs = Object.entries(allDirMeta).filter(([dirName]) =>
+    fs.existsSync(path.join(OUTPUT_PATH, dirName)),
   );
   await fsPromises.writeFile(
     path.join(OUTPUT_PATH, '_meta.ts'),
-    'export default ' +
-      JSON.stringify(
-        {
-          modules: 'Packages',
-          classes: 'Classes',
-          enums: 'Enums',
-          interfaces: 'Interfaces',
-        },
-        null,
-        2,
-      ),
+    'export default ' + JSON.stringify(Object.fromEntries(existingDirs), null, 2),
   );
 
-  // Remove the generated "README.md" file
-  // await fsPromises.unlink(path.join(OUTPUT_PATH, 'README.md'));
+  // Remove the generated root index file produced by typedoc-plugin-markdown v4
+  await fsPromises.unlink(path.join(OUTPUT_PATH, 'README.md')).catch(() => null);
 
-  // Update each module 's frontmatter and title
+  // Update each module's frontmatter and title
+  // Overwrite the modules _meta.ts with proper package names
   await Promise.all(
-    modules.map(async ([name, originalFilePath]) => {
-      const filePath = path.join(OUTPUT_PATH, 'modules', convertEntryFilePath(originalFilePath));
+    modules.map(async ([name, _originalFilePath]) => {
+      const filePath = path.join(OUTPUT_PATH, 'modules', convertPackageNameToModuleFileName(name));
       const isExists = await fsPromises
         .stat(filePath)
         .then(() => true)
@@ -173,9 +183,34 @@ ${necessaryPart}`;
     }),
   );
 
-  function convertEntryFilePath(filePath: string): string {
-    const { dir, name } = path.parse(filePath);
-    return `_${dir.replace(/[-/]/g, '_')}_${name}_.md`.replace(/_index_|_packages_/g, '');
+  // Overwrite the modules _meta.ts with proper package names
+  const modulesDir = path.join(OUTPUT_PATH, 'modules');
+  if (fs.existsSync(modulesDir)) {
+    await fsPromises.writeFile(
+      path.join(modulesDir, '_meta.ts'),
+      'export default ' +
+        JSON.stringify(
+          Object.fromEntries(
+            modules
+              .map(([name]) => {
+                const key = convertPackageNameToModuleFileName(name)
+                  .replace(/\.md$/, '')
+                  .toLowerCase();
+                return [key, name];
+              })
+              .sort((a, b) => a[1].localeCompare(b[1])),
+          ),
+          null,
+          2,
+        ),
+    );
+  }
+
+  function convertPackageNameToModuleFileName(packageName: string): string {
+    // Mirrors typedoc's createNormalizedUrl: replace non-safe characters with '_'
+    // then lowercase (matching typedoc's getFileName behaviour)
+    const normalized = packageName.replace(/[^a-zA-Z0-9()+,\-._]/g, '_').toLowerCase();
+    return `${normalized}.md`;
   }
 }
 
