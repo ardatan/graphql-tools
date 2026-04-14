@@ -1,9 +1,9 @@
-import fs, { promises as fsPromises } from 'node:fs';
+import fs, { promises as fsPromises, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { styleText } from 'node:util';
 import globby from 'globby';
 import { Application, TSConfigReader } from 'typedoc';
-import workspacePackageJson from '../package.json';
+import workspacePackageJson from '../package.json' with { type: 'json' };
 
 const MONOREPO = workspacePackageJson.name.replace('-monorepo', '');
 const CWD = process.cwd();
@@ -19,7 +19,7 @@ async function buildApiDocs(): Promise<void> {
   const modules: Array<[string, string]> = [];
 
   for (const packageJsonPath of packageJsonFiles) {
-    const packageJsonContent = require(path.join(CWD, packageJsonPath));
+    const packageJsonContent = JSON.parse(readFileSync(path.join(CWD, packageJsonPath), 'utf-8'));
     // Do not include private and large npm package that contains rest
     if (
       !packageJsonPath.includes('./website/') &&
@@ -33,6 +33,27 @@ async function buildApiDocs(): Promise<void> {
         packageJsonContent.name,
         packageJsonPath.replace('./', '').replace('package.json', 'src/index.ts'),
       ]);
+    }
+  }
+
+  // Build a map from top-level output directory name to the package display name.
+  // Entry file paths are like 'packages/utils/src/index.ts'; TypeDoc strips the
+  // shared 'packages/' prefix, so the output top-level dir becomes 'utils'.
+  const dirToPackageName = new Map<string, string>();
+  for (const [name, filePath] of modules) {
+    // filePath = 'packages/<pkg>/src/index.ts' or
+    //            'packages/<group>/<subpkg>/src/index.ts'
+    const dirName = filePath.split('/')[1];
+    if (dirName) {
+      if (dirToPackageName.has(dirName)) {
+        // Multiple packages share the same top-level directory
+        // (e.g. packages/executors/* or packages/loaders/*).
+        // Fall back to the capitalised directory name as the display label.
+        const capitalized = dirName.charAt(0).toUpperCase() + dirName.slice(1);
+        dirToPackageName.set(dirName, capitalized);
+      } else {
+        dirToPackageName.set(dirName, name);
+      }
     }
   }
 
@@ -52,31 +73,40 @@ async function buildApiDocs(): Promise<void> {
       entryPoints: modules.map(([_name, filePath]) => filePath),
       plugin: ['typedoc-plugin-markdown'],
       logLevel: 'Verbose',
+      // Skip TypeScript type-check errors so third-party declaration issues don't
+      // prevent documentation from being generated.
+      skipErrorChecking: true,
+      // Tell typedoc-plugin-markdown where to write the markdown output.
+      out: OUTPUT_PATH,
+      // Remove breadcrumb navigation and the page header so each file starts
+      // with the main heading, which patchMarkdownFile uses for the front-matter title.
+      hideBreadcrumbs: true,
+      hidePageHeader: true,
     },
     [new TSConfigReader()],
   );
 
-  // Generate the API docs
+  // Generate the API docs (typedoc-plugin-markdown registers a "markdown" output
+  // type; generateOutputs() uses that instead of the default HTML renderer).
   const project = await typeDoc.convert();
-  await typeDoc.generateDocs(project!, OUTPUT_PATH);
+  await typeDoc.generateOutputs(project!);
 
   async function patchMarkdownFile(filePath: string): Promise<void> {
     const contents = await fsPromises.readFile(filePath, 'utf-8');
     const contentsTrimmed = contents
-      // Fix title
-      .replace(/^# .+/g, match => {
+      // Add YAML front-matter with a title derived from the first H1 heading.
+      .replace(/^# .+/m, match => {
         const title = match
           .replace('# ', '')
-          .replace(/(Class|Interface|Enumeration): /, '')
-          .replace(/(\\)?<.+/, '');
+          // Strip type prefixes added by typedoc-plugin-markdown (both old and new formats)
+          .replace(/^(Class|Interface|Enumeration|Function|Type alias|Variable|Namespace): /, '')
+          .replace(/(\\)?<.+/, '')
+          // Remove trailing call-signature parentheses, e.g. "myFunc()"
+          .replace(/\(\)$/, '');
         return ['---', `title: '${title}'`, '---', '', match].join('\n');
       })
-      // Fix links
-      .replace(/\.md/g, '')
-      .replace(
-        /\[([^\]]+)]\((\.\.\/(classes|interfaces|enums)\/([^)]+))\)/g,
-        '[$1](/docs/api/$3/$4)',
-      );
+      // Remove .md extensions from links so the router handles them correctly.
+      .replace(/\.md/g, '');
 
     await fsPromises.writeFile(filePath, contentsTrimmed);
     const relativePath = path.relative(CWD, filePath);
@@ -107,14 +137,9 @@ async function buildApiDocs(): Promise<void> {
           Object.fromEntries(
             filesInDirectory
               .map(fileName => {
-                fileName = fileName.replace(/\.md$/, '');
-                const key = fileName.toLowerCase();
-                const value = fileName.replace(/^.*\./, '');
-
-                if (filePath.endsWith('/modules')) {
-                  return [key, `${value.replace('_src', '').replace(/_/g, '-')}`];
-                }
-
+                const bare = fileName.replace(/\.md$/, '');
+                const key = bare.toLowerCase();
+                const value = bare.replace(/^.*\./, '');
                 return [key, value];
               })
               .sort((a, b) => a[1].localeCompare(b[1])),
@@ -125,58 +150,39 @@ async function buildApiDocs(): Promise<void> {
     );
   }
 
-  // Patch the generated markdown
-  // See https://github.com/tgreyuk/typedoc-plugin-markdown/pull/128
+  // Discover the top-level package directories that TypeDoc created and patch
+  // their markdown files, then generate _meta.ts files for each level.
+  const topLevelEntries = await fsPromises.readdir(OUTPUT_PATH);
+  const topLevelDirs = (
+    await Promise.all(
+      topLevelEntries.map(async name => {
+        const fullPath = path.join(OUTPUT_PATH, name);
+        const stat = await fsPromises.lstat(fullPath);
+        return stat.isDirectory() ? name : null;
+      }),
+    )
+  ).filter((name): name is string => name !== null);
+
   await Promise.all(
-    ['classes', 'enums', 'interfaces', 'modules'].map(async dirName => {
-      const subDirName = path.join(OUTPUT_PATH, dirName);
-      await visitMarkdownFile(subDirName);
+    topLevelDirs.map(async dirName => {
+      await visitMarkdownFile(path.join(OUTPUT_PATH, dirName));
     }),
   );
+
+  // Write the root _meta.ts listing each package directory with its npm name.
   await fsPromises.writeFile(
     path.join(OUTPUT_PATH, '_meta.ts'),
     'export default ' +
       JSON.stringify(
-        {
-          modules: 'Packages',
-          classes: 'Classes',
-          enums: 'Enums',
-          interfaces: 'Interfaces',
-        },
+        Object.fromEntries(
+          topLevelDirs
+            .map(dirName => [dirName, dirToPackageName.get(dirName) ?? dirName])
+            .sort((a, b) => a[1].localeCompare(b[1])),
+        ),
         null,
         2,
       ),
   );
-
-  // Remove the generated "README.md" file
-  // await fsPromises.unlink(path.join(OUTPUT_PATH, 'README.md'));
-
-  // Update each module 's frontmatter and title
-  await Promise.all(
-    modules.map(async ([name, originalFilePath]) => {
-      const filePath = path.join(OUTPUT_PATH, 'modules', convertEntryFilePath(originalFilePath));
-      const isExists = await fsPromises
-        .stat(filePath)
-        .then(() => true)
-        .catch(() => false);
-
-      if (!isExists) {
-        console.warn(`Module ${name} not found!`);
-        return;
-      }
-
-      const oldContent = await fsPromises.readFile(filePath, 'utf-8');
-      const necessaryPart = oldContent.split('\n').slice(5).join('\n');
-      const finalContent = `# ${name}
-${necessaryPart}`;
-      await fsPromises.writeFile(filePath, finalContent);
-    }),
-  );
-
-  function convertEntryFilePath(filePath: string): string {
-    const { dir, name } = path.parse(filePath);
-    return `_${dir.replace(/[-/]/g, '_')}_${name}_.md`.replace(/_index_|_packages_/g, '');
-  }
 }
 
 buildApiDocs().catch(e => {
