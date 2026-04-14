@@ -161,9 +161,9 @@ async function buildApiDocs(): Promise<void> {
   await fsPromises.unlink(path.join(OUTPUT_PATH, 'README.md')).catch(() => null);
 
   // Update each module's frontmatter and title
-  // Overwrite the modules _meta.ts with proper package names
+  // In v4, module files are identified by package name, not file path
   await Promise.all(
-    modules.map(async ([name, _originalFilePath]) => {
+    modules.map(async ([name]) => {
       const filePath = path.join(OUTPUT_PATH, 'modules', convertPackageNameToModuleFileName(name));
       const isExists = await fsPromises
         .stat(filePath)
@@ -183,7 +183,7 @@ ${necessaryPart}`;
     }),
   );
 
-  // Overwrite the modules _meta.ts with proper package names
+  // Write modules _meta.ts with proper package names as display labels
   const modulesDir = path.join(OUTPUT_PATH, 'modules');
   if (fs.existsSync(modulesDir)) {
     await fsPromises.writeFile(
