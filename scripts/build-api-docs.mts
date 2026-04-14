@@ -95,14 +95,23 @@ async function buildApiDocs(): Promise<void> {
     const contents = await fsPromises.readFile(filePath, 'utf-8');
     const contentsTrimmed = contents
       // Add YAML front-matter with a title derived from the first H1 heading.
-      .replace(/^# .+/m, match => {
+      // With hidePageHeader+hideBreadcrumbs, every file starts with "# Heading",
+      // so the non-multiline anchor correctly targets the very first line.
+      .replace(/^# .+/, match => {
         const title = match
           .replace('# ', '')
+          // Remove strikethrough markers (used for deprecated items)
+          .replace(/^~~(.+)~~$/, '$1')
           // Strip type prefixes added by typedoc-plugin-markdown (both old and new formats)
-          .replace(/^(Class|Interface|Enumeration|Function|Type alias|Variable|Namespace): /, '')
-          .replace(/(\\)?<.+/, '')
+          .replace(/^(Class|Interface|Enumeration|Function|Type Alias|Variable|Namespace): /, '')
+          // Strip generic type parameters (e.g. MyClass<T> or MyClass\<T\> in markdown)
+          .replace(/\\?<[^>]*\\?>/g, '')
           // Remove trailing call-signature parentheses, e.g. "myFunc()"
-          .replace(/\(\)$/, '');
+          .replace(/\(\)$/, '')
+          // Remove backslash escapes used in markdown (e.g. \_ → _)
+          .replace(/\\([_<>*])/g, '$1')
+          // Escape single quotes for the YAML front-matter value (double them)
+          .replace(/'/g, "''");
         return ['---', `title: '${title}'`, '---', '', match].join('\n');
       })
       // Remove .md extensions from links so the router handles them correctly.
@@ -137,9 +146,9 @@ async function buildApiDocs(): Promise<void> {
           Object.fromEntries(
             filesInDirectory
               .map(fileName => {
-                const bare = fileName.replace(/\.md$/, '');
-                const key = bare.toLowerCase();
-                const value = bare.replace(/^.*\./, '');
+                const baseName = fileName.replace(/\.md$/, '');
+                const key = baseName.toLowerCase();
+                const value = baseName.replace(/^.*\./, '');
                 return [key, value];
               })
               .sort((a, b) => a[1].localeCompare(b[1])),
