@@ -64,7 +64,7 @@
     "@vue/compiler-sfc": "3.5.32",
     "astrojs-compiler-sync": "1.1.1",
     "content-tag": "4.1.1",
-    "svelte": "5.55.3",
+    "svelte": "5.55.4",
     "svelte2tsx": "0.7.53"
   },
   "publishConfig": {

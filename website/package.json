@@ -24,11 +24,11 @@
     "@types/react": "19.2.14",
     "estree-util-value-to-estree": "3.5.0",
     "pagefind": "^1.5.2",
-    "postcss": "8.5.9",
+    "postcss": "8.5.10",
     "postcss-import": "16.1.1",
     "postcss-lightningcss": "1.1.0",
     "tailwindcss": "3.4.19",
     "typescript": "6.0.2",
-    "wrangler": "4.82.2"
+    "wrangler": "4.83.0"
   }
 }
