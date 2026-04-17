@@ -420,9 +420,11 @@ describe('graphql-tag-pluck', () => {
     });
 
     const skipIf = (condition: boolean) => (condition ? it.skip : it);
-    const skipIfLeakTest = skipIf(process.env['LEAK_TEST'] != null);
+    const skipIfWindowsAndLeakTest = skipIf(
+      process.platform === 'win32' && process.env['LEAK_TEST'] != null,
+    );
 
-    skipIfLeakTest(
+    skipIfWindowsAndLeakTest(
       'should pluck graphql-tag template literals from .vue JavaScript file',
       async () => {
         const sources = await pluck(
@@ -481,7 +483,7 @@ describe('graphql-tag-pluck', () => {
       },
     );
 
-    skipIfLeakTest(
+    skipIfWindowsAndLeakTest(
       'should pluck graphql-tag template literals from .vue TS/Pug/SCSS file',
       async () => {
         const sources = await pluck(
@@ -539,7 +541,7 @@ describe('graphql-tag-pluck', () => {
         );
       },
     );
-    skipIfLeakTest(
+    skipIfWindowsAndLeakTest(
       'should pluck graphql-tag template literals from .vue 3 JavaScript file',
       async () => {
         const sources = await pluck(
@@ -598,7 +600,7 @@ describe('graphql-tag-pluck', () => {
       },
     );
 
-    skipIfLeakTest(
+    skipIfWindowsAndLeakTest(
       'should pluck graphql-tag template literals from .vue 3 TS/Pug/SCSS file',
       async () => {
         const sources = await pluck(
@@ -657,7 +659,7 @@ describe('graphql-tag-pluck', () => {
       },
     );
 
-    skipIfLeakTest(
+    skipIfWindowsAndLeakTest(
       'should pluck graphql-tag template literals from .vue 3 setup sugar JavaScript file',
       async () => {
         const sources = await pluck(
@@ -718,7 +720,7 @@ describe('graphql-tag-pluck', () => {
       },
     );
 
-    skipIfLeakTest(
+    skipIfWindowsAndLeakTest(
       'should pluck graphql-tag template literals from .vue 3 setup sugar TS/Pug/SCSS file',
       async () => {
         const sources = await pluck(
@@ -777,7 +779,7 @@ describe('graphql-tag-pluck', () => {
         );
       },
     );
-    skipIfLeakTest(
+    skipIfWindowsAndLeakTest(
       'should pluck graphql-tag template literals from .vue 3 outside setup sugar JavaScript file',
       async () => {
         const sources = await pluck(
@@ -836,7 +838,7 @@ describe('graphql-tag-pluck', () => {
       },
     );
 
-    skipIfLeakTest(
+    skipIfWindowsAndLeakTest(
       'should pluck graphql-tag template literals from .vue 3 outside setup sugar TS/Pug/SCSS file',
       async () => {
         const sources = await pluck(
@@ -895,7 +897,7 @@ describe('graphql-tag-pluck', () => {
       },
     );
 
-    skipIfLeakTest(
+    skipIfWindowsAndLeakTest(
       'should pluck graphql-tag template literals from .vue 3 setup with compiler macros and imports',
       async () => {
         const EXTERNAL_PROPS_SOURCE = freeText(`
@@ -951,7 +953,7 @@ describe('graphql-tag-pluck', () => {
       },
     );
 
-    skipIfLeakTest(
+    skipIfWindowsAndLeakTest(
       'should pluck graphql-tag template literals from .vue 3 setup JavaScript file',
       async () => {
         const sources = await pluck(
@@ -1013,7 +1015,7 @@ describe('graphql-tag-pluck', () => {
       },
     );
 
-    skipIfLeakTest(
+    skipIfWindowsAndLeakTest(
       'should pluck graphql-tag template literals from .vue 3 setup TS/Pug/SCSS file',
       async () => {
         const sources = await pluck(
@@ -2123,10 +2125,12 @@ describe('graphql-tag-pluck', () => {
       );
     });
 
-    skipIfLeakTest('should be able to specify a custom Vue block to pluck from', async () => {
-      const sources = await pluck(
-        'tmp-XXXXXX.vue',
-        freeText(`
+    skipIfWindowsAndLeakTest(
+      'should be able to specify a custom Vue block to pluck from',
+      async () => {
+        const sources = await pluck(
+          'tmp-XXXXXX.vue',
+          freeText(`
         <template lang="pug">
           <div>test</div>
         </template>
@@ -2177,13 +2181,13 @@ describe('graphql-tag-pluck', () => {
         }
         </graphql>
       `),
-        {
-          gqlVueBlock: 'graphql',
-        },
-      );
+          {
+            gqlVueBlock: 'graphql',
+          },
+        );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(
-        freeText(`
+        expect(sources.map(source => source.body).join('\n\n')).toEqual(
+          freeText(`
         query IndexQuery {
           site {
             siteMetadata {
@@ -2200,8 +2204,9 @@ describe('graphql-tag-pluck', () => {
           }
         }
       `),
-      );
-    });
+        );
+      },
+    );
 
     it('should be able to specify the package name of which the GraphQL identifier should be imported from', async () => {
       const sources = await pluck(

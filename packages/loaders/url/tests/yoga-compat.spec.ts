@@ -53,6 +53,7 @@ describe('Yoga Compatibility', () => {
   ];
   let resolveOnReturn: VoidFunction;
   const timeouts = new Set<NodeJS.Timeout>();
+  let pumpTimeout: NodeJS.Timeout | undefined;
   const fakeAsyncIterable = {
     [Symbol.asyncIterator]() {
       return this;
@@ -143,7 +144,9 @@ describe('Yoga Compatibility', () => {
       if (active) {
         cnt++;
         liveQueryStore.invalidate('Query.cnt').then(() => {
-          setTimeout(pump, 300);
+          if (active) {
+            pumpTimeout = setTimeout(pump, 300);
+          }
         });
       }
     }
@@ -159,6 +162,9 @@ describe('Yoga Compatibility', () => {
 
   afterAll(async () => {
     active = false;
+    if (pumpTimeout) {
+      clearTimeout(pumpTimeout);
+    }
     for (const socket of sockets) {
       socket.destroy();
     }
