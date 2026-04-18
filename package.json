@@ -83,7 +83,7 @@
     "husky": "9.1.7",
     "jest": "30.3.0",
     "lint-staged": "16.4.0",
-    "lru-cache": "10.4.3",
+    "lru-cache": "11.3.5",
     "patch-package": "8.0.1",
     "prettier": "3.8.3",
     "prettier-plugin-tailwindcss": "0.7.2",
