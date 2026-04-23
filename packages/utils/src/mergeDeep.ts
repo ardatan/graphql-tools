@@ -95,9 +95,6 @@ export function mergeDeep<S extends any[]>(
           output[key] = source[key];
         }
       }
-      if (respectNonEnumerableSymbols && output == null) {
-        output = {};
-      }
       if (respectNonEnumerableSymbols && output != null) {
         for (const sym of Object.getOwnPropertySymbols(source)) {
           const descriptor = Object.getOwnPropertyDescriptor(source, sym)!;
