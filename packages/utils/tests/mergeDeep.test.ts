@@ -84,4 +84,15 @@ describe('mergeDeep', () => {
   it('returns undefined when an empty sources array passed', () => {
     expect(mergeDeep([])).toEqual(undefined);
   });
+
+  it('preserves non-enumerable symbol properties from the first source', () => {
+    const sym = Symbol('annotation');
+    const first: any = { a: 1 };
+    Object.defineProperty(first, sym, { value: 'annotated', writable: true });
+    const second = { b: 2 };
+    const merged = mergeDeep([first, second], false, false, false, true);
+    expect(merged.a).toEqual(1);
+    expect(merged.b).toEqual(2);
+    expect(merged[sym]).toEqual('annotated');
+  });
 });
