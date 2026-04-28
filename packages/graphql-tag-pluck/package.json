@@ -59,7 +59,7 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@astrojs/compiler": "3.0.1",
+    "@astrojs/compiler": "4.0.0",
     "@types/babel__traverse": "7.28.0",
     "@vue/compiler-sfc": "3.5.33",
     "astrojs-compiler-sync": "1.1.1",
