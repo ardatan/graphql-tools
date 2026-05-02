@@ -11,6 +11,7 @@ export function mergeDeep<S extends any[]>(
   respectPrototype = false,
   respectArrays = false,
   respectArrayLength = false,
+  respectNonEnumerableSymbols = false,
 ): UnboxIntersection<UnionToIntersection<BoxedTupleTypes<S>>> & any {
   if (sources.length === 0) {
     return;
@@ -41,6 +42,7 @@ export function mergeDeep<S extends any[]>(
         respectPrototype,
         respectArrays,
         respectArrayLength,
+        respectNonEnumerableSymbols,
       ),
     );
   }
@@ -87,9 +89,18 @@ export function mergeDeep<S extends any[]>(
             respectPrototype,
             respectArrays,
             respectArrayLength,
+            respectNonEnumerableSymbols,
           );
         } else {
           output[key] = source[key];
+        }
+      }
+      if (respectNonEnumerableSymbols && output != null) {
+        for (const sym of Object.getOwnPropertySymbols(source)) {
+          const descriptor = Object.getOwnPropertyDescriptor(source, sym)!;
+          if (!descriptor.enumerable) {
+            Object.defineProperty(output, sym, descriptor);
+          }
         }
       }
     } else if (Array.isArray(source)) {

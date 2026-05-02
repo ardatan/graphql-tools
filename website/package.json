@@ -13,7 +13,7 @@
   "dependencies": {
     "@theguild/components": "9.11.3",
     "@theguild/remark-mermaid": "0.3.0",
-    "next": "16.2.3",
+    "next": "16.2.4",
     "next-sitemap": "4.2.3",
     "react": "19.2.5",
     "react-dom": "19.2.5"
@@ -24,11 +24,11 @@
     "@types/react": "19.2.14",
     "estree-util-value-to-estree": "3.5.0",
     "pagefind": "^1.5.2",
-    "postcss": "8.5.9",
+    "postcss": "8.5.13",
     "postcss-import": "16.1.1",
     "postcss-lightningcss": "1.1.0",
     "tailwindcss": "3.4.19",
-    "typescript": "6.0.2",
-    "wrangler": "4.82.2"
+    "typescript": "6.0.3",
+    "wrangler": "4.87.0"
   }
 }

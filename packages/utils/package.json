@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/utils",
-  "version": "11.0.1",
+  "version": "11.1.0",
   "type": "module",
   "description": "Common package containing utils and types for GraphQL tools",
   "repository": {
@@ -43,7 +43,7 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@graphql-tools/stitch": "^10.1.17",
+    "@graphql-tools/stitch": "^10.1.18",
     "@types/dateformat": "3.0.1",
     "dateformat": "4.6.3",
     "graphql-scalars": "1.25.0"
