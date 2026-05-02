@@ -91,7 +91,30 @@ async function buildApiDocs(): Promise<void> {
   const project = await typeDoc.convert();
   await typeDoc.generateOutputs(project!);
 
+  // Nextra's page-map builder (to-page-map.js) builds its internal nested map
+  // with plain objects and uses `current[segment] ||= {}`.  When a path segment
+  // is a property of `Object.prototype` (e.g. "constructor"), the look-up
+  // returns the inherited prototype value (truthy) and the assignment is skipped,
+  // so the page is silently omitted from the page map.  Nextra's validation then
+  // throws because the key exists in `_meta.ts` but the page cannot be found.
+  // Detect such names by checking `key in {}` (which traverses the prototype chain).
+  function isPrototypeConflict(key: string): boolean {
+    return key in {};
+  }
+
   async function patchMarkdownFile(filePath: string): Promise<void> {
+    const baseName = path.basename(filePath, path.extname(filePath)).toLowerCase();
+    if (isPrototypeConflict(baseName)) {
+      // Remove the file so it never appears in _meta.ts or Nextra's page map.
+      await fsPromises.unlink(filePath);
+      console.warn(
+        '⚠️ ',
+        styleText('yellow', `Removed '${baseName}' page – name conflicts with Object.prototype:`),
+        filePath,
+      );
+      return;
+    }
+
     const contents = await fsPromises.readFile(filePath, 'utf-8');
     const contentsTrimmed = contents
       // Add YAML front-matter with a title derived from the first H1 heading.
@@ -148,9 +171,13 @@ async function buildApiDocs(): Promise<void> {
               .map(fileName => {
                 const baseName = fileName.replace(/\.md$/, '');
                 const key = baseName.toLowerCase();
+                // Skip entries whose key conflicts with Object.prototype properties
+                // (those files are deleted by patchMarkdownFile, so they won't exist).
+                if (isPrototypeConflict(key)) return null;
                 const value = baseName.replace(/^.*\./, '');
-                return [key, value];
+                return [key, value] as [string, string];
               })
+              .filter((entry): entry is [string, string] => entry !== null)
               .sort((a, b) => a[1].localeCompare(b[1])),
           ),
           null,
