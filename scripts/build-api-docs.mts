@@ -175,7 +175,7 @@ async function buildApiDocs(): Promise<void> {
                 // (those files are deleted by patchMarkdownFile, so they won't exist).
                 if (isPrototypeConflict(key)) return null;
                 const value = baseName.replace(/^.*\./, '');
-                return [key, value] as [string, string];
+                return [key, value];
               })
               .filter((entry): entry is [string, string] => entry !== null)
               .sort((a, b) => a[1].localeCompare(b[1])),
