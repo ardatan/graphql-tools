@@ -61,11 +61,11 @@
   "devDependencies": {
     "@astrojs/compiler": "4.0.0",
     "@types/babel__traverse": "7.28.0",
-    "@vue/compiler-sfc": "3.5.33",
+    "@vue/compiler-sfc": "3.5.34",
     "astrojs-compiler-sync": "1.1.1",
     "content-tag": "4.1.1",
     "svelte": "5.55.5",
-    "svelte2tsx": "0.7.54"
+    "svelte2tsx": "0.7.55"
   },
   "publishConfig": {
     "directory": "dist",
