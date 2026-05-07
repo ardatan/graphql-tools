@@ -99,6 +99,7 @@
     "wonka": "6.3.6"
   },
   "overrides": {
+    "@xmldom/xmldom": "^0.9.10",
     "cookie": "1.1.1",
     "esbuild": "0.27.5",
     "estree-util-value-to-estree": "3.5.0",
@@ -109,9 +110,11 @@
     "miniflare": {
       "undici": "8.1.0"
     },
+    "postcss": "^8.5.10",
     "react": "19.2.6",
     "react-dom": "19.2.6",
-    "tmp": "0.2.5"
+    "tmp": "0.2.5",
+    "uuid": "^11.1.1"
   },
   "lint-staged": {
     "packages/**/src/**/*.{ts,tsx}": [
