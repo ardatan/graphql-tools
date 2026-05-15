@@ -60,6 +60,8 @@ jobs:
       ${{matrix.name}} Test on Node ${{matrix.node-version}} (${{matrix.os}}) and GraphQL
       v${{matrix.graphql_version}}
     runs-on: ${{matrix.os}}
+    env:
+      PUPPETEER_SKIP_DOWNLOAD: ${{ runner.os == 'Windows' && 'true' || '' }}
     strategy:
       fail-fast: false
       matrix:
