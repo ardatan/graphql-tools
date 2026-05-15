@@ -24,9 +24,9 @@ declare global {
 const [nodeMajorRaw = '0', nodeMinorRaw = '0'] = process.versions.node.split('.', 2);
 const nodeMajor = Number.parseInt(nodeMajorRaw, 10);
 const nodeMinor = Number.parseInt(nodeMinorRaw, 10);
-const isNodeVersionSupported = nodeMajor > 22 || (nodeMajor === 22 && nodeMinor >= 12);
+const isPuppeteerV25Supported = nodeMajor > 22 || (nodeMajor === 22 && nodeMinor >= 12);
 
-describeIf(platform() !== 'win32' && isNodeVersionSupported)(
+describeIf(platform() !== 'win32' && isPuppeteerV25Supported)(
   '[url-loader] webpack bundle compat',
   () => {
     let httpServer: http.Server;
