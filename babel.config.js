@@ -6,5 +6,6 @@ module.exports = {
   plugins: [
     '@babel/plugin-proposal-class-properties',
     '@babel/plugin-proposal-explicit-resource-management',
+    '@babel/plugin-transform-private-methods',
   ],
 };
