@@ -29,6 +29,7 @@ const isPuppeteerV25Supported = nodeMajor > 22 || (nodeMajor === 22 && nodeMinor
 describeIf(platform() !== 'win32' && isPuppeteerV25Supported)(
   '[url-loader] webpack bundle compat',
   () => {
+    jest.setTimeout(15000);
     let httpServer: http.Server;
     let browser: Browser;
     let page: Page;

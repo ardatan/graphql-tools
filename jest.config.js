@@ -16,6 +16,7 @@ const ESM_PACKAGES = [
   'is-plain-obj',
   'puppeteer',
   'puppeteer-core',
+  '@puppeteer/browsers',
 ];
 
 const modulePathIgnorePatterns = ['dist', 'test-assets', 'test-files', 'fixtures', '.bob'];
