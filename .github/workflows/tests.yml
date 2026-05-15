@@ -60,8 +60,6 @@ jobs:
       ${{matrix.name}} Test on Node ${{matrix.node-version}} (${{matrix.os}}) and GraphQL
       v${{matrix.graphql_version}}
     runs-on: ${{matrix.os}}
-    env:
-      PUPPETEER_SKIP_DOWNLOAD: ${{ runner.os == 'Windows' && 'true' || '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -79,6 +77,11 @@ jobs:
         uses: the-guild-org/shared-config/setup@v1
         with:
           node-version: ${{matrix.node-version}}
+
+      - name: Skip Puppeteer browser download on Windows
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: echo "PUPPETEER_SKIP_DOWNLOAD=true" >> "$GITHUB_ENV"
 
       - name: Use GraphQL v${{matrix.graphql_version}}
         run: |
