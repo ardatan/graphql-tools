@@ -25,7 +25,7 @@ jobs:
         with:
           node-version-file: .node-version
 
-      - uses: the-guild-org/shared-config/website-cf@bcb53d910698d29749511f386139ad8180269101 # main
+      - uses: the-guild-org/shared-config/website-cf@f4eea983237a44bb0ca19c3348dacbfdfcdbec23 # main
         name: build and deploy website
         env:
           NEXT_BASE_PATH: ${{ github.ref == 'refs/heads/master' && '/graphql/tools' || '' }}

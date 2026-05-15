@@ -1,5 +1,14 @@
 # @graphql-tools/utils
 
+## 11.1.0
+
+### Minor Changes
+
+- [#8144](https://github.com/ardatan/graphql-tools/pull/8144)
+  [`a4b7dce`](https://github.com/ardatan/graphql-tools/commit/a4b7dceaeec9561bf77b8a0804774b604b97b060)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - Deep merge and preserve non-enumerable
+  symbols
+
 ## 11.0.1
 
 ### Patch Changes
