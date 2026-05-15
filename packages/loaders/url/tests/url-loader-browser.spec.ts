@@ -21,12 +21,12 @@ declare global {
   }
 }
 
-const [nodeMajorRaw = '0', nodeMinorRaw = '0'] = process.versions.node.split('.', 3);
+const [nodeMajorRaw = '0', nodeMinorRaw = '0'] = process.versions.node.split('.', 2);
 const nodeMajor = Number.parseInt(nodeMajorRaw, 10);
 const nodeMinor = Number.parseInt(nodeMinorRaw, 10);
-const isPuppeteerSupportedNode = nodeMajor > 22 || (nodeMajor === 22 && nodeMinor >= 12);
+const isNodeVersionSupported = nodeMajor > 22 || (nodeMajor === 22 && nodeMinor >= 12);
 
-describeIf(platform() !== 'win32' && isPuppeteerSupportedNode)(
+describeIf(platform() !== 'win32' && isNodeVersionSupported)(
   '[url-loader] webpack bundle compat',
   () => {
     let httpServer: http.Server;
