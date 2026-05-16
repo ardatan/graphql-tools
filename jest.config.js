@@ -14,6 +14,9 @@ const ESM_PACKAGES = [
   '@apollo/client',
   'extract-files',
   'is-plain-obj',
+  'puppeteer',
+  'puppeteer-core',
+  '@puppeteer/browsers',
 ];
 
 const modulePathIgnorePatterns = ['dist', 'test-assets', 'test-files', 'fixtures', '.bob'];

@@ -73,6 +73,11 @@ jobs:
       - name: Checkout Master
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
+      - name: Skip Puppeteer browser download on Windows
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: echo "PUPPETEER_SKIP_DOWNLOAD=true" >> "$GITHUB_ENV"
+
       - name: Setup env
         uses: the-guild-org/shared-config/setup@v1
         with:
