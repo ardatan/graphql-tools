@@ -110,6 +110,7 @@
     "miniflare": {
       "undici": "8.3.0"
     },
+    "postcss": "8.5.14",
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "tmp": "0.2.5"
