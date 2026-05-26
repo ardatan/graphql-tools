@@ -73,7 +73,7 @@ describe('mergeDeep', () => {
     expect(mergeDeep([a, b], undefined, true, true)).toEqual({ options: ['$A', '$B'] });
   });
 
-  it('filters nullish values', () => {
+  it('skips undefined sources', () => {
     expect(mergeDeep([{ a: 'dsa' }, { a: 'dd', b: 1 }, undefined])).toEqual({ a: 'dd', b: 1 });
   });
 
