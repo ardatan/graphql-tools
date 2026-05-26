@@ -77,6 +77,14 @@ describe('mergeDeep', () => {
     expect(mergeDeep([{ a: 'dsa' }, { a: 'dd', b: 1 }, undefined])).toEqual({ a: 'dd', b: 1 });
   });
 
+  it('overrides property value with null from later source', () => {
+    expect(mergeDeep([{ a: 'foo' }, { a: null }])).toEqual({ a: null });
+  });
+
+  it('overrides null property value with non-null from later source', () => {
+    expect(mergeDeep([{ a: null }, { a: 'foo' }])).toEqual({ a: 'foo' });
+  });
+
   it('respects empty objects', () => {
     expect(mergeDeep([{}])).toEqual({});
   });
