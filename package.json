@@ -55,7 +55,7 @@
     "@babel/plugin-proposal-explicit-resource-management": "7.27.4",
     "@babel/plugin-transform-class-static-block": "7.28.6",
     "@babel/preset-env": "7.29.5",
-    "@babel/preset-typescript": "7.28.5",
+    "@babel/preset-typescript": "7.29.7",
     "@changesets/changelog-github": "0.7.0",
     "@changesets/cli": "2.31.0",
     "@envelop/core": "5.5.1",
