@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.29.2",
-    "immutable": "^5.1.5",
+    "immutable": "^5.1.6",
     "invariant": "^2.2.4"
   },
   "publishConfig": {
