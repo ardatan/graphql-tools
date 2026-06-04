@@ -294,7 +294,7 @@ export function astFromArg(
     type: astFromType(arg.type),
     // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
     defaultValue: (() => {
-      // graphql > v17 has `default` instead of `defaultValue`
+      // graphql >= v17 has `default` instead of `defaultValue`
       // So for backward compatibility with v16, we are using `as any` here, otherwise, TypeScript report type error
       if ('default' in arg && (arg.default as any)?.literal?.kind === Kind.STRING) {
         return {
