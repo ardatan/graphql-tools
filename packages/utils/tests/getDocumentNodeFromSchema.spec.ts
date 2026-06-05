@@ -259,6 +259,14 @@ describe('getDocumentNodeFromSchema', () => {
             boolean: true
             enum: THREE
             list: ["c", "d"]
+            nested: { string: "wow", enum: TWO }
+            nestedInputList: [
+              { int: 777 }
+              { float: 88.8 }
+              { boolean: false }
+              { enum: ONE }
+              { list: ["e"] }
+            ]
           }
         ): String
       }
@@ -270,6 +278,8 @@ describe('getDocumentNodeFromSchema', () => {
         boolean: Boolean
         enum: Option
         list: [String]
+        nested: Input
+        nestedInputList: [Input]
       }
 
       enum Option {
@@ -360,6 +370,137 @@ describe('getDocumentNodeFromSchema', () => {
               {
                 "kind": "StringValue",
                 "value": "d",
+              },
+            ],
+          },
+        },
+        {
+          "kind": "ObjectField",
+          "name": {
+            "kind": "Name",
+            "value": "nested",
+          },
+          "value": {
+            "fields": [
+              {
+                "kind": "ObjectField",
+                "name": {
+                  "kind": "Name",
+                  "value": "string",
+                },
+                "value": {
+                  "kind": "StringValue",
+                  "value": "wow",
+                },
+              },
+              {
+                "kind": "ObjectField",
+                "name": {
+                  "kind": "Name",
+                  "value": "enum",
+                },
+                "value": {
+                  "kind": "EnumValue",
+                  "value": "TWO",
+                },
+              },
+            ],
+            "kind": "ObjectValue",
+          },
+        },
+        {
+          "kind": "ObjectField",
+          "name": {
+            "kind": "Name",
+            "value": "nestedInputList",
+          },
+          "value": {
+            "kind": "ListValue",
+            "values": [
+              {
+                "fields": [
+                  {
+                    "kind": "ObjectField",
+                    "name": {
+                      "kind": "Name",
+                      "value": "int",
+                    },
+                    "value": {
+                      "kind": "IntValue",
+                      "value": "777",
+                    },
+                  },
+                ],
+                "kind": "ObjectValue",
+              },
+              {
+                "fields": [
+                  {
+                    "kind": "ObjectField",
+                    "name": {
+                      "kind": "Name",
+                      "value": "float",
+                    },
+                    "value": {
+                      "kind": "FloatValue",
+                      "value": "88.8",
+                    },
+                  },
+                ],
+                "kind": "ObjectValue",
+              },
+              {
+                "fields": [
+                  {
+                    "kind": "ObjectField",
+                    "name": {
+                      "kind": "Name",
+                      "value": "boolean",
+                    },
+                    "value": {
+                      "kind": "BooleanValue",
+                      "value": false,
+                    },
+                  },
+                ],
+                "kind": "ObjectValue",
+              },
+              {
+                "fields": [
+                  {
+                    "kind": "ObjectField",
+                    "name": {
+                      "kind": "Name",
+                      "value": "enum",
+                    },
+                    "value": {
+                      "kind": "EnumValue",
+                      "value": "ONE",
+                    },
+                  },
+                ],
+                "kind": "ObjectValue",
+              },
+              {
+                "fields": [
+                  {
+                    "kind": "ObjectField",
+                    "name": {
+                      "kind": "Name",
+                      "value": "list",
+                    },
+                    "value": {
+                      "kind": "ListValue",
+                      "values": [
+                        {
+                          "kind": "StringValue",
+                          "value": "e",
+                        },
+                      ],
+                    },
+                  },
+                ],
+                "kind": "ObjectValue",
               },
             ],
           },

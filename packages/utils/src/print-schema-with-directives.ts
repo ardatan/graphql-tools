@@ -296,8 +296,12 @@ export function astFromArg(
     // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
     defaultValue: (() => {
       // graphql >= v17 has `default` instead of `defaultValue`
-      // So for backward compatibility with v16, we are using `as any` here, otherwise, TypeScript report type error
-      if (arg.default?.literal) {
+      // So for backward compatibility with v16, we are using `arg.default as any`, otherwise, TypeScript report type error
+      if ('default' in arg && (arg.default as any)?.literal) {
+        /**
+         * `convertConstValueNode` exhaustively traverses an literal node (a node with constant value)
+         * and constructs a JavaScript representation of the node values
+         */
         const convertConstValueNode = (node: ConstValueNode) => {
           if (node.kind === Kind.NULL) {
             return undefined;
@@ -314,8 +318,7 @@ export function astFromArg(
           return node.value;
         };
 
-        const value = convertConstValueNode(arg.default.literal);
-
+        const value = convertConstValueNode((arg.default as any).literal);
         return astFromValue(value, arg.type);
       }
 
