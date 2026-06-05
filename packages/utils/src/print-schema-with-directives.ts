@@ -304,7 +304,7 @@ export function astFromArg(
          */
         const convertConstValueNode = (node: ConstValueNode) => {
           if (node.kind === Kind.NULL) {
-            return undefined;
+            return null;
           } else if (node.kind === Kind.LIST) {
             return node.values.map(convertConstValueNode);
           } else if (node.kind === Kind.OBJECT) {
