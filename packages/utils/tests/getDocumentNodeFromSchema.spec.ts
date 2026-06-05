@@ -258,14 +258,16 @@ describe('getDocumentNodeFromSchema', () => {
             float: 4.56
             boolean: true
             enum: THREE
-            list: ["c", "d"]
-            nested: { string: "wow", enum: TWO }
+            nullValue: null
+            list: ["c", "d", null]
+            nested: { string: "wow", enum: TWO, int: null }
             nestedInputList: [
               { int: 777 }
               { float: 88.8 }
               { boolean: false }
               { enum: ONE }
               { list: ["e"] }
+              null
             ]
           }
         ): String
@@ -277,6 +279,7 @@ describe('getDocumentNodeFromSchema', () => {
         float: Float
         boolean: Boolean
         enum: Option
+        nullValue: String
         list: [String]
         nested: Input
         nestedInputList: [Input]
@@ -358,6 +361,16 @@ describe('getDocumentNodeFromSchema', () => {
           "kind": "ObjectField",
           "name": {
             "kind": "Name",
+            "value": "nullValue",
+          },
+          "value": {
+            "kind": "NullValue",
+          },
+        },
+        {
+          "kind": "ObjectField",
+          "name": {
+            "kind": "Name",
             "value": "list",
           },
           "value": {
@@ -370,6 +383,9 @@ describe('getDocumentNodeFromSchema', () => {
               {
                 "kind": "StringValue",
                 "value": "d",
+              },
+              {
+                "kind": "NullValue",
               },
             ],
           },
@@ -391,6 +407,16 @@ describe('getDocumentNodeFromSchema', () => {
                 "value": {
                   "kind": "StringValue",
                   "value": "wow",
+                },
+              },
+              {
+                "kind": "ObjectField",
+                "name": {
+                  "kind": "Name",
+                  "value": "int",
+                },
+                "value": {
+                  "kind": "NullValue",
                 },
               },
               {
@@ -501,6 +527,9 @@ describe('getDocumentNodeFromSchema', () => {
                   },
                 ],
                 "kind": "ObjectValue",
+              },
+              {
+                "kind": "NullValue",
               },
             ],
           },
