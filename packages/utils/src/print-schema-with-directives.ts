@@ -44,6 +44,7 @@ import {
   specifiedDirectives,
   UnionTypeDefinitionNode,
   ValueNode,
+  type ConstValueNode,
 } from 'graphql';
 import { astFromType } from './astFromType.js';
 import { astFromValue } from './astFromValue.js';
@@ -296,11 +297,26 @@ export function astFromArg(
     defaultValue: (() => {
       // graphql >= v17 has `default` instead of `defaultValue`
       // So for backward compatibility with v16, we are using `as any` here, otherwise, TypeScript report type error
-      if ('default' in arg && (arg.default as any)?.literal?.kind === Kind.STRING) {
-        return {
-          kind: Kind.STRING,
-          value: (arg.default as any).literal.value,
+      if (arg.default?.literal) {
+        const convertConstValueNode = (node: ConstValueNode) => {
+          if (node.kind === Kind.NULL) {
+            return undefined;
+          } else if (node.kind === Kind.LIST) {
+            return node.values.map(convertConstValueNode);
+          } else if (node.kind === Kind.OBJECT) {
+            const result = {};
+            for (const field of node.fields) {
+              result[field.name.value] = convertConstValueNode(field.value);
+            }
+            return result;
+          }
+
+          return node.value;
         };
+
+        const value = convertConstValueNode(arg.default.literal);
+
+        return astFromValue(value, arg.type);
       }
 
       return arg.defaultValue !== undefined
