@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/graphql-tag-pluck",
-  "version": "8.3.31",
+  "version": "8.3.32",
   "type": "module",
   "description": "Pluck graphql-tag template literals",
   "repository": {

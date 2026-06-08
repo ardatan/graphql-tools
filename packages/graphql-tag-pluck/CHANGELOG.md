@@ -1,5 +1,16 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 8.3.32
+
+### Patch Changes
+
+- [#8156](https://github.com/ardatan/graphql-tools/pull/8156)
+  [`cb7a18d`](https://github.com/ardatan/graphql-tools/commit/cb7a18df390f55280e6b7bf8b282d913ec3f9c96)
+  Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+  - Updated dependency
+    [`@babel/parser@^7.29.3` ↗︎](https://www.npmjs.com/package/@babel/parser/v/7.29.3) (from
+    `^7.29.2`, in `dependencies`)
+
 ## 8.3.31
 
 ### Patch Changes
