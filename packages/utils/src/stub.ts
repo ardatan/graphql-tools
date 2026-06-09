@@ -51,7 +51,8 @@ export function createStub(node: TypeNode, type: any): any {
     case Kind.LIST_TYPE:
       return new GraphQLList(createStub(node.type, type));
     case Kind.NON_NULL_TYPE:
-      return new GraphQLNonNull(createStub(node.type, type));
+      // FIXME: graphql@v17 type issue
+      return new GraphQLNonNull(createStub(node.type, type) as any);
     default:
       if (type === 'output') {
         return createNamedStub(node.name.value, 'object');
