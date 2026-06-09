@@ -62,7 +62,7 @@ export function mergeDeep<S extends any[]>(
     }
   }
   for (const source of sources) {
-    if (source == null) {
+    if (source === undefined) {
       continue;
     }
     if (isObject(source)) {
