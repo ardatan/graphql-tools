@@ -198,10 +198,7 @@ export function healTypes(
       return healedType != null ? new GraphQLList(healedType) : null;
     } else if (isNonNullType(type)) {
       const healedType = healType(type.ofType);
-      return healedType != null
-        ? // FIXME: `healedType` needs `as any` as graphql@17 changes the type for `GraphQLType`
-          new GraphQLNonNull(healedType as any)
-        : null;
+      return healedType != null ? new GraphQLNonNull(healedType) : null;
     } else if (isNamedType(type)) {
       // If a type annotation on a field or an argument or a union member is
       // any `GraphQLNamedType` with a `name`, then it must end up identical

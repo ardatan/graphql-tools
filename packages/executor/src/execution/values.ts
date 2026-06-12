@@ -1,4 +1,5 @@
 import {
+  coerceInputValue,
   GraphQLError,
   GraphQLSchema,
   isInputType,
@@ -10,7 +11,6 @@ import {
   VariableDefinitionNode,
 } from 'graphql';
 import { createGraphQLError, hasOwnProperty, inspect, printPathArray } from '@graphql-tools/utils';
-import { coerceInputValue } from './coerceInputValue.js';
 
 type CoercedVariableValues =
   | { errors: ReadonlyArray<GraphQLError>; coerced?: never }

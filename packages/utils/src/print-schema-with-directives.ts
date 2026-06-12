@@ -44,6 +44,7 @@ import {
   specifiedDirectives,
   UnionTypeDefinitionNode,
   ValueNode,
+  type ConstValueNode,
 } from 'graphql';
 import { astFromType } from './astFromType.js';
 import { astFromValue } from './astFromValue.js';
@@ -300,11 +301,8 @@ export function astFromArg(
         /**
          * `convertConstValueNode` exhaustively traverses an literal node (a node with constant value)
          * and constructs a JavaScript representation of the node values
-         *
-         * Note: `node` is supposed to be `ConstValueNode` for graphql@17 but
-         * it is not available in graphql@15 so we cannot import it from `graphql`
          */
-        const convertConstValueNode = (node: any) => {
+        const convertConstValueNode = (node: ConstValueNode) => {
           if (node.kind === Kind.NULL) {
             return null;
           } else if (node.kind === Kind.LIST) {

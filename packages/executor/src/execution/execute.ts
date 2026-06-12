@@ -55,7 +55,6 @@ import {
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
 import { createDeferredPromise, handleMaybePromise } from '@whatwg-node/promise-helpers';
-import { AsyncWorkTracker } from './AsyncWorkTracker.js';
 import { coerceError } from './coerceError.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import { invariant } from './invariant.js';
@@ -125,7 +124,6 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   subscribeFieldResolver: GraphQLFieldResolver<any, TContext>;
   errors: Array<GraphQLError>;
   subsequentPayloads: Set<AsyncPayloadRecord>;
-  asyncWorkTracker: AsyncWorkTracker;
   signal?: AbortSignal;
   onSignalAbort?(handler: () => void): void;
   signalPromise?: Promise<never>;
@@ -532,7 +530,6 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     typeResolver: typeResolver ?? defaultTypeResolver,
     subscribeFieldResolver: subscribeFieldResolver ?? defaultFieldResolver,
     subsequentPayloads: new Set(),
-    asyncWorkTracker: new AsyncWorkTracker(),
     errors: [],
     signal,
     onSignalAbort,
@@ -549,7 +546,6 @@ function buildPerEventExecutionContext(
     ...exeContext,
     rootValue: payload,
     subsequentPayloads: new Set(),
-    asyncWorkTracker: new AsyncWorkTracker(),
     errors: [],
   };
 }
@@ -832,12 +828,7 @@ export function buildResolveInfo(
     operation: exeContext.operation,
     variableValues: exeContext.variableValues,
     signal: exeContext.signal,
-    getAbortSignal: () => exeContext.signal,
-    getAsyncHelpers: () => ({
-      promiseAll: values => exeContext.asyncWorkTracker.promiseAllTrackOnReject(values),
-      track: maybePromises => exeContext.asyncWorkTracker.addValues(maybePromises),
-    }),
-  } as GraphQLResolveInfo;
+  };
 }
 
 export const CRITICAL_ERROR = 'CRITICAL_ERROR' as const;

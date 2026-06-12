@@ -402,9 +402,7 @@ describe('Execute: Handles inputs', () => {
           errors: [
             {
               message:
-                versionInfo.major === 17
-                  ? 'Variable "$input" got invalid value { c: "foo", e: "SerializedValue" } at "input.e"; FaultyScalarErrorMessage'
-                  : 'Variable "$input" got invalid value "SerializedValue" at "input.e"; FaultyScalarErrorMessage',
+                'Variable "$input" got invalid value "SerializedValue" at "input.e"; FaultyScalarErrorMessage',
               locations: [{ line: 2, column: 16 }],
               extensions: { code: 'FaultyScalarErrorMessageExtensionCode' },
             },
@@ -420,9 +418,7 @@ describe('Execute: Handles inputs', () => {
           errors: [
             {
               message:
-                versionInfo.major === 17
-                  ? 'Variable "$input" got invalid value { a: "foo", b: "bar", c: null } at "input.c"; Expected value of non-null type "String!" not to be null.'
-                  : 'Variable "$input" got invalid value null at "input.c"; Expected non-nullable type "String!" not to be null.',
+                'Variable "$input" got invalid value null at "input.c"; Expected non-nullable type "String!" not to be null.',
               locations: [{ line: 2, column: 16 }],
             },
           ],
@@ -436,9 +432,7 @@ describe('Execute: Handles inputs', () => {
           errors: [
             {
               message:
-                versionInfo.major === 17
-                  ? 'Variable "$input" got invalid value "foo bar"; Expected value of type "TestInputObject" to be an object, found: "foo bar".'
-                  : 'Variable "$input" got invalid value "foo bar"; Expected type "TestInputObject" to be an object.',
+                'Variable "$input" got invalid value "foo bar"; Expected type "TestInputObject" to be an object.',
               locations: [{ line: 2, column: 16 }],
             },
           ],
@@ -452,9 +446,7 @@ describe('Execute: Handles inputs', () => {
           errors: [
             {
               message:
-                versionInfo.major === 17
-                  ? 'Variable "$input" got invalid value { a: "foo", b: "bar" }; Expected value of type "TestInputObject" to include required field "c", found: { a: "foo", b: "bar" }.'
-                  : 'Variable "$input" got invalid value { a: "foo", b: "bar" }; Field "c" of required type "String!" was not provided.',
+                'Variable "$input" got invalid value { a: "foo", b: "bar" }; Field "c" of required type "String!" was not provided.',
               locations: [{ line: 2, column: 16 }],
             },
           ],
@@ -473,16 +465,12 @@ describe('Execute: Handles inputs', () => {
           errors: [
             {
               message:
-                versionInfo.major === 17
-                  ? 'Variable "$input" got invalid value { na: { a: "foo" } } at "input.na"; Expected value of type "TestInputObject" to include required field "c", found: { a: "foo" }.'
-                  : 'Variable "$input" got invalid value { a: "foo" } at "input.na"; Field "c" of required type "String!" was not provided.',
+                'Variable "$input" got invalid value { a: "foo" } at "input.na"; Field "c" of required type "String!" was not provided.',
               locations: [{ line: 2, column: 18 }],
             },
             {
               message:
-                versionInfo.major === 17
-                  ? 'Variable "$input" got invalid value { na: { a: "foo" } }; Expected value of type "TestNestedInputObject" to include required field "nb", found: { na: { a: "foo" } }.'
-                  : 'Variable "$input" got invalid value { na: { a: "foo" } }; Field "nb" of required type "String!" was not provided.',
+                'Variable "$input" got invalid value { na: { a: "foo" } }; Field "nb" of required type "String!" was not provided.',
               locations: [{ line: 2, column: 18 }],
             },
           ],
@@ -499,9 +487,7 @@ describe('Execute: Handles inputs', () => {
           errors: [
             {
               message:
-                versionInfo.major === 17
-                  ? 'Variable "$input" got invalid value { a: "foo", b: "bar", c: "baz", extra: "dog" }; Expected value of type "TestInputObject" not to include unknown field "extra", found: { a: "foo", b: "bar", c: "baz", extra: "dog" }.'
-                  : 'Variable "$input" got invalid value { a: "foo", b: "bar", c: "baz", extra: "dog" }; Field "extra" is not defined by type "TestInputObject".',
+                'Variable "$input" got invalid value { a: "foo", b: "bar", c: "baz", extra: "dog" }; Field "extra" is not defined by type "TestInputObject".',
               locations: [{ line: 2, column: 16 }],
             },
           ],
@@ -903,9 +889,7 @@ describe('Execute: Handles inputs', () => {
         errors: [
           {
             message:
-              versionInfo.major === 17
-                ? 'Variable "$input" got invalid value ["A", null, "B"] at "input[1]"; Expected value of non-null type "String!" not to be null.'
-                : 'Variable "$input" got invalid value null at "input[1]"; Expected non-nullable type "String!" not to be null.',
+              'Variable "$input" got invalid value null at "input[1]"; Expected non-nullable type "String!" not to be null.',
             locations: [{ line: 2, column: 16 }],
           },
         ],
@@ -953,9 +937,7 @@ describe('Execute: Handles inputs', () => {
         errors: [
           {
             message:
-              versionInfo.major === 17
-                ? 'Variable "$input" got invalid value ["A", null, "B"] at "input[1]"; Expected value of non-null type "String!" not to be null.'
-                : 'Variable "$input" got invalid value null at "input[1]"; Expected non-nullable type "String!" not to be null.',
+              'Variable "$input" got invalid value null at "input[1]"; Expected non-nullable type "String!" not to be null.',
             locations: [{ line: 2, column: 16 }],
           },
         ],
@@ -1077,9 +1059,9 @@ describe('Execute: Handles inputs', () => {
 
     const inputValue = { input: [0, 1, 2] };
 
-    function invalidValueError(inputValue: string, elementValue: string, index: number) {
+    function invalidValueError(value: number, index: number) {
       return {
-        message: `Variable "$input" got invalid value ${versionInfo.major === 17 ? inputValue : elementValue} at "input[${index}]"; String cannot represent a non string value: ${elementValue}`,
+        message: `Variable "$input" got invalid value ${value} at "input[${index}]"; String cannot represent a non string value: ${value}`,
         locations: [{ line: 2, column: 14 }],
       };
     }
@@ -1088,11 +1070,7 @@ describe('Execute: Handles inputs', () => {
       const result = getVariableValues(schema, variableDefinitions, inputValue);
 
       expectJSON(result).toDeepEqual({
-        errors: [
-          invalidValueError('[0, 1, 2]', '0', 0),
-          invalidValueError('[0, 1, 2]', '1', 1),
-          invalidValueError('[0, 1, 2]', '2', 2),
-        ],
+        errors: [invalidValueError(0, 0), invalidValueError(1, 1), invalidValueError(2, 2)],
       });
     });
 
@@ -1100,11 +1078,7 @@ describe('Execute: Handles inputs', () => {
       const result = getVariableValues(schema, variableDefinitions, inputValue, { maxErrors: 3 });
 
       expectJSON(result).toDeepEqual({
-        errors: [
-          invalidValueError('[0, 1, 2]', '0', 0),
-          invalidValueError('[0, 1, 2]', '1', 1),
-          invalidValueError('[0, 1, 2]', '2', 2),
-        ],
+        errors: [invalidValueError(0, 0), invalidValueError(1, 1), invalidValueError(2, 2)],
       });
     });
 
@@ -1113,8 +1087,8 @@ describe('Execute: Handles inputs', () => {
 
       expectJSON(result).toDeepEqual({
         errors: [
-          invalidValueError('[0, 1, 2]', '0', 0),
-          invalidValueError('[0, 1, 2]', '1', 1),
+          invalidValueError(0, 0),
+          invalidValueError(1, 1),
           {
             message:
               'Too many errors processing variables, error limit reached. Execution aborted.',

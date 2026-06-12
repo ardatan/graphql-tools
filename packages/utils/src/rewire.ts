@@ -82,7 +82,7 @@ export function rewireTypes(
     return new GraphQLDirective(directiveConfig);
   }
 
-  function rewireArgs(args: GraphQLFieldConfigArgumentMap) {
+  function rewireArgs(args: GraphQLFieldConfigArgumentMap): GraphQLFieldConfigArgumentMap {
     const rewiredArgs = {};
     for (const argName in args) {
       const arg = args[argName];
