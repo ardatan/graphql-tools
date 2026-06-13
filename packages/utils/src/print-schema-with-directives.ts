@@ -48,6 +48,7 @@ import {
 import { astFromType } from './astFromType.js';
 import { astFromValue } from './astFromValue.js';
 import { astFromValueUntyped } from './astFromValueUntyped.js';
+import { defaultValueFromType } from './defaultValueFromType.js';
 import { getDescriptionNode } from './descriptionFromObject.js';
 import {
   DirectableGraphQLObject,
@@ -292,42 +293,7 @@ export function astFromArg(
       value: arg.name,
     },
     type: astFromType(arg.type),
-    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
-    defaultValue: (() => {
-      // graphql >= v17 has `default` instead of `defaultValue`
-      // So for backward compatibility with v16, we are using `arg.default as any`, otherwise, TypeScript report type error
-      if ('default' in arg && (arg.default as any)?.literal) {
-        /**
-         * `convertConstValueNode` exhaustively traverses an literal node (a node with constant value)
-         * and constructs a JavaScript representation of the node values
-         *
-         * Note: `node` is supposed to be `ConstValueNode` for graphql@17 but
-         * it is not available in graphql@15 so we cannot import it from `graphql`
-         */
-        const convertConstValueNode = (node: any) => {
-          if (node.kind === Kind.NULL) {
-            return null;
-          } else if (node.kind === Kind.LIST) {
-            return node.values.map(convertConstValueNode);
-          } else if (node.kind === Kind.OBJECT) {
-            const result = {};
-            for (const field of node.fields) {
-              result[field.name.value] = convertConstValueNode(field.value);
-            }
-            return result;
-          }
-
-          return node.value;
-        };
-
-        const value = convertConstValueNode((arg.default as any).literal);
-        return astFromValue(value, arg.type);
-      }
-
-      return arg.defaultValue !== undefined
-        ? (astFromValue(arg.defaultValue, arg.type) ?? undefined)
-        : (undefined as any);
-    })(),
+    defaultValue: defaultValueFromType(arg),
     directives: getDirectiveNodes(arg, schema, pathToDirectivesInExtensions) as any,
   };
 }
@@ -506,7 +472,7 @@ export function astFromInputField(
     type: astFromType(field.type),
     // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
     directives: getDirectiveNodes(field, schema, pathToDirectivesInExtensions) as any,
-    defaultValue: astFromValue(field.defaultValue, field.type) ?? (undefined as any),
+    defaultValue: defaultValueFromType(field),
   };
 }
 
