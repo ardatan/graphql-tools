@@ -119,7 +119,7 @@ jobs:
         os: [windows-latest, ubuntu-latest] # remove windows to speed up the tests
         node-version: [22, 24] # 17 minimum node support is 22
         graphql_version:
-          - 17
+          - 17.0.0-rc.0
     steps:
       - name: Checkout Master
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
