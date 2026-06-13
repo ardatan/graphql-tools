@@ -10,6 +10,7 @@ import {
   print,
   valueFromAST,
 } from 'graphql';
+import { defaultValueFromType } from './defaultValueFromType.js';
 import { createGraphQLError } from './errors.js';
 import { hasOwnProperty } from './jsutils.js';
 
@@ -37,15 +38,16 @@ export function getArgumentValues(
     {},
   );
 
-  for (const { name, type: argType, defaultValue } of def.args) {
-    const argumentNode = argNodeMap[name];
+  for (const arg of def.args) {
+    const argumentNode = argNodeMap[arg.name];
 
     if (!argumentNode) {
-      if (defaultValue !== undefined) {
-        coercedValues[name] = defaultValue;
-      } else if (isNonNullType(argType)) {
+      const defaultValue = defaultValueFromType(arg);
+      if (defaultValue) {
+        coercedValues[arg.name] = defaultValue.value;
+      } else if (isNonNullType(arg.type)) {
         throw createGraphQLError(
-          `Argument "${name}" of required type "${inspect(argType)}" ` + 'was not provided.',
+          `Argument "${arg.name}" of required type "${inspect(arg.type)}" ` + 'was not provided.',
           {
             nodes: [node],
           },
@@ -60,11 +62,11 @@ export function getArgumentValues(
     if (valueNode.kind === Kind.VARIABLE) {
       const variableName = valueNode.name.value;
       if (variableValues == null || !hasOwnProperty(variableValues, variableName)) {
-        if (defaultValue !== undefined) {
-          coercedValues[name] = defaultValue;
-        } else if (isNonNullType(argType)) {
+        if (arg.defaultValue !== undefined) {
+          coercedValues[arg.name] = arg.defaultValue;
+        } else if (isNonNullType(arg.type)) {
           throw createGraphQLError(
-            `Argument "${name}" of required type "${inspect(argType)}" ` +
+            `Argument "${arg.name}" of required type "${inspect(arg.type)}" ` +
               `was provided the variable "$${variableName}" which was not provided a runtime value.`,
             {
               nodes: [valueNode],
@@ -76,25 +78,25 @@ export function getArgumentValues(
       isNull = variableValues[variableName] == null;
     }
 
-    if (isNull && isNonNullType(argType)) {
+    if (isNull && isNonNullType(arg.type)) {
       throw createGraphQLError(
-        `Argument "${name}" of non-null type "${inspect(argType)}" ` + 'must not be null.',
+        `Argument "${arg.name}" of non-null type "${inspect(arg.type)}" ` + 'must not be null.',
         {
           nodes: [valueNode],
         },
       );
     }
 
-    const coercedValue = valueFromAST(valueNode, argType, variableValues);
+    const coercedValue = valueFromAST(valueNode, arg.type, variableValues);
     if (coercedValue === undefined) {
       // Note: ValuesOfCorrectTypeRule validation should catch this before
       // execution. This is a runtime check to ensure execution does not
       // continue with an invalid argument value.
-      throw createGraphQLError(`Argument "${name}" has invalid value ${print(valueNode)}.`, {
+      throw createGraphQLError(`Argument "${arg.name}" has invalid value ${print(valueNode)}.`, {
         nodes: [valueNode],
       });
     }
-    coercedValues[name] = coercedValue;
+    coercedValues[arg.name] = coercedValue;
   }
   return coercedValues;
 }
