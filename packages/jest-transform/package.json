@@ -5,7 +5,7 @@
   "description": "Jest Plugin to load and parse imported GraphQL files",
   "repository": {
     "type": "git",
-    "url": "git@github.com:ardatan/graphql-tools.git",
+    "url": "git+https://github.com/ardatan/graphql-tools.git",
     "directory": "packages/jest-transform"
   },
   "license": "MIT",
