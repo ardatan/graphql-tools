@@ -1,6 +1,5 @@
 import {
   ArgumentNode,
-  astFromValue,
   getNamedType,
   GraphQLArgument,
   GraphQLField,
@@ -29,6 +28,7 @@ import {
   VariableDefinitionNode,
 } from 'graphql';
 import { astFromValueUntyped } from './astFromValueUntyped.js';
+import { defaultValueFromType } from './defaultValueFromType.js';
 import { getDefinedRootType, getRootTypeNames } from './rootTypes.js';
 
 let operationVariables: VariableDefinitionNode[] = [];
@@ -389,12 +389,7 @@ function resolveVariable(arg: GraphQLArgument, name?: string): VariableDefinitio
 
   let defaultValue: any | undefined;
   try {
-    const returnVal = astFromValue(arg.defaultValue, arg.type) as any;
-    if (returnVal == null) {
-      defaultValue = undefined;
-    } else {
-      defaultValue = returnVal;
-    }
+    defaultValue = defaultValueFromType(arg);
   } catch (e) {
     const returnVal = astFromValueUntyped(arg.defaultValue) as any;
     if (returnVal == null) {
