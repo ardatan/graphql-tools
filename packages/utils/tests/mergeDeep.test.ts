@@ -81,6 +81,14 @@ describe('mergeDeep', () => {
     expect(mergeDeep([{}])).toEqual({});
   });
 
+  it('respects multiple empty objects', () => {
+    expect(mergeDeep([{}, {}])).toEqual({});
+  });
+
+  it('preserves nested empty objects', () => {
+    expect(mergeDeep([{ data: {} }, { data: {} }])).toEqual({ data: {} });
+  });
+
   it('returns undefined when an empty sources array passed', () => {
     expect(mergeDeep([])).toEqual(undefined);
   });
