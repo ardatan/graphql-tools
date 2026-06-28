@@ -1,5 +1,20 @@
 # @graphql-tools/utils
 
+## 11.1.1
+
+### Patch Changes
+
+- [#8256](https://github.com/ardatan/graphql-tools/pull/8256)
+  [`981d461`](https://github.com/ardatan/graphql-tools/commit/981d4618e16c2697a19c96b55d5f84186079f63d)
+  Thanks [@twavv](https://github.com/twavv)! - Fix `mergeDeep` returning `undefined` instead of `{}`
+  when merging two or more empty objects.
+
+  Previously the output accumulator was only initialized inside the per-key loop, so merging sources
+  with no own keys (e.g. `mergeDeep([{}, {}])`) left it `undefined`. This silently dropped
+  empty-object values during nested merges (`{ data: {} }` became `{ data: undefined }`), which
+  could surface as "Cannot return null for non-nullable field" errors when stitching schemas. The
+  accumulator is now initialized as soon as an object source is encountered.
+
 ## 11.1.0
 
 ### Minor Changes
