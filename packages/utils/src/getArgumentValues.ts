@@ -10,7 +10,7 @@ import {
   print,
   valueFromAST,
 } from 'graphql';
-import { defaultValueFromType } from './defaultValueFromType.js';
+import { defaultValueAstFromType } from './defaultValueAstFromType.js';
 import { createGraphQLError } from './errors.js';
 import { hasOwnProperty } from './jsutils.js';
 
@@ -42,7 +42,7 @@ export function getArgumentValues(
     const argumentNode = argNodeMap[arg.name];
 
     if (!argumentNode) {
-      const defaultValue = defaultValueFromType(arg);
+      const defaultValue = defaultValueAstFromType(arg) as any;
       if (defaultValue) {
         coercedValues[arg.name] = defaultValue.value;
       } else if (isNonNullType(arg.type)) {

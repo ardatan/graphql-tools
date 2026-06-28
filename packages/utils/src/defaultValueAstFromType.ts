@@ -1,29 +1,36 @@
-import { Kind, type GraphQLArgument, type GraphQLInputField } from 'graphql';
+import { Kind, type GraphQLArgument, type GraphQLInputField, type ValueNode } from 'graphql';
 import { astFromValue } from './astFromValue.js';
+import { astFromValueUntyped } from './astFromValueUntyped.js';
 
 /**
- * `defaultValueFromType` extracts default value from `GraphQLArgument` or `GraphQLInputField`, if available
+ * `defaultValueAstFromType` extracts default value from `GraphQLArgument` or `GraphQLInputField`, if available
  * This is compatible with all `graphql` versions
  *
- * When runtime default value is available (in graphql@17), it'd return the object without Kind
- * Otherwise, it'd return a `ValueNode`.
+ * The return type is `ConstValueNode` in graphql@16+,
+ * but it is not available in graphql@15 so `ValueNode` is used as return type here and `as any` is often required at callsites for backwards compatibility,
  */
-export const defaultValueFromType = (arg: GraphQLArgument | GraphQLInputField) => {
+export const defaultValueAstFromType = (
+  arg: GraphQLArgument | GraphQLInputField,
+): ValueNode | undefined => {
   // graphql >= v17 has `default` instead of `defaultValue`
   // So for backward compatibility with v16, we are using `arg.default as any`, otherwise, TypeScript report type error
-  if ('default' in arg && (arg.default as any)?.value) {
-    return arg.default;
-  }
+  if ('default' in arg) {
+    if (!arg.default) {
+      return undefined;
+    }
 
-  if ('default' in arg && (arg.default as any)?.literal) {
+    if ('value' in (arg.default as any)) {
+      return (astFromValueUntyped((arg.default as any).value) as any) ?? undefined;
+    }
+
     const value = convertConstValueNode((arg.default as any).literal);
-    return astFromValue(value, arg.type);
+    return (astFromValue(value, arg.type) as any) ?? undefined;
   }
 
   // graphql < v17 has `defaultValue` instead of `default`
-  return arg.defaultValue !== undefined
-    ? (astFromValue(arg.defaultValue, arg.type) ?? undefined)
-    : (undefined as any);
+  return (arg as any).defaultValue !== undefined
+    ? ((astFromValue((arg as any).defaultValue, (arg as any).type) as any) ?? undefined)
+    : undefined;
 };
 
 /**
