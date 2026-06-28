@@ -1,5 +1,14 @@
 # @graphql-tools/executor-yoga
 
+## 3.0.39
+
+### Patch Changes
+
+- Updated dependencies
+  [[`981d461`](https://github.com/ardatan/graphql-tools/commit/981d4618e16c2697a19c96b55d5f84186079f63d)]:
+  - @graphql-tools/utils@11.1.1
+  - @graphql-tools/executor-envelop@4.0.9
+
 ## 3.0.38
 
 ### Patch Changes
