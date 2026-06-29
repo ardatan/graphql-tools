@@ -17,12 +17,8 @@ function noopDirective({
           const directive = getDirective(schema, fieldConfig, 'noop')?.[0];
           if (directive) {
             expect(directive).toEqual({ arg: expectedDefault });
-            const { resolve = defaultFieldResolver } = fieldConfig;
-            fieldConfig.resolve = async function (source, args, context, info) {
-              return await resolve(source, args, context, info);
-            };
-            return fieldConfig;
           }
+          return fieldConfig;
         },
       }),
   };
