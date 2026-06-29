@@ -29,7 +29,7 @@ function noopDirective({
 }
 
 describe('mapSchema - directives with defaults', () => {
-  it('handles Boolean with default correctly', async () => {
+  it('handles Boolean with default correctly', () => {
     const { typeDefs, transformer } = noopDirective({
       declaration: '@noop(arg: Boolean = true)',
       expectedDefault: true,
@@ -50,7 +50,7 @@ describe('mapSchema - directives with defaults', () => {
     transformer(schemaWithResolvers);
   });
 
-  it('handles String with default correctly', async () => {
+  it('handles String with default correctly', () => {
     const { typeDefs, transformer } = noopDirective({
       declaration: '@noop(arg: String = "DEFAULT")',
       expectedDefault: 'DEFAULT',
@@ -71,7 +71,7 @@ describe('mapSchema - directives with defaults', () => {
     transformer(schemaWithResolvers);
   });
 
-  it('handles Enum with default correctly', async () => {
+  it('handles Enum with default correctly', () => {
     const { typeDefs, transformer } = noopDirective({
       declaration: '@noop(arg: ALPHABET = D)',
       expectedDefault: 'D',
@@ -99,7 +99,7 @@ describe('mapSchema - directives with defaults', () => {
     transformer(schemaWithResolvers);
   });
 
-  it('handles Int with default correctly', async () => {
+  it('handles Int with default correctly', () => {
     const { typeDefs, transformer } = noopDirective({
       declaration: '@noop(arg: Int = 100)',
       expectedDefault: 100,
@@ -120,7 +120,7 @@ describe('mapSchema - directives with defaults', () => {
     transformer(schemaWithResolvers);
   });
 
-  it('handles Float with default correctly', async () => {
+  it('handles Float with default correctly', () => {
     const { typeDefs, transformer } = noopDirective({
       declaration: '@noop(arg: Float = 0.888)',
       expectedDefault: 0.888,
@@ -141,7 +141,7 @@ describe('mapSchema - directives with defaults', () => {
     transformer(schemaWithResolvers);
   });
 
-  it('handles null default correctly', async () => {
+  it('handles null default correctly', () => {
     const { typeDefs, transformer } = noopDirective({
       declaration: '@noop(arg: String = null)',
       expectedDefault: null,
@@ -162,7 +162,7 @@ describe('mapSchema - directives with defaults', () => {
     transformer(schemaWithResolvers);
   });
 
-  it('handles a list correctly', async () => {
+  it('handles a list correctly', () => {
     const { typeDefs, transformer } = noopDirective({
       declaration: '@noop(arg: [String!]! = ["A", "B"])',
       expectedDefault: ['A', 'B'],
@@ -183,7 +183,7 @@ describe('mapSchema - directives with defaults', () => {
     transformer(schemaWithResolvers);
   });
 
-  it('handles an object correctly', async () => {
+  it('handles an object correctly', () => {
     const { typeDefs, transformer } = noopDirective({
       declaration: '@noop(arg: Test = { a: "A", b: "B" })',
       expectedDefault: { a: 'A', b: 'B' },
