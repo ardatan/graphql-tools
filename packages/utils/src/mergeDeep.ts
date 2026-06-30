@@ -66,6 +66,9 @@ export function mergeDeep<S extends any[]>(
       continue;
     }
     if (isObject(source)) {
+      if (output == null) {
+        output = {};
+      }
       if (firstObjectSource) {
         const outputPrototype = Object.getPrototypeOf(output);
         const sourcePrototype = Object.getPrototypeOf(source);
@@ -80,9 +83,6 @@ export function mergeDeep<S extends any[]>(
       }
 
       for (const key in source) {
-        if (output == null) {
-          output = {};
-        }
         if (key in output) {
           output[key] = mergeDeep(
             [output[key], source[key]],

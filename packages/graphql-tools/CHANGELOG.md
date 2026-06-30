@@ -1,5 +1,12 @@
 # graphql-tools
 
+## 9.0.29
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/schema@10.0.34
+
 ## 9.0.28
 
 ### Patch Changes
