@@ -1,4 +1,4 @@
-import { defaultFieldResolver, GraphQLSchema } from 'graphql';
+import { GraphQLSchema } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { getDirective, MapperKind, mapSchema } from '../src/index.js';
 
@@ -15,9 +15,7 @@ function noopDirective({
       mapSchema(schema, {
         [MapperKind.OBJECT_FIELD]: fieldConfig => {
           const directive = getDirective(schema, fieldConfig, 'noop')?.[0];
-          if (directive) {
-            expect(directive).toEqual({ arg: expectedDefault });
-          }
+          expect(directive).toEqual({ arg: expectedDefault });
           return fieldConfig;
         },
       }),
