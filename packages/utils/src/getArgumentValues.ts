@@ -9,8 +9,8 @@ import {
   Kind,
   print,
   valueFromAST,
+  valueFromASTUntyped,
 } from 'graphql';
-import { defaultValueAstFromType } from './defaultValueAstFromType.js';
 import { createGraphQLError } from './errors.js';
 import { hasOwnProperty } from './jsutils.js';
 
@@ -42,9 +42,15 @@ export function getArgumentValues(
     const argumentNode = argNodeMap[arg.name];
 
     if (!argumentNode) {
-      const defaultValue = defaultValueAstFromType(arg) as any;
-      if (defaultValue) {
-        coercedValues[arg.name] = defaultValue.value;
+      if ('default' in (arg as any) && (arg as any).default) {
+        // graphql v17
+        coercedValues[arg.name] =
+          'value' in (arg as any).default
+            ? (arg as any).default.value
+            : valueFromASTUntyped((arg as any).default.literal);
+      } else if (arg.defaultValue !== undefined) {
+        // graphql < v17
+        coercedValues[arg.name] = arg.defaultValue;
       } else if (isNonNullType(arg.type)) {
         throw createGraphQLError(
           `Argument "${arg.name}" of required type "${inspect(arg.type)}" ` + 'was not provided.',

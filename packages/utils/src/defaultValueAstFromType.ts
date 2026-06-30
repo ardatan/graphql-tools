@@ -1,4 +1,9 @@
-import { Kind, type GraphQLArgument, type GraphQLInputField, type ValueNode } from 'graphql';
+import {
+  valueFromASTUntyped,
+  type GraphQLArgument,
+  type GraphQLInputField,
+  type ValueNode,
+} from 'graphql';
 import { astFromValue } from './astFromValue.js';
 import { astFromValueUntyped } from './astFromValueUntyped.js';
 
@@ -23,7 +28,7 @@ export const defaultValueAstFromType = (
       return (astFromValueUntyped((arg.default as any).value) as any) ?? undefined;
     }
 
-    const value = convertConstValueNode((arg.default as any).literal);
+    const value = valueFromASTUntyped((arg.default as any).literal);
     return (astFromValue(value, arg.type) as any) ?? undefined;
   }
 
@@ -31,27 +36,4 @@ export const defaultValueAstFromType = (
   return (arg as any).defaultValue !== undefined
     ? ((astFromValue((arg as any).defaultValue, (arg as any).type) as any) ?? undefined)
     : undefined;
-};
-
-/**
- * `convertConstValueNode` exhaustively traverses an literal node (a node with constant value)
- * and constructs a JavaScript representation of the node values
- *
- * Note: `node` is supposed to be `ConstValueNode` for graphql@17 but
- * it is not available in graphql@15 so we cannot import it from `graphql`
- */
-const convertConstValueNode = (node: any) => {
-  if (node.kind === Kind.NULL) {
-    return null;
-  } else if (node.kind === Kind.LIST) {
-    return node.values.map(convertConstValueNode);
-  } else if (node.kind === Kind.OBJECT) {
-    const result = {};
-    for (const field of node.fields) {
-      result[field.name.value] = convertConstValueNode(field.value);
-    }
-    return result;
-  }
-
-  return node.value;
 };
