@@ -107,6 +107,58 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           command: npm run ${{matrix.name == 'Leak' && 'test:leaks' || 'test'}} --ci
+
+  test-v17-temp: # FIXME: Gradual support for graphql@17, once every package is compatible, this should be merged back to main step
+    name:
+      Test on Node ${{matrix.node-version}} (${{matrix.os}}) and GraphQL
+      v${{matrix.graphql_version}}
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest] # remove windows to speed up the tests
+        node-version: [22, 24] # 17 minimum node support is 22
+        graphql_version:
+          - 17.0.0
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Skip Puppeteer browser download on Windows
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: echo "PUPPETEER_SKIP_DOWNLOAD=true" >> "$GITHUB_ENV"
+
+      - name: Setup env
+        uses: the-guild-org/shared-config/setup@v1
+        with:
+          node-version: ${{matrix.node-version}}
+
+      - name: Use GraphQL v${{matrix.graphql_version}}
+        run: |
+          node ./scripts/match-graphql.js ${{matrix.graphql_version}}
+          npm install
+          git checkout package-lock.json
+          npx rimraf packages/**/*/node_modules/graphql
+          npx rimraf packages/executor/node_modules/graphql
+      - name: Cache Jest
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: .cache/jest
+          key:
+            ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-${{
+            hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-
+      # - name: Build
+      # run: npm run build
+      - name: Tests
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: npm run test --ci -- packages/utils # TODO: add more packages once compatible
+
   test-bun:
     name: Unit Test on Bun
     runs-on: ubuntu-latest
