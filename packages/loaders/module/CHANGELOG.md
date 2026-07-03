@@ -1,5 +1,13 @@
 # @graphql-tools/module-loader
 
+## 8.0.30
+
+### Patch Changes
+
+- Updated dependencies
+  [[`2609c94`](https://github.com/ardatan/graphql-tools/commit/2609c94954bff598f0d38aac629a2ec955adbc44)]:
+  - @graphql-tools/utils@11.2.0
+
 ## 8.0.29
 
 ### Patch Changes

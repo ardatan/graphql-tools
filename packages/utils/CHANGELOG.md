@@ -1,5 +1,14 @@
 # @graphql-tools/utils
 
+## 11.2.0
+
+### Minor Changes
+
+- [#8226](https://github.com/ardatan/graphql-tools/pull/8226)
+  [`2609c94`](https://github.com/ardatan/graphql-tools/commit/2609c94954bff598f0d38aac629a2ec955adbc44)
+  Thanks [@eddeee888](https://github.com/eddeee888)! - getDocumentNodeFromSchema: Add arg
+  defaultValue support for graphql@17
+
 ## 11.1.1
 
 ### Patch Changes
