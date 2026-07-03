@@ -1,14 +1,15 @@
 diff --git a/node_modules/eslint-plugin-n/lib/index.js b/node_modules/eslint-plugin-n/lib/index.js
-index 05b87bc..c509e7e 100644
+index a8e8ce3..4f16b10 100644
 --- a/node_modules/eslint-plugin-n/lib/index.js
 +++ b/node_modules/eslint-plugin-n/lib/index.js
-@@ -44,5 +44,9 @@ const configs = {
-     "flat/all": { plugins: { n: base }, ...allRulesFlatConfig },
+@@ -45,6 +45,10 @@ const configs = {
  }
  
+ /** @type {ESLint.Plugin & { configs: Configs }} */
 +export const meta = base.meta
 +export const rules = base.rules
 +export { configs }
 +
- /** @type {ESLint.Plugin & { configs: Configs }} */
- export default Object.assign(base, { configs })
+ const plugin = Object.assign(base, { configs })
+ 
+ export {
