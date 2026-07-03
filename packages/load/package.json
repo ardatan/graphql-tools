@@ -57,7 +57,7 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "graphql-tag": "2.12.6",
+    "graphql-tag": "2.12.7",
     "graphql-type-json": "0.3.2"
   },
   "publishConfig": {
