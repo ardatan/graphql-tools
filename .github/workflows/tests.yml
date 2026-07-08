@@ -157,7 +157,7 @@ jobs:
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: npm run test --ci -- packages/\(utils|merge\) # TODO: add more packages once compatible
+          command: npm run test --ci -- "packages/(utils|merge)" # TODO: add more packages once compatible
 
   test-bun:
     name: Unit Test on Bun
