@@ -1,5 +1,13 @@
 # @graphql-tools/merge
 
+## 9.2.0
+
+### Minor Changes
+
+- [#8263](https://github.com/ardatan/graphql-tools/pull/8263)
+  [`79f1998`](https://github.com/ardatan/graphql-tools/commit/79f19988693716d7a80209194510730e3d28e1d8)
+  Thanks [@eddeee888](https://github.com/eddeee888)! - Support graphql@17
+
 ## 9.1.11
 
 ### Patch Changes
