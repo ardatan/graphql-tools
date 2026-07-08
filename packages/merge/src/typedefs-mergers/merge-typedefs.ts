@@ -268,7 +268,7 @@ export function mergeGraphQLTypes(typeSource: TypeSource, config: Config): Defin
       kind: Kind.SCHEMA_DEFINITION,
       operationTypes: [],
     };
-    const operationTypes = schemaDef.operationTypes as OperationTypeDefinitionNode[];
+    const operationTypes = (schemaDef.operationTypes as OperationTypeDefinitionNode[]) || [];
     for (const opTypeDefNodeType in DEFAULT_OPERATION_TYPE_NAME_MAP) {
       const opTypeDefNode = operationTypes.find(
         operationType => operationType.operation === opTypeDefNodeType,
