@@ -114,7 +114,7 @@
     "postcss": "8.5.14",
     "react": "19.2.6",
     "react-dom": "19.2.7",
-    "tmp": "0.2.6"
+    "tmp": "0.2.7"
   },
   "lint-staged": {
     "packages/**/src/**/*.{ts,tsx}": [
