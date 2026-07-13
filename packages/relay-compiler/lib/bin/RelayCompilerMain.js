@@ -524,7 +524,7 @@ function getRelayFileWriter(
           _step;
 
         try {
-          for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+          for (_iterator.s(); !(_step = _iterator.n()).done;) {
             var _step$value = _step.value,
               id = _step$value[0],
               _text = _step$value[1];

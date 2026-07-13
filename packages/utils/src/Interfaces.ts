@@ -287,8 +287,7 @@ export type TypeSource =
 
 export type IObjectTypeResolver<TSource = any, TContext = any, TArgs = any> = {
   [key: string]:
-    | IFieldResolver<TSource, TContext, TArgs>
-    | IFieldResolverOptions<TSource, TContext>;
+    IFieldResolver<TSource, TContext, TArgs> | IFieldResolverOptions<TSource, TContext>;
 } & {
   __name?: string;
   __description?: string;
@@ -300,8 +299,7 @@ export type IObjectTypeResolver<TSource = any, TContext = any, TArgs = any> = {
 
 export type IInterfaceTypeResolver<TSource = any, TContext = any, TArgs = any> = {
   [key: string]:
-    | IFieldResolver<TSource, TContext, TArgs>
-    | IFieldResolverOptions<TSource, TContext>;
+    IFieldResolver<TSource, TContext, TArgs> | IFieldResolverOptions<TSource, TContext>;
 } & {
   __name?: string;
   __description?: string;

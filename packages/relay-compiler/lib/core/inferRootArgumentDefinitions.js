@@ -96,7 +96,7 @@ function transformRoot(context, transformed, root) {
     _step;
 
   try {
-    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
       var _step$value = _step.value,
         name = _step$value[0],
         argDef = _step$value[1];
@@ -215,7 +215,7 @@ function visit(context, transformed, argumentDefinitions, node) {
         _step2;
 
       try {
-        for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
           var argDef = _step2.value;
 
           if (argDef.kind === 'RootArgumentDefinition') {

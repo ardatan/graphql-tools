@@ -64,7 +64,7 @@ function skipUnusedVariablesTransform(context) {
         }
       };
 
-      for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
         var _ret = _loop();
 
         if (_ret === 'continue') continue;
