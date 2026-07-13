@@ -816,6 +816,12 @@ export function buildResolveInfo(
 ): GraphQLResolveInfo {
   // The resolve function's optional fourth argument is a collection of
   // information about the current execution state.
+  // GraphQL.js v17 requires getAbortSignal / getAsyncHelpers on GraphQLResolveInfo.
+  // track() mirrors Yoga/Cloudflare waitUntil via context.waitUntil when available.
+  let asyncHelpers: {
+    promiseAll: typeof Promise.all;
+    track: (maybePromises: ReadonlyArray<unknown>) => void;
+  };
   return {
     fieldName: fieldDef.name,
     fieldNodes,
@@ -828,6 +834,24 @@ export function buildResolveInfo(
     operation: exeContext.operation,
     variableValues: exeContext.variableValues,
     signal: exeContext.signal,
+    getAbortSignal: () => exeContext.signal,
+    getAsyncHelpers: () =>
+      (asyncHelpers ??= {
+        promiseAll: Promise.all.bind(Promise),
+        track: maybePromises => {
+          const waitUntil = (
+            exeContext.contextValue as { waitUntil?: (p: PromiseLike<unknown>) => void } | null
+          )?.waitUntil;
+          if (typeof waitUntil !== 'function') {
+            return;
+          }
+          for (const value of maybePromises) {
+            if (isPromise(value)) {
+              waitUntil(value);
+            }
+          }
+        },
+      }),
   };
 }
 

@@ -207,6 +207,8 @@ describe('Execute: Handles basic execution tasks', () => {
       'operation',
       'variableValues',
       'signal',
+      'getAbortSignal',
+      'getAsyncHelpers',
     ]);
 
     const operation = document.definitions[0];
