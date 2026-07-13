@@ -91,7 +91,7 @@ jobs:
           npx rimraf packages/**/*/node_modules/graphql
           npx rimraf packages/executor/node_modules/graphql
       - name: Cache Jest
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: .cache/jest
           key:
@@ -142,7 +142,7 @@ jobs:
           npx rimraf packages/**/*/node_modules/graphql
           npx rimraf packages/executor/node_modules/graphql
       - name: Cache Jest
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: .cache/jest
           key:
