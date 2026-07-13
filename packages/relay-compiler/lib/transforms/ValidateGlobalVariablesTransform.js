@@ -44,7 +44,7 @@ function validateGlobalVariablesTransform(context) {
       _step;
 
     try {
-      for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
         var argDef = _step.value;
 
         if (!definedArguments.has(argDef.name)) {
@@ -85,7 +85,7 @@ function argumentDefinitionsToMap(argDefs) {
     _step2;
 
   try {
-    for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
+    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
       var argDef = _step2.value;
       map.set(argDef.name, argDef);
     }

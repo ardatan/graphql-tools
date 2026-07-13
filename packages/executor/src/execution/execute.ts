@@ -816,6 +816,8 @@ export function buildResolveInfo(
 ): GraphQLResolveInfo {
   // The resolve function's optional fourth argument is a collection of
   // information about the current execution state.
+  // GraphQL.js v17 requires getAbortSignal / getAsyncHelpers on GraphQLResolveInfo.
+  let asyncHelpers: { promiseAll: typeof Promise.all; track: (maybePromises: ReadonlyArray<unknown>) => void };
   return {
     fieldName: fieldDef.name,
     fieldNodes,
@@ -828,7 +830,13 @@ export function buildResolveInfo(
     operation: exeContext.operation,
     variableValues: exeContext.variableValues,
     signal: exeContext.signal,
-  };
+    getAbortSignal: () => exeContext.signal,
+    getAsyncHelpers: () =>
+      (asyncHelpers ??= {
+        promiseAll: Promise.all.bind(Promise),
+        track: () => undefined,
+      }),
+  } as GraphQLResolveInfo;
 }
 
 export const CRITICAL_ERROR = 'CRITICAL_ERROR' as const;

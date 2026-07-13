@@ -30,16 +30,14 @@ function buildRefetchOperation(schema, fragment, queryName) {
   var viewerField = schema.getFieldConfig(schema.expectField(queryType, VIEWER_FIELD_NAME));
   var viewerFieldType = schema.getNullableType(viewerField.type);
 
-  if (
-    !(
-      viewerType &&
-      schema.isObject(viewerType) &&
-      schema.isObject(viewerFieldType) &&
-      schema.areEqualTypes(viewerFieldType, viewerType) &&
-      viewerField.args.length === 0 &&
-      schema.areEqualTypes(fragment.type, viewerType)
-    )
-  ) {
+  if (!(
+    viewerType &&
+    schema.isObject(viewerType) &&
+    schema.isObject(viewerFieldType) &&
+    schema.areEqualTypes(viewerFieldType, viewerType) &&
+    viewerField.args.length === 0 &&
+    schema.areEqualTypes(fragment.type, viewerType)
+  )) {
     throw createUserError(
       "Invalid use of @refetchable on fragment '".concat(fragment.name, "', check ") +
         "that your schema defines a 'Viewer' object type and has a " +

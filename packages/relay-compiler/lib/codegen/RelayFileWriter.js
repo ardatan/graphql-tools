@@ -180,7 +180,7 @@ function writeAll(_ref2) {
         _step;
 
       try {
-        for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
           var existingDirectory = _step.value;
           addCodegenDir(existingDirectory);
         }
