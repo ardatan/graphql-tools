@@ -1,16 +1,8 @@
-import { GraphQLResolveInfo } from 'graphql';
 import { createSchema, createYoga } from 'graphql-yoga';
-import { createDeferred } from '@graphql-tools/utils';
+import { createDeferred, GraphQLResolveInfo } from '@graphql-tools/utils';
 import { patchSymbols } from '@whatwg-node/disposablestack';
 
 patchSymbols();
-
-// GraphQL.js v17 adds getAsyncHelpers; our executor provides it on all supported versions.
-type ResolveInfoWithAsyncHelpers = GraphQLResolveInfo & {
-  getAsyncHelpers: () => {
-    track: (maybePromises: ReadonlyArray<unknown>) => void;
-  };
-};
 
 describe('getAsyncHelpers().track with Yoga', () => {
   it('registers tracked work with Yoga waitUntil so dispose waits for it', async () => {
@@ -28,7 +20,7 @@ describe('getAsyncHelpers().track with Yoga', () => {
         resolvers: {
           Query: {
             hello(_source: unknown, _args: unknown, _context: unknown, info: GraphQLResolveInfo) {
-              (info as ResolveInfoWithAsyncHelpers).getAsyncHelpers().track([
+              info.getAsyncHelpers().track([
                 cleanup.promise.then(() => {
                   cleanupFinished = true;
                 }),
