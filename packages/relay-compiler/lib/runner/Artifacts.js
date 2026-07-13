@@ -41,7 +41,7 @@ function serializeState(state) {
     _step;
 
   try {
-    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
       var _step$value = _step.value,
         name = _step$value[0],
         artifacts = _step$value[1];
@@ -102,7 +102,7 @@ function updateState(state, changes, generatedArtifacts, filesystem, resolveFull
     _step2;
 
   try {
-    for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
+    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
       var ast = _step2.value.ast;
       addedNames.add(getName(ast));
     } // For every removed AST node, delete the generated artifacts tracked for that
@@ -118,7 +118,7 @@ function updateState(state, changes, generatedArtifacts, filesystem, resolveFull
     _step3;
 
   try {
-    for (_iterator3.s(); !(_step3 = _iterator3.n()).done; ) {
+    for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
       var _ast = _step3.value.ast;
       var name = getName(_ast);
 
@@ -138,7 +138,7 @@ function updateState(state, changes, generatedArtifacts, filesystem, resolveFull
         _step7;
 
       try {
-        for (_iterator7.s(); !(_step7 = _iterator7.n()).done; ) {
+        for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
           var outdatedFile = _step7.value;
           deletionCandidates.add(outdatedFile);
         }
@@ -160,7 +160,7 @@ function updateState(state, changes, generatedArtifacts, filesystem, resolveFull
     _step4;
 
   try {
-    for (_iterator4.s(); !(_step4 = _iterator4.n()).done; ) {
+    for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
       var _step4$value = _step4.value,
         _name = _step4$value[0],
         artifacts = _step4$value[1];
@@ -171,7 +171,7 @@ function updateState(state, changes, generatedArtifacts, filesystem, resolveFull
           _step8;
 
         try {
-          for (_iterator8.s(); !(_step8 = _iterator8.n()).done; ) {
+          for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
             var _outdatedFile = _step8.value;
 
             if (!artifacts.has(_outdatedFile)) {
@@ -191,7 +191,7 @@ function updateState(state, changes, generatedArtifacts, filesystem, resolveFull
         _step9;
 
       try {
-        for (_iterator9.s(); !(_step9 = _iterator9.n()).done; ) {
+        for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
           var _generatedArtifacts$m;
 
           var filename = _step9.value;
@@ -225,7 +225,7 @@ function updateState(state, changes, generatedArtifacts, filesystem, resolveFull
     _step5;
 
   try {
-    for (_iterator5.s(); !(_step5 = _iterator5.n()).done; ) {
+    for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
       var _step5$value = _step5.value,
         artifact = _step5$value[1];
       nextGeneratedArtifacts.add(artifact);
@@ -240,7 +240,7 @@ function updateState(state, changes, generatedArtifacts, filesystem, resolveFull
     _step6;
 
   try {
-    for (_iterator6.s(); !(_step6 = _iterator6.n()).done; ) {
+    for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
       var candidate = _step6.value;
       var someoneElseArtifact = nextGeneratedArtifacts.has(candidate);
 
@@ -309,7 +309,7 @@ function* eachNameAndArtifact(artifacts) {
     _step10;
 
   try {
-    for (_iterator10.s(); !(_step10 = _iterator10.n()).done; ) {
+    for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
       var _step10$value = _step10.value,
         name = _step10$value[0],
         artifactsForSource = _step10$value[1];
@@ -318,7 +318,7 @@ function* eachNameAndArtifact(artifacts) {
         _step11;
 
       try {
-        for (_iterator11.s(); !(_step11 = _iterator11.n()).done; ) {
+        for (_iterator11.s(); !(_step11 = _iterator11.n()).done;) {
           var artifactFile = _step11.value;
           yield [name, artifactFile];
         }

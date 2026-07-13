@@ -117,7 +117,7 @@ function getFieldDefinitionLegacyImpl(schema, type, fieldName, fieldAST) {
         }
       };
 
-      for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
         var _ret = _loop();
 
         if (_ret === 'break') break;

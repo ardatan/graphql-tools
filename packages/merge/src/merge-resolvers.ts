@@ -38,8 +38,7 @@ export interface MergeResolversOptions {
  */
 export function mergeResolvers<TSource, TContext>(
   resolversDefinitions:
-    | Maybe<IResolvers<TSource, TContext>>
-    | Maybe<Maybe<IResolvers<TSource, TContext>>[]>,
+    Maybe<IResolvers<TSource, TContext>> | Maybe<Maybe<IResolvers<TSource, TContext>>[]>,
   options?: MergeResolversOptions,
 ): IResolvers<TSource, TContext> {
   if (

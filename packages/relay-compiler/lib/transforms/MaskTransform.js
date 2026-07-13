@@ -124,7 +124,7 @@ function visitFragmentSpread(fragmentSpread, state) {
     _step;
 
   try {
-    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
       var argDef = _step.value;
       state.reachableArguments.push(argDef);
     } // $FlowFixMe[incompatible-use]
