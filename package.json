@@ -71,7 +71,7 @@
     "babel-jest": "30.4.1",
     "bob-the-bundler": "7.0.1",
     "concurrently": "10.0.3",
-    "cookie": "1.1.1",
+    "cookie": "2.0.1",
     "cross-env": "10.1.0",
     "eslint": "9.39.4",
     "eslint-config-prettier": "10.1.8",
@@ -101,7 +101,7 @@
     "wonka": "6.3.6"
   },
   "overrides": {
-    "cookie": "1.1.1",
+    "cookie": "2.0.1",
     "esbuild": "0.28.1",
     "estree-util-value-to-estree": "3.5.0",
     "extract-zip": {
