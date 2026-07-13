@@ -12,7 +12,6 @@ import {
   VariableDefinitionNode,
   versionInfo,
 } from 'graphql';
-import * as GraphQLJS from 'graphql';
 import { createGraphQLError, hasOwnProperty, inspect, printPathArray } from '@graphql-tools/utils';
 
 type CoercedVariableValues =
@@ -23,12 +22,6 @@ type CoerceInputValueOnError = (
   path: ReadonlyArray<string | number>,
   invalidValue: unknown,
   error: GraphQLError,
-) => void;
-
-type ValidateInputValue = (
-  inputValue: unknown,
-  type: GraphQLInputType,
-  onError: (error: GraphQLError, path: ReadonlyArray<string | number>) => void,
 ) => void;
 
 /**
@@ -135,7 +128,11 @@ function coerceVariableInputValue(
   varDefNode: VariableDefinitionNode,
   onError: (error: GraphQLError) => void,
 ): unknown {
-  const reportInvalidValue = (path: ReadonlyArray<string | number>, invalidValue: unknown, error: GraphQLError) => {
+  const reportInvalidValue = (
+    path: ReadonlyArray<string | number>,
+    invalidValue: unknown,
+    error: GraphQLError,
+  ) => {
     let prefix = `Variable "$${varName}" got invalid value ` + inspect(invalidValue);
     if (path.length > 0) {
       prefix += ` at "${varName}${printPathArray(path)}"`;
@@ -162,27 +159,11 @@ function coerceVariableInputValue(
 
   const coerced = coerceInputValue(value, varType);
   if (coerced === undefined && value !== undefined) {
-    // validateInputValue exists on graphql >= 17 only.
-    const validateInputValue = (GraphQLJS as { validateInputValue?: ValidateInputValue })
-      .validateInputValue;
-    if (validateInputValue) {
-      validateInputValue(value, varType, (error, path) => {
-        reportInvalidValue(path, valueAtPath(value, path), error);
-      });
-    } else {
-      reportInvalidValue([], value, createGraphQLError(`Expected value of type "${inspect(varType)}".`));
-    }
+    reportInvalidValue(
+      [],
+      value,
+      createGraphQLError(`Expected value of type "${inspect(varType)}".`),
+    );
   }
   return coerced;
-}
-
-function valueAtPath(value: unknown, path: ReadonlyArray<string | number>): unknown {
-  let current: unknown = value;
-  for (const key of path) {
-    if (current == null || (typeof current !== 'object' && !Array.isArray(current))) {
-      return current;
-    }
-    current = (current as Record<string | number, unknown>)[key];
-  }
-  return current;
 }
