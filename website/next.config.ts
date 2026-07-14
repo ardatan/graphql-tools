@@ -8,6 +8,11 @@ export default withGuildDocs({
   nextraConfig: {
     contentDirBasePath: '/docs',
   },
+  // typescript@7 has no JS compiler API; Next's build-time typecheck still needs it.
+  // typescript-eslint uses the postinstall API shim. Skip Next typechecking for now.
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   redirects: async () =>
     Object.entries({
       '/docs/directive-resolvers': '/docs/schema-directives',
