@@ -77,8 +77,28 @@ for (const name of ['tsc', 'tsc.cmd', 'tsc.ps1']) {
     // ignore missing/broken link
   }
 }
+
+const tscRelativeFromBin = path.relative(binDir, tscBinPath);
 try {
-  fs.symlinkSync(path.relative(binDir, tscBinPath), path.join(binDir, 'tsc'));
+  if (process.platform === 'win32') {
+    // Symlinks often fail without elevation on Windows CI; write cmd/ps1 shims
+    // that invoke typescript@7's bin the same way npm would.
+    const tscCmdTarget = tscRelativeFromBin.replace(/\//g, '\\');
+    fs.writeFileSync(
+      path.join(binDir, 'tsc.cmd'),
+      `@ECHO off\r\nnode "%~dp0${tscCmdTarget}" %*\r\n`,
+    );
+    fs.writeFileSync(
+      path.join(binDir, 'tsc'),
+      `#!/bin/sh\nbasedir=$(dirname "$0")\nexec node "$basedir/${tscRelativeFromBin.replace(/\\/g, '/')}" "$@"\n`,
+    );
+    fs.writeFileSync(
+      path.join(binDir, 'tsc.ps1'),
+      `#!/usr/bin/env pwsh\n$basedir = Split-Path $MyInvocation.MyCommand.Definition -Parent\n& node "$basedir\\${tscCmdTarget}" $args\nexit $LASTEXITCODE\n`,
+    );
+  } else {
+    fs.symlinkSync(tscRelativeFromBin, path.join(binDir, 'tsc'));
+  }
 } catch {
-  // Best-effort on platforms where symlink creation is restricted.
+  // Best-effort on platforms where bin rewriting is restricted.
 }
