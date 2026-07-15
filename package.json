@@ -89,7 +89,7 @@
     "lru-cache": "11.5.2",
     "patch-package": "8.0.1",
     "prettier": "3.9.5",
-    "prettier-plugin-tailwindcss": "0.8.0",
+    "prettier-plugin-tailwindcss": "0.8.1",
     "react": "19.2.6",
     "react-dom": "19.2.7",
     "rimraf": "6.1.3",
