@@ -2,7 +2,6 @@
   "compilerOptions": {
     "incremental": true,
     "outDir": "dist",
-    "baseUrl": ".",
 
     "target": "es2022",
     "module": "esnext",
@@ -14,11 +13,8 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "declaration": true,
-    "downlevelIteration": true,
 
     "noImplicitAny": false,
-
-    "ignoreDeprecations": "6.0",
 
     "rootDir": ".",
 
@@ -31,13 +27,13 @@
     "types": ["node", "jest"],
 
     "paths": {
-      "cross-inspect": ["packages/inspect/src/index.ts"],
+      "cross-inspect": ["./packages/inspect/src/index.ts"],
       "@graphql-tools/*-loader": [
-        "packages/loaders/*/src/index.ts",
-        "packages/*-loader/src/index.ts"
+        "./packages/loaders/*/src/index.ts",
+        "./packages/*-loader/src/index.ts"
       ],
-      "@graphql-tools/executor-*": ["packages/executors/*/src/index.ts"],
-      "@graphql-tools/*": ["packages/*/src/index.ts"]
+      "@graphql-tools/executor-*": ["./packages/executors/*/src/index.ts"],
+      "@graphql-tools/*": ["./packages/*/src/index.ts"]
     }
   },
   "include": ["packages"],

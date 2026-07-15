@@ -57,7 +57,7 @@ var BufferedFilesystem = /*#__PURE__*/ (function () {
         _step;
 
       try {
-        for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
           var _step$value = _step.value,
             path = _step$value[0],
             data = _step$value[1];
@@ -110,7 +110,7 @@ var BufferedFilesystem = /*#__PURE__*/ (function () {
       _step2;
 
     try {
-      for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
+      for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
         var _step2$value = _step2.value,
           path = _step2$value[0],
           data = _step2$value[1];
@@ -150,7 +150,7 @@ var BufferedFilesystem = /*#__PURE__*/ (function () {
       _step3;
 
     try {
-      for (_iterator3.s(); !(_step3 = _iterator3.n()).done; ) {
+      for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
         var _step3$value = _step3.value,
           path = _step3$value[0],
           data = _step3$value[1];
@@ -237,7 +237,7 @@ var BufferedFilesystem = /*#__PURE__*/ (function () {
       _step4;
 
     try {
-      for (_iterator4.s(); !(_step4 = _iterator4.n()).done; ) {
+      for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
         var _step4$value = _step4.value,
           path = _step4$value[0],
           data = _step4$value[1];

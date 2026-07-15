@@ -18,8 +18,8 @@
     "graphql": "*"
   },
   "dependencies": {
-    "@babel/runtime": "^7.29.2",
-    "immutable": "^5.1.6",
+    "@babel/runtime": "^8.0.0",
+    "immutable": "^5.1.9",
     "invariant": "^2.2.4"
   },
   "publishConfig": {

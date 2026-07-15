@@ -26,7 +26,7 @@ function sortObjectByKey(obj) {
     _step;
 
   try {
-    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
       var _key = _step.value;
       result[_key] = obj[_key];
     } // $FlowFixMe[incompatible-return]

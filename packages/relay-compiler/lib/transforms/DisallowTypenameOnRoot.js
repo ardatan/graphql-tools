@@ -26,7 +26,7 @@ function visitRoot(node) {
     _step;
 
   try {
-    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
       var selection = _step.value;
 
       if (selection.kind === 'ScalarField' && selection.name === '__typename') {
