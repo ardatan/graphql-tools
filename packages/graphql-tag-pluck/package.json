@@ -54,7 +54,7 @@
     "@babel/parser": "^7.29.3",
     "@babel/plugin-syntax-import-assertions": "^7.26.0",
     "@babel/traverse": "^7.26.10",
-    "@babel/types": "^7.26.10",
+    "@babel/types": "^8.0.4",
     "@graphql-tools/utils": "^11.2.0",
     "tslib": "^2.4.0"
   },
