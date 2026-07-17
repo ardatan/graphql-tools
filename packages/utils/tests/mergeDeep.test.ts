@@ -85,6 +85,19 @@ describe('mergeDeep', () => {
     expect(mergeDeep([{ a: null }, { a: 'foo' }])).toEqual({ a: 'foo' });
   });
 
+  it('overrides property value with an explicit undefined from later source', () => {
+    const merged = mergeDeep([{ a: 'foo', b: 'bar' }, { a: undefined }]);
+    expect('a' in merged).toBe(true);
+    expect(merged.a).toBeUndefined();
+    expect(merged.b).toEqual('bar');
+  });
+
+  it('leaves a property untouched when a later source omits it, distinct from an explicit undefined', () => {
+    const merged = mergeDeep([{ a: 'foo', b: 'bar' }, { b: 'baz' }]);
+    expect(merged.a).toEqual('foo');
+    expect(merged.b).toEqual('baz');
+  });
+
   it('respects empty objects', () => {
     expect(mergeDeep([{}])).toEqual({});
   });
