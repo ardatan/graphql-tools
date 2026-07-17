@@ -1,5 +1,19 @@
 # @graphql-tools/executor
 
+## 1.5.6
+
+### Patch Changes
+
+- [#8272](https://github.com/ardatan/graphql-tools/pull/8272)
+  [`16096f7`](https://github.com/ardatan/graphql-tools/commit/16096f7e566fc6dda420067be218019f2aea271f)
+  Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+  - Updated dependency
+    [`@repeaterjs/repeater@^3.1.0` ↗︎](https://www.npmjs.com/package/@repeaterjs/repeater/v/3.1.0)
+    (from `^3.0.4`, in `dependencies`)
+- Updated dependencies
+  [[`615c1a2`](https://github.com/ardatan/graphql-tools/commit/615c1a27f2a379eac74127815effc8e062bdc47c)]:
+  - @graphql-tools/utils@11.2.1
+
 ## 1.5.5
 
 ### Patch Changes

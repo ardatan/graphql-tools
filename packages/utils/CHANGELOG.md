@@ -1,5 +1,14 @@
 # @graphql-tools/utils
 
+## 11.2.1
+
+### Patch Changes
+
+- [#8204](https://github.com/ardatan/graphql-tools/pull/8204)
+  [`615c1a2`](https://github.com/ardatan/graphql-tools/commit/615c1a27f2a379eac74127815effc8e062bdc47c)
+  Thanks [@pbomb](https://github.com/pbomb)! - fix mergeDeep to treat null property values as
+  explicit overrides rather than skipping them
+
 ## 11.2.0
 
 ### Minor Changes
