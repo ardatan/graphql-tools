@@ -1,5 +1,13 @@
 # @graphql-tools/executor-urql-exchange
 
+## 1.0.34
+
+### Patch Changes
+
+- Updated dependencies
+  [[`e90719b`](https://github.com/ardatan/graphql-tools/commit/e90719baf08bf1aa7b372759dd197ac27e71dc64)]:
+  - @graphql-tools/utils@11.2.2
+
 ## 1.0.33
 
 ### Patch Changes

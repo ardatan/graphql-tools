@@ -1,5 +1,14 @@
 # @graphql-tools/utils
 
+## 11.2.2
+
+### Patch Changes
+
+- [#8302](https://github.com/ardatan/graphql-tools/pull/8302)
+  [`e90719b`](https://github.com/ardatan/graphql-tools/commit/e90719baf08bf1aa7b372759dd197ac27e71dc64)
+  Thanks [@pbomb](https://github.com/pbomb)! - fix mergeDeep to treat explicit undefined property
+  values as overrides rather than skipping them, distinct from an absent property
+
 ## 11.2.1
 
 ### Patch Changes
