@@ -10,7 +10,34 @@ import {
   valueFromAST,
   VariableDefinitionNode,
 } from 'graphql';
-import { createGraphQLError, hasOwnProperty, inspect, printPathArray } from '@graphql-tools/utils';
+import {
+  createGraphQLError,
+  getOptionalGraphQLJSExport,
+  hasOwnProperty,
+  inspect,
+  printPathArray,
+} from '@graphql-tools/utils';
+
+// `validateInputValue` was introduced in graphql-js@17, replacing the `onError`
+// callback that `coerceInputValue` used to accept.
+const validateInputValue = getOptionalGraphQLJSExport('validateInputValue');
+
+// `coerceInputLiteral` was introduced in graphql-js@17. Unlike `valueFromAST`, it
+// correctly rejects AST literals whose kind doesn't match the target type (e.g. an
+// enum literal provided for a String variable default), which `valueFromAST`
+// stopped doing in graphql-js@17. See the same pattern in getArgumentValues.ts.
+const coerceInputLiteral = getOptionalGraphQLJSExport('coerceInputLiteral');
+
+function getAtPath(value: unknown, path: ReadonlyArray<string | number>): unknown {
+  let current = value;
+  for (const key of path) {
+    if (current == null || typeof current !== 'object' || !hasOwnProperty(current, String(key))) {
+      return undefined;
+    }
+    current = (current as Record<string | number, unknown>)[key];
+  }
+  return current;
+}
 
 type CoercedVariableValues =
   | { errors: ReadonlyArray<GraphQLError>; coerced?: never }
@@ -78,7 +105,22 @@ function coerceVariableValues(
 
     if (!hasOwnProperty(inputs, varName)) {
       if (varDefNode.defaultValue) {
-        coercedValues[varName] = valueFromAST(varDefNode.defaultValue, varType);
+        const coercedDefaultValue = coerceInputLiteral
+          ? coerceInputLiteral(varDefNode.defaultValue, varType)
+          : valueFromAST(varDefNode.defaultValue, varType);
+        if (coercedDefaultValue === undefined) {
+          // Schema/document validation should catch an invalid default value
+          // before execution; this mirrors graphql-js's own
+          // `coerceDefaultValue`/`maybeUseDefaultValue`, which report this
+          // case as an error rather than silently producing `undefined`.
+          onError(
+            createGraphQLError(`Variable "$${varName}" has invalid default value.`, {
+              nodes: varDefNode.defaultValue,
+            }),
+          );
+        } else {
+          coercedValues[varName] = coercedDefaultValue;
+        }
       } else if (isNonNullType(varType)) {
         const varTypeStr = inspect(varType);
         onError(
@@ -107,8 +149,8 @@ function coerceVariableValues(
       continue;
     }
 
-    coercedValues[varName] = coerceInputValue(value, varType, (path, invalidValue, error) => {
-      let prefix = `Variable "$${varName}" got invalid value ` + inspect(invalidValue);
+    const reportInvalidValue = (path: ReadonlyArray<string | number>, error: GraphQLError) => {
+      let prefix = `Variable "$${varName}" got invalid value ` + inspect(getAtPath(value, path));
       if (path.length > 0) {
         prefix += ` at "${varName}${printPathArray(path)}"`;
       }
@@ -118,7 +160,25 @@ function coerceVariableValues(
           originalError: error,
         }),
       );
-    });
+    };
+
+    if (validateInputValue) {
+      // graphql-js >= 17: `coerceInputValue` no longer reports diagnostics via a
+      // callback, so fall back to `validateInputValue` when coercion fails.
+      const coercedValue = coerceInputValue(value, varType);
+      if (coercedValue !== undefined) {
+        coercedValues[varName] = coercedValue;
+      } else {
+        validateInputValue(value, varType, (error, path) => reportInvalidValue(path, error));
+      }
+    } else {
+      coercedValues[varName] = (coerceInputValue as any)(
+        value,
+        varType,
+        (path: ReadonlyArray<string | number>, _invalidValue: unknown, error: GraphQLError) =>
+          reportInvalidValue(path, error),
+      );
+    }
   }
 
   return coercedValues;

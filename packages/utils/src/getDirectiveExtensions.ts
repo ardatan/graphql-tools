@@ -1,7 +1,10 @@
 import type { ASTNode, DirectiveNode, GraphQLSchema } from 'graphql';
 import { valueFromAST, valueFromASTUntyped } from 'graphql';
 import { getArgumentValues } from './getArgumentValues.js';
+import { getOptionalGraphQLJSExport } from './graphqlJSCompat.js';
 import { memoize1 } from './memoize.js';
+
+const coerceInputLiteral = getOptionalGraphQLJSExport('coerceInputLiteral');
 
 export type DirectableASTNode = ASTNode & {
   directives?: readonly DirectiveNode[] | undefined;
@@ -89,7 +92,9 @@ export function getDirectiveExtensions<
             if (value[argName] == null) {
               const argInDirective = directiveInSchema?.args.find(arg => arg.name === argName);
               if (argInDirective) {
-                value[argName] = valueFromAST(argNode.value, argInDirective.type);
+                value[argName] = coerceInputLiteral
+                  ? coerceInputLiteral(argNode.value, argInDirective.type)
+                  : valueFromAST(argNode.value, argInDirective.type);
               }
             }
             if (value[argName] == null) {

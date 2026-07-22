@@ -72,17 +72,10 @@ if (versionInfo.major !== 16) {
         const result = executeQuery(query, rootValue);
 
         expectJSON(result).toDeepEqual({
-          data: {
-            test: null,
-          },
           errors: [
             {
-              locations: [{ column: 23, line: 3 }],
-              message:
-                // This type of error would be caught at validation-time
-                // hence the vague error message here.
-                'Argument "input" of non-null type "TestInputObject!" must not be null.',
-              path: ['test'],
+              locations: [{ column: 43, line: 2 }],
+              message: 'Variable "$input" has invalid default value.',
             },
           ],
         });

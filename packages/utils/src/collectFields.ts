@@ -15,6 +15,7 @@ import {
 } from 'graphql';
 import { AccumulatorMap } from './AccumulatorMap.js';
 import { GraphQLDeferDirective } from './directives.js';
+import { toGraphQLJSVariableValues } from './graphqlJSCompat.js';
 import { memoize5 } from './memoize.js';
 
 export interface PatchFields {
@@ -179,12 +180,18 @@ export function shouldIncludeNode(
   variableValues: any,
   node: FragmentSpreadNode | FieldNode | InlineFragmentNode,
 ): boolean {
-  const skip = getDirectiveValues(GraphQLSkipDirective, node, variableValues);
+  if (!node.directives?.length) {
+    return true;
+  }
+
+  const wrappedVariableValues = toGraphQLJSVariableValues(variableValues);
+
+  const skip = getDirectiveValues(GraphQLSkipDirective, node, wrappedVariableValues);
   if (skip?.['if'] === true) {
     return false;
   }
 
-  const include = getDirectiveValues(GraphQLIncludeDirective, node, variableValues);
+  const include = getDirectiveValues(GraphQLIncludeDirective, node, wrappedVariableValues);
   if (include?.['if'] === false) {
     return false;
   }
@@ -230,7 +237,15 @@ export function getDeferValues(
   variableValues: any,
   node: FragmentSpreadNode | InlineFragmentNode,
 ): undefined | { label: string | undefined } {
-  const defer = getDirectiveValues(GraphQLDeferDirective, node, variableValues);
+  if (!node.directives?.length) {
+    return;
+  }
+
+  const defer = getDirectiveValues(
+    GraphQLDeferDirective,
+    node,
+    toGraphQLJSVariableValues(variableValues),
+  );
 
   if (!defer) {
     return;

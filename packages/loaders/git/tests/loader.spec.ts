@@ -1,7 +1,10 @@
 import { execSync } from 'child_process';
 import * as path from 'path';
+import { versionInfo } from 'graphql';
 import { runTests } from '../../../testing/utils.js';
 import { GitLoader } from '../src/index.js';
+
+const emptyList = versionInfo.major >= 17 ? undefined : [];
 
 describe('GitLoader', () => {
   const loader = new GitLoader();
@@ -55,12 +58,12 @@ describe('GitLoader', () => {
           definitions: [
             {
               description: undefined,
-              directives: [],
+              directives: emptyList,
               fields: [
                 {
-                  arguments: [],
+                  arguments: emptyList,
                   description: undefined,
-                  directives: [],
+                  directives: emptyList,
                   kind: 'FieldDefinition',
                   loc: {
                     end: 28,
@@ -91,7 +94,7 @@ describe('GitLoader', () => {
                   },
                 },
               ],
-              interfaces: [],
+              interfaces: emptyList,
               kind: 'ObjectTypeDefinition',
               loc: {
                 end: 30,
@@ -135,12 +138,12 @@ describe('GitLoader', () => {
           definitions: [
             {
               description: undefined,
-              directives: [],
+              directives: emptyList,
               fields: [
                 {
-                  arguments: [],
+                  arguments: emptyList,
                   description: undefined,
-                  directives: [],
+                  directives: emptyList,
                   kind: 'FieldDefinition',
                   loc: {
                     end: 28,
@@ -171,7 +174,7 @@ describe('GitLoader', () => {
                   },
                 },
               ],
-              interfaces: [],
+              interfaces: emptyList,
               kind: 'ObjectTypeDefinition',
               loc: {
                 end: 30,
