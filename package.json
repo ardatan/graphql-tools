@@ -81,7 +81,7 @@
     "eslint-plugin-n": "18.2.2",
     "eslint-plugin-promise": "7.3.0",
     "globby": "11.1.0",
-    "graphql": "16.14.0",
+    "graphql": "17.0.2",
     "graphql-yoga": "5.21.2",
     "husky": "9.1.7",
     "jest": "30.4.2",
@@ -108,7 +108,7 @@
     "extract-zip": {
       "yauzl": "3.3.0"
     },
-    "graphql": "16.14.0",
+    "graphql": "17.0.2",
     "miniflare": {
       "undici": "8.7.0"
     },
