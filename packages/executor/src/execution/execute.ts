@@ -51,6 +51,7 @@ import {
   Path,
   pathToArray,
   promiseReduce,
+  toGraphQLJSVariableValues,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
@@ -816,7 +817,8 @@ export function buildResolveInfo(
 ): GraphQLResolveInfo {
   // The resolve function's optional fourth argument is a collection of
   // information about the current execution state.
-  return {
+  const { signal } = exeContext;
+  const info = {
     fieldName: fieldDef.name,
     fieldNodes,
     returnType: fieldDef.type,
@@ -826,9 +828,29 @@ export function buildResolveInfo(
     fragments: exeContext.fragments,
     rootValue: exeContext.rootValue,
     operation: exeContext.operation,
-    variableValues: exeContext.variableValues,
-    signal: exeContext.signal,
+    // graphql-js >= 17's `GraphQLResolveInfo.variableValues` is the structured
+    // `{ coerced, sources }` shape, not the flat map this package uses internally.
+    variableValues: toGraphQLJSVariableValues(exeContext.variableValues),
+    signal,
+    getAbortSignal: () => signal,
+    getAsyncHelpers: () => ({
+      promiseAll: <T>(values: ReadonlyArray<PromiseLike<T> | T>) => Promise.all(values),
+      // graphql-js >= 17's real `track()` registers background promises. This
+      // package doesn't implement graphql-js's optional `asyncWorkFinished` hook,
+      // so mirror just that safety property instead of building out the full hook feature.
+      track: (maybePromises: ReadonlyArray<unknown>) => {
+        for (const maybePromise of maybePromises) {
+          if (isPromise(maybePromise)) {
+            Promise.resolve(maybePromise).then(
+              () => {},
+              () => {},
+            );
+          }
+        }
+      },
+    }),
   };
+  return info;
 }
 
 export const CRITICAL_ERROR = 'CRITICAL_ERROR' as const;
@@ -989,7 +1011,7 @@ function getStreamValues(
   const stream = getDirectiveValues(
     GraphQLStreamDirective,
     fieldNodes[0],
-    exeContext.variableValues,
+    toGraphQLJSVariableValues(exeContext.variableValues),
   ) as {
     initialCount: number;
     label: string;

@@ -1,0 +1,23 @@
+diff --git a/node_modules/@types/relay-compiler/lib/core/Schema.d.ts b/node_modules/@types/relay-compiler/lib/core/Schema.d.ts
+index c79aea0..804e180 100755
+--- a/node_modules/@types/relay-compiler/lib/core/Schema.d.ts
++++ b/node_modules/@types/relay-compiler/lib/core/Schema.d.ts
+@@ -1,11 +1,17 @@
+ import {
+     TypeNode,
+     DocumentNode,
+-    DirectiveLocationEnum,
++    DirectiveLocation,
+     ValueNode,
+ } from 'graphql';
+ import { Field as IRField } from './IR';
+ 
++// `DirectiveLocationEnum` was removed in graphql-js@17 in favor of a dual value/type
++// export named `DirectiveLocation`, which doesn't work as a bare type reference on
++// older graphql-js versions (there, `DirectiveLocation` is only a value). This
++// derives the member-value union directly so it resolves correctly either way.
++type DirectiveLocationEnum = (typeof DirectiveLocation)[keyof typeof DirectiveLocation];
++
+ export type AbstractTypeID = any;
+ export type CompositeTypeID = any;
+ export type EnumTypeID = any;

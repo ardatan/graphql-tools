@@ -1,0 +1,32 @@
+diff --git a/node_modules/subscriptions-transport-ws/dist/client.d.ts b/node_modules/subscriptions-transport-ws/dist/client.d.ts
+index c50cb80..ff43008 100644
+--- a/node_modules/subscriptions-transport-ws/dist/client.d.ts
++++ b/node_modules/subscriptions-transport-ws/dist/client.d.ts
+@@ -1,5 +1,5 @@
+ import { ListenerFn } from 'eventemitter3';
+-import { ExecutionResult } from 'graphql/execution/execute';
++import { ExecutionResult } from 'graphql';
+ import { DocumentNode } from 'graphql/language/ast';
+ export interface Observer<T> {
+     next?: (value: T) => void;
+diff --git a/node_modules/subscriptions-transport-ws/dist/server.d.ts b/node_modules/subscriptions-transport-ws/dist/server.d.ts
+index d46ca46..2a8ce0d 100644
+--- a/node_modules/subscriptions-transport-ws/dist/server.d.ts
++++ b/node_modules/subscriptions-transport-ws/dist/server.d.ts
+@@ -1,6 +1,6 @@
+ /// <reference types="node" />
+ import * as WebSocket from 'ws';
+-import { ExecutionResult, GraphQLSchema, DocumentNode, ValidationContext, ExecutionArgs, SubscriptionArgs } from 'graphql';
++import { ExecutionResult, GraphQLSchema, DocumentNode, ValidationContext, ExecutionArgs } from 'graphql';
+ import { IncomingMessage } from 'http';
+ export declare type ExecutionIterator = AsyncIterator<ExecutionResult>;
+ export interface ExecutionParams<TContext = any> {
+@@ -38,7 +38,7 @@ export interface OperationMessage {
+     type: string;
+ }
+ export declare type ExecuteFunction = (args: ExecutionArgs) => ExecutionResult | Promise<ExecutionResult> | AsyncIterator<ExecutionResult>;
+-export declare type SubscribeFunction = (args: SubscriptionArgs) => AsyncIterator<ExecutionResult> | Promise<AsyncIterator<ExecutionResult> | ExecutionResult>;
++export declare type SubscribeFunction = (args: ExecutionArgs) => AsyncIterator<ExecutionResult> | Promise<AsyncIterator<ExecutionResult> | ExecutionResult>;
+ export interface ServerOptions {
+     rootValue?: any;
+     schema?: GraphQLSchema;
