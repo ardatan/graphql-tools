@@ -116,6 +116,11 @@ describeIf(platform() !== 'win32' && isPuppeteerV25Supported)(
               library: 'GraphQLToolsUrlLoader',
               umdNamedDefine: true,
             },
+            // webpack 5.109+ defaults experiments.typescript to "auto" on Node >= 22.6,
+            // which uses strip-only mode and rejects enums from dependency .ts sources.
+            experiments: {
+              typescript: false,
+            },
           },
           (err, stats) => {
             if (err) {
