@@ -30,9 +30,9 @@
   "scripts": {
     "build": "bob build",
     "build:api-docs": "tsx scripts/build-api-docs.mts",
-    "ci:lint": "cross-env \"ESLINT_USE_FLAT_CONFIG=false\" eslint --ext .ts . --output-file eslint_report.json --format json",
+    "ci:lint": "eslint \"**/*.ts\" --output-file eslint_report.json --format json",
     "clean-dist": "rimraf \"packages/**/dist\" && rimraf \".bob\"",
-    "lint": "cross-env \"ESLINT_USE_FLAT_CONFIG=false\" eslint --ext .ts .",
+    "lint": "eslint \"**/*.ts\"",
     "postbuild": "tsx scripts/postbuild.ts",
     "postinstall": "patch-package && husky install && node scripts/fix-astrojs-typings.js && node scripts/fix-yoga-lru-cache-typings.js && node scripts/shim-typescript7-api.cjs",
     "prerelease": "npm run build",
@@ -59,6 +59,9 @@
     "@changesets/changelog-github": "0.7.0",
     "@changesets/cli": "2.31.1",
     "@envelop/core": "5.5.1",
+    "@eslint/compat": "2.1.0",
+    "@eslint/eslintrc": "3.3.6",
+    "@eslint/js": "10.0.1",
     "@graphql-tools/delegate": "12.1.0",
     "@n1ru4l/in-memory-live-query-store": "0.11.0",
     "@theguild/prettier-config": "3.0.1",
@@ -80,6 +83,7 @@
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-n": "18.2.2",
     "eslint-plugin-promise": "7.3.0",
+    "globals": "17.8.0",
     "globby": "11.1.0",
     "graphql": "16.14.0",
     "graphql-yoga": "5.21.2",
@@ -119,7 +123,7 @@
   },
   "lint-staged": {
     "packages/**/src/**/*.{ts,tsx}": [
-      "cross-env \"ESLINT_USE_FLAT_CONFIG=false\" eslint --fix"
+      "eslint --fix"
     ],
     "**/*.{ts,tsx,graphql,yml,md,mdx,json,js}": [
       "prettier --write"
