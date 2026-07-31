@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "@theguild/tailwind-config": "0.6.4",
-    "@types/node": "25.9.1",
+    "@types/node": "26.1.2",
     "@types/react": "19.2.15",
     "estree-util-value-to-estree": "3.5.0",
     "pagefind": "^1.5.2",
