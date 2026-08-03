@@ -1,4 +1,5 @@
 import {
+  buildSchema,
   FieldNode,
   GraphQLField,
   GraphQLScalarType,
@@ -58,5 +59,24 @@ import { getArgumentValues } from '../src/getArgumentValues.js';
     const result = getArgumentValues(field, fieldNode, { when });
 
     expect(result).toEqual({ data: { occurredAt: when.toJSON() } });
+  });
+
+  it('applies a schema-defined default when a non-null argument references a variable with no runtime value', () => {
+    // Schemas built from SDL (buildSchema -> extendSchemaImpl) only populate
+    // graphql-js@17's `arg.default`, never the legacy `arg.defaultValue`.
+    const schema = buildSchema(`
+      type Query {
+        foo(bar: String! = "fallback"): String
+      }
+    `);
+    const field = schema.getQueryType()!.getFields()['foo'];
+
+    const doc = parse('query ($bar: String) { foo(bar: $bar) }');
+    const op = doc.definitions[0] as OperationDefinitionNode;
+    const fieldNode = op.selectionSet.selections[0] as FieldNode;
+
+    const result = getArgumentValues(field, fieldNode, {});
+
+    expect(result).toEqual({ bar: 'fallback' });
   });
 });
