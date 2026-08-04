@@ -15,7 +15,6 @@
     "declaration": true,
 
     "noImplicitAny": false,
-    // subscriptions-transport-ws ships broken typings under GraphQL 17
     "skipLibCheck": true,
 
     "rootDir": ".",
