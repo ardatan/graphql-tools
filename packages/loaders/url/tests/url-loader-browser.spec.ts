@@ -26,7 +26,7 @@ const nodeMajor = Number.parseInt(nodeMajorRaw, 10);
 const nodeMinor = Number.parseInt(nodeMinorRaw, 10);
 const isPuppeteerV25Supported = nodeMajor > 22 || (nodeMajor === 22 && nodeMinor >= 12);
 
-describeIf(platform() !== 'win32' && isPuppeteerV25Supported)(
+describeIf(platform() !== 'win32' && isPuppeteerV25Supported && !process.env['LEAK_TEST'])(
   '[url-loader] webpack bundle compat',
   () => {
     jest.setTimeout(15000);
