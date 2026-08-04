@@ -1,5 +1,25 @@
 # @graphql-tools/node-require
 
+## 7.0.44
+
+### Patch Changes
+
+- Updated dependencies
+  [[`e90719b`](https://github.com/ardatan/graphql-tools/commit/e90719baf08bf1aa7b372759dd197ac27e71dc64)]:
+  - @graphql-tools/utils@11.2.2
+  - @graphql-tools/load@8.1.15
+  - @graphql-tools/graphql-file-loader@8.1.18
+
+## 7.0.43
+
+### Patch Changes
+
+- Updated dependencies
+  [[`615c1a2`](https://github.com/ardatan/graphql-tools/commit/615c1a27f2a379eac74127815effc8e062bdc47c)]:
+  - @graphql-tools/utils@11.2.1
+  - @graphql-tools/load@8.1.14
+  - @graphql-tools/graphql-file-loader@8.1.17
+
 ## 7.0.42
 
 ### Patch Changes

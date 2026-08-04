@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/graphql-tag-pluck",
-  "version": "8.3.33",
+  "version": "8.3.35",
   "type": "module",
   "description": "Pluck graphql-tag template literals",
   "repository": {
@@ -55,17 +55,17 @@
     "@babel/plugin-syntax-import-assertions": "^7.26.0",
     "@babel/traverse": "^7.26.10",
     "@babel/types": "^7.26.10",
-    "@graphql-tools/utils": "^11.2.0",
+    "@graphql-tools/utils": "^11.2.2",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
     "@astrojs/compiler": "4.0.0",
     "@types/babel__traverse": "7.28.0",
-    "@vue/compiler-sfc": "3.5.39",
+    "@vue/compiler-sfc": "3.5.40",
     "astrojs-compiler-sync": "1.1.1",
     "content-tag": "4.2.0",
-    "svelte": "5.56.4",
-    "svelte2tsx": "0.7.57"
+    "svelte": "5.56.8",
+    "svelte2tsx": "0.7.59"
   },
   "publishConfig": {
     "directory": "dist",

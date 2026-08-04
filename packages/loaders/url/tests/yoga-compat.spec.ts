@@ -130,7 +130,7 @@ describe('Yoga Compatibility', () => {
         }),
         useDeferStream(),
         useLiveQuery({
-          liveQueryStore,
+          liveQueryStore: liveQueryStore as any,
         }),
       ],
     });
