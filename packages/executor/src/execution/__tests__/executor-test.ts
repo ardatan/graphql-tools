@@ -13,15 +13,19 @@ import {
   GraphQLUnionType,
   Kind,
   parse,
+  versionInfo,
 } from 'graphql';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
 import { execute, executeSync } from '../execute.js';
 
-const expectedVariableValues = {
-  coerced: { var: 'abc' },
-  sources: expect.any(Object),
-};
+const expectedVariableValues =
+  versionInfo.major >= 17
+    ? {
+        coerced: { var: 'abc' },
+        sources: expect.any(Object),
+      }
+    : { var: 'abc' };
 
 describe('Execute: Handles basic execution tasks', () => {
   it('executes arbitrary code', async () => {
