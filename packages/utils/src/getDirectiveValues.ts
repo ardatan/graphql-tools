@@ -11,12 +11,12 @@ import { VariableValues } from './types.js';
  * while older versions accept `Record<string, any>`. This function wraps the original
  * getDirectiveValues function to provide compatibility across versions.
  */
-export function getDirectiveValues(
+export function getDirectiveValues<TVariables = Record<string, unknown>>(
   directiveDef: GraphQLDirective,
   node: {
     readonly directives?: ReadonlyArray<DirectiveNode> | undefined;
   },
-  variableValues?: VariableValues,
+  variableValues?: VariableValues<TVariables>,
 ): undefined | Record<string, unknown> {
   if (versionInfo.major >= 17) {
     return getDirectiveValuesOrig(directiveDef, node, variableValues as any);

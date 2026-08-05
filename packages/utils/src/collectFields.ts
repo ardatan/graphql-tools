@@ -28,10 +28,10 @@ export interface FieldsAndPatches {
   patches: Array<PatchFields>;
 }
 
-function collectFieldsImpl(
+function collectFieldsImpl<TVariables = any>(
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
-  variableValues: VariableValues,
+  variableValues: VariableValues<TVariables>,
   runtimeType: GraphQLObjectType,
   selectionSet: SelectionSetNode,
   fields: AccumulatorMap<string, FieldNode>,
@@ -150,10 +150,10 @@ function collectFieldsImpl(
  * object type returned by that field.
  *
  */
-export function collectFields(
+export function collectFields<TVariables = any>(
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
-  variableValues: VariableValues,
+  variableValues: VariableValues<TVariables>,
   runtimeType: GraphQLObjectType,
   selectionSet: SelectionSetNode,
 ): FieldsAndPatches {
@@ -176,14 +176,10 @@ export function collectFields(
  * Determines if a field should be included based on the `@include` and `@skip`
  * directives, where `@skip` has higher precedence than `@include`.
  */
-export function shouldIncludeNode(
-  variableValues: VariableValues,
+export function shouldIncludeNode<TVariables = any>(
+  variableValues: VariableValues<TVariables>,
   node: FragmentSpreadNode | FieldNode | InlineFragmentNode,
 ): boolean {
-  if (!node.directives?.length) {
-    return true;
-  }
-
   const skip = getDirectiveValues(GraphQLSkipDirective, node, variableValues);
   if (skip?.['if'] === true) {
     return false;
@@ -231,8 +227,8 @@ export function getFieldEntryKey(node: FieldNode): string {
  * deferred based on the experimental flag, defer directive present and
  * not disabled by the "if" argument.
  */
-export function getDeferValues(
-  variableValues: VariableValues,
+export function getDeferValues<TVariables = any>(
+  variableValues: VariableValues<TVariables>,
   node: FragmentSpreadNode | InlineFragmentNode,
 ): undefined | { label: string | undefined } {
   if (!node.directives?.length) {
