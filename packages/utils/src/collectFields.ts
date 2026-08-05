@@ -231,10 +231,6 @@ export function getDeferValues<TVariables = any>(
   variableValues: VariableValues<TVariables>,
   node: FragmentSpreadNode | InlineFragmentNode,
 ): undefined | { label: string | undefined } {
-  if (!node.directives?.length) {
-    return;
-  }
-
   const defer = getDirectiveValues(GraphQLDeferDirective, node, variableValues);
 
   if (!defer) {
