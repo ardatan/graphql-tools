@@ -9,7 +9,6 @@ import {
   isRequiredInputField,
   Kind,
   print,
-  replaceVariables,
   ValueNode,
   VariableNode,
   versionInfo,
@@ -565,11 +564,8 @@ function validateInputLiteralImpl(
     try {
       const typeAny = type as any;
       result = typeAny.coerceInputLiteral
-        ? typeAny.coerceInputLiteral(
-            (replaceVariables as any)(valueNode, context.variables, context.fragmentVariableValues),
-            hideSuggestions,
-          )
-        : type.parseLiteral(valueNode, undefined, hideSuggestions);
+        ? typeAny.coerceInputLiteral(valueNode, context.variables, hideSuggestions)
+        : type.parseLiteral(valueNode, context.variables?.coerced);
     } catch (error) {
       if (error instanceof GraphQLError) {
         context.onError(error, pathToArray(path));
