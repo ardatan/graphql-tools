@@ -116,21 +116,29 @@ function coerceVariableValues(
       continue;
     }
 
-    coercedValues[varName] = coerceInputValue(value, varType);
+    let errored = false;
+    const callback = (
+      path: ReadonlyArray<string | number>,
+      invalidValue: unknown,
+      error: GraphQLError,
+    ) => {
+      errored = true;
+      let prefix = `Variable "$${varName}" got invalid value ` + inspect(invalidValue);
+      if (path.length > 0) {
+        prefix += ` at "${varName}${printPathArray(path)}"`;
+      }
+      onError(
+        createGraphQLError(prefix + '; ' + error.message, {
+          nodes: varDefNode,
+          originalError: error,
+        }),
+      );
+    };
 
-    if (coercedValues[varName] === undefined) {
-      validateInputValue(value, varType, (error, invalidValue, path) => {
-        let prefix = `Variable "$${varName}" got invalid value ` + inspect(invalidValue);
-        if (path.length > 0) {
-          prefix += ` at "${varName}${printPathArray(path)}"`;
-        }
-        onError(
-          createGraphQLError(prefix + '; ' + error.message, {
-            nodes: varDefNode,
-            originalError: error,
-          }),
-        );
-      });
+    coercedValues[varName] = (coerceInputValue as any)(value, varType, callback);
+
+    if (coercedValues[varName] === undefined && !errored) {
+      validateInputValue(value, varType, callback);
     }
   }
 

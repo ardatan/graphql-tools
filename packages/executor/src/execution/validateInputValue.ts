@@ -29,6 +29,12 @@ import { suggestionList } from './suggestionList.js';
 
 type FragmentVariableValues = any;
 
+type OnErrorCB = (
+  path: ReadonlyArray<string | number>,
+  invalidValue: unknown,
+  error: GraphQLError,
+) => void;
+
 /**
  * Validate that the provided input value is allowed for this type, collecting
  * all errors via a callback function.
@@ -90,11 +96,7 @@ type FragmentVariableValues = any;
 export function validateInputValue(
   inputValue: unknown,
   type: GraphQLInputType,
-  onError: (
-    error: GraphQLError,
-    invalidValue: unknown,
-    path: ReadonlyArray<string | number>,
-  ) => void,
+  onError: OnErrorCB,
   hideSuggestions?: boolean,
 ): void {
   return validateInputValueImpl(inputValue, type, onError, hideSuggestions, undefined);
@@ -103,11 +105,7 @@ export function validateInputValue(
 function validateInputValueImpl(
   inputValue: unknown,
   type: GraphQLInputType,
-  onError: (
-    error: GraphQLError,
-    invalidValue: unknown,
-    path: ReadonlyArray<string | number>,
-  ) => void,
+  onError: OnErrorCB,
   hideSuggestions: boolean | undefined,
   path: Path | undefined,
 ): void {
@@ -241,7 +239,7 @@ function validateInputValueImpl(
       result = typeAny[methodName](inputValue);
     } catch (error) {
       if (error instanceof GraphQLError) {
-        onError(error, inputValue, pathToArray(path));
+        onError(pathToArray(path), inputValue, error);
         return;
       }
       caughtError = error;
@@ -263,17 +261,13 @@ function validateInputValueImpl(
 }
 
 function reportInvalidValue(
-  onError: (
-    error: GraphQLError,
-    invalidValue: unknown,
-    path: ReadonlyArray<string | number>,
-  ) => void,
+  onError: OnErrorCB,
   message: string,
   path: Path | undefined,
   invalidValue: unknown,
   originalError?: GraphQLError,
 ): void {
-  onError(createGraphQLError(message, { originalError }), invalidValue, pathToArray(path));
+  onError(pathToArray(path), invalidValue, createGraphQLError(message, { originalError }));
 }
 
 /**
