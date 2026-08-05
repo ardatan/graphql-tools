@@ -212,7 +212,7 @@ function validateInputValueImpl(
       fields.push(fieldName);
     }
 
-    if (type.isOneOf) {
+    if ((type as any).isOneOf) {
       if (fields.length !== 1) {
         reportInvalidValue(onError, getOneOfInputObjectErrorMessage(type), path, inputValue);
       }
@@ -480,7 +480,7 @@ function validateInputLiteralImpl(
           const scopedVariableValues = getScopedVariableValues(context, fieldValueNode);
           const variableName = fieldValueNode.name.value;
           const value = scopedVariableValues?.coerced[variableName];
-          if (type.isOneOf) {
+          if ((type as any).isOneOf) {
             if (value === undefined) {
               reportInvalidLiteral(
                 context.onError,
@@ -533,7 +533,7 @@ function validateInputLiteralImpl(
       }
     }
 
-    if (type.isOneOf) {
+    if ((type as any).isOneOf) {
       const isNotExactlyOneField = knownFields.length !== 1;
       if (isNotExactlyOneField) {
         reportInvalidLiteral(
