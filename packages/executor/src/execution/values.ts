@@ -85,7 +85,14 @@ function coerceVariableValues(
       continue;
     }
 
+    const signature = {
+      name: varName,
+      type: varType,
+      default: varDefNode.defaultValue == null ? undefined : { literal: varDefNode.defaultValue },
+    };
+
     if (!hasOwnProperty(inputs, varName)) {
+      sources[varName] = { signature };
       if (varDefNode.defaultValue) {
         coercedValues[varName] = valueFromAST(varDefNode.defaultValue, varType);
       } else if (isNonNullType(varType)) {
@@ -103,6 +110,7 @@ function coerceVariableValues(
     }
 
     const value = inputs[varName];
+    sources[varName] = { signature, value };
     if (value === null && isNonNullType(varType)) {
       const varTypeStr = inspect(varType);
       onError(

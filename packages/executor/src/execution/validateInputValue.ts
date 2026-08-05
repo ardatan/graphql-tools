@@ -61,7 +61,7 @@ type OnErrorCB = (
  * });
  * const errors = [];
  *
- * validateInputValue({ stars: 'bad' }, ReviewInput, (error, path) => {
+ * validateInputValue({ stars: 'bad' }, ReviewInput, (path, _invalidValue, error) => {
  *   errors.push({ message: error.message, path });
  * });
  *
@@ -84,7 +84,7 @@ type OnErrorCB = (
  * validateInputValue(
  *   { rating: 'extra field' },
  *   ReviewInput,
- *   (error) => {
+ *   (_path, _invalidValue, error) => {
  *     errors.push(error.message);
  *   },
  *   true,
@@ -214,6 +214,7 @@ function validateInputValueImpl(
     if ((type as any).isOneOf) {
       if (fields.length !== 1) {
         reportInvalidValue(onError, getOneOfInputObjectErrorMessage(type), path, inputValue);
+        return;
       }
 
       const field = fields[0];
@@ -254,6 +255,7 @@ function validateInputValueImpl(
             : ', found'
         }: ${inspect(inputValue)}.`,
         path,
+        inputValue,
         caughtError as GraphQLError | undefined,
       );
     }
@@ -591,7 +593,7 @@ function getScopedVariableValues(
 ): Maybe<VariableValues> {
   const variableName = valueNode.name.value;
   const { fragmentVariableValues, variables } = context;
-  return fragmentVariableValues?.sources[variableName] ? fragmentVariableValues : variables;
+  return fragmentVariableValues?.sources?.[variableName] ? fragmentVariableValues : variables;
 }
 
 function reportInvalidLiteral(

@@ -568,7 +568,7 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
   const { fields: rootFields, patches } = collectFields(
     schema,
     fragments,
-    variableValues as any,
+    variableValues,
     rootType,
     operation.selectionSet,
   );

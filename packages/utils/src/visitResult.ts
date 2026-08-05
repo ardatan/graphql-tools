@@ -92,7 +92,7 @@ export function visitResult(
     return acc;
   }, {});
 
-  const variableValues = request.variables || {};
+  const variableValues = normalizeVariableValues(request.variables);
 
   const errorInfo: ErrorInfo = {
     segmentInfoMap: new Map<GraphQLError, Array<SegmentInfo>>(),
@@ -123,6 +123,13 @@ export function visitResult(
   }
 
   return result;
+}
+
+function normalizeVariableValues(variables: Record<string, any> | undefined): VariableValues {
+  return {
+    coerced: variables ?? {},
+    sources: {},
+  };
 }
 
 function visitErrorsByType(

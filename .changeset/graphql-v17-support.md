@@ -13,7 +13,7 @@ This release adds GraphQL v17 support and aligns the existing executor implement
   https://the-guild.dev/graphql/yoga-server/docs/features/execution-cancellation
 )
 - `GraphQLResolveInfo` automatically aligns `variableValues` according to the GraphQL version for better compatibility. In GraphQL v17 and above, `variableValues` follows the wrapped shape (`{ coerced, sources }`) expected by GraphQL APIs. In GraphQL v16 and below, `variableValues` remains a flat map as in previous versions.
-- If your custom scalar resolvers define `__serialize` and `__parseValue`, they are automatically mapped to `coerceInputValue` and `coerceOutputValue` in GraphQL v17.
+- If your custom scalar resolvers define `__serialize` and `__parseValue`, they are automatically mapped to `coerceOutputValue` and `coerceInputValue` in GraphQL v17.
 - **BREAKING**: `@graphql-tools/executor`'s `getVariableValues` now returns `{ variableValues }` on success, where `variableValues` is a `VariableValues` object (`{ coerced, sources }`). On failure, it returns `{ errors }`.
 - **BREAKING**: `collectFields`, `shouldIncludeNode`, `getDeferValues`, and `collectSubFields` now need a `VariableValues` object instead of `Record<string, any>` for the `variableValues` argument.
 - **BREAKING**: `visitResult`'s `variableValues` argument is now a `VariableValues` object instead of `Record<string, any>`.
