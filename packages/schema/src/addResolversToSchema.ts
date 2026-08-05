@@ -72,9 +72,9 @@ export function addResolversToSchema({
       // allow -- without recommending -- overriding of specified scalar types
       for (const fieldName in resolverValue) {
         if (fieldName.startsWith('__')) {
-          type[fieldName.substring(2)] = resolverValue[fieldName];
+          setScalarConfigProperty(type, fieldName.substring(2), resolverValue[fieldName]);
         } else {
-          type[fieldName] = resolverValue[fieldName];
+          setScalarConfigProperty(type, fieldName, resolverValue[fieldName]);
         }
       }
     } else if (isEnumType(type)) {
@@ -149,6 +149,30 @@ export function addResolversToSchema({
   return schema;
 }
 
+// graphql-js@17 introduced `coerceOutputValue`/`coerceInputValue` as the methods
+// actually invoked during execution, defaulting them from `serialize`/`parseValue`
+// only at `GraphQLScalarType` construction time (see graphql-js's own
+// `GraphQLScalarType` constructor). Setting `serialize`/`parseValue` on an
+// already-built type (or in a config copied via `toConfig()`, which also carries
+// forward the old `coerceOutputValue`/`coerceInputValue`) no longer updates what
+// execution actually calls, so mirror the assignment onto the new method name too.
+const LEGACY_TO_V17_SCALAR_METHOD: Record<string, string> = {
+  serialize: 'coerceOutputValue',
+  parseValue: 'coerceInputValue',
+};
+
+function setScalarConfigProperty(
+  target: Record<string, any>,
+  propName: string,
+  value: unknown,
+): void {
+  target[propName] = value;
+  const v17MethodName = LEGACY_TO_V17_SCALAR_METHOD[propName];
+  if (v17MethodName) {
+    target[v17MethodName] = value;
+  }
+}
+
 function addResolversToExistingSchema(
   schema: GraphQLSchema,
   resolvers: IResolvers,
@@ -162,7 +186,7 @@ function addResolversToExistingSchema(
     if (isScalarType(type)) {
       for (const fieldName in resolverValue) {
         if (fieldName.startsWith('__')) {
-          type[fieldName.substring(2)] = resolverValue[fieldName];
+          setScalarConfigProperty(type, fieldName.substring(2), resolverValue[fieldName]);
         } else if (fieldName === 'astNode' && type.astNode != null) {
           type.astNode = {
             ...type.astNode,
@@ -188,7 +212,7 @@ function addResolversToExistingSchema(
             (resolverValue as GraphQLScalarType).extensions,
           );
         } else {
-          type[fieldName] = resolverValue[fieldName];
+          setScalarConfigProperty(type, fieldName, resolverValue[fieldName]);
         }
       }
     } else if (isEnumType(type)) {
@@ -286,9 +310,15 @@ function createNewSchemaWithResolvers(
       const config = type.toConfig();
       const resolverValue = resolvers[type.name];
       if (!isSpecifiedScalarType(type) && resolverValue != null) {
+        const coerceInputValueOverridden = ['parseValue', 'coerceInputValue'].some(
+          name => name in resolverValue || `__${name}` in resolverValue,
+        );
+        const parseLiteralOverridden = ['parseLiteral', 'coerceInputLiteral'].some(
+          name => name in resolverValue || `__${name}` in resolverValue,
+        );
         for (const fieldName in resolverValue) {
           if (fieldName.startsWith('__')) {
-            config[fieldName.substring(2)] = resolverValue[fieldName];
+            setScalarConfigProperty(config, fieldName.substring(2), resolverValue[fieldName]);
           } else if (fieldName === 'astNode' && config.astNode != null) {
             config.astNode = {
               ...config.astNode,
@@ -314,8 +344,12 @@ function createNewSchemaWithResolvers(
               (resolverValue as GraphQLScalarType).extensions,
             );
           } else {
-            config[fieldName] = resolverValue[fieldName];
+            setScalarConfigProperty(config, fieldName, resolverValue[fieldName]);
           }
+        }
+
+        if (coerceInputValueOverridden && !parseLiteralOverridden) {
+          delete (config as any).parseLiteral;
         }
 
         return new GraphQLScalarType(config);

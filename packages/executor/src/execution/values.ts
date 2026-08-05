@@ -1,169 +1,31 @@
 import {
-  coerceInputValue,
   GraphQLError,
-  GraphQLInputType,
+  getVariableValues as graphqlGetVariableValues,
   GraphQLSchema,
-  isInputType,
-  isNonNullType,
-  NamedTypeNode,
-  print,
-  typeFromAST,
-  valueFromAST,
   VariableDefinitionNode,
   versionInfo,
 } from 'graphql';
-import { createGraphQLError, hasOwnProperty, inspect, printPathArray } from '@graphql-tools/utils';
+import { VariableValues } from '@graphql-tools/utils';
 
-type CoercedVariableValues =
-  | { errors: ReadonlyArray<GraphQLError>; coerced?: never }
-  | { coerced: { [variable: string]: unknown }; errors?: never };
+export type VariableValuesOrErrors = VariableValues | { errors: ReadonlyArray<GraphQLError> };
 
-type CoerceInputValueOnError = (
-  path: ReadonlyArray<string | number>,
-  invalidValue: unknown,
-  error: GraphQLError,
-) => void;
-
-/**
- * Prepares an object map of variableValues of the correct type based on the
- * provided variable definitions and arbitrary input. If the input cannot be
- * parsed to match the variable definitions, a GraphQLError will be thrown.
- *
- * Note: The returned value is a plain Object with a prototype, since it is
- * exposed to user code. Care should be taken to not pull values from the
- * Object prototype.
- */
 export function getVariableValues(
   schema: GraphQLSchema,
   varDefNodes: ReadonlyArray<VariableDefinitionNode>,
-  inputs: { readonly [variable: string]: unknown },
-  options?: { maxErrors?: number },
-): CoercedVariableValues {
-  const errors: any[] = [];
-  const maxErrors = options?.maxErrors;
-  try {
-    const coerced = coerceVariableValues(schema, varDefNodes, inputs, error => {
-      if (maxErrors != null && errors.length >= maxErrors) {
-        throw createGraphQLError(
-          'Too many errors processing variables, error limit reached. Execution aborted.',
-        );
-      }
-      errors.push(error);
-    });
-
-    if (errors.length === 0) {
-      return { coerced };
-    }
-  } catch (error) {
-    errors.push(error);
+  inputs: {
+    readonly [variable: string]: unknown;
+  },
+  options?: {
+    maxErrors?: number;
+    hideSuggestions?: boolean;
+  },
+): VariableValuesOrErrors {
+  const result = graphqlGetVariableValues(schema, varDefNodes, inputs, options);
+  if ('errors' in result && result.errors != null) {
+    return { errors: result.errors };
   }
-
-  return { errors };
-}
-
-function coerceVariableValues(
-  schema: GraphQLSchema,
-  varDefNodes: ReadonlyArray<VariableDefinitionNode>,
-  inputs: { readonly [variable: string]: unknown },
-  onError: (error: GraphQLError) => void,
-): { [variable: string]: unknown } {
-  const coercedValues: { [variable: string]: unknown } = {};
-  for (const varDefNode of varDefNodes) {
-    const varName = varDefNode.variable.name.value;
-    const varType = typeFromAST(schema, varDefNode.type as NamedTypeNode);
-    if (!isInputType(varType)) {
-      // Must use input types for variables. This should be caught during
-      // validation, however is checked again here for safety.
-      const varTypeStr = print(varDefNode.type);
-      onError(
-        createGraphQLError(
-          `Variable "$${varName}" expected value of type "${varTypeStr}" which cannot be used as an input type.`,
-          { nodes: varDefNode.type },
-        ),
-      );
-      continue;
-    }
-
-    if (!hasOwnProperty(inputs, varName)) {
-      if (varDefNode.defaultValue) {
-        coercedValues[varName] = valueFromAST(varDefNode.defaultValue, varType);
-      } else if (isNonNullType(varType)) {
-        const varTypeStr = inspect(varType);
-        onError(
-          createGraphQLError(
-            `Variable "$${varName}" of required type "${varTypeStr}" was not provided.`,
-            {
-              nodes: varDefNode,
-            },
-          ),
-        );
-      }
-      continue;
-    }
-
-    const value = inputs[varName];
-    if (value === null && isNonNullType(varType)) {
-      const varTypeStr = inspect(varType);
-      onError(
-        createGraphQLError(
-          `Variable "$${varName}" of non-null type "${varTypeStr}" must not be null.`,
-          {
-            nodes: varDefNode,
-          },
-        ),
-      );
-      continue;
-    }
-
-    coercedValues[varName] = coerceVariableInputValue(value, varType, varName, varDefNode, onError);
+  if (versionInfo.major >= 17 && 'variableValues' in result) {
+    return result.variableValues;
   }
-
-  return coercedValues;
-}
-
-function coerceVariableInputValue(
-  value: unknown,
-  varType: GraphQLInputType,
-  varName: string,
-  varDefNode: VariableDefinitionNode,
-  onError: (error: GraphQLError) => void,
-): unknown {
-  const reportInvalidValue = (
-    path: ReadonlyArray<string | number>,
-    invalidValue: unknown,
-    error: GraphQLError,
-  ) => {
-    let prefix = `Variable "$${varName}" got invalid value ` + inspect(invalidValue);
-    if (path.length > 0) {
-      prefix += ` at "${varName}${printPathArray(path)}"`;
-    }
-    onError(
-      createGraphQLError(prefix + '; ' + error.message, {
-        nodes: varDefNode,
-        originalError: error,
-      }),
-    );
-  };
-
-  // GraphQL.js v17 removed the onError callback from coerceInputValue in favor of
-  // validateInputValue. Keep the legacy 3-arg form for graphql < 17.
-  if (versionInfo.major < 17) {
-    return (
-      coerceInputValue as (
-        inputValue: unknown,
-        type: GraphQLInputType,
-        onError?: CoerceInputValueOnError,
-      ) => unknown
-    )(value, varType, reportInvalidValue);
-  }
-
-  const coerced = coerceInputValue(value, varType);
-  if (coerced === undefined && value !== undefined) {
-    reportInvalidValue(
-      [],
-      value,
-      createGraphQLError(`Expected value of type "${inspect(varType)}".`),
-    );
-  }
-  return coerced;
+  return result as unknown as VariableValues;
 }

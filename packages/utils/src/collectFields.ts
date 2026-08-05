@@ -16,6 +16,7 @@ import {
 import { AccumulatorMap } from './AccumulatorMap.js';
 import { GraphQLDeferDirective } from './directives.js';
 import { memoize5 } from './memoize.js';
+import { VariableValues } from './types.js';
 
 export interface PatchFields {
   label: string | undefined;
@@ -27,10 +28,10 @@ export interface FieldsAndPatches {
   patches: Array<PatchFields>;
 }
 
-function collectFieldsImpl<TVariables = any>(
+function collectFieldsImpl(
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
-  variableValues: TVariables,
+  variableValues: VariableValues,
   runtimeType: GraphQLObjectType,
   selectionSet: SelectionSetNode,
   fields: AccumulatorMap<string, FieldNode>,
@@ -149,10 +150,10 @@ function collectFieldsImpl<TVariables = any>(
  * object type returned by that field.
  *
  */
-export function collectFields<TVariables = any>(
+export function collectFields(
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
-  variableValues: TVariables,
+  variableValues: VariableValues,
   runtimeType: GraphQLObjectType,
   selectionSet: SelectionSetNode,
 ): FieldsAndPatches {
@@ -176,9 +177,13 @@ export function collectFields<TVariables = any>(
  * directives, where `@skip` has higher precedence than `@include`.
  */
 export function shouldIncludeNode(
-  variableValues: any,
+  variableValues: VariableValues,
   node: FragmentSpreadNode | FieldNode | InlineFragmentNode,
 ): boolean {
+  if (!node.directives?.length) {
+    return true;
+  }
+
   const skip = getDirectiveValues(GraphQLSkipDirective, node, variableValues);
   if (skip?.['if'] === true) {
     return false;
@@ -227,9 +232,13 @@ export function getFieldEntryKey(node: FieldNode): string {
  * not disabled by the "if" argument.
  */
 export function getDeferValues(
-  variableValues: any,
+  variableValues: VariableValues,
   node: FragmentSpreadNode | InlineFragmentNode,
 ): undefined | { label: string | undefined } {
+  if (!node.directives?.length) {
+    return;
+  }
+
   const defer = getDirectiveValues(GraphQLDeferDirective, node, variableValues);
 
   if (!defer) {
@@ -257,7 +266,7 @@ export function getDeferValues(
 export const collectSubFields = memoize5(function collectSubfields(
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
-  variableValues: { [variable: string]: unknown },
+  variableValues: VariableValues,
   returnType: GraphQLObjectType,
   fieldNodes: Array<FieldNode>,
 ): FieldsAndPatches {

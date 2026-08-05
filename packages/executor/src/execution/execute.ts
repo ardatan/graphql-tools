@@ -4,6 +4,7 @@ import {
   FieldNode,
   FragmentDefinitionNode,
   getDirectiveValues,
+  getVariableValues,
   GraphQLAbstractType,
   GraphQLError,
   GraphQLField,
@@ -51,6 +52,7 @@ import {
   Path,
   pathToArray,
   promiseReduce,
+  VariableValues,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
@@ -59,7 +61,6 @@ import { coerceError } from './coerceError.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import { invariant } from './invariant.js';
 import { promiseForObject } from './promiseForObject.js';
-import { getVariableValues } from './values.js';
 
 export interface SingularExecutionResult<TData = any, TExtensions = any> {
   errors?: ReadonlyArray<GraphQLError>;
@@ -112,13 +113,13 @@ const collectSubfields = memoize3(
  * Namely, schema of the type system that is currently executing,
  * and the fragments defined in the query document
  */
-export interface ExecutionContext<TVariables = any, TContext = any> {
+export interface ExecutionContext<_TVariables = any, TContext = any> {
   schema: GraphQLSchema;
   fragments: Record<string, FragmentDefinitionNode>;
   rootValue: unknown;
   contextValue: TContext;
   operation: OperationDefinitionNode;
-  variableValues: TVariables;
+  variableValues: VariableValues;
   fieldResolver: GraphQLFieldResolver<any, TContext>;
   typeResolver: GraphQLTypeResolver<any, TContext>;
   subscribeFieldResolver: GraphQLFieldResolver<any, TContext>;
@@ -525,7 +526,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     rootValue,
     contextValue,
     operation,
-    variableValues: coercedVariableValues.coerced,
+    variableValues: coercedVariableValues.variableValues,
     fieldResolver: fieldResolver ?? defaultFieldResolver,
     typeResolver: typeResolver ?? defaultTypeResolver,
     subscribeFieldResolver: subscribeFieldResolver ?? defaultFieldResolver,
@@ -716,7 +717,7 @@ function executeField(
     // Build a JS object of arguments from the field.arguments AST, using the
     // variables scope to fulfill any variable references.
     // TODO: find a way to memoize, in case this field is within a List type.
-    const args = getArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
+    const args = getArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues?.coerced);
 
     // The resolve function's optional third argument is a context value that
     // is provided to every resolve function within an execution. It is commonly
@@ -1836,7 +1837,7 @@ function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIt
 
     // Build a JS object of arguments from the field.arguments AST, using the
     // variables scope to fulfill any variable references.
-    const args = getArgumentValues(fieldDef, fieldNodes[0], variableValues);
+    const args = getArgumentValues(fieldDef, fieldNodes[0], variableValues.coerced);
 
     // The resolve function's optional third argument is a context value that
     // is provided to every resolve function within an execution. It is commonly

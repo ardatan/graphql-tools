@@ -1,6 +1,8 @@
 import {
   GraphQLEnumType,
+  GraphQLError,
   GraphQLInputObjectType,
+  GraphQLInputType,
   GraphQLNamedType,
   GraphQLScalarType,
   visit,
@@ -155,4 +157,31 @@ export interface PromiseWithResolvers<T> {
   promise: Promise<T>;
   resolve: (value: T | PromiseLike<T>) => void;
   reject: (reason?: any) => void;
+}
+
+type ReadOnlyObjMap<T> = { readonly [key: string]: T };
+
+export interface VariableValues {
+  /** Coerced runtime variable values keyed by variable name. */
+  readonly coerced: ReadOnlyObjMap<unknown>;
+  /** Source metadata for each variable value keyed by variable name. */
+  readonly sources: ReadOnlyObjMap<VariableValueSource>;
+  /** Errors encountered while coercing variable values. */
+  readonly errors?: ReadonlyArray<GraphQLError>;
+}
+
+interface VariableValueSource {
+  readonly signature: GraphQLVariableSignature;
+  readonly value?: unknown;
+}
+
+interface GraphQLVariableSignature {
+  name: string;
+  type: GraphQLInputType;
+  defaultValue?: never;
+  default:
+    | {
+        literal: any;
+      }
+    | undefined;
 }
