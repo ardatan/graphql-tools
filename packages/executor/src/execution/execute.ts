@@ -717,7 +717,7 @@ function executeField(
     // Build a JS object of arguments from the field.arguments AST, using the
     // variables scope to fulfill any variable references.
     // TODO: find a way to memoize, in case this field is within a List type.
-    const args = getArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues?.coerced);
+    const args = getArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues.coerced);
 
     // The resolve function's optional third argument is a context value that
     // is provided to every resolve function within an execution. It is commonly
@@ -823,6 +823,8 @@ export function buildResolveInfo(
     promiseAll: typeof Promise.all;
     track: (maybePromises: ReadonlyArray<unknown>) => void;
   };
+  const variableValues =
+    versionInfo.major >= 17 ? exeContext.variableValues.coerced : exeContext.variableValues;
   return {
     fieldName: fieldDef.name,
     fieldNodes,
@@ -833,7 +835,7 @@ export function buildResolveInfo(
     fragments: exeContext.fragments,
     rootValue: exeContext.rootValue,
     operation: exeContext.operation,
-    variableValues: exeContext.variableValues,
+    variableValues,
     signal: exeContext.signal,
     getAbortSignal: () => exeContext.signal,
     getAsyncHelpers: () =>
