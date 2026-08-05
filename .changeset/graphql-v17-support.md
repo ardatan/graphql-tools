@@ -16,4 +16,4 @@ This release adds GraphQL v17 support and aligns the existing executor implement
 - If your custom scalar resolvers define `__serialize` and `__parseValue`, they are automatically mapped to `coerceOutputValue` and `coerceInputValue` in GraphQL v17.
 - **BREAKING**: `@graphql-tools/executor`'s `getVariableValues` now returns `{ variableValues }` on success, where `variableValues` is a `VariableValues` object (`{ coerced, sources }`). On failure, it returns `{ errors }`.
 - **BREAKING**: `collectFields`, `shouldIncludeNode`, `getDeferValues`, and `collectSubFields` now need a `VariableValues` object instead of `Record<string, any>` for the `variableValues` argument.
-- **BREAKING**: `visitResult`'s `variableValues` argument is now a `VariableValues` object instead of `Record<string, any>`.
+- `visitResult` now internally normalizes `ExecutionRequest.variables` into a `VariableValues`-compatible shape (`{ coerced, sources }`) before traversing selections.
