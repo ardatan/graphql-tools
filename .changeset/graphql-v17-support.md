@@ -4,16 +4,16 @@
 '@graphql-tools/utils': major
 ---
 
-This release aims to support GraphQL v17, and align the existing executor implementation with the latest GraphQL v17 API changes. The following changes have been made:
+This release adds GraphQL v17 support and aligns the existing executor implementation with the latest GraphQL v17 API changes. The following changes are included:
 
-- `getAsyncHelpers` has been introduced in `GraphQLResolveInfo`. `track` method in there is used whenever `waitUntil` is available as in Yoga's [Explicit Resource Management](
+- `getAsyncHelpers` is now available on `GraphQLResolveInfo`. Its `track` method is used whenever `waitUntil` is available, as in Yoga's [Explicit Resource Management](
   https://the-guild.dev/graphql/yoga-server/docs/features/explicit-resource-management
 )
-- `getAbortSignal` is introduced in `GraphQLResolveInfo` which was already available in this executor implementation before as in Yoga's [Execution Cancellation](
+- `getAbortSignal` is now available on `GraphQLResolveInfo`, matching behavior that was already available in this executor implementation, as in Yoga's [Execution Cancellation](
   https://the-guild.dev/graphql/yoga-server/docs/features/execution-cancellation
 )
 - `GraphQLResolveInfo` automatically aligns `variableValues` according to the GraphQL version for better compatibility. In GraphQL v17 and above, `variableValues` follows the wrapped shape (`{ coerced, sources }`) expected by GraphQL APIs. In GraphQL v16 and below, `variableValues` remains a flat map as in previous versions.
-- If you have `__serialize` and `__parseValue` methods for your custom scalar resolvers, it will be automatically mapped to `coerceInputValue` and `coerceOutputValue` methods in GraphQL v17. This change ensures that your custom scalar resolvers are compatible with the latest GraphQL version and can handle input and output values correctly.
+- If your custom scalar resolvers define `__serialize` and `__parseValue`, they are automatically mapped to `coerceInputValue` and `coerceOutputValue` in GraphQL v17.
 - **BREAKING**: `@graphql-tools/executor`'s `getVariableValues` now returns `{ variableValues }` on success, where `variableValues` is a `VariableValues` object (`{ coerced, sources }`). On failure, it returns `{ errors }`.
 - **BREAKING**: `collectFields`, `shouldIncludeNode`, `getDeferValues`, and `collectSubFields` now need a `VariableValues` object instead of `Record<string, any>` for the `variableValues` argument.
-- **BREAKING**: `visitResult`'s `variableValues` argument is now `VariableValues` object instead of `Record<string, any>`. This change aligns with GraphQL v17's handling of variable values and provides more flexibility in working with variables during execution.
+- **BREAKING**: `visitResult`'s `variableValues` argument is now a `VariableValues` object instead of `Record<string, any>`.
