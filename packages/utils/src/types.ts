@@ -159,15 +159,13 @@ export interface PromiseWithResolvers<T> {
   reject: (reason?: any) => void;
 }
 
-type ReadOnlyObjMap<T> = { readonly [key: string]: T };
-
-export interface VariableValues {
+export interface VariableValues<TVariables = Record<string, unknown>> {
   /** Coerced runtime variable values keyed by variable name. */
-  readonly coerced: ReadOnlyObjMap<unknown>;
+  readonly coerced: TVariables;
   /** Source metadata for each variable value keyed by variable name. */
-  readonly sources: ReadOnlyObjMap<VariableValueSource>;
+  readonly sources: Record<string, VariableValueSource>;
   /** Errors encountered while coercing variable values. */
-  readonly errors?: ReadonlyArray<GraphQLError>;
+  readonly errors?: readonly GraphQLError[];
 }
 
 interface VariableValueSource {

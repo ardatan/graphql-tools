@@ -177,7 +177,7 @@ function setScalarConfigProperty(
 function addResolversToExistingSchema(
   schema: GraphQLSchema,
   resolvers: IResolvers,
-  defaultFieldResolver?: GraphQLFieldResolver<any, any>,
+  defaultFieldResolver?: IFieldResolver<any, any, Record<string, any>, any>,
 ): GraphQLSchema {
   const typeMap = schema.getTypeMap();
   for (const typeName in resolvers) {
@@ -458,7 +458,7 @@ function createNewSchemaWithResolvers(
     schema = mapSchema(schema, {
       [MapperKind.OBJECT_FIELD]: fieldConfig => ({
         ...fieldConfig,
-        resolve: fieldConfig.resolve != null ? fieldConfig.resolve : defaultFieldResolver,
+        resolve: fieldConfig.resolve != null ? fieldConfig.resolve : (defaultFieldResolver as any),
       }),
     });
   }

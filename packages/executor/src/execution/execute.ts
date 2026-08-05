@@ -113,7 +113,7 @@ const collectSubfields = memoize3(
  * Namely, schema of the type system that is currently executing,
  * and the fragments defined in the query document
  */
-export interface ExecutionContext<_TVariables = any, TContext = any> {
+export interface ExecutionContext<TVariables = any, TContext = any> {
   schema: GraphQLSchema;
   fragments: Record<string, FragmentDefinitionNode>;
   rootValue: unknown;
@@ -520,13 +520,26 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     };
   }
 
+  // If GraphQL v17, use `variableValues`
+  let variableValues: VariableValues;
+  if (versionInfo.major >= 17) {
+    variableValues = coercedVariableValues.variableValues;
+    // Older versions use `coerced`
+  } else {
+    variableValues = {
+      coerced: (coercedVariableValues as any).coerced,
+      sources: {},
+      errors: coercedVariableValues.errors,
+    };
+  }
+
   return {
     schema,
     fragments,
     rootValue,
     contextValue,
     operation,
-    variableValues: coercedVariableValues.variableValues,
+    variableValues,
     fieldResolver: fieldResolver ?? defaultFieldResolver,
     typeResolver: typeResolver ?? defaultTypeResolver,
     subscribeFieldResolver: subscribeFieldResolver ?? defaultFieldResolver,
