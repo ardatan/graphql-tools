@@ -2,7 +2,6 @@ import {
   GraphQLEnumType,
   GraphQLField,
   GraphQLFieldConfig,
-  GraphQLFieldResolver,
   GraphQLInterfaceType,
   GraphQLObjectType,
   GraphQLScalarType,
@@ -293,7 +292,7 @@ function addResolversToExistingSchema(
   if (defaultFieldResolver != null) {
     forEachField(schema, field => {
       if (!field.resolve) {
-        field.resolve = defaultFieldResolver;
+        field.resolve = defaultFieldResolver as any;
       }
     });
   }

@@ -119,7 +119,7 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   rootValue: unknown;
   contextValue: TContext;
   operation: OperationDefinitionNode;
-  variableValues: VariableValues;
+  variableValues: VariableValues<TVariables>;
   fieldResolver: GraphQLFieldResolver<any, TContext>;
   typeResolver: GraphQLTypeResolver<any, TContext>;
   subscribeFieldResolver: GraphQLFieldResolver<any, TContext>;
@@ -489,7 +489,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     {
       maxErrors: 50,
     },
-  );
+  ) as any;
 
   if (coercedVariableValues.errors) {
     return coercedVariableValues.errors;
@@ -527,7 +527,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     // Older versions use `coerced`
   } else {
     variableValues = {
-      coerced: (coercedVariableValues as any).coerced,
+      coerced: coercedVariableValues.coerced,
       sources: {},
       errors: coercedVariableValues.errors,
     };

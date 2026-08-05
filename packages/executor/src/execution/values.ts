@@ -20,12 +20,12 @@ export function getVariableValues(
     hideSuggestions?: boolean;
   },
 ): VariableValuesOrErrors {
-  const result = graphqlGetVariableValues(schema, varDefNodes, inputs, options);
-  if ('errors' in result && result.errors != null) {
+  const result = graphqlGetVariableValues(schema, varDefNodes, inputs, options) as any;
+  if (result.errors?.length) {
     return { errors: result.errors };
   }
-  if (versionInfo.major >= 17 && 'variableValues' in result) {
+  if (versionInfo.major >= 17) {
     return result.variableValues;
   }
-  return result as any;
+  return result;
 }
