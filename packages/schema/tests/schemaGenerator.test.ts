@@ -8,7 +8,6 @@ import {
   GraphQLEnumType,
   GraphQLError,
   GraphQLFieldResolver,
-  GraphQLResolveInfo,
   GraphQLScalarType,
   graphqlSync,
   IntValueNode,
@@ -21,6 +20,7 @@ import { execute, isIncrementalResult } from '@graphql-tools/executor';
 import { addResolversToSchema, chainResolvers, makeExecutableSchema } from '@graphql-tools/schema';
 import {
   ExecutionResult,
+  GraphQLResolveInfo,
   IResolvers,
   IResolverValidationOptions,
   TypeSource,

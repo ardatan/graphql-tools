@@ -20,6 +20,7 @@ import {
   forEachField,
   healSchema,
   IAddResolversToSchemaOptions,
+  IFieldResolver,
   IResolvers,
   MapperKind,
   mapSchema,
@@ -303,7 +304,7 @@ function addResolversToExistingSchema(
 function createNewSchemaWithResolvers(
   schema: GraphQLSchema,
   resolvers: IResolvers,
-  defaultFieldResolver?: GraphQLFieldResolver<any, any>,
+  defaultFieldResolver?: IFieldResolver<any, any, Record<string, any>, any>,
 ): GraphQLSchema {
   schema = mapSchema(schema, {
     [MapperKind.SCALAR_TYPE]: type => {

@@ -3,7 +3,6 @@ import {
   DocumentNode,
   FieldNode,
   FragmentDefinitionNode,
-  getDirectiveValues,
   getVariableValues,
   GraphQLAbstractType,
   GraphQLError,
@@ -36,6 +35,7 @@ import {
   fakePromise,
   getArgumentValues,
   getDefinedRootType,
+  getDirectiveValues,
   GraphQLResolveInfo,
   GraphQLStreamDirective,
   inspect,
@@ -824,7 +824,7 @@ export function buildResolveInfo(
     track: (maybePromises: ReadonlyArray<unknown>) => void;
   };
   const variableValues =
-    versionInfo.major >= 17 ? exeContext.variableValues.coerced : exeContext.variableValues;
+    versionInfo.major >= 17 ? exeContext.variableValues : exeContext.variableValues.coerced;
   return {
     fieldName: fieldDef.name,
     fieldNodes,
@@ -835,7 +835,7 @@ export function buildResolveInfo(
     fragments: exeContext.fragments,
     rootValue: exeContext.rootValue,
     operation: exeContext.operation,
-    variableValues,
+    variableValues: variableValues as GraphQLResolveInfo['variableValues'],
     signal: exeContext.signal,
     getAbortSignal: () => exeContext.signal,
     getAsyncHelpers: () =>

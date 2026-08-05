@@ -27,5 +27,5 @@ export function getVariableValues(
   if (versionInfo.major >= 17 && 'variableValues' in result) {
     return result.variableValues;
   }
-  return result as unknown as VariableValues;
+  return result as any;
 }

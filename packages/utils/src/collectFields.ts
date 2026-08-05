@@ -2,7 +2,6 @@ import {
   FieldNode,
   FragmentDefinitionNode,
   FragmentSpreadNode,
-  getDirectiveValues,
   GraphQLIncludeDirective,
   GraphQLObjectType,
   GraphQLSchema,
@@ -15,6 +14,7 @@ import {
 } from 'graphql';
 import { AccumulatorMap } from './AccumulatorMap.js';
 import { GraphQLDeferDirective } from './directives.js';
+import { getDirectiveValues } from './getDirectiveValues.js';
 import { memoize5 } from './memoize.js';
 import { VariableValues } from './types.js';
 
