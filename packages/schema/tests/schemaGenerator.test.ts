@@ -14,7 +14,6 @@ import {
   Kind,
   parse,
   VariableDefinitionNode,
-  versionInfo,
 } from 'graphql';
 import { execute, isIncrementalResult } from '@graphql-tools/executor';
 import { addResolversToSchema, chainResolvers, makeExecutableSchema } from '@graphql-tools/schema';
