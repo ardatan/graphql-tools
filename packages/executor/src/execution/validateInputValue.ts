@@ -1,7 +1,31 @@
-import { addPath, inspect, isIterableObject, isObjectLike, Maybe, Path, pathToArray, VariableValues } from "@graphql-tools/utils";
-import { assertLeafType, print, GraphQLError, GraphQLInputType, isInputObjectType, isListType, isNonNullType, isRequiredInputField, Kind, ValueNode, replaceVariables, VariableNode, ASTNode } from "graphql";
-import { didYouMean } from "./didYouMean.js";
-import { suggestionList } from "./suggestionList.js";
+import {
+  assertLeafType,
+  ASTNode,
+  GraphQLError,
+  GraphQLInputType,
+  isInputObjectType,
+  isListType,
+  isNonNullType,
+  isRequiredInputField,
+  Kind,
+  print,
+  replaceVariables,
+  ValueNode,
+  VariableNode,
+  versionInfo,
+} from 'graphql';
+import {
+  addPath,
+  inspect,
+  isIterableObject,
+  isObjectLike,
+  Maybe,
+  Path,
+  pathToArray,
+  VariableValues,
+} from '@graphql-tools/utils';
+import { didYouMean } from './didYouMean.js';
+import { suggestionList } from './suggestionList.js';
 
 type FragmentVariableValues = any;
 
@@ -66,22 +90,24 @@ type FragmentVariableValues = any;
 export function validateInputValue(
   inputValue: unknown,
   type: GraphQLInputType,
-  onError: (error: GraphQLError, invalidValue: unknown, path: ReadonlyArray<string | number>) => void,
+  onError: (
+    error: GraphQLError,
+    invalidValue: unknown,
+    path: ReadonlyArray<string | number>,
+  ) => void,
   hideSuggestions?: boolean,
 ): void {
-  return validateInputValueImpl(
-    inputValue,
-    type,
-    onError,
-    hideSuggestions,
-    undefined,
-  );
+  return validateInputValueImpl(inputValue, type, onError, hideSuggestions, undefined);
 }
 
 function validateInputValueImpl(
   inputValue: unknown,
   type: GraphQLInputType,
-  onError: (error: GraphQLError, invalidValue: unknown, path: ReadonlyArray<string | number>) => void,
+  onError: (
+    error: GraphQLError,
+    invalidValue: unknown,
+    path: ReadonlyArray<string | number>,
+  ) => void,
   hideSuggestions: boolean | undefined,
   path: Path | undefined,
 ): void {
@@ -91,7 +117,7 @@ function validateInputValueImpl(
         onError,
         `Expected a value of non-null type "${type}" to be provided.`,
         path,
-        inputValue
+        inputValue,
       );
       return;
     }
@@ -104,13 +130,7 @@ function validateInputValueImpl(
       );
       return;
     }
-    return validateInputValueImpl(
-      inputValue,
-      type.ofType,
-      onError,
-      hideSuggestions,
-      path,
-    );
+    return validateInputValueImpl(inputValue, type.ofType, onError, hideSuggestions, path);
   }
 
   if (inputValue == null) {
@@ -120,13 +140,7 @@ function validateInputValueImpl(
   if (isListType(type)) {
     if (!isIterableObject(inputValue)) {
       // Lists accept a non-list value as a list of one.
-      validateInputValueImpl(
-        inputValue,
-        type.ofType,
-        onError,
-        hideSuggestions,
-        path,
-      );
+      validateInputValueImpl(inputValue, type.ofType, onError, hideSuggestions, path);
     } else {
       let index = 0;
       for (const itemValue of inputValue) {
@@ -143,9 +157,7 @@ function validateInputValueImpl(
     if (!isObjectLike(inputValue) || Array.isArray(inputValue)) {
       reportInvalidValue(
         onError,
-        `Expected value of type "${type}" to be an object, found: ${inspect(
-          inputValue,
-        )}.`,
+        `Expected value of type "${type}" to be an object, found: ${inspect(inputValue)}.`,
         path,
         inputValue,
       );
@@ -160,7 +172,8 @@ function validateInputValueImpl(
         if (isRequiredInputField(field)) {
           reportInvalidValue(
             onError,
-            `Expected value of type "${type}" to include required field "${field.name
+            `Expected value of type "${type}" to include required field "${
+              field.name
             }", found: ${inspect(inputValue)}.`,
             path,
             inputValue,
@@ -189,7 +202,8 @@ function validateInputValueImpl(
           : didYouMean(suggestionList(fieldName, Object.keys(fieldDefs)));
         reportInvalidValue(
           onError,
-          `Expected value of type "${type}" not to include unknown field "${fieldName}"${suggestion ? `.${suggestion} Found` : ', found'
+          `Expected value of type "${type}" not to include unknown field "${fieldName}"${
+            suggestion ? `.${suggestion} Found` : ', found'
           }: ${inspect(inputValue)}.`,
           path,
           inputValue,
@@ -201,12 +215,7 @@ function validateInputValueImpl(
 
     if (type.isOneOf) {
       if (fields.length !== 1) {
-        reportInvalidValue(
-          onError,
-          getOneOfInputObjectErrorMessage(type),
-          path,
-          inputValue,
-        );
+        reportInvalidValue(onError, getOneOfInputObjectErrorMessage(type), path, inputValue);
       }
 
       const field = fields[0];
@@ -227,7 +236,9 @@ function validateInputValueImpl(
     let caughtError: unknown;
 
     try {
-      result = type.coerceInputValue(inputValue, hideSuggestions);
+      const typeAny = type as any;
+      const methodName = versionInfo.major >= 17 ? 'coerceInputValue' : 'parseValue';
+      result = typeAny[methodName](inputValue);
     } catch (error) {
       if (error instanceof GraphQLError) {
         onError(error, inputValue, pathToArray(path));
@@ -239,9 +250,10 @@ function validateInputValueImpl(
     if (result === undefined) {
       reportInvalidValue(
         onError,
-        `Expected value of type "${type}"${caughtError != null
-          ? `, but encountered error "${getCaughtErrorMessage(caughtError)}"; found`
-          : ', found'
+        `Expected value of type "${type}"${
+          caughtError != null
+            ? `, but encountered error "${getCaughtErrorMessage(caughtError)}"; found`
+            : ', found'
         }: ${inspect(inputValue)}.`,
         path,
         caughtError as GraphQLError | undefined,
@@ -251,7 +263,11 @@ function validateInputValueImpl(
 }
 
 function reportInvalidValue(
-  onError: (error: GraphQLError, invalidValue: unknown, path: ReadonlyArray<string | number>) => void,
+  onError: (
+    error: GraphQLError,
+    invalidValue: unknown,
+    path: ReadonlyArray<string | number>,
+  ) => void,
   message: string,
   path: Path | undefined,
   invalidValue: unknown,
@@ -337,7 +353,7 @@ function reportInvalidValue(
  * errors; // => []
  * ```
  */
- 
+
 export function validateInputLiteral(
   valueNode: ValueNode,
   type: GraphQLInputType,
@@ -352,13 +368,7 @@ export function validateInputLiteral(
     variables,
     fragmentVariableValues,
   };
-  return validateInputLiteralImpl(
-    context,
-    valueNode,
-    type,
-    hideSuggestions,
-    undefined,
-  );
+  return validateInputLiteralImpl(context, valueNode, type, hideSuggestions, undefined);
 }
 
 interface ValidationContext {
@@ -415,13 +425,7 @@ function validateInputLiteralImpl(
       );
       return;
     }
-    return validateInputLiteralImpl(
-      context,
-      valueNode,
-      type.ofType,
-      hideSuggestions,
-      path,
-    );
+    return validateInputLiteralImpl(context, valueNode, type.ofType, hideSuggestions, path);
   }
 
   if (valueNode.kind === Kind.NULL) {
@@ -431,13 +435,7 @@ function validateInputLiteralImpl(
   if (isListType(type)) {
     if (valueNode.kind !== Kind.LIST) {
       // Lists accept a non-list value as a list of one.
-      validateInputLiteralImpl(
-        context,
-        valueNode,
-        type.ofType,
-        hideSuggestions,
-        path,
-      );
+      validateInputLiteralImpl(context, valueNode, type.ofType, hideSuggestions, path);
     } else {
       let index = 0;
       for (const itemNode of valueNode.values) {
@@ -454,9 +452,7 @@ function validateInputLiteralImpl(
     if (valueNode.kind !== Kind.OBJECT) {
       reportInvalidLiteral(
         context.onError,
-        `Expected value of type "${type}" to be an object, found: ${print(
-          valueNode,
-        )}.`,
+        `Expected value of type "${type}" to be an object, found: ${print(valueNode)}.`,
         valueNode,
         path,
       );
@@ -464,7 +460,7 @@ function validateInputLiteralImpl(
     }
 
     const fieldDefs = type.getFields();
-    const fieldNodes = keyMap(valueNode.fields, (field) => field.name.value);
+    const fieldNodes = keyMap(valueNode.fields, field => field.name.value);
 
     for (const field of Object.values(fieldDefs)) {
       const fieldNode = fieldNodes[field.name];
@@ -472,7 +468,8 @@ function validateInputLiteralImpl(
         if (isRequiredInputField(field)) {
           reportInvalidLiteral(
             context.onError,
-            `Expected value of type "${type}" to include required field "${field.name
+            `Expected value of type "${type}" to include required field "${
+              field.name
             }", found: ${print(valueNode)}.`,
             valueNode,
             path,
@@ -481,10 +478,7 @@ function validateInputLiteralImpl(
       } else {
         const fieldValueNode = fieldNode.value;
         if (fieldValueNode.kind === Kind.VARIABLE && !context.static) {
-          const scopedVariableValues = getScopedVariableValues(
-            context,
-            fieldValueNode,
-          );
+          const scopedVariableValues = getScopedVariableValues(context, fieldValueNode);
           const variableName = fieldValueNode.name.value;
           const value = scopedVariableValues?.coerced[variableName];
           if (type.isOneOf) {
@@ -529,7 +523,8 @@ function validateInputLiteralImpl(
           : didYouMean(suggestionList(fieldName, Object.keys(fieldDefs)));
         reportInvalidLiteral(
           context.onError,
-          `Expected value of type "${type}" not to include unknown field "${fieldName}"${suggestion ? `.${suggestion} Found` : ', found'
+          `Expected value of type "${type}" not to include unknown field "${fieldName}"${
+            suggestion ? `.${suggestion} Found` : ', found'
           }: ${print(valueNode)}.`,
           fieldNode,
           path,
@@ -568,15 +563,12 @@ function validateInputLiteralImpl(
     let result;
     let caughtError: unknown;
     try {
-      result = type.coerceInputLiteral
-        ? type.coerceInputLiteral(
-          replaceVariables(
-            valueNode,
-            context.variables,
-            context.fragmentVariableValues,
-          ),
-          hideSuggestions,
-        )
+      const typeAny = type as any;
+      result = typeAny.coerceInputLiteral
+        ? typeAny.coerceInputLiteral(
+            (replaceVariables as any)(valueNode, context.variables, context.fragmentVariableValues),
+            hideSuggestions,
+          )
         : type.parseLiteral(valueNode, undefined, hideSuggestions);
     } catch (error) {
       if (error instanceof GraphQLError) {
@@ -589,9 +581,10 @@ function validateInputLiteralImpl(
     if (result === undefined) {
       reportInvalidLiteral(
         context.onError,
-        `Expected value of type "${type}"${caughtError != null
-          ? `, but encountered error "${getCaughtErrorMessage(caughtError)}"; found`
-          : ', found'
+        `Expected value of type "${type}"${
+          caughtError != null
+            ? `, but encountered error "${getCaughtErrorMessage(caughtError)}"; found`
+            : ', found'
         }: ${print(valueNode)}.`,
         valueNode,
         path,
@@ -607,9 +600,7 @@ function getScopedVariableValues(
 ): Maybe<VariableValues> {
   const variableName = valueNode.name.value;
   const { fragmentVariableValues, variables } = context;
-  return fragmentVariableValues?.sources[variableName]
-    ? fragmentVariableValues
-    : variables;
+  return fragmentVariableValues?.sources[variableName] ? fragmentVariableValues : variables;
 }
 
 function reportInvalidLiteral(
@@ -630,7 +621,7 @@ function reportInvalidLiteral(
 
 function getCaughtErrorMessage(caughtError: unknown): string {
   if (isObjectLike(caughtError)) {
-    const message = caughtError["message"];
+    const message = caughtError['message'];
     if (typeof message === 'string' && message !== '') {
       return message;
     }
@@ -663,10 +654,7 @@ function getOneOfInputObjectErrorMessage(type: GraphQLInputType): string {
  * entriesByName['Jenny']; // => { name: 'Jenny', num: '867-5309' }
  * ```
  */
-export function keyMap<T>(
-  list: ReadonlyArray<T>,
-  keyFn: (item: T) => string,
-): Record<string, T> {
+export function keyMap<T>(list: ReadonlyArray<T>, keyFn: (item: T) => string): Record<string, T> {
   const result = Object.create(null);
   for (const item of list) {
     result[keyFn(item)] = item;

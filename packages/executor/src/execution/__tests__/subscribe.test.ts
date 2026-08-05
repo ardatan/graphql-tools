@@ -6,7 +6,6 @@ import {
   GraphQLSchema,
   GraphQLString,
   parse,
-  versionInfo,
 } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { ExecutionResult, isAsyncIterable, isPromise, MaybePromise } from '@graphql-tools/utils';

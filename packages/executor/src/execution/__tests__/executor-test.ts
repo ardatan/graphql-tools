@@ -13,7 +13,6 @@ import {
   GraphQLUnionType,
   Kind,
   parse,
-  versionInfo,
 } from 'graphql';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
