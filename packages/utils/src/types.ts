@@ -1,6 +1,5 @@
 import {
   GraphQLEnumType,
-  GraphQLError,
   GraphQLInputObjectType,
   GraphQLInputType,
   GraphQLNamedType,
@@ -164,11 +163,9 @@ export interface VariableValues<TVariables = Record<string, unknown>> {
   readonly coerced: TVariables;
   /** Source metadata for each variable value keyed by variable name. */
   readonly sources: Record<string, VariableValueSource>;
-  /** Errors encountered while coercing variable values. */
-  readonly errors?: readonly GraphQLError[];
 }
 
-interface VariableValueSource {
+export interface VariableValueSource {
   readonly signature: GraphQLVariableSignature;
   readonly value?: unknown;
 }

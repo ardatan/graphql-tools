@@ -533,9 +533,7 @@ describe('Subscription Initialization Phase', () => {
       errors: [
         {
           message:
-            versionInfo.major >= 17
-              ? 'Variable "$arg" has invalid value: Int cannot represent non-integer value: "meow"'
-              : 'Variable "$arg" got invalid value "meow"; Int cannot represent non-integer value: "meow"',
+            'Variable "$arg" got invalid value "meow"; Int cannot represent non-integer value: "meow"',
           locations: [{ line: 2, column: 21 }],
         },
       ],

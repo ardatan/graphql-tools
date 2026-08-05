@@ -3,7 +3,6 @@ import {
   DocumentNode,
   FieldNode,
   FragmentDefinitionNode,
-  getVariableValues,
   GraphQLAbstractType,
   GraphQLError,
   GraphQLField,
@@ -61,6 +60,7 @@ import { coerceError } from './coerceError.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import { invariant } from './invariant.js';
 import { promiseForObject } from './promiseForObject.js';
+import { getVariableValues } from './values.js';
 
 export interface SingularExecutionResult<TData = any, TExtensions = any> {
   errors?: ReadonlyArray<GraphQLError>;
@@ -489,7 +489,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     {
       maxErrors: 50,
     },
-  ) as any;
+  );
 
   if (coercedVariableValues.errors) {
     return coercedVariableValues.errors;
@@ -520,26 +520,13 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     };
   }
 
-  // If GraphQL v17, use `variableValues`
-  let variableValues: VariableValues;
-  if (versionInfo.major >= 17) {
-    variableValues = coercedVariableValues.variableValues;
-    // Older versions use `coerced`
-  } else {
-    variableValues = {
-      coerced: coercedVariableValues.coerced,
-      sources: {},
-      errors: coercedVariableValues.errors,
-    };
-  }
-
   return {
     schema,
     fragments,
     rootValue,
     contextValue,
     operation,
-    variableValues,
+    variableValues: coercedVariableValues.variableValues,
     fieldResolver: fieldResolver ?? defaultFieldResolver,
     typeResolver: typeResolver ?? defaultTypeResolver,
     subscribeFieldResolver: subscribeFieldResolver ?? defaultFieldResolver,

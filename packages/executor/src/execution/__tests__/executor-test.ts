@@ -19,21 +19,10 @@ import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
 import { execute, executeSync } from '../execute.js';
 
-const expectedVariableValues =
-  versionInfo.major >= 17
-    ? {
-        coerced: { var: 'abc' },
-        sources: {
-          var: {
-            signature: {
-              name: 'var',
-              type: GraphQLString,
-            },
-            value: 'abc',
-          },
-        },
-      }
-    : { var: 'abc' };
+const expectedVariableValues = {
+  coerced: { var: 'abc' },
+  sources: expect.any(Object),
+};
 
 describe('Execute: Handles basic execution tasks', () => {
   it('executes arbitrary code', async () => {

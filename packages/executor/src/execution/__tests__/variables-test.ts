@@ -22,10 +22,6 @@ import { executeSync } from '../execute.js';
 
 const isGraphQL17 = versionInfo.major >= 17;
 
-function versionedMessage(v16Message: string, v17Message: string): string {
-  return isGraphQL17 ? v17Message : v16Message;
-}
-
 const TestComplexScalar = new GraphQLScalarType({
   name: 'ComplexScalar',
   parseValue(value) {
@@ -250,10 +246,9 @@ describe('Execute: Handles inputs', () => {
         },
         errors: [
           {
-            message: versionedMessage(
-              'Argument "input" has invalid value {c: "foo", e: "bar"}.',
-              'Argument "input" has invalid value { c: "foo", e: "bar" }.',
-            ),
+            message: isGraphQL17
+              ? 'Argument "input" has invalid value { c: "foo", e: "bar" }.'
+              : 'Argument "input" has invalid value {c: "foo", e: "bar"}.',
             path: ['fieldWithObjectInput'],
             locations: [{ line: 3, column: 39 }],
           },
@@ -407,10 +402,8 @@ describe('Execute: Handles inputs', () => {
         expectJSON(result).toDeepEqual({
           errors: [
             {
-              message: versionedMessage(
+              message:
                 'Variable "$input" got invalid value "SerializedValue" at "input.e"; FaultyScalarErrorMessage',
-                'Variable "$input" has invalid value at .e: FaultyScalarErrorMessage',
-              ),
               locations: [{ line: 2, column: 16 }],
               extensions: { code: 'FaultyScalarErrorMessageExtensionCode' },
             },
@@ -425,10 +418,8 @@ describe('Execute: Handles inputs', () => {
         expectJSON(result).toDeepEqual({
           errors: [
             {
-              message: versionedMessage(
-                'Variable "$input" got invalid value null at "input.c"; Expected non-nullable type "String!" not to be null.',
-                'Variable "$input" has invalid value at .c: Expected value of non-null type "String!" not to be null.',
-              ),
+              message:
+                'Variable "$input" got invalid value null at "input.c"; Expected value of non-null type "String!" not to be null.',
               locations: [{ line: 2, column: 16 }],
             },
           ],
@@ -441,10 +432,8 @@ describe('Execute: Handles inputs', () => {
         expectJSON(result).toDeepEqual({
           errors: [
             {
-              message: versionedMessage(
-                'Variable "$input" got invalid value "foo bar"; Expected type "TestInputObject" to be an object.',
-                'Variable "$input" has invalid value: Expected value of type "TestInputObject" to be an object, found: "foo bar".',
-              ),
+              message:
+                'Variable "$input" got invalid value "foo bar"; Expected value of type "TestInputObject" to be an object, found: "foo bar".',
               locations: [{ line: 2, column: 16 }],
             },
           ],
@@ -457,10 +446,8 @@ describe('Execute: Handles inputs', () => {
         expectJSON(result).toDeepEqual({
           errors: [
             {
-              message: versionedMessage(
-                'Variable "$input" got invalid value { a: "foo", b: "bar" }; Field "c" of required type "String!" was not provided.',
-                'Variable "$input" has invalid value: Expected value of type "TestInputObject" to include required field "c", found: { a: "foo", b: "bar" }.',
-              ),
+              message:
+                'Variable "$input" got invalid value { a: "foo", b: "bar" }; Expected value of type "TestInputObject" to include required field "c", found: { a: "foo", b: "bar" }.',
               locations: [{ line: 2, column: 16 }],
             },
           ],
@@ -478,17 +465,13 @@ describe('Execute: Handles inputs', () => {
         expectJSON(result).toDeepEqual({
           errors: [
             {
-              message: versionedMessage(
-                'Variable "$input" got invalid value { a: "foo" } at "input.na"; Field "c" of required type "String!" was not provided.',
-                'Variable "$input" has invalid value at .na: Expected value of type "TestInputObject" to include required field "c", found: { a: "foo" }.',
-              ),
+              message:
+                'Variable "$input" got invalid value { a: "foo" } at "input.na"; Expected value of type "TestInputObject" to include required field "c", found: { a: "foo" }.',
               locations: [{ line: 2, column: 18 }],
             },
             {
-              message: versionedMessage(
-                'Variable "$input" got invalid value { na: { a: "foo" } }; Field "nb" of required type "String!" was not provided.',
-                'Variable "$input" has invalid value: Expected value of type "TestNestedInputObject" to include required field "nb", found: { na: { a: "foo" } }.',
-              ),
+              message:
+                'Variable "$input" got invalid value { na: { a: "foo" } }; Expected value of type "TestNestedInputObject" to include required field "nb", found: { na: { a: "foo" } }.',
               locations: [{ line: 2, column: 18 }],
             },
           ],
@@ -504,10 +487,8 @@ describe('Execute: Handles inputs', () => {
         expectJSON(result).toDeepEqual({
           errors: [
             {
-              message: versionedMessage(
-                'Variable "$input" got invalid value { a: "foo", b: "bar", c: "baz", extra: "dog" }; Field "extra" is not defined by type "TestInputObject".',
-                'Variable "$input" has invalid value: Expected value of type "TestInputObject" not to include unknown field "extra", found: { a: "foo", b: "bar", c: "baz", extra: "dog" }.',
-              ),
+              message:
+                'Variable "$input" got invalid value { a: "foo", b: "bar", c: "baz", extra: "dog" }; Expected value of type "TestInputObject" not to include unknown field "extra", found: { a: "foo", b: "bar", c: "baz", extra: "dog" }.',
               locations: [{ line: 2, column: 16 }],
             },
           ],
@@ -681,10 +662,7 @@ describe('Execute: Handles inputs', () => {
       expectJSON(result).toDeepEqual({
         errors: [
           {
-            message: versionedMessage(
-              'Variable "$value" of required type "String!" was not provided.',
-              'Variable "$value" has invalid value: Expected a value of non-null type "String!" to be provided.',
-            ),
+            message: 'Variable "$value" of required type "String!" was not provided.',
             locations: [{ line: 2, column: 16 }],
           },
         ],
@@ -702,10 +680,7 @@ describe('Execute: Handles inputs', () => {
       expectJSON(result).toDeepEqual({
         errors: [
           {
-            message: versionedMessage(
-              'Variable "$value" of non-null type "String!" must not be null.',
-              'Variable "$value" has invalid value: Expected value of non-null type "String!" not to be null.',
-            ),
+            message: 'Variable "$value" of non-null type "String!" must not be null.',
             locations: [{ line: 2, column: 16 }],
           },
         ],
@@ -769,10 +744,8 @@ describe('Execute: Handles inputs', () => {
       expectJSON(result).toDeepEqual({
         errors: [
           {
-            message: versionedMessage(
+            message:
               'Variable "$value" got invalid value [1, 2, 3]; String cannot represent a non string value: [1, 2, 3]',
-              'Variable "$value" has invalid value: String cannot represent a non string value: [1, 2, 3]',
-            ),
             locations: [{ line: 2, column: 16 }],
           },
         ],
@@ -854,10 +827,7 @@ describe('Execute: Handles inputs', () => {
       expectJSON(result).toDeepEqual({
         errors: [
           {
-            message: versionedMessage(
-              'Variable "$input" of non-null type "[String]!" must not be null.',
-              'Variable "$input" has invalid value: Expected value of non-null type "[String]!" not to be null.',
-            ),
+            message: 'Variable "$input" of non-null type "[String]!" must not be null.',
             locations: [{ line: 2, column: 16 }],
           },
         ],
@@ -919,10 +889,8 @@ describe('Execute: Handles inputs', () => {
       expectJSON(result).toDeepEqual({
         errors: [
           {
-            message: versionedMessage(
-              'Variable "$input" got invalid value null at "input[1]"; Expected non-nullable type "String!" not to be null.',
-              'Variable "$input" has invalid value at [1]: Expected value of non-null type "String!" not to be null.',
-            ),
+            message:
+              'Variable "$input" got invalid value null at "input[1]"; Expected value of non-null type "String!" not to be null.',
             locations: [{ line: 2, column: 16 }],
           },
         ],
@@ -940,10 +908,7 @@ describe('Execute: Handles inputs', () => {
       expectJSON(result).toDeepEqual({
         errors: [
           {
-            message: versionedMessage(
-              'Variable "$input" of non-null type "[String!]!" must not be null.',
-              'Variable "$input" has invalid value: Expected value of non-null type "[String!]!" not to be null.',
-            ),
+            message: 'Variable "$input" of non-null type "[String!]!" must not be null.',
             locations: [{ line: 2, column: 16 }],
           },
         ],
@@ -972,10 +937,8 @@ describe('Execute: Handles inputs', () => {
       expectJSON(result).toDeepEqual({
         errors: [
           {
-            message: versionedMessage(
-              'Variable "$input" got invalid value null at "input[1]"; Expected non-nullable type "String!" not to be null.',
-              'Variable "$input" has invalid value at [1]: Expected value of non-null type "String!" not to be null.',
-            ),
+            message:
+              'Variable "$input" got invalid value null at "input[1]"; Expected value of non-null type "String!" not to be null.',
             locations: [{ line: 2, column: 16 }],
           },
         ],
@@ -993,10 +956,8 @@ describe('Execute: Handles inputs', () => {
       expectJSON(result).toDeepEqual({
         errors: [
           {
-            message: versionedMessage(
+            message:
               'Variable "$input" expected value of type "TestType!" which cannot be used as an input type.',
-              'Variable "$input" expected value of type "TestType!" which cannot be used as an input type.',
-            ),
             locations: [{ line: 2, column: 24 }],
           },
         ],
@@ -1014,10 +975,8 @@ describe('Execute: Handles inputs', () => {
       expectJSON(result).toDeepEqual({
         errors: [
           {
-            message: versionedMessage(
+            message:
               'Variable "$input" expected value of type "UnknownType!" which cannot be used as an input type.',
-              'Variable "$input" expected value of type "UnknownType!" which cannot be used as an input type.',
-            ),
             locations: [{ line: 2, column: 24 }],
           },
         ],
@@ -1111,10 +1070,9 @@ describe('Execute: Handles inputs', () => {
 
     function invalidValueError(value: number, index: number) {
       return {
-        message: versionedMessage(
-          `Variable "$input" got invalid value ${value} at "input[${index}]"; String cannot represent a non string value: ${value}`,
-          `Variable "$input" has invalid value at [${index}]: String cannot represent a non string value: ${value}`,
-        ),
+        message: isGraphQL17
+          ? `Variable "$input" has invalid value at [${index}]: String cannot represent a non string value: ${value}`
+          : `Variable "$input" got invalid value ${value} at "input[${index}]"; String cannot represent a non string value: ${value}`,
         locations: [{ line: 2, column: 14 }],
       };
     }
