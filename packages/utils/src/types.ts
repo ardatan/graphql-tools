@@ -1,6 +1,7 @@
 import {
   GraphQLEnumType,
   GraphQLInputObjectType,
+  GraphQLInputType,
   GraphQLNamedType,
   GraphQLScalarType,
   visit,
@@ -155,4 +156,27 @@ export interface PromiseWithResolvers<T> {
   promise: Promise<T>;
   resolve: (value: T | PromiseLike<T>) => void;
   reject: (reason?: any) => void;
+}
+
+export interface VariableValues<TVariables = Record<string, unknown>> {
+  /** Coerced runtime variable values keyed by variable name. */
+  readonly coerced: TVariables;
+  /** Source metadata for each variable value keyed by variable name. */
+  readonly sources: Record<string, VariableValueSource>;
+}
+
+export interface VariableValueSource {
+  readonly signature: GraphQLVariableSignature;
+  readonly value?: unknown;
+}
+
+interface GraphQLVariableSignature {
+  name: string;
+  type: GraphQLInputType;
+  defaultValue?: never;
+  default:
+    | {
+        literal: any;
+      }
+    | undefined;
 }

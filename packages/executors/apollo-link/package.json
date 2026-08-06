@@ -49,7 +49,7 @@
   "typings": "dist/typings/index.d.ts",
   "peerDependencies": {
     "@apollo/client": "^4.0.4",
-    "graphql": "^15.2.0 || ^16.0.0"
+    "graphql": "^15.2.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
     "@graphql-tools/utils": "^11.2.2",

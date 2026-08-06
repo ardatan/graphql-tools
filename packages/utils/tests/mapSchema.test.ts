@@ -809,6 +809,7 @@ describe('mapSchema', () => {
                     type: GraphQLID,
                     description: 'Unique ID',
                     args: {},
+                    extensions: {},
                     resolve(object: any) {
                       const hash = createHash('sha1');
                       hash.update(type.name);
