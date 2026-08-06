@@ -128,6 +128,7 @@ export function mergeGraphQLNodes(
         nodeDefinition,
         mergedResultMap[schemaDefSymbol],
         config,
+        directives,
       );
     }
   }
