@@ -1,4 +1,4 @@
-const { writeFileSync } = require('fs');
+const { writeFileSync, rmSync } = require('fs');
 const { resolve } = require('path');
 const { argv, cwd } = require('process');
 
@@ -18,3 +18,8 @@ if (pkg.overrides.graphql.startsWith(version)) {
 
   writeFileSync(pkgPath, JSON.stringify(pkg, null, 2), 'utf8');
 }
+
+rmSync(resolve(cwd(), 'packages/executor/node_modules/graphql'), {
+  recursive: true,
+  force: true,
+});

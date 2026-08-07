@@ -24,7 +24,8 @@
         "!/next/",
         "!/husky/",
         "!/@img/sharp-libvips-linux-x64/",
-        "!/sharp/"
+        "!/sharp/",
+        "!/@babel/*/"
       ]
     }
   ]
