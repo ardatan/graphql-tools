@@ -39,6 +39,7 @@ updates:
           - '@pulumi/*'
           - 'typedoc'
           - '@img/sharp-*'
+          - '@babel/*'
         update-types:
           - 'minor'
           - 'patch'
