@@ -1,0 +1,38 @@
+diff --git a/node_modules/graphql-upload/GraphQLUpload.mjs b/node_modules/graphql-upload/GraphQLUpload.mjs
+index 5a4a93c..8e45ebf 100644
+--- a/node_modules/graphql-upload/GraphQLUpload.mjs
++++ b/node_modules/graphql-upload/GraphQLUpload.mjs
+@@ -2,8 +2,8 @@
+ 
+ /** @import { FileUpload } from "./processRequest.mjs" */
+ 
+-import { GraphQLError } from "graphql/error";
+-import { GraphQLScalarType } from "graphql/type";
++import { GraphQLError } from "graphql";
++import { GraphQLScalarType } from "graphql";
+ 
+ import Upload from "./Upload.mjs";
+ 
+@@ -77,12 +77,22 @@ const GraphQLUpload = new GraphQLScalarType({
+     if (value instanceof Upload) return value.promise;
+     throw new GraphQLError("Upload value invalid.");
+   },
++  parseValue(value) {
++    if (value instanceof Upload) return value.promise;
++    throw new GraphQLError("Upload value invalid.");
++  },
+   coerceInputLiteral(node) {
+     throw new GraphQLError("Upload literal unsupported.", { nodes: node });
+   },
++  parseLiteral(node) {
++    throw new GraphQLError("Upload literal unsupported.", { nodes: node });
++  },
+   coerceOutputValue() {
+     throw new GraphQLError("Upload serialization unsupported.");
+   },
++  serialize() {
++    throw new GraphQLError("Upload serialization unsupported.");
++  },
+ });
+ 
+ export default GraphQLUpload;
