@@ -167,6 +167,16 @@ export function processImport(
       };
 }
 
+/**
+ * Resolves a single GraphQL file and returns a map from each definition name to
+ * the set of definitions that make it up, including everything pulled in
+ * transitively through the file's `#import` statements.
+ *
+ * Results are memoized in `visitedFiles`, keyed by the resolved absolute path.
+ * This both avoids re-processing files shared by multiple imports and breaks
+ * circular imports (a file is recorded in `visitedFiles` before its own imports
+ * are followed).
+ */
 function visitFile(
   filePath: string,
   cwd: string,
@@ -203,12 +213,29 @@ function visitFile(
       pathAliases,
     );
 
+    // `visitedFiles.get(filePath)` is invariant for the duration of this call,
+    // and `addDefinition` recurses across the entire dependency graph, so hoist
+    // the lookup out of the hot path instead of repeating it on every call.
+    const hoistedFileDefinitionMap = visitedFiles.get(filePath);
+    // A field's dependency set is a pure function of the field node (and the
+    // file's static `dependenciesByDefinitionName`), but it was re-derived every
+    // time the owning definition was added to a set. Cache it by field identity.
+    const fieldDependencyCache = new Map<
+      FieldDefinitionNode | InputValueDefinitionNode,
+      Map<string, Set<NameNode>>
+    >();
+    /**
+     * Adds `definition` and everything it transitively depends on — referenced
+     * types, imported documents, and per-field dependencies — into
+     * `definitionSet`. Definitions already present in the set are skipped, which
+     * both dedupes shared dependencies and terminates the traversal on cycles.
+     */
     const addDefinition = (
       definition: DefinitionNode,
       definitionName: string,
       definitionSet: Set<DefinitionNode>,
     ) => {
-      const fileDefinitionMap = visitedFiles.get(filePath);
+      const fileDefinitionMap = hoistedFileDefinitionMap;
       if (fileDefinitionMap && !definitionSet.has(definition)) {
         definitionSet.add(definition);
 
@@ -238,18 +265,22 @@ function visitFile(
                 addDefinition(importedDefinition, fieldDefinitionName, definitionsWithDeps);
               }
             });
-            const newDependencySet = new Map<string, Set<NameNode>>();
-            switch (field.kind) {
-              case Kind.FIELD_DEFINITION:
-                visitFieldDefinitionNode(field, newDependencySet, dependenciesByDefinitionName);
-                break;
-              case Kind.INPUT_VALUE_DEFINITION:
-                visitInputValueDefinitionNode(
-                  field,
-                  newDependencySet,
-                  dependenciesByDefinitionName,
-                );
-                break;
+            let newDependencySet = fieldDependencyCache.get(field);
+            if (newDependencySet === undefined) {
+              newDependencySet = new Map<string, Set<NameNode>>();
+              switch (field.kind) {
+                case Kind.FIELD_DEFINITION:
+                  visitFieldDefinitionNode(field, newDependencySet, dependenciesByDefinitionName);
+                  break;
+                case Kind.INPUT_VALUE_DEFINITION:
+                  visitInputValueDefinitionNode(
+                    field,
+                    newDependencySet,
+                    dependenciesByDefinitionName,
+                  );
+                  break;
+              }
+              fieldDependencyCache.set(field, newDependencySet);
             }
             Array.from(newDependencySet.keys()).forEach(dependencyName => {
               const definitionsInCurrentFile = fileDefinitionMap.get(dependencyName);
