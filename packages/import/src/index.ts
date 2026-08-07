@@ -149,9 +149,20 @@ export function processImport(
   );
   const definitionStrSet = new Set<string>();
   let definitionsStr = '';
+  // A single definition node can appear in many of the dependency sets in
+  // `set` — any widely-referenced type is pulled in by every definition that
+  // depends on it — so without memoization `print` runs O(n²) times for n
+  // unique nodes. Printing is the dominant cost for large, densely-connected
+  // schemas, so cache the result per node identity. `print` is a pure function
+  // of its node, so this is output-identical.
+  const printCache = new Map<DefinitionNode, string>();
   for (const defs of set.values()) {
     for (const def of defs) {
-      const defStr = print(def);
+      let defStr = printCache.get(def);
+      if (defStr === undefined) {
+        defStr = print(def);
+        printCache.set(def, defStr);
+      }
       if (!definitionStrSet.has(defStr)) {
         definitionStrSet.add(defStr);
         definitionsStr += defStr + '\n';
