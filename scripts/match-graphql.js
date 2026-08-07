@@ -17,4 +17,9 @@ if (pkg.overrides.graphql.startsWith(version)) {
   pkg.devDependencies.graphql = npmVersion;
 
   writeFileSync(pkgPath, JSON.stringify(pkg, null, 2), 'utf8');
+
+  rmSync(resolve(cwd(), 'packages/executor/node_modules/graphql'), {
+    recursive: true,
+    force: true,
+  });
 }
