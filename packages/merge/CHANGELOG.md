@@ -1,5 +1,20 @@
 # @graphql-tools/merge
 
+## 9.2.3
+
+### Patch Changes
+
+- [#8349](https://github.com/ardatan/graphql-tools/pull/8349)
+  [`7fe0319`](https://github.com/ardatan/graphql-tools/commit/7fe031971b7eccf8c5cfdef4a924fc681c7c6561)
+  Thanks [@aarne](https://github.com/aarne)! - Pass the collected directive definitions to
+  `mergeSchemaDefs` so repeatable directives on `schema` definitions and `extend schema` extensions
+  (e.g. a repeatable `@link`) are kept as separate instances instead of being collapsed and having
+  their arguments merged.
+
+- Updated dependencies
+  [[`2273c21`](https://github.com/ardatan/graphql-tools/commit/2273c21960fa12b59f7793c01ee024b1cef002e6)]:
+  - @graphql-tools/utils@12.0.0
+
 ## 9.2.2
 
 ### Patch Changes

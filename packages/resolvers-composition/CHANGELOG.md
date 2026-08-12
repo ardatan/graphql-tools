@@ -1,5 +1,13 @@
 # @graphql-tools/resolvers-composition
 
+## 7.0.36
+
+### Patch Changes
+
+- Updated dependencies
+  [[`2273c21`](https://github.com/ardatan/graphql-tools/commit/2273c21960fa12b59f7793c01ee024b1cef002e6)]:
+  - @graphql-tools/utils@12.0.0
+
 ## 7.0.35
 
 ### Patch Changes

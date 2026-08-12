@@ -1,5 +1,50 @@
 # @graphql-tools/import
 
+## 7.1.19
+
+### Patch Changes
+
+- [#8259](https://github.com/ardatan/graphql-tools/pull/8259)
+  [`85f1de0`](https://github.com/ardatan/graphql-tools/commit/85f1de00a8ac33d82a2d5a3cea2aef235b0e4e26)
+  Thanks [@lemonmade](https://github.com/lemonmade)! - perf(import): remove redundant work in
+  `addDefinition`'s dependency traversal
+
+  `addDefinition` recurses across the whole dependency graph while assembling each definition's
+  imported dependencies. Two things were repeated on every call:
+
+  - `visitedFiles.get(filePath)` — invariant for the duration of the `processImport` call, so it's
+    now looked up once and hoisted out of the recursion.
+  - the per-field dependency-name derivation (`visitFieldDefinitionNode` /
+    `visitInputValueDefinitionNode` into a fresh `Map`) — a pure function of the field node and the
+    file's static dependency map, so it's now memoized by field identity instead of recomputed every
+    time the owning definition is added to a set.
+
+  Pure performance change; output is unchanged (the existing import tests pass and a real-world
+  ~12k-line schema produces byte-identical results). Building on the `print` memoization, this took
+  the same codegen pass from ~17s to ~13s. The remaining cost is the O(n²) shape of the closure
+  traversal itself (each definition's transitive set is still rebuilt independently); reducing that
+  is left for a follow-up as it's a more invasive change.
+
+- [#8258](https://github.com/ardatan/graphql-tools/pull/8258)
+  [`6bacf57`](https://github.com/ardatan/graphql-tools/commit/6bacf57f37d105ccd056b29539a9d447091dc861)
+  Thanks [@lemonmade](https://github.com/lemonmade)! - perf(import): memoize `print` per node when
+  assembling imported definitions
+
+  `processImport` de-duplicates the collected definitions by printing each one to SDL and comparing
+  the strings. A single definition node appears in many of the dependency sets (any
+  widely-referenced type is pulled in by every definition that depends on it), so `print` was called
+  roughly O(n²) times for n unique nodes. For large, densely-connected schemas this print/visit work
+  dominates import time.
+
+  Memoizing `print` by node identity makes each unique node print at most once. `print` is a pure
+  function of its node, so the output is identical; this is a pure performance change. On a
+  ~12k-line schema imported across three projects, this reduced a downstream codegen pass from ~133s
+  to ~17s.
+
+- Updated dependencies
+  [[`2273c21`](https://github.com/ardatan/graphql-tools/commit/2273c21960fa12b59f7793c01ee024b1cef002e6)]:
+  - @graphql-tools/utils@12.0.0
+
 ## 7.1.18
 
 ### Patch Changes
