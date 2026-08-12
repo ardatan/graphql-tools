@@ -1,5 +1,27 @@
 # @graphql-tools/url-loader
 
+## 9.1.7
+
+### Patch Changes
+
+- [#8353](https://github.com/ardatan/graphql-tools/pull/8353)
+  [`755d699`](https://github.com/ardatan/graphql-tools/commit/755d6996b1de9db635f9c59e64cc94f3ad38c448)
+  Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+  - Updated dependency [`ws@^8.21.2` ↗︎](https://www.npmjs.com/package/ws/v/8.21.2) (from `^8.21.1`,
+    in `dependencies`)
+
+- [#8358](https://github.com/ardatan/graphql-tools/pull/8358)
+  [`07cd760`](https://github.com/ardatan/graphql-tools/commit/07cd76013c21f5883905e27d0f2ba97b395e3749)
+  Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+  - Updated dependency [`ws@^8.21.3` ↗︎](https://www.npmjs.com/package/ws/v/8.21.3) (from `^8.21.2`,
+    in `dependencies`)
+- Updated dependencies
+  [[`755d699`](https://github.com/ardatan/graphql-tools/commit/755d6996b1de9db635f9c59e64cc94f3ad38c448),
+  [`07cd760`](https://github.com/ardatan/graphql-tools/commit/07cd76013c21f5883905e27d0f2ba97b395e3749),
+  [`2273c21`](https://github.com/ardatan/graphql-tools/commit/2273c21960fa12b59f7793c01ee024b1cef002e6)]:
+  - @graphql-tools/executor-legacy-ws@1.1.33
+  - @graphql-tools/utils@12.0.0
+
 ## 9.1.6
 
 ### Patch Changes
