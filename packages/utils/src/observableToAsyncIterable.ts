@@ -19,6 +19,20 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
   const pushQueue: Array<any> = [];
 
   let listening = true;
+  const subscriptionRef: { current?: { unsubscribe: () => void } } = {};
+
+  const emptyQueue = () => {
+    if (listening) {
+      listening = false;
+      // subscribe() may call complete() synchronously before returning the subscription
+      subscriptionRef.current?.unsubscribe();
+      for (const resolve of pullQueue) {
+        resolve({ value: undefined, done: true });
+      }
+      pullQueue.length = 0;
+      pushQueue.length = 0;
+    }
+  };
 
   const pushValue = (value: any) => {
     if (pullQueue.length !== 0) {
@@ -42,6 +56,8 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
     if (pullQueue.length !== 0) {
       // It is safe to use the ! operator here as we check the length.
       pullQueue.shift()!({ done: true });
+      // Release queues/subscription after signaling done to the pending consumer.
+      emptyQueue();
     } else {
       pushQueue.push({ done: true });
     }
@@ -52,13 +68,17 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
       if (pushQueue.length !== 0) {
         const element = pushQueue.shift();
         // either {value: {errors: [...]}} or {value: ...}
+        if (element.done) {
+          // Release references before delivering the done signal.
+          emptyQueue();
+        }
         resolve(element);
       } else {
         pullQueue.push(resolve);
       }
     });
 
-  const subscription = observable.subscribe({
+  subscription = observable.subscribe({
     next(value: any) {
       return pushValue(value);
     },
@@ -69,18 +89,6 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
       return pushDone();
     },
   });
-
-  const emptyQueue = () => {
-    if (listening) {
-      listening = false;
-      subscription.unsubscribe();
-      for (const resolve of pullQueue) {
-        resolve({ value: undefined, done: true });
-      }
-      pullQueue.length = 0;
-      pushQueue.length = 0;
-    }
-  };
 
   return {
     next() {

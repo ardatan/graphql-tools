@@ -64,10 +64,14 @@ export class GitLoader implements Loader<GitLoaderOptions> {
     }
     const refsForPaths = new Map();
     const { ref, path } = data;
+    const maybeLeadingDotSlash = path.startsWith('./') ? './' : '';
+    // Tree paths from git never include a leading `./`; strip it for matching (#5243).
+    const normalizeGlobPath = (p: string) => unixify(p.startsWith('./') ? p.slice(2) : p);
+
     if (!refsForPaths.has(ref)) {
       refsForPaths.set(ref, []);
     }
-    refsForPaths.get(ref).push(unixify(path));
+    refsForPaths.get(ref).push(normalizeGlobPath(path));
 
     for (const ignore of ignores) {
       const data = extractData(ignore);
@@ -78,10 +82,8 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       if (!refsForPaths.has(ref)) {
         refsForPaths.set(ref, []);
       }
-      refsForPaths.get(ref).push(`!${unixify(path)}`);
+      refsForPaths.get(ref).push(`!${normalizeGlobPath(path)}`);
     }
-
-    const maybeLeadingDotSlash = path.startsWith('./') ? './' : '';
 
     const resolved: string[] = [];
     await Promise.all(
@@ -103,11 +105,13 @@ export class GitLoader implements Loader<GitLoaderOptions> {
     }
     const { ref, path } = data;
     const refsForPaths = new Map();
+    const maybeLeadingDotSlash = path.startsWith('./') ? './' : '';
+    const normalizeGlobPath = (p: string) => unixify(p.startsWith('./') ? p.slice(2) : p);
 
     if (!refsForPaths.has(ref)) {
       refsForPaths.set(ref, []);
     }
-    refsForPaths.get(ref).push(unixify(path));
+    refsForPaths.get(ref).push(normalizeGlobPath(path));
 
     for (const ignore of ignores) {
       const data = extractData(ignore);
@@ -118,10 +122,8 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       if (!refsForPaths.has(ref)) {
         refsForPaths.set(ref, []);
       }
-      refsForPaths.get(ref).push(`!${unixify(path)}`);
+      refsForPaths.get(ref).push(`!${normalizeGlobPath(path)}`);
     }
-
-    const maybeLeadingDotSlash = path.startsWith('./') ? './' : '';
 
     const resolved: string[] = [];
     for (const [ref, paths] of refsForPaths.entries()) {

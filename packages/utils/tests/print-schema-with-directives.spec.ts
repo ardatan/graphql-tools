@@ -302,6 +302,43 @@ describe('printSchemaWithDirectives', () => {
     expect(output).toContain('Test Query Comment');
     expect(output).toContain('Test Field Comment');
   });
+
+  it('prefers runtime descriptions over stale astNode descriptions (#5508)', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      """
+      Old type
+      """
+      type Query {
+        """
+        Old field
+        """
+        foo: String
+      }
+    `);
+
+    const queryType = schema.getQueryType()!;
+    const transformedSchema = new GraphQLSchema({
+      ...schema.toConfig(),
+      types: undefined,
+      query: new GraphQLObjectType({
+        ...queryType.toConfig(),
+        description: 'New type',
+        fields: {
+          foo: {
+            ...queryType.getFields()['foo'],
+            description: 'New field',
+          },
+        },
+      }),
+    });
+
+    const output = printSchemaWithDirectives(transformedSchema);
+    expect(output).toContain('New type');
+    expect(output).toContain('New field');
+    expect(output).not.toContain('Old type');
+    expect(output).not.toContain('Old field');
+  });
+
   it('should print transformed schema correctly', () => {
     const printedSchema = /* GraphQL */ `
       type Foo {

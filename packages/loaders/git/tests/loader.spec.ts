@@ -42,6 +42,28 @@ describe('GitLoader', () => {
         expect(result.document).toBeDefined();
       });
 
+      it('should resolve globs that use a leading ./ (#5243)', async () => {
+        // Singular pointer with ./ — git show must accept the path as-is
+        const singular = `git:${lastCommit}:./packages/loaders/git/tests/test-files/type-defs.graphql`;
+        const [result] = await load(singular, {});
+        expect(result.document).toBeDefined();
+        expect(result.location).toBe(singular);
+
+        // Glob matching must strip ./ against git tree paths, then re-prefix on results
+        const resolved = await loader.resolveGlobs(
+          `git:${lastCommit}:./packages/loaders/git/tests/test-files/type-defs.graphql`,
+          [],
+        );
+        expect(resolved).toEqual([singular]);
+
+        const resolvedGlob = await loader.resolveGlobs(
+          `git:${lastCommit}:./packages/loaders/git/tests/test-files/*.graphql`,
+          [],
+        );
+        expect(resolvedGlob.every(p => p.includes(':./packages/'))).toBe(true);
+        expect(resolvedGlob.some(p => p.endsWith('type-defs.graphql'))).toBe(true);
+      });
+
       it('should load introspection data from a .json file', async () => {
         const [result] = await load(getPointer('introspection.json'), {});
         expect(result.schema).toBeDefined();
