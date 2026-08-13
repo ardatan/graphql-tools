@@ -144,14 +144,16 @@ export function mergeDirectives(
   // are collapsed while re-merging the type's own directives (#6505).
   // Only infer when the other side has zero applications so legitimate merges of the
   // same directive from two documents (e.g. @link import lists) still combine.
+  const d1Names = new Set(d1.map(directive => directive.name.value));
+  const d2Names = new Set(d2.map(directive => directive.name.value));
   const inferredRepeatable = new Set<string>();
   for (const name of collectMultiInstanceDirectiveNames(d1)) {
-    if (!d2.some(directive => directive.name.value === name)) {
+    if (!d2Names.has(name)) {
       inferredRepeatable.add(name);
     }
   }
   for (const name of collectMultiInstanceDirectiveNames(d2)) {
-    if (!d1.some(directive => directive.name.value === name)) {
+    if (!d1Names.has(name)) {
       inferredRepeatable.add(name);
     }
   }
