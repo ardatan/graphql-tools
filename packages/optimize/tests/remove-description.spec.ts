@@ -108,31 +108,43 @@ scalar TestScalar
   });
 
   it('should remove descriptions from operations, variables, and fragments', () => {
+    // Attach description nodes manually so the fixture works on GraphQL versions
+    // that cannot parse executable descriptions in SDL (e.g. graphql@15).
     const doc = parse(/* GraphQL */ `
-      """
-      OPERATION DESCRIPTION
-      """
-      query user(
-        """
-        VARIABLE DESCRIPTION
-        """
-        $id: ID!
-      ) {
+      query user($id: ID!) {
         user(id: $id) {
           ...userFields
         }
       }
 
-      """
-      FRAGMENT DESCRIPTION
-      """
       fragment userFields on User {
         id
         username
       }
     `);
 
+    const operation = doc.definitions[0] as any;
+    const fragment = doc.definitions[1] as any;
+    operation.description = {
+      kind: 'StringValue',
+      value: 'OPERATION DESCRIPTION',
+      block: true,
+    };
+    operation.variableDefinitions[0].description = {
+      kind: 'StringValue',
+      value: 'VARIABLE DESCRIPTION',
+      block: true,
+    };
+    fragment.description = {
+      kind: 'StringValue',
+      value: 'FRAGMENT DESCRIPTION',
+      block: true,
+    };
+
     const out = removeDescriptions(doc);
+    expect((out.definitions[0] as any).description).toBeUndefined();
+    expect((out.definitions[0] as any).variableDefinitions[0].description).toBeUndefined();
+    expect((out.definitions[1] as any).description).toBeUndefined();
     expect(print(out).trim()).toBe(
       /* GraphQL */ `
 query user($id: ID!) {
