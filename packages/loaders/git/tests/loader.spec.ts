@@ -3,12 +3,27 @@ import * as path from 'path';
 import { versionInfo } from 'graphql';
 import { runTests } from '../../../testing/utils.js';
 import { GitLoader } from '../src/index.js';
+import { parseGitTreeOutput } from '../src/load-git.js';
 
 const emptyList = versionInfo.major >= 17 ? undefined : [];
 
+describe('parseGitTreeOutput', () => {
+  it('splits on CRLF the same as LF', () => {
+    expect(parseGitTreeOutput('a.graphql\r\nb.graphql\r\n')).toEqual(['a.graphql', 'b.graphql']);
+    expect(parseGitTreeOutput('a.graphql\nb.graphql\n')).toEqual(['a.graphql', 'b.graphql']);
+  });
+
+  it('preserves leading and trailing spaces in pathnames', () => {
+    expect(parseGitTreeOutput(' leading.graphql\r\ntrailing.graphql \n')).toEqual([
+      ' leading.graphql',
+      'trailing.graphql ',
+    ]);
+  });
+});
+
 describe('GitLoader', () => {
   const loader = new GitLoader();
-  const lastCommit = execSync('git rev-parse HEAD', { encoding: 'utf-8' }).replace(/\n/g, '');
+  const lastCommit = execSync('git rev-parse HEAD', { encoding: 'utf-8' }).replace(/\r?\n/g, '');
   const getPointer = (fileName: string) => {
     return `git:${lastCommit}:packages/loaders/git/tests/test-files/${fileName}`;
   };
@@ -40,6 +55,32 @@ describe('GitLoader', () => {
       it('should load document from a .graphql file', async () => {
         const [result] = await load(getPointer('type-defs.graphql'), {});
         expect(result.document).toBeDefined();
+      });
+
+      it('should resolve globs that use a leading ./ (#5243)', async () => {
+        // Singular pointer with ./ — git show must accept the path as-is
+        const singular = `git:${lastCommit}:./packages/loaders/git/tests/test-files/type-defs.graphql`;
+        const [result] = await load(singular, {});
+        expect(result.document).toBeDefined();
+        expect(result.location).toBe(singular);
+
+        // Glob matching must strip ./ against git tree paths, then re-prefix on results
+        const resolved = await loader.resolveGlobs(
+          `git:${lastCommit}:./packages/loaders/git/tests/test-files/type-defs.graphql`,
+          [],
+        );
+        expect(resolved).toEqual([singular]);
+
+        const resolvedGlob = await loader.resolveGlobs(
+          `git:${lastCommit}:./packages/loaders/git/tests/test-files/*.graphql`,
+          [],
+        );
+        expect([...resolvedGlob].sort()).toEqual(
+          [
+            `git:${lastCommit}:./packages/loaders/git/tests/test-files/type-defs-invalid.graphql`,
+            `git:${lastCommit}:./packages/loaders/git/tests/test-files/type-defs.graphql`,
+          ].sort(),
+        );
       });
 
       it('should load introspection data from a .json file', async () => {

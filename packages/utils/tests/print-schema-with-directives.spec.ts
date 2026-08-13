@@ -302,6 +302,45 @@ describe('printSchemaWithDirectives', () => {
     expect(output).toContain('Test Query Comment');
     expect(output).toContain('Test Field Comment');
   });
+
+  it('prefers runtime descriptions over stale astNode descriptions (#5508)', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      """
+      Old type
+      """
+      type Query {
+        """
+        Old field
+        """
+        foo: String
+      }
+    `);
+
+    const queryType = schema.getQueryType()!;
+    const fooField = queryType.getFields()['foo'];
+    // Keep original astNodes (stale descriptions) while overriding runtime descriptions.
+    const transformedSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        description: 'New type',
+        astNode: queryType.astNode,
+        fields: {
+          foo: {
+            type: fooField.type,
+            description: 'New field',
+            astNode: fooField.astNode,
+          },
+        },
+      }),
+    });
+
+    const output = printSchemaWithDirectives(transformedSchema);
+    expect(output).toContain('New type');
+    expect(output).toContain('New field');
+    expect(output).not.toContain('Old type');
+    expect(output).not.toContain('Old field');
+  });
+
   it('should print transformed schema correctly', () => {
     const printedSchema = /* GraphQL */ `
       type Foo {

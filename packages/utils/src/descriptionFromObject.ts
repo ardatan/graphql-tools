@@ -8,16 +8,18 @@ interface ObjectWithDescription {
 }
 
 export function getDescriptionNode(obj: ObjectWithDescription): StringValueNode | undefined {
-  if (obj.astNode?.description) {
-    return {
-      ...obj.astNode.description,
-      block: true,
-    };
-  }
-  if (obj.description) {
+  // Prefer the runtime `description` over a stale `astNode` description.
+  // Schema transforms (e.g. mapSchema) update config descriptions without rewriting astNode (#5508).
+  if (typeof obj.description === 'string') {
     return {
       kind: Kind.STRING,
       value: obj.description,
+      block: true,
+    };
+  }
+  if (obj.astNode?.description) {
+    return {
+      ...obj.astNode.description,
       block: true,
     };
   }

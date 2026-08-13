@@ -26,7 +26,9 @@ describe('loadSchema', () => {
         });
         expect(true).toBeFalsy(); // should throw
       } catch (e: any) {
-        expect(e.toString()).toContain(`SyntaxError`);
+        // Single loader failures are wrapped in AggregateError with context (#7406)
+        expect(e.toString()).toContain('Failed to find any GraphQL type definitions');
+        expect(e.toString()).toMatch(/Unterminated template|SyntaxError/);
       }
     });
 

@@ -64,6 +64,9 @@ export class GitLoader implements Loader<GitLoaderOptions> {
     }
     const refsForPaths = new Map();
     const { ref, path } = data;
+    const maybeLeadingDotSlash = path.startsWith('./') ? './' : '';
+    // unixify() already strips a leading `./` (needed so micromatch can hit git tree paths).
+
     if (!refsForPaths.has(ref)) {
       refsForPaths.set(ref, []);
     }
@@ -80,8 +83,6 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       }
       refsForPaths.get(ref).push(`!${unixify(path)}`);
     }
-
-    const maybeLeadingDotSlash = path.startsWith('./') ? './' : '';
 
     const resolved: string[] = [];
     await Promise.all(
@@ -103,6 +104,8 @@ export class GitLoader implements Loader<GitLoaderOptions> {
     }
     const { ref, path } = data;
     const refsForPaths = new Map();
+    const maybeLeadingDotSlash = path.startsWith('./') ? './' : '';
+    // unixify() already strips a leading `./` (needed so micromatch can hit git tree paths).
 
     if (!refsForPaths.has(ref)) {
       refsForPaths.set(ref, []);
@@ -120,8 +123,6 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       }
       refsForPaths.get(ref).push(`!${unixify(path)}`);
     }
-
-    const maybeLeadingDotSlash = path.startsWith('./') ? './' : '';
 
     const resolved: string[] = [];
     for (const [ref, paths] of refsForPaths.entries()) {
