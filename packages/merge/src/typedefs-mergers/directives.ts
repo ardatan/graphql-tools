@@ -9,14 +9,35 @@ import {
 } from 'graphql';
 import { Config } from './merge-typedefs.js';
 
+function collectMultiInstanceDirectiveNames(
+  directiveNodes: ReadonlyArray<DirectiveNode>,
+): Set<string> {
+  const seen = new Set<string>();
+  const multi = new Set<string>();
+  for (const directive of directiveNodes) {
+    const name = directive.name.value;
+    if (seen.has(name)) {
+      multi.add(name);
+    } else {
+      seen.add(name);
+    }
+  }
+  return multi;
+}
+
 function isRepeatableDirective(
   directive: DirectiveNode,
   directives?: Record<string, DirectiveDefinitionNode>,
   repeatableLinkImports?: Set<string>,
+  inferredRepeatable?: Set<string>,
 ): boolean {
+  const directiveDef = directives?.[directive.name.value];
+  if (directiveDef) {
+    return !!directiveDef.repeatable;
+  }
   return !!(
-    directives?.[directive.name.value]?.repeatable ??
-    repeatableLinkImports?.has(directive.name.value)
+    repeatableLinkImports?.has(directive.name.value) ||
+    inferredRepeatable?.has(directive.name.value)
   );
 }
 
@@ -117,9 +138,33 @@ export function mergeDirectives(
   const reverseOrder: boolean | undefined = config && config.reverseDirectives;
   const asNext = reverseOrder ? d1 : d2;
   const asFirst = reverseOrder ? d2 : d1;
+  // When a type already has multiple applications of the same directive name and the
+  // other merge input has none (typical when extending a type), treat that name as
+  // repeatable if no directive definition is available — otherwise those applications
+  // are collapsed while re-merging the type's own directives (#6505).
+  // Only infer when the other side has zero applications so legitimate merges of the
+  // same directive from two documents (e.g. @link import lists) still combine.
+  const inferredRepeatable = new Set<string>();
+  for (const name of collectMultiInstanceDirectiveNames(d1)) {
+    if (!d2.some(directive => directive.name.value === name)) {
+      inferredRepeatable.add(name);
+    }
+  }
+  for (const name of collectMultiInstanceDirectiveNames(d2)) {
+    if (!d1.some(directive => directive.name.value === name)) {
+      inferredRepeatable.add(name);
+    }
+  }
   const result: DirectiveNode[] = [];
   for (const directive of [...asNext, ...asFirst]) {
-    if (isRepeatableDirective(directive, directives, config?.repeatableLinkImports)) {
+    if (
+      isRepeatableDirective(
+        directive,
+        directives,
+        config?.repeatableLinkImports,
+        inferredRepeatable,
+      )
+    ) {
       // look for repeated, identical directives that come before this instance
       // if those exist, return null so that this directive gets removed.
       const exactDuplicate = result.find(d => matchDirectives(directive, d));
