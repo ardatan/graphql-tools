@@ -7,11 +7,12 @@ import { DocumentOptimizer } from '../types.js';
  */
 export const removeDescriptions: DocumentOptimizer = input => {
   function transformNode(node: any) {
-    if (node.description) {
-      node.description = undefined;
+    if (!node.description) {
+      return node;
     }
 
-    return node;
+    const { description, ...rest } = node;
+    return rest;
   }
 
   return visit(input, {
