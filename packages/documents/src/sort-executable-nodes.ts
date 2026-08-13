@@ -8,7 +8,6 @@ import {
   type SelectionNode,
   type VariableDefinitionNode,
 } from 'graphql';
-import sortBy from 'lodash.sortby';
 import { normalizeWhiteSpace } from './normalize-whitespace.js';
 
 // Cache the sorted nodes to avoid sorting the same nodes multiple times
@@ -44,22 +43,22 @@ export function sortExecutableNodes(
     }
 
     if (isOfKindList<DirectiveNode>(nodes, Kind.DIRECTIVE)) {
-      return cacheResult(sortBy(nodes as any, 'name.value'));
+      return cacheResult(sortNodesByStringKey(nodes, node => node.name.value));
     }
 
     if (isOfKindList<VariableDefinitionNode>(nodes, Kind.VARIABLE_DEFINITION)) {
-      return cacheResult(sortBy(nodes as any, 'variable.name.value'));
+      return cacheResult(sortNodesByStringKey(nodes, node => node.variable.name.value));
     }
 
     if (isOfKindList<ArgumentNode>(nodes, Kind.ARGUMENT)) {
-      return cacheResult(sortBy(nodes as any, 'name.value'));
+      return cacheResult(sortNodesByStringKey(nodes, node => node.name.value));
     }
 
     if (
       isOfKindList<SelectionNode>(nodes, [Kind.FIELD, Kind.FRAGMENT_SPREAD, Kind.INLINE_FRAGMENT])
     ) {
       return cacheResult(
-        sortBy(nodes as any, node => {
+        sortNodesByStringKey(nodes, node => {
           if (node.kind === Kind.FIELD) {
             return sortPrefixField + node.name.value;
           } else if (node.kind === Kind.FRAGMENT_SPREAD) {
@@ -76,7 +75,15 @@ export function sortExecutableNodes(
       );
     }
 
-    return cacheResult(sortBy(nodes as any, 'kind', 'name.value'));
+    return cacheResult(
+      [...nodes].sort((a, b) => {
+        const kindComparison = compareKeys(a.kind, b.kind);
+        if (kindComparison !== 0) {
+          return kindComparison;
+        }
+        return compareKeys(getNodeNameValue(a), getNodeNameValue(b));
+      }),
+    );
   }
 }
 
@@ -93,4 +100,31 @@ function isOfKindList<T extends ASTNode>(
 
 function buildInlineFragmentSelectionSetKey(nodes: readonly ASTNode[]): string {
   return normalizeWhiteSpace(nodes.map(node => print(node)).join(' '));
+}
+
+function sortNodesByStringKey<TNode extends ASTNode>(
+  nodes: readonly TNode[],
+  getKey: (node: TNode) => string | undefined,
+): readonly TNode[] {
+  return [...nodes].sort((a, b) => compareKeys(getKey(a), getKey(b)));
+}
+
+function compareKeys(a: string | undefined, b: string | undefined): number {
+  if (a == null) {
+    return b == null ? 0 : 1;
+  }
+  if (b == null) {
+    return -1;
+  }
+  if (a < b) {
+    return -1;
+  }
+  if (a > b) {
+    return 1;
+  }
+  return 0;
+}
+
+function getNodeNameValue(node: ASTNode): string | undefined {
+  return (node as { name?: { value?: string } }).name?.value;
 }
