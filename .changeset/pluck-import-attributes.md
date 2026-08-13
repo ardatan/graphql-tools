@@ -2,4 +2,4 @@
 '@graphql-tools/graphql-tag-pluck': patch
 ---
 
-Migrate Babel import syntax plugin from `importAssertions` to `importAttributes` (with `deprecatedAssertSyntax` so existing `assert { … }` files still parse). Fixes #5454.
+Parse with Babel `importAttributes` (and `deprecatedAssertSyntax` so existing `assert { … }` files still work), and drop the unused `@babel/plugin-syntax-import-assertions` dependency. Fixes #5454.

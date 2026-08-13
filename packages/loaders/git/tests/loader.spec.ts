@@ -3,8 +3,23 @@ import * as path from 'path';
 import { versionInfo } from 'graphql';
 import { runTests } from '../../../testing/utils.js';
 import { GitLoader } from '../src/index.js';
+import { parseGitTreeOutput } from '../src/load-git.js';
 
 const emptyList = versionInfo.major >= 17 ? undefined : [];
+
+describe('parseGitTreeOutput', () => {
+  it('splits on CRLF the same as LF', () => {
+    expect(parseGitTreeOutput('a.graphql\r\nb.graphql\r\n')).toEqual(['a.graphql', 'b.graphql']);
+    expect(parseGitTreeOutput('a.graphql\nb.graphql\n')).toEqual(['a.graphql', 'b.graphql']);
+  });
+
+  it('preserves leading and trailing spaces in pathnames', () => {
+    expect(parseGitTreeOutput(' leading.graphql\r\ntrailing.graphql \n')).toEqual([
+      ' leading.graphql',
+      'trailing.graphql ',
+    ]);
+  });
+});
 
 describe('GitLoader', () => {
   const loader = new GitLoader();
@@ -60,8 +75,12 @@ describe('GitLoader', () => {
           `git:${lastCommit}:./packages/loaders/git/tests/test-files/*.graphql`,
           [],
         );
-        expect(resolvedGlob.every(p => p.includes(':./packages/'))).toBe(true);
-        expect(resolvedGlob.some(p => p.endsWith('type-defs.graphql'))).toBe(true);
+        expect([...resolvedGlob].sort()).toEqual(
+          [
+            `git:${lastCommit}:./packages/loaders/git/tests/test-files/type-defs-invalid.graphql`,
+            `git:${lastCommit}:./packages/loaders/git/tests/test-files/type-defs.graphql`,
+          ].sort(),
+        );
       });
 
       it('should load introspection data from a .json file', async () => {

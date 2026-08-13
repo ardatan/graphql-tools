@@ -15,13 +15,17 @@ const createTreeCommand = ({ ref }: PartialInput): string[] => {
   return ['ls-tree', '-r', '--name-only', ref];
 };
 
-function parseGitTreeOutput(stdout: string): string[] {
+/**
+ * @internal
+ */
+export function parseGitTreeOutput(stdout: string): string[] {
   // Git always emits LF; do not use os.EOL (CRLF on Windows) or the tree
   // collapses to a single unusable entry and micromatch matches nothing.
+  // Do not trim entries — git pathnames can legally have leading/trailing spaces.
   return stdout
     .split(/\r?\n/)
-    .map(line => unixify(line.trim()))
-    .filter(Boolean);
+    .filter(line => line.length > 0)
+    .map(line => unixify(line));
 }
 
 /**
