@@ -79,13 +79,12 @@ jobs:
         run: npx bob check
   test:
     name:
-      ${{matrix.name}} Test on Node ${{matrix.node-version}} (${{matrix.os}}) and GraphQL
+      Test on Node ${{matrix.node-version}} (${{matrix.os}}) and GraphQL
       v${{matrix.graphql_version}}
     runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
       matrix:
-        name: [Unit, Leak]
         os: [windows-latest, ubuntu-latest] # remove windows to speed up the tests
         node-version: [18, 22, 24]
         graphql_version:
@@ -128,12 +127,19 @@ jobs:
             ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-
       - name: Build
         run: npm run build
-      - name: ${{matrix.name}} Tests
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          command: npm run ${{matrix.name == 'Leak' && 'test:leaks' || 'test'}} --ci
+      - parallel:
+          - name: Unit Tests
+            uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
+            with:
+              timeout_minutes: 10
+              max_attempts: 5
+              command: npm run test --ci
+          - name: Leak Tests
+            uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
+            with:
+              timeout_minutes: 10
+              max_attempts: 5
+              command: npm run test:leaks --ci
 
   test-bun:
     name: Unit Test on Bun

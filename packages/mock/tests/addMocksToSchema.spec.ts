@@ -491,6 +491,33 @@ describe('addMocksToSchema', () => {
     expect(viewer.name).toEqual('custom mock for String');
   });
 
+  it('passes resolverValidationOptions through to addResolversToSchema', () => {
+    expect(() =>
+      addMocksToSchema({
+        schema,
+        resolvers: {
+          Query: {
+            doesNotExist: () => null,
+          },
+        },
+      }),
+    ).toThrow(/defined in resolvers, but not in schema/);
+
+    expect(() =>
+      addMocksToSchema({
+        schema,
+        resolvers: {
+          Query: {
+            doesNotExist: () => null,
+          },
+        },
+        resolverValidationOptions: {
+          requireResolversToMatchSchema: 'ignore',
+        },
+      }),
+    ).not.toThrow();
+  });
+
   it('creates a new schema whether or not resolvers are passed in', () => {
     expect(
       Object.is(
