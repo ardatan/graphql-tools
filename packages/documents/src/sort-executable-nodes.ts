@@ -76,13 +76,25 @@ export function sortExecutableNodes(
     }
 
     return cacheResult(
-      [...nodes].sort((a, b) => {
-        const kindComparison = compareKeys(a.kind, b.kind);
-        if (kindComparison !== 0) {
-          return kindComparison;
-        }
-        return compareKeys(getNodeNameValue(a), getNodeNameValue(b));
-      }),
+      nodes
+        .map((node, index) => ({
+          node,
+          index,
+          kind: node.kind,
+          name: getNodeNameValue(node),
+        }))
+        .sort((a, b) => {
+          const kindComparison = compareKeys(a.kind, b.kind);
+          if (kindComparison !== 0) {
+            return kindComparison;
+          }
+          const nameComparison = compareKeys(a.name, b.name);
+          if (nameComparison !== 0) {
+            return nameComparison;
+          }
+          return a.index - b.index;
+        })
+        .map(item => item.node),
     );
   }
 }
@@ -106,7 +118,16 @@ function sortNodesByStringKey<TNode extends ASTNode>(
   nodes: readonly TNode[],
   getKey: (node: TNode) => string | undefined,
 ): readonly TNode[] {
-  return [...nodes].sort((a, b) => compareKeys(getKey(a), getKey(b)));
+  return nodes
+    .map((node, index) => ({ node, index, key: getKey(node) }))
+    .sort((a, b) => {
+      const keyComparison = compareKeys(a.key, b.key);
+      if (keyComparison !== 0) {
+        return keyComparison;
+      }
+      return a.index - b.index;
+    })
+    .map(item => item.node);
 }
 
 function compareKeys(a: string | undefined, b: string | undefined): number {
