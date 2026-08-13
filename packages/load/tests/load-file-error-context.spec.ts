@@ -7,8 +7,6 @@ describe('loadFile AggregateError context (#7406)', () => {
   const pointer = join(__dirname, 'test-files', 'missing-no-match.graphql');
 
   const failingLoader: Loader = {
-    canLoad: async () => true,
-    canLoadSync: () => true,
     load: async () => {
       throw new Error('unrelated loader failure');
     },
@@ -35,8 +33,6 @@ describe('loadFile AggregateError context (#7406)', () => {
 
   it('still returns sources when a loader succeeds despite another failing', async () => {
     const okLoader: Loader = {
-      canLoad: async () => true,
-      canLoadSync: () => true,
       load: async (): Promise<Source[]> => [
         {
           location: pointer,

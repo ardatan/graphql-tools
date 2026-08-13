@@ -1,7 +1,7 @@
 import { observableToAsyncIterable } from '@graphql-tools/utils';
 
 describe('observableToAsyncIterable', () => {
-  test('finalize iterator when complete() is called on observer', () => {
+  test('finalize iterator when complete() is called on observer', async () => {
     const iterator = observableToAsyncIterable({
       subscribe: observer => {
         observer.complete();
@@ -9,7 +9,8 @@ describe('observableToAsyncIterable', () => {
       },
     });
 
-    return iterator.next().then(result => expect(result.done).toEqual(true));
+    const result = await iterator.next();
+    expect(result.done).toEqual(true);
   });
 
   test('unsubscribes and clears queues when done is pulled from pushQueue', async () => {
@@ -26,11 +27,11 @@ describe('observableToAsyncIterable', () => {
       },
     });
 
-    await expect(iterator.next()).resolves.toEqual({ value: 1, done: false });
-    await expect(iterator.next()).resolves.toEqual({ done: true });
+    expect(await iterator.next()).toEqual({ value: 1, done: false });
+    expect(await iterator.next()).toEqual({ value: undefined, done: true });
     expect(unsubscribed).toBe(true);
     // Further pulls should stay done without hanging
-    await expect(iterator.next()).resolves.toEqual({ value: undefined, done: true });
+    expect(await iterator.next()).toEqual({ value: undefined, done: true });
   });
 
   test('unsubscribes when complete() resolves a pending pull', async () => {
@@ -49,7 +50,26 @@ describe('observableToAsyncIterable', () => {
 
     const pending = iterator.next();
     observerRef!.complete();
-    await expect(pending).resolves.toEqual({ done: true });
+    expect(await pending).toEqual({ value: undefined, done: true });
+    expect(unsubscribed).toBe(true);
+  });
+
+  test('unsubscribes when complete() runs synchronously during subscribe', async () => {
+    let unsubscribed = false;
+    const iterator = observableToAsyncIterable({
+      subscribe: observer => {
+        observer.complete();
+        return {
+          unsubscribe: () => {
+            unsubscribed = true;
+          },
+        };
+      },
+    });
+
+    expect(await iterator.next()).toEqual({ value: undefined, done: true });
+    // return() after sync complete should still have unsubscribed the subscription
+    await iterator.return!();
     expect(unsubscribed).toBe(true);
   });
 });

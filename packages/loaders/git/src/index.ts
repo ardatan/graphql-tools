@@ -65,13 +65,12 @@ export class GitLoader implements Loader<GitLoaderOptions> {
     const refsForPaths = new Map();
     const { ref, path } = data;
     const maybeLeadingDotSlash = path.startsWith('./') ? './' : '';
-    // Tree paths from git never include a leading `./`; strip it for matching (#5243).
-    const normalizeGlobPath = (p: string) => unixify(p.startsWith('./') ? p.slice(2) : p);
+    // unixify() already strips a leading `./` (needed so micromatch can hit git tree paths).
 
     if (!refsForPaths.has(ref)) {
       refsForPaths.set(ref, []);
     }
-    refsForPaths.get(ref).push(normalizeGlobPath(path));
+    refsForPaths.get(ref).push(unixify(path));
 
     for (const ignore of ignores) {
       const data = extractData(ignore);
@@ -82,7 +81,7 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       if (!refsForPaths.has(ref)) {
         refsForPaths.set(ref, []);
       }
-      refsForPaths.get(ref).push(`!${normalizeGlobPath(path)}`);
+      refsForPaths.get(ref).push(`!${unixify(path)}`);
     }
 
     const resolved: string[] = [];
@@ -106,12 +105,12 @@ export class GitLoader implements Loader<GitLoaderOptions> {
     const { ref, path } = data;
     const refsForPaths = new Map();
     const maybeLeadingDotSlash = path.startsWith('./') ? './' : '';
-    const normalizeGlobPath = (p: string) => unixify(p.startsWith('./') ? p.slice(2) : p);
+    // unixify() already strips a leading `./` (needed so micromatch can hit git tree paths).
 
     if (!refsForPaths.has(ref)) {
       refsForPaths.set(ref, []);
     }
-    refsForPaths.get(ref).push(normalizeGlobPath(path));
+    refsForPaths.get(ref).push(unixify(path));
 
     for (const ignore of ignores) {
       const data = extractData(ignore);
@@ -122,7 +121,7 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       if (!refsForPaths.has(ref)) {
         refsForPaths.set(ref, []);
       }
-      refsForPaths.get(ref).push(`!${normalizeGlobPath(path)}`);
+      refsForPaths.get(ref).push(`!${unixify(path)}`);
     }
 
     const resolved: string[] = [];

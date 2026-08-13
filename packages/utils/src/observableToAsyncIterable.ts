@@ -24,7 +24,6 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
   const emptyQueue = () => {
     if (listening) {
       listening = false;
-      // subscribe() may call complete() synchronously before returning the subscription
       subscriptionRef.current?.unsubscribe();
       for (const resolve of pullQueue) {
         resolve({ value: undefined, done: true });
@@ -55,11 +54,11 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
   const pushDone = () => {
     if (pullQueue.length !== 0) {
       // It is safe to use the ! operator here as we check the length.
-      pullQueue.shift()!({ done: true });
+      pullQueue.shift()!({ value: undefined, done: true });
       // Release queues/subscription after signaling done to the pending consumer.
       emptyQueue();
     } else {
-      pushQueue.push({ done: true });
+      pushQueue.push({ value: undefined, done: true });
     }
   };
 
@@ -89,6 +88,12 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
       return pushDone();
     },
   });
+
+  // complete() may run synchronously inside subscribe() before it returns;
+  // unsubscribe the returned subscription in that case.
+  if (!listening) {
+    subscriptionRef.current.unsubscribe();
+  }
 
   return {
     next() {

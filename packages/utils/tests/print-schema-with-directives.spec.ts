@@ -317,6 +317,7 @@ describe('printSchemaWithDirectives', () => {
     `);
 
     const queryType = schema.getQueryType()!;
+    const fooField = queryType.getFields()['foo'];
     const transformedSchema = new GraphQLSchema({
       ...schema.toConfig(),
       types: undefined,
@@ -325,7 +326,7 @@ describe('printSchemaWithDirectives', () => {
         description: 'New type',
         fields: {
           foo: {
-            ...queryType.getFields()['foo'],
+            ...fooField.toConfig(),
             description: 'New field',
           },
         },
