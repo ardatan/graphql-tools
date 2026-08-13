@@ -318,16 +318,17 @@ describe('printSchemaWithDirectives', () => {
 
     const queryType = schema.getQueryType()!;
     const fooField = queryType.getFields()['foo'];
+    // Keep original astNodes (stale descriptions) while overriding runtime descriptions.
     const transformedSchema = new GraphQLSchema({
-      ...schema.toConfig(),
-      types: undefined,
       query: new GraphQLObjectType({
-        ...queryType.toConfig(),
+        name: 'Query',
         description: 'New type',
+        astNode: queryType.astNode,
         fields: {
           foo: {
-            ...fooField.toConfig(),
+            type: fooField.type,
             description: 'New field',
+            astNode: fooField.astNode,
           },
         },
       }),
