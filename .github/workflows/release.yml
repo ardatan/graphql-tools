@@ -46,7 +46,8 @@ jobs:
     if:
       ${{ github.event.pull_request.head.repo.fork != true && github.event.pull_request.title !=
       'Upcoming Release Changes' }}
-    uses: the-guild-org/shared-config/.github/workflows/release-snapshot.yml@v1
+    # Temporary: v3 publish output parsing until the-guild-org/shared-config#755 merges
+    uses: ardatan/shared-config/.github/workflows/release-snapshot.yml@6073226382355aa6ae65a9cee76d491f7f85233b
     with:
       npmTag: alpha
       buildScript: build
@@ -63,7 +64,8 @@ jobs:
     if:
       ${{ github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.title == 'Upcoming Release Changes' }}
-    uses: the-guild-org/shared-config/.github/workflows/release-snapshot.yml@v1
+    # Temporary: v3 publish output parsing until the-guild-org/shared-config#755 merges
+    uses: ardatan/shared-config/.github/workflows/release-snapshot.yml@6073226382355aa6ae65a9cee76d491f7f85233b
     with:
       npmTag: rc
       buildScript: build
