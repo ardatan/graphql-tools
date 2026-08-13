@@ -8,7 +8,7 @@ const emptyList = versionInfo.major >= 17 ? undefined : [];
 
 describe('GitLoader', () => {
   const loader = new GitLoader();
-  const lastCommit = execSync('git rev-parse HEAD', { encoding: 'utf-8' }).replace(/\n/g, '');
+  const lastCommit = execSync('git rev-parse HEAD', { encoding: 'utf-8' }).replace(/\r?\n/g, '');
   const getPointer = (fileName: string) => {
     return `git:${lastCommit}:packages/loaders/git/tests/test-files/${fileName}`;
   };

@@ -1,5 +1,5 @@
 import { execFile, execFileSync } from 'child_process';
-import os from 'os';
+import unixify from 'unixify';
 
 type PartialInput = { ref: string };
 type Input = PartialInput & { path: string };
@@ -15,6 +15,15 @@ const createTreeCommand = ({ ref }: PartialInput): string[] => {
   return ['ls-tree', '-r', '--name-only', ref];
 };
 
+function parseGitTreeOutput(stdout: string): string[] {
+  // Git always emits LF; do not use os.EOL (CRLF on Windows) or the tree
+  // collapses to a single unusable entry and micromatch matches nothing.
+  return stdout
+    .split(/\r?\n/)
+    .map(line => unixify(line.trim()))
+    .filter(Boolean);
+}
+
 /**
  * @internal
  */
@@ -29,7 +38,7 @@ export async function readTreeAtRef(ref: string): Promise<string[] | never> {
           if (error) {
             reject(error);
           } else {
-            resolve(stdout.split(os.EOL).map(line => line.trim()));
+            resolve(parseGitTreeOutput(stdout));
           }
         },
       );
@@ -44,9 +53,9 @@ export async function readTreeAtRef(ref: string): Promise<string[] | never> {
  */
 export function readTreeAtRefSync(ref: string): string[] | never {
   try {
-    return execFileSync('git', createTreeCommand({ ref }), { encoding: 'utf-8' })
-      .split(os.EOL)
-      .map(line => line.trim());
+    return parseGitTreeOutput(
+      execFileSync('git', createTreeCommand({ ref }), { encoding: 'utf-8' }),
+    );
   } catch (error: any) {
     throw createTreeError(error);
   }
