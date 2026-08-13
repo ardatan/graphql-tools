@@ -106,4 +106,46 @@ scalar TestScalar
     `.trim(),
     );
   });
+
+  it('should remove descriptions from operations, variables, and fragments', () => {
+    const doc = parse(/* GraphQL */ `
+      """
+      OPERATION DESCRIPTION
+      """
+      query user(
+        """
+        VARIABLE DESCRIPTION
+        """
+        $id: ID!
+      ) {
+        user(id: $id) {
+          ...userFields
+        }
+      }
+
+      """
+      FRAGMENT DESCRIPTION
+      """
+      fragment userFields on User {
+        id
+        username
+      }
+    `);
+
+    const out = removeDescriptions(doc);
+    expect(print(out).trim()).toBe(
+      /* GraphQL */ `
+query user($id: ID!) {
+  user(id: $id) {
+    ...userFields
+  }
+}
+
+fragment userFields on User {
+  id
+  username
+}
+    `.trim(),
+    );
+  });
 });

@@ -78,7 +78,7 @@ export function isDocumentString(str: any): boolean {
   return false;
 }
 
-const invalidPathRegex = /[‘“!%^<>`\n]/;
+const invalidPathRegex = /[‘“!^<>`\n]/;
 /**
  * Checkes whether the `str` contains any path illegal characters.
  *

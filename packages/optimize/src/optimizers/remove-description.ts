@@ -2,7 +2,7 @@ import { visit } from 'graphql';
 import { DocumentOptimizer } from '../types.js';
 
 /**
- * This optimizer removes "description" field from schema AST definitions.
+ * This optimizer removes "description" fields from schema and executable AST nodes.
  * @param input
  */
 export const removeDescriptions: DocumentOptimizer = input => {
@@ -25,5 +25,10 @@ export const removeDescriptions: DocumentOptimizer = input => {
     InputValueDefinition: transformNode,
     FieldDefinition: transformNode,
     DirectiveDefinition: transformNode,
+    OperationDefinition: transformNode,
+    VariableDefinition: transformNode,
+    FragmentDefinition: transformNode,
+    SchemaDefinition: transformNode,
+    SchemaExtension: transformNode,
   });
 };
