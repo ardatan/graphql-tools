@@ -78,7 +78,7 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
       }
     });
 
-  subscription = observable.subscribe({
+  subscriptionRef.current = observable.subscribe({
     next(value: any) {
       return pushValue(value);
     },
