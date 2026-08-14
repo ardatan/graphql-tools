@@ -25,7 +25,7 @@
     "estree-util-value-to-estree": "3.5.0",
     "pagefind": "^1.5.2",
     "postcss": "^8.5.26",
-    "postcss-import": "16.1.1",
+    "postcss-import": "17.0.0",
     "postcss-lightningcss": "1.1.1",
     "tailwindcss": "3.4.19",
     "typescript": "7.0.2",
