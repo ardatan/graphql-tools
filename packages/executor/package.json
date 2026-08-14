@@ -4,7 +4,7 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "ardatan/graphql-tools",
+    "url": "git+https://github.com/ardatan/graphql-tools.git",
     "directory": "packages/executor"
   },
   "author": "Saihajpreet Singh <saihajpreet.singh@gmail.com>",

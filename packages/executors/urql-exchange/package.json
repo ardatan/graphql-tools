@@ -5,7 +5,7 @@
   "description": "",
   "repository": {
     "type": "git",
-    "url": "ardatan/graphql-tools",
+    "url": "git+https://github.com/ardatan/graphql-tools.git",
     "directory": "packages/executors/urql-exchange"
   },
   "author": "Arda TANRIKULU <ardatanrikulu@gmail.com>",
