@@ -5,7 +5,7 @@
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
-    "url": "ardatan/graphql-tools",
+    "url": "git+https://github.com/ardatan/graphql-tools.git",
     "directory": "packages/loaders/module"
   },
   "author": "Dotan Simha <dotansimha@gmail.com>",

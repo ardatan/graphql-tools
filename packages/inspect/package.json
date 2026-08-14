@@ -5,7 +5,7 @@
   "description": "Cross platform implementation of Node's util.inspect",
   "repository": {
     "type": "git",
-    "url": "ardatan/graphql-tools",
+    "url": "git+https://github.com/ardatan/graphql-tools.git",
     "directory": "packages/inspect"
   },
   "author": "Arda TANRIKULU <ardatanrikulu@gmail.com>",

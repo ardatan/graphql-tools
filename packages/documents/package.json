@@ -5,7 +5,7 @@
   "description": "Utilities for GraphQL documents.",
   "repository": {
     "type": "git",
-    "url": "ardatan/graphql-tools",
+    "url": "git+https://github.com/ardatan/graphql-tools.git",
     "directory": "packages/documents"
   },
   "license": "MIT",

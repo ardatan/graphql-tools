@@ -5,7 +5,7 @@
   "description": "Common package containing utils and types for GraphQL tools",
   "repository": {
     "type": "git",
-    "url": "ardatan/graphql-tools",
+    "url": "git+https://github.com/ardatan/graphql-tools.git",
     "directory": "packages/resolvers-composition"
   },
   "author": "Dotan Simha <dotansimha@gmail.com>",
