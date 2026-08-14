@@ -4,7 +4,8 @@
   "description": "Fork of `relay-compiler`",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ardatan/graphql-tools.git"
+    "url": "ardatan/graphql-tools",
+    "directory": "packages/relay-compiler"
   },
   "homepage": "https://relay.dev",
   "bugs": "https://github.com/ardatan/graphql-tools/issues",
