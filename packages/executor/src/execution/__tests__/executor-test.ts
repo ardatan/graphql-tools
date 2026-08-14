@@ -13,10 +13,19 @@ import {
   GraphQLUnionType,
   Kind,
   parse,
+  versionInfo,
 } from 'graphql';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
 import { execute, executeSync } from '../execute.js';
+
+const expectedVariableValues =
+  versionInfo.major >= 17
+    ? {
+        coerced: { var: 'abc' },
+        sources: expect.any(Object),
+      }
+    : { var: 'abc' };
 
 describe('Execute: Handles basic execution tasks', () => {
   it('executes arbitrary code', async () => {
@@ -207,6 +216,8 @@ describe('Execute: Handles basic execution tasks', () => {
       'operation',
       'variableValues',
       'signal',
+      'getAbortSignal',
+      'getAsyncHelpers',
     ]);
 
     const operation = document.definitions[0];
@@ -226,7 +237,7 @@ describe('Execute: Handles basic execution tasks', () => {
     expect(resolvedInfo).toMatchObject({
       fieldNodes: [field],
       path: { prev: undefined, key: 'result', typename: 'Test' },
-      variableValues: { var: 'abc' },
+      variableValues: expectedVariableValues,
     });
   });
 

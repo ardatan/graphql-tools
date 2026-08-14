@@ -23,7 +23,7 @@ function buildFragmentSpread(fragment) {
     _step;
 
   try {
-    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
       var argDef = _step.value;
 
       if (argDef.kind !== 'LocalArgumentDefinition') {

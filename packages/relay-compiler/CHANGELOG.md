@@ -1,5 +1,15 @@
 # @ardatan/relay-compiler
 
+## 13.0.2
+
+### Patch Changes
+
+- [#8272](https://github.com/ardatan/graphql-tools/pull/8272)
+  [`16096f7`](https://github.com/ardatan/graphql-tools/commit/16096f7e566fc6dda420067be218019f2aea271f)
+  Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+  - Updated dependency [`immutable@^5.1.9` ↗︎](https://www.npmjs.com/package/immutable/v/5.1.9) (from
+    `^5.1.6`, in `dependencies`)
+
 ## 13.0.1
 
 ### Patch Changes

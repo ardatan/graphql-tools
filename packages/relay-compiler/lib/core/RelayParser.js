@@ -496,12 +496,10 @@ var GraphQLDefinitionParser = /*#__PURE__*/ (function () {
         var previousVariable = previous.ast,
           previousType = previous.type;
 
-        if (
-          !(
-            this._schema.isTypeSubTypeOf(usedAsType, previousType) ||
-            this._schema.isTypeSubTypeOf(previousType, usedAsType)
-          )
-        ) {
+        if (!(
+          this._schema.isTypeSubTypeOf(usedAsType, previousType) ||
+          this._schema.isTypeSubTypeOf(previousType, usedAsType)
+        )) {
           throw createUserError(
             "Variable '$"
               .concat(name, "' was used in locations expecting the conflicting types '")
@@ -533,7 +531,7 @@ var GraphQLDefinitionParser = /*#__PURE__*/ (function () {
         _step;
 
       try {
-        for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
           var def = _step.value;
 
           this._directiveLocations.set(def.name, def.locations);
@@ -630,7 +628,7 @@ var GraphQLDefinitionParser = /*#__PURE__*/ (function () {
       _step2;
 
     try {
-      for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
+      for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
         var _step2$value = _step2.value,
           name = _step2$value[0],
           variableReference = _step2$value[1];
@@ -1158,19 +1156,17 @@ var GraphQLDefinitionParser = /*#__PURE__*/ (function () {
         if (filtersArgument) {
           var maybeFilters = transformLiteralValue(filtersArgument.value, filtersArgument);
 
-          if (
-            !(
-              Array.isArray(maybeFilters) &&
-              maybeFilters.every(function (filter) {
-                return (
-                  typeof filter === 'string' &&
-                  fieldArgs.some(function (fieldArg) {
-                    return fieldArg.name === filter;
-                  })
-                );
-              })
-            )
-          ) {
+          if (!(
+            Array.isArray(maybeFilters) &&
+            maybeFilters.every(function (filter) {
+              return (
+                typeof filter === 'string' &&
+                fieldArgs.some(function (fieldArg) {
+                  return fieldArg.name === filter;
+                })
+              );
+            })
+          )) {
             throw createUserError(
               "Expected an array of argument names on field '".concat(fieldName, "'."),
               null,

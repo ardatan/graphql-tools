@@ -98,7 +98,7 @@ function eachWithCombinedError(iterable, fn) {
     _step;
 
   try {
-    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
       var item = _step.value;
 
       try {
@@ -152,7 +152,7 @@ function printLocations(locations) {
     _step2;
 
   try {
-    for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
+    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
       var location = _step2.value;
       var sourceLocation = location;
 
@@ -238,7 +238,7 @@ function printPrefixedLines(lines) {
     _step3;
 
   try {
-    for (_iterator3.s(); !(_step3 = _iterator3.n()).done; ) {
+    for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
       var _step3$value = _step3.value,
         prefix = _step3$value[0];
       padLen = Math.max(padLen, prefix.length);

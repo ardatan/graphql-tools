@@ -59,14 +59,12 @@ function buildRefetchOperation(schema, fragment, queryName) {
   var fetchFieldName = 'fetch__'.concat(schema.getTypeString(fragment.type));
   var fetchField = schema.getFieldConfig(schema.expectField(queryType, fetchFieldName));
 
-  if (
-    !(
-      fetchField != null &&
-      schema.isObject(fetchField.type) &&
-      schema.areEqualTypes(fetchField.type, fragment.type) &&
-      schema.areEqualTypes(schema.getNullableType(fetchField.args[0].type), schema.expectIdType())
-    )
-  ) {
+  if (!(
+    fetchField != null &&
+    schema.isObject(fetchField.type) &&
+    schema.areEqualTypes(fetchField.type, fragment.type) &&
+    schema.areEqualTypes(schema.getNullableType(fetchField.args[0].type), schema.expectIdType())
+  )) {
     var _typeName = schema.getTypeString(fragment.type);
 
     throw createUserError(

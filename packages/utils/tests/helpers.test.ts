@@ -24,12 +24,17 @@ describe('helpers', () => {
     expect(isValidPath(str)).toBeFalsy();
   });
 
-  it.each(['file', 'file.tsx', 'some/where/file.tsx', '/some/where/file.tsx'])(
-    'should detect "%s" as a valid path',
-    str => {
-      expect(isValidPath(str)).toBeTruthy();
-    },
-  );
+  it.each([
+    'file',
+    'file.tsx',
+    'some/where/file.tsx',
+    '/some/where/file.tsx',
+    'Repo%20Name/src/App.tsx',
+    'C:/dev/Repo%20Name/project/src/App.tsx',
+    'src/invalid%20path/InvalidFile.ts',
+  ])('should detect "%s" as a valid path', str => {
+    expect(isValidPath(str)).toBeTruthy();
+  });
 });
 
 describe('isUrl', () => {

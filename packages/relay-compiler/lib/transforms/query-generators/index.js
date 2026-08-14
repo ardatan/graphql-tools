@@ -43,7 +43,7 @@ function buildRefetchOperation(schema, fragment, queryName) {
     _step;
 
   try {
-    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
       var generator = _step.value;
       var refetchRoot = generator.buildRefetchOperation(schema, fragment, queryName);
 

@@ -68,11 +68,7 @@ function ensureExports({ module, filepath }: { module: any; filepath: string }) 
 
 function resolveExport(
   fileExport:
-    | GraphQLSchema
-    | DocumentNode
-    | string
-    | { data: IntrospectionQuery }
-    | IntrospectionQuery,
+    GraphQLSchema | DocumentNode | string | { data: IntrospectionQuery } | IntrospectionQuery,
 ): GraphQLSchema | DocumentNode | null {
   try {
     if (isSchema(fileExport)) {

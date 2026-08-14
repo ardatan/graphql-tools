@@ -109,7 +109,7 @@ function validateRequiredArgumentsOnNode(schema, node, definitionArgs, rootNode)
     _step;
 
   try {
-    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
       var arg = _step.value;
 
       if (arg.defaultValue == null && schema.isNonNull(arg.type) && !nodeArgsSet.has(arg.name)) {

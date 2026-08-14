@@ -59,32 +59,30 @@ function buildRefetchOperation(schema, fragment, queryName) {
   var nodeType = schema.getTypeFromString(NODE_TYPE_NAME);
   var nodeField = schema.getFieldConfig(schema.expectField(queryType, NODE_FIELD_NAME));
 
-  if (
-    !(
-      nodeType &&
-      schema.isInterface(nodeType) &&
-      schema.isInterface(nodeField.type) &&
-      schema.areEqualTypes(nodeField.type, nodeType) &&
-      nodeField.args.length === 1 &&
-      schema.areEqualTypes(schema.getNullableType(nodeField.args[0].type), schema.expectIdType()) && // the fragment must be on Node or on a type that implements Node
-      ((schema.isObject(fragment.type) &&
-        schema
-          .getInterfaces(schema.assertCompositeType(fragment.type))
-          .some(function (interfaceType) {
-            return schema.areEqualTypes(interfaceType, nodeType);
-          })) ||
-        (schema.isAbstractType(fragment.type) &&
-          Array.from(schema.getPossibleTypes(schema.assertAbstractType(fragment.type))).every(
-            function (possibleType) {
-              return schema
-                .getInterfaces(schema.assertCompositeType(possibleType))
-                .some(function (interfaceType) {
-                  return schema.areEqualTypes(interfaceType, nodeType);
-                });
-            },
-          )))
-    )
-  ) {
+  if (!(
+    nodeType &&
+    schema.isInterface(nodeType) &&
+    schema.isInterface(nodeField.type) &&
+    schema.areEqualTypes(nodeField.type, nodeType) &&
+    nodeField.args.length === 1 &&
+    schema.areEqualTypes(schema.getNullableType(nodeField.args[0].type), schema.expectIdType()) && // the fragment must be on Node or on a type that implements Node
+    ((schema.isObject(fragment.type) &&
+      schema
+        .getInterfaces(schema.assertCompositeType(fragment.type))
+        .some(function (interfaceType) {
+          return schema.areEqualTypes(interfaceType, nodeType);
+        })) ||
+      (schema.isAbstractType(fragment.type) &&
+        Array.from(schema.getPossibleTypes(schema.assertAbstractType(fragment.type))).every(
+          function (possibleType) {
+            return schema
+              .getInterfaces(schema.assertCompositeType(possibleType))
+              .some(function (interfaceType) {
+                return schema.areEqualTypes(interfaceType, nodeType);
+              });
+          },
+        )))
+  )) {
     throw createUserError(
       "Invalid use of @refetchable on fragment '".concat(fragment.name, "', check ") +
         'that your schema defines a `Node { id: ID }` interface and has a ' +

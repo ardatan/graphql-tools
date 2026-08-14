@@ -11,13 +11,11 @@ export type ResolversComposition<
 export type ResolversComposerMapping<Resolvers extends Record<string, any> = Record<string, any>> =
   | {
       [TypeName in keyof Resolvers]?: {
-        [FieldName in keyof Resolvers[TypeName]]: Resolvers[TypeName][FieldName] extends GraphQLFieldResolver<
-          any,
-          any
-        >
-          ?
-              | ResolversComposition<Resolvers[TypeName][FieldName]>
-              | Array<ResolversComposition<Resolvers[TypeName][FieldName]>>
+        [
+          FieldName in keyof Resolvers[TypeName]
+        ]: Resolvers[TypeName][FieldName] extends GraphQLFieldResolver<any, any>
+          ? | ResolversComposition<Resolvers[TypeName][FieldName]>
+            | Array<ResolversComposition<Resolvers[TypeName][FieldName]>>
           : ResolversComposition | ResolversComposition[];
       };
     }

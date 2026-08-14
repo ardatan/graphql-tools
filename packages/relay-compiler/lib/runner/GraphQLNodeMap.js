@@ -41,7 +41,7 @@ var GraphQLNodeMap = /*#__PURE__*/ (function (_Map) {
       _step;
 
     try {
-      for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
         var node = _step.value;
         var name = getName(node);
         var prevNode = result.get(name);

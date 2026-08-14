@@ -51,7 +51,7 @@ var Sources = /*#__PURE__*/ (function () {
           _step2;
 
         try {
-          for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
+          for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
             var text = _step2.value;
             var doc = parse(new Source(text, file));
             !doc.definitions.length
@@ -79,7 +79,7 @@ var Sources = /*#__PURE__*/ (function () {
         };
       };
 
-      for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
         _loop();
       }
     } catch (err) {
@@ -114,7 +114,7 @@ var Sources = /*#__PURE__*/ (function () {
       _step3;
 
     try {
-      for (_iterator3.s(); !(_step3 = _iterator3.n()).done; ) {
+      for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
         var _state$file$name$node, _state$file$name;
 
         var _file = _step3.value;
@@ -155,7 +155,7 @@ var Sources = /*#__PURE__*/ (function () {
             _step4;
 
           try {
-            for (_iterator4.s(); !(_step4 = _iterator4.n()).done; ) {
+            for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
               var _step4$value = _step4.value,
                 _ast = _step4$value.ast,
                 text = _step4$value.text;

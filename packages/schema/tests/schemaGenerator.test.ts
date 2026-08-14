@@ -8,18 +8,19 @@ import {
   GraphQLEnumType,
   GraphQLError,
   GraphQLFieldResolver,
-  GraphQLResolveInfo,
   GraphQLScalarType,
   graphqlSync,
   IntValueNode,
   Kind,
   parse,
   VariableDefinitionNode,
+  versionInfo,
 } from 'graphql';
 import { execute, isIncrementalResult } from '@graphql-tools/executor';
 import { addResolversToSchema, chainResolvers, makeExecutableSchema } from '@graphql-tools/schema';
 import {
   ExecutionResult,
+  GraphQLResolveInfo,
   IResolvers,
   IResolverValidationOptions,
   TypeSource,
@@ -2027,10 +2028,12 @@ describe('can specify lexical parser options', () => {
       }
     `;
 
-    const parsedQuery = parse(query, {
-      experimentalFragmentVariables: true,
-      allowLegacyFragmentVariables: true,
-    } as any);
+    const parsedQuery = parse(
+      query,
+      versionInfo.major >= 17
+        ? ({ experimentalFragmentArguments: true } as any)
+        : ({ experimentalFragmentVariables: true, allowLegacyFragmentVariables: true } as any),
+    );
 
     const hoist = (document: DocumentNode): DocumentNode => {
       const variableDefs: Array<VariableDefinitionNode> = [];

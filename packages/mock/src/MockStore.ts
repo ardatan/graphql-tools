@@ -95,11 +95,7 @@ export class MockStore implements IMockStore {
     _typeName: string | Ref<KeyT> | GetArgs<KeyT>,
     _key?: KeyT | { [fieldName: string]: any } | string | string[],
     _fieldName?:
-      | string
-      | string[]
-      | { [fieldName: string]: any }
-      | string
-      | { [argName: string]: any },
+      string | string[] | { [fieldName: string]: any } | string | { [argName: string]: any },
     _fieldArgs?: string | { [argName: string]: any },
   ): unknown | Ref<ReturnKeyT> {
     if (typeof _typeName !== 'string') {

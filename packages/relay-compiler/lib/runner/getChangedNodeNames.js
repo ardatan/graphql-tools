@@ -26,7 +26,7 @@ function getChangedNodeNames(projectStates, projects) {
     _step;
 
   try {
-    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
       var projectType = _step.value;
       var subConfig = projectStates.get(projectType);
 
@@ -34,7 +34,7 @@ function getChangedNodeNames(projectStates, projects) {
         _step2;
 
       try {
-        for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
           var name = _step2.value;
           changedNames.add(name);
         }
@@ -48,7 +48,7 @@ function getChangedNodeNames(projectStates, projects) {
         _step3;
 
       try {
-        for (_iterator3.s(); !(_step3 = _iterator3.n()).done; ) {
+        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
           var ast = _step3.value.ast;
           changedNames.add(getName(ast));
         }
@@ -62,7 +62,7 @@ function getChangedNodeNames(projectStates, projects) {
         _step4;
 
       try {
-        for (_iterator4.s(); !(_step4 = _iterator4.n()).done; ) {
+        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
           var _ast = _step4.value.ast;
           changedNames.add(getName(_ast));
         }

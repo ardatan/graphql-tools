@@ -4,8 +4,7 @@ import { ExecutionResult, IResolvers } from '@graphql-tools/utils';
 export type IMockFn = () => unknown;
 export type IScalarMock = unknown | IMockFn;
 export type ITypeMock = () =>
-  | { [fieldName: string]: unknown | IMockFn }
-  | { [fieldName: string]: IMockFn };
+  { [fieldName: string]: unknown | IMockFn } | { [fieldName: string]: IMockFn };
 
 export type IMocks<TResolvers = IResolvers> = {
   [TTypeName in keyof TResolvers]?: {

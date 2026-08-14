@@ -35,7 +35,7 @@ function buildDependencyMap(nodes) {
     _step;
 
   try {
-    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
       var node = _step.value;
       var name = getName(node);
 
@@ -61,14 +61,14 @@ function mergeMaps(maps) {
     _step2;
 
   try {
-    for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
+    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
       var source = _step2.value;
 
       var _iterator3 = (0, _createForOfIteratorHelper2['default'])(source.entries()),
         _step3;
 
       try {
-        for (_iterator3.s(); !(_step3 = _iterator3.n()).done; ) {
+        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
           var _step3$value = _step3.value,
             key = _step3$value[0],
             value = _step3$value[1];
@@ -119,7 +119,7 @@ function forChanges(nodes, changedNames) {
     _step4;
 
   try {
-    for (_iterator4.s(); !(_step4 = _iterator4.n()).done; ) {
+    for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
       var node = _step4.value;
 
       if (nodes.has(node)) {
@@ -145,7 +145,7 @@ function buildResult(includedNames, nameToNode, baseNameToNode) {
     _step5;
 
   try {
-    for (_iterator5.s(); !(_step5 = _iterator5.n()).done; ) {
+    for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
       var name = _step5.value;
       var baseNode = baseNameToNode.get(name);
 
@@ -184,7 +184,7 @@ function includeReachable(changed, deps) {
       _step6;
 
     try {
-      for (_iterator6.s(); !(_step6 = _iterator6.n()).done; ) {
+      for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
         var dep = _step6.value;
 
         if (!visited.has(dep)) {
@@ -218,7 +218,7 @@ function inverseDependencyMap(map) {
     _step7;
 
   try {
-    for (_iterator7.s(); !(_step7 = _iterator7.n()).done; ) {
+    for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
       var _step7$value = _step7.value,
         source = _step7$value[0],
         dests = _step7$value[1];
@@ -228,7 +228,7 @@ function inverseDependencyMap(map) {
         _step8;
 
       try {
-        for (_iterator8.s(); !(_step8 = _iterator8.n()).done; ) {
+        for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
           var dest = _step8.value;
           var inverseSource = dest;
           var inverseDests = invertedMap.get(inverseSource);

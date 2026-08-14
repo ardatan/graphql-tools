@@ -1,5 +1,48 @@
 # graphql-tools
 
+## 9.0.34
+
+### Patch Changes
+
+- Updated dependencies
+  [[`2273c21`](https://github.com/ardatan/graphql-tools/commit/2273c21960fa12b59f7793c01ee024b1cef002e6)]:
+  - @graphql-tools/schema@10.1.0
+
+## 9.0.33
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/schema@10.0.38
+
+## 9.0.32
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/schema@10.0.37
+
+## 9.0.31
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/schema@10.0.36
+
+## 9.0.30
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/schema@10.0.35
+
+## 9.0.29
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/schema@10.0.34
+
 ## 9.0.28
 
 ### Patch Changes

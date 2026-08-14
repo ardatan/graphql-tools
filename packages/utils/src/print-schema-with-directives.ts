@@ -48,6 +48,7 @@ import {
 import { astFromType } from './astFromType.js';
 import { astFromValue } from './astFromValue.js';
 import { astFromValueUntyped } from './astFromValueUntyped.js';
+import { defaultValueAstFromType } from './defaultValueAstFromType.js';
 import { getDescriptionNode } from './descriptionFromObject.js';
 import {
   DirectableGraphQLObject,
@@ -292,11 +293,7 @@ export function astFromArg(
       value: arg.name,
     },
     type: astFromType(arg.type),
-    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
-    defaultValue:
-      arg.defaultValue !== undefined
-        ? (astFromValue(arg.defaultValue, arg.type) ?? undefined)
-        : (undefined as any),
+    defaultValue: defaultValueAstFromType(arg) as any,
     directives: getDirectiveNodes(arg, schema, pathToDirectivesInExtensions) as any,
   };
 }
@@ -475,7 +472,7 @@ export function astFromInputField(
     type: astFromType(field.type),
     // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
     directives: getDirectiveNodes(field, schema, pathToDirectivesInExtensions) as any,
-    defaultValue: astFromValue(field.defaultValue, field.type) ?? (undefined as any),
+    defaultValue: defaultValueAstFromType(field) as any,
   };
 }
 

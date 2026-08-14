@@ -1044,7 +1044,7 @@ var Schema = /*#__PURE__*/ (function () {
           _step;
 
         try {
-          for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+          for (_iterator.s(); !(_step = _iterator.n()).done;) {
             var _step$value = _step.value,
               fieldName = _step$value[0],
               fieldDefinition = _step$value[1];
@@ -1076,7 +1076,7 @@ var Schema = /*#__PURE__*/ (function () {
           _step2;
 
         try {
-          for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
+          for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
             var _step2$value = _step2.value,
               _fieldName = _step2$value[0],
               typeNode = _step2$value[1];

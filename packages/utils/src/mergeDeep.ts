@@ -62,10 +62,13 @@ export function mergeDeep<S extends any[]>(
     }
   }
   for (const source of sources) {
-    if (source == null) {
+    if (source === undefined) {
       continue;
     }
     if (isObject(source)) {
+      if (output == null) {
+        output = {};
+      }
       if (firstObjectSource) {
         const outputPrototype = Object.getPrototypeOf(output);
         const sourcePrototype = Object.getPrototypeOf(source);
@@ -80,10 +83,12 @@ export function mergeDeep<S extends any[]>(
       }
 
       for (const key in source) {
-        if (output == null) {
-          output = {};
-        }
-        if (key in output) {
+        // An own key present with value `undefined` is an explicit override and must win,
+        // distinct from the key being altogether absent from `source`. Assigning directly
+        // (rather than recursing through mergeDeep) avoids the top-level `source === undefined`
+        // skip above, which would otherwise silently discard this override and keep the prior
+        // value.
+        if (key in output && source[key] !== undefined) {
           output[key] = mergeDeep(
             [output[key], source[key]],
             respectPrototype,

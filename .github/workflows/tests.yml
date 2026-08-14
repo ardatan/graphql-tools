@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Master
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup env
         uses: the-guild-org/shared-config/setup@v1
@@ -37,12 +37,34 @@ jobs:
           npx rimraf packages/executor/node_modules/graphql
       - name: Type Check
         run: npm run ts:check
-  check:
-    name: Full Check on GraphQL v16
+  typecheck-16:
+    name: Type Check on GraphQL v16
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Master
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup env
+        uses: the-guild-org/shared-config/setup@v1
+        with:
+          node-version-file: .node-version
+
+      - name: Use GraphQL v16
+        run: |
+          node ./scripts/match-graphql.js 16
+          npm install
+          git checkout package-lock.json
+          npx rimraf packages/**/*/node_modules/graphql
+          npx rimraf packages/executor/node_modules/graphql
+      - name: Type Check
+        run: npm run ts:check
+  check:
+    # Uses the lockfile GraphQL version (17.x on this branch).
+    name: Full Check on GraphQL v17
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup env
         uses: the-guild-org/shared-config/setup@v1
         with:
@@ -57,21 +79,25 @@ jobs:
         run: npx bob check
   test:
     name:
-      ${{matrix.name}} Test on Node ${{matrix.node-version}} (${{matrix.os}}) and GraphQL
+      Test on Node ${{matrix.node-version}} (${{matrix.os}}) and GraphQL
       v${{matrix.graphql_version}}
     runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
       matrix:
-        name: [Unit, Leak]
         os: [windows-latest, ubuntu-latest] # remove windows to speed up the tests
         node-version: [18, 22, 24]
         graphql_version:
           - 15
           - 16
+          - 17
+        exclude:
+          # graphql@17 requires Node 22+
+          - node-version: 18
+            graphql_version: 17
     steps:
       - name: Checkout Master
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Skip Puppeteer browser download on Windows
         if: matrix.os == 'windows-latest'
@@ -91,7 +117,7 @@ jobs:
           npx rimraf packages/**/*/node_modules/graphql
           npx rimraf packages/executor/node_modules/graphql
       - name: Cache Jest
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: .cache/jest
           key:
@@ -101,18 +127,26 @@ jobs:
             ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-
       - name: Build
         run: npm run build
-      - name: ${{matrix.name}} Tests
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          command: npm run ${{matrix.name == 'Leak' && 'test:leaks' || 'test'}} --ci
+      - parallel:
+          - name: Unit Tests
+            uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
+            with:
+              timeout_minutes: 10
+              max_attempts: 5
+              command: npm run test --ci
+          - name: Leak Tests
+            uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
+            with:
+              timeout_minutes: 10
+              max_attempts: 5
+              command: npm run test:leaks --ci
+
   test-bun:
     name: Unit Test on Bun
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Master
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup env
         uses: the-guild-org/shared-config/setup@v1
         with:

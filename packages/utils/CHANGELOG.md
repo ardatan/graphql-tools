@@ -1,5 +1,78 @@
 # @graphql-tools/utils
 
+## 12.0.0
+
+### Major Changes
+
+- [#8346](https://github.com/ardatan/graphql-tools/pull/8346)
+  [`2273c21`](https://github.com/ardatan/graphql-tools/commit/2273c21960fa12b59f7793c01ee024b1cef002e6)
+  Thanks [@ardatan](https://github.com/ardatan)! - This release adds GraphQL v17 support and aligns
+  the existing executor implementation with the latest GraphQL v17 API changes. The following
+  changes are included:
+
+  - `getAsyncHelpers` is now available on `GraphQLResolveInfo`. Its `track` method is used whenever
+    `waitUntil` is available, as in Yoga's
+    [Explicit Resource Management](https://the-guild.dev/graphql/yoga-server/docs/features/explicit-resource-management)
+  - `getAbortSignal` is now available on `GraphQLResolveInfo`, matching behavior that was already
+    available in this executor implementation, as in Yoga's
+    [Execution Cancellation](https://the-guild.dev/graphql/yoga-server/docs/features/execution-cancellation)
+  - `GraphQLResolveInfo` automatically aligns `variableValues` according to the GraphQL version for
+    better compatibility. In GraphQL v17 and above, `variableValues` follows the wrapped shape
+    (`{ coerced, sources }`) expected by GraphQL APIs. In GraphQL v16 and below, `variableValues`
+    remains a flat map as in previous versions.
+  - If your custom scalar resolvers define `__serialize` and `__parseValue`, they are automatically
+    mapped to `coerceOutputValue` and `coerceInputValue` in GraphQL v17.
+  - **BREAKING**: `@graphql-tools/executor`'s `getVariableValues` now returns `{ variableValues }`
+    on success, where `variableValues` is a `VariableValues` object (`{ coerced, sources }`). On
+    failure, it returns `{ errors }`.
+  - **BREAKING**: `collectFields`, `shouldIncludeNode`, `getDeferValues`, and `collectSubFields` now
+    need a `VariableValues` object instead of `Record<string, any>` for the `variableValues`
+    argument.
+  - `visitResult` now internally normalizes `ExecutionRequest.variables` into a
+    `VariableValues`-compatible shape (`{ coerced, sources }`) before traversing selections.
+
+## 11.2.2
+
+### Patch Changes
+
+- [#8302](https://github.com/ardatan/graphql-tools/pull/8302)
+  [`e90719b`](https://github.com/ardatan/graphql-tools/commit/e90719baf08bf1aa7b372759dd197ac27e71dc64)
+  Thanks [@pbomb](https://github.com/pbomb)! - fix mergeDeep to treat explicit undefined property
+  values as overrides rather than skipping them, distinct from an absent property
+
+## 11.2.1
+
+### Patch Changes
+
+- [#8204](https://github.com/ardatan/graphql-tools/pull/8204)
+  [`615c1a2`](https://github.com/ardatan/graphql-tools/commit/615c1a27f2a379eac74127815effc8e062bdc47c)
+  Thanks [@pbomb](https://github.com/pbomb)! - fix mergeDeep to treat null property values as
+  explicit overrides rather than skipping them
+
+## 11.2.0
+
+### Minor Changes
+
+- [#8226](https://github.com/ardatan/graphql-tools/pull/8226)
+  [`2609c94`](https://github.com/ardatan/graphql-tools/commit/2609c94954bff598f0d38aac629a2ec955adbc44)
+  Thanks [@eddeee888](https://github.com/eddeee888)! - getDocumentNodeFromSchema: Add arg
+  defaultValue support for graphql@17
+
+## 11.1.1
+
+### Patch Changes
+
+- [#8256](https://github.com/ardatan/graphql-tools/pull/8256)
+  [`981d461`](https://github.com/ardatan/graphql-tools/commit/981d4618e16c2697a19c96b55d5f84186079f63d)
+  Thanks [@twavv](https://github.com/twavv)! - Fix `mergeDeep` returning `undefined` instead of `{}`
+  when merging two or more empty objects.
+
+  Previously the output accumulator was only initialized inside the per-key loop, so merging sources
+  with no own keys (e.g. `mergeDeep([{}, {}])`) left it `undefined`. This silently dropped
+  empty-object values during nested merges (`{ data: {} }` became `{ data: undefined }`), which
+  could surface as "Cannot return null for non-nullable field" errors when stitching schemas. The
+  accumulator is now initialized as soon as an object source is encountered.
+
 ## 11.1.0
 
 ### Minor Changes

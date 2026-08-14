@@ -161,7 +161,7 @@ var CodegenRunner = /*#__PURE__*/ (function () {
             _step;
 
           try {
-            for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+            for (_iterator.s(); !(_step = _iterator.n()).done;) {
               var _filePath = _step.value;
 
               if (config.isGeneratedFile(_filePath)) {
@@ -338,7 +338,7 @@ var CodegenRunner = /*#__PURE__*/ (function () {
             _step2;
 
           try {
-            for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
+            for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
               var dir = _step2.value;
               var all = [].concat(
                 (0, _toConsumableArray2['default'])(dir.changes.created),
@@ -351,7 +351,7 @@ var CodegenRunner = /*#__PURE__*/ (function () {
                 _step3;
 
               try {
-                for (_iterator3.s(); !(_step3 = _iterator3.n()).done; ) {
+                for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
                   var filename = _step3.value;
 
                   var _filePath2 = dir.getPath(filename);

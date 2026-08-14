@@ -52,7 +52,7 @@ var StrictMap = /*#__PURE__*/ (function () {
       _step;
 
     try {
-      for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
         var _step$value = _step.value,
           key = _step$value[0],
           val = _step$value[1];
@@ -88,7 +88,7 @@ var StrictMap = /*#__PURE__*/ (function () {
           );
         };
 
-        for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
           _loop();
         }
       } catch (err) {

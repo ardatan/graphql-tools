@@ -80,7 +80,7 @@ function applyFragmentArgumentTransform(context) {
     _step;
 
   try {
-    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
       var pendingFragment = _step.value;
 
       if (pendingFragment.kind === 'resolved' && pendingFragment.value) {

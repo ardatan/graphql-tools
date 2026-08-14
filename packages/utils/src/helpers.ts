@@ -78,9 +78,9 @@ export function isDocumentString(str: any): boolean {
   return false;
 }
 
-const invalidPathRegex = /[‘“!%^<>`\n]/;
+const invalidPathRegex = /[‘“!^<>`\n]/;
 /**
- * Checkes whether the `str` contains any path illegal characters.
+ * Checks whether the `str` contains any path illegal characters.
  *
  * A string may sometimes look like a path but is not (like an SDL of a simple
  * GraphQL schema). To make sure we don't yield false-positives in such cases,

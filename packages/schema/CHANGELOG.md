@@ -1,5 +1,88 @@
 # @graphql-tools/schema
 
+## 10.1.0
+
+### Minor Changes
+
+- [#8346](https://github.com/ardatan/graphql-tools/pull/8346)
+  [`2273c21`](https://github.com/ardatan/graphql-tools/commit/2273c21960fa12b59f7793c01ee024b1cef002e6)
+  Thanks [@ardatan](https://github.com/ardatan)! - This release adds GraphQL v17 support and aligns
+  the existing executor implementation with the latest GraphQL v17 API changes. The following
+  changes are included:
+
+  - `getAsyncHelpers` is now available on `GraphQLResolveInfo`. Its `track` method is used whenever
+    `waitUntil` is available, as in Yoga's
+    [Explicit Resource Management](https://the-guild.dev/graphql/yoga-server/docs/features/explicit-resource-management)
+  - `getAbortSignal` is now available on `GraphQLResolveInfo`, matching behavior that was already
+    available in this executor implementation, as in Yoga's
+    [Execution Cancellation](https://the-guild.dev/graphql/yoga-server/docs/features/execution-cancellation)
+  - `GraphQLResolveInfo` automatically aligns `variableValues` according to the GraphQL version for
+    better compatibility. In GraphQL v17 and above, `variableValues` follows the wrapped shape
+    (`{ coerced, sources }`) expected by GraphQL APIs. In GraphQL v16 and below, `variableValues`
+    remains a flat map as in previous versions.
+  - If your custom scalar resolvers define `__serialize` and `__parseValue`, they are automatically
+    mapped to `coerceOutputValue` and `coerceInputValue` in GraphQL v17.
+  - **BREAKING**: `@graphql-tools/executor`'s `getVariableValues` now returns `{ variableValues }`
+    on success, where `variableValues` is a `VariableValues` object (`{ coerced, sources }`). On
+    failure, it returns `{ errors }`.
+  - **BREAKING**: `collectFields`, `shouldIncludeNode`, `getDeferValues`, and `collectSubFields` now
+    need a `VariableValues` object instead of `Record<string, any>` for the `variableValues`
+    argument.
+  - `visitResult` now internally normalizes `ExecutionRequest.variables` into a
+    `VariableValues`-compatible shape (`{ coerced, sources }`) before traversing selections.
+
+### Patch Changes
+
+- Updated dependencies
+  [[`2273c21`](https://github.com/ardatan/graphql-tools/commit/2273c21960fa12b59f7793c01ee024b1cef002e6),
+  [`7fe0319`](https://github.com/ardatan/graphql-tools/commit/7fe031971b7eccf8c5cfdef4a924fc681c7c6561)]:
+  - @graphql-tools/utils@12.0.0
+  - @graphql-tools/merge@9.2.3
+
+## 10.0.38
+
+### Patch Changes
+
+- Updated dependencies
+  [[`e90719b`](https://github.com/ardatan/graphql-tools/commit/e90719baf08bf1aa7b372759dd197ac27e71dc64)]:
+  - @graphql-tools/utils@11.2.2
+  - @graphql-tools/merge@9.2.2
+
+## 10.0.37
+
+### Patch Changes
+
+- Updated dependencies
+  [[`615c1a2`](https://github.com/ardatan/graphql-tools/commit/615c1a27f2a379eac74127815effc8e062bdc47c)]:
+  - @graphql-tools/utils@11.2.1
+  - @graphql-tools/merge@9.2.1
+
+## 10.0.36
+
+### Patch Changes
+
+- Updated dependencies
+  [[`79f1998`](https://github.com/ardatan/graphql-tools/commit/79f19988693716d7a80209194510730e3d28e1d8)]:
+  - @graphql-tools/merge@9.2.0
+
+## 10.0.35
+
+### Patch Changes
+
+- Updated dependencies
+  [[`2609c94`](https://github.com/ardatan/graphql-tools/commit/2609c94954bff598f0d38aac629a2ec955adbc44)]:
+  - @graphql-tools/utils@11.2.0
+  - @graphql-tools/merge@9.1.11
+
+## 10.0.34
+
+### Patch Changes
+
+- Updated dependencies
+  [[`981d461`](https://github.com/ardatan/graphql-tools/commit/981d4618e16c2697a19c96b55d5f84186079f63d)]:
+  - @graphql-tools/utils@11.1.1
+  - @graphql-tools/merge@9.1.10
+
 ## 10.0.33
 
 ### Patch Changes
