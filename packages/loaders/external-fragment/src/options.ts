@@ -3,10 +3,10 @@ import type { BaseLoaderOptions } from '@graphql-tools/utils';
 
 export interface MonorepoFragmentLoaderOptions extends BaseLoaderOptions {
   /**
-   * Absolute path to the root package directory whose fragments we're resolving.
+   * Absolute path to the target package directory whose fragments we're resolving.
    * This is the package that has missing fragment spreads referencing other packages.
    */
-  targetPackageDir: string;
+  packageDir: string;
 
   /**
    * Directories where dependency packages can be found.
@@ -36,7 +36,7 @@ export interface MonorepoFragmentLoaderOptions extends BaseLoaderOptions {
 
   /**
    * Filter function to decide which dependencies from package.json
-   * should be considered as potential monorepo packages.
+   * should be considered as potential packages with fragments.
    * Return true to include the dependency in the search.
    * @default () => true (all dependencies are considered)
    *
@@ -51,7 +51,7 @@ export interface MonorepoFragmentLoaderOptions extends BaseLoaderOptions {
    *
    * @example (content) => content.includes('from "@apollo/client"')
    */
-  sourceFileFilter?: (content: string, filePath: string) => boolean;
+  fileContentFilter?: (content: string, filePath: string) => boolean;
 
   /**
    * Whether to include devDependencies when scanning for transitive deps.

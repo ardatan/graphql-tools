@@ -11,7 +11,7 @@ describe('MonorepoFragmentLoader', () => {
   describe('resolveMonorepoFragments', () => {
     it('should resolve direct fragment dependency from a sibling package', async () => {
       const result = await resolveMonorepoFragments({
-        targetPackageDir: path.join(FIXTURES_DIR, 'package-a'),
+        packageDir: path.join(FIXTURES_DIR, 'package-a'),
         externalPackagesDirs: [FIXTURES_DIR],
       });
 
@@ -27,7 +27,7 @@ describe('MonorepoFragmentLoader', () => {
 
     it('should resolve transitive fragment dependencies (fragments that spread other external fragments)', async () => {
       const result = await resolveMonorepoFragments({
-        targetPackageDir: path.join(FIXTURES_DIR, 'package-a'),
+        packageDir: path.join(FIXTURES_DIR, 'package-a'),
         externalPackagesDirs: [FIXTURES_DIR],
       });
 
@@ -39,7 +39,7 @@ describe('MonorepoFragmentLoader', () => {
 
     it('should return empty array when no external fragments are needed', async () => {
       const result = await resolveMonorepoFragments({
-        targetPackageDir: path.join(FIXTURES_DIR, 'package-c'),
+        packageDir: path.join(FIXTURES_DIR, 'package-c'),
         externalPackagesDirs: [FIXTURES_DIR],
       });
 
@@ -51,7 +51,7 @@ describe('MonorepoFragmentLoader', () => {
       // won't be found in transitive deps. This should throw.
       await expect(
         resolveMonorepoFragments({
-          targetPackageDir: path.join(FIXTURES_DIR, 'package-a'),
+          packageDir: path.join(FIXTURES_DIR, 'package-a'),
           externalPackagesDirs: [FIXTURES_DIR],
           externalPackageNameFilter: name => name === 'package-b',
         }),
@@ -63,7 +63,7 @@ describe('MonorepoFragmentLoader', () => {
     it('should throw on duplicate fragments across dependencies', async () => {
       await expect(
         resolveMonorepoFragments({
-          targetPackageDir: path.join(FIXTURES_DUP_DIR, 'pkg-main'),
+          packageDir: path.join(FIXTURES_DUP_DIR, 'pkg-main'),
           externalPackagesDirs: [FIXTURES_DUP_DIR],
         }),
       ).rejects.toThrow('Duplicate fragment "ItemFields"');
@@ -74,7 +74,7 @@ describe('MonorepoFragmentLoader', () => {
       // when we set filter to reject package-c
       await expect(
         resolveMonorepoFragments({
-          targetPackageDir: path.join(FIXTURES_DIR, 'package-b'),
+          packageDir: path.join(FIXTURES_DIR, 'package-b'),
           externalPackagesDirs: [FIXTURES_DIR],
           externalPackageNameFilter: name => name !== 'package-c',
         }),
@@ -85,7 +85,7 @@ describe('MonorepoFragmentLoader', () => {
   describe('loader interface', () => {
     it('should return Source objects with document and location', async () => {
       const sources = await loader.load('.', {
-        targetPackageDir: path.join(FIXTURES_DIR, 'package-a'),
+        packageDir: path.join(FIXTURES_DIR, 'package-a'),
         externalPackagesDirs: [FIXTURES_DIR],
       });
 
@@ -100,7 +100,7 @@ describe('MonorepoFragmentLoader', () => {
 
     it('should work synchronously via loadSync', () => {
       const sources = loader.loadSync('.', {
-        targetPackageDir: path.join(FIXTURES_DIR, 'package-a'),
+        packageDir: path.join(FIXTURES_DIR, 'package-a'),
         externalPackagesDirs: [FIXTURES_DIR],
       });
 
@@ -113,7 +113,7 @@ describe('MonorepoFragmentLoader', () => {
   describe('TypeScript code files', () => {
     it('should resolve fragments from .ts files using CodeFileLoader', async () => {
       const result = await resolveMonorepoFragments({
-        targetPackageDir: path.join(FIXTURES_TS_DIR, 'app'),
+        packageDir: path.join(FIXTURES_TS_DIR, 'app'),
         externalPackagesDirs: [FIXTURES_TS_DIR],
         extensions: ['ts', 'tsx', 'js', 'jsx'],
       });
@@ -126,24 +126,24 @@ describe('MonorepoFragmentLoader', () => {
     });
   });
 
-  describe('sourceFileFilter option', () => {
+  describe('fileContentFilter option', () => {
     it('should skip files that do not pass the filter', async () => {
       const result = await resolveMonorepoFragments({
-        targetPackageDir: path.join(FIXTURES_TS_DIR, 'app'),
+        packageDir: path.join(FIXTURES_TS_DIR, 'app'),
         externalPackagesDirs: [FIXTURES_TS_DIR],
         extensions: ['ts', 'tsx', 'js', 'jsx'],
-        sourceFileFilter: content => content.includes('graphql-tag'),
+        fileContentFilter: content => content.includes('graphql-tag'),
       });
 
       expect(result.length).toBe(1);
     });
 
-    it('should return empty when sourceFileFilter rejects all files in root', async () => {
+    it('should return empty when fileContentFilter rejects all files in root', async () => {
       const result = await resolveMonorepoFragments({
-        targetPackageDir: path.join(FIXTURES_TS_DIR, 'app'),
+        packageDir: path.join(FIXTURES_TS_DIR, 'app'),
         externalPackagesDirs: [FIXTURES_TS_DIR],
         extensions: ['ts', 'tsx', 'js', 'jsx'],
-        sourceFileFilter: () => false,
+        fileContentFilter: () => false,
       });
 
       expect(result).toEqual([]);
@@ -157,7 +157,7 @@ describe('MonorepoFragmentLoader', () => {
 
     it('should return cached results on second call', async () => {
       const opts = {
-        targetPackageDir: path.join(FIXTURES_DIR, 'package-a'),
+        packageDir: path.join(FIXTURES_DIR, 'package-a'),
         externalPackagesDirs: [FIXTURES_DIR],
       };
 
@@ -169,7 +169,7 @@ describe('MonorepoFragmentLoader', () => {
 
     it('should invalidate root package cache when invalidateRootPackageCache is set', async () => {
       const opts = {
-        targetPackageDir: path.join(FIXTURES_DIR, 'package-a'),
+        packageDir: path.join(FIXTURES_DIR, 'package-a'),
         externalPackagesDirs: [FIXTURES_DIR],
         invalidateRootPackageCache: true,
       };
@@ -183,14 +183,14 @@ describe('MonorepoFragmentLoader', () => {
 
     it('clearCache should reset all caches', async () => {
       await resolveMonorepoFragments({
-        targetPackageDir: path.join(FIXTURES_DIR, 'package-a'),
+        packageDir: path.join(FIXTURES_DIR, 'package-a'),
         externalPackagesDirs: [FIXTURES_DIR],
       });
 
       clearCache();
 
       const result = await resolveMonorepoFragments({
-        targetPackageDir: path.join(FIXTURES_DIR, 'package-a'),
+        packageDir: path.join(FIXTURES_DIR, 'package-a'),
         externalPackagesDirs: [FIXTURES_DIR],
       });
       expect(result.length).toBe(2);

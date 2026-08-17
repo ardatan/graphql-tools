@@ -21,9 +21,10 @@ const { readFile } = fsPromises;
  *
  * ```js
  * const sources = await loader.load('.', {
- *   targetPackageDir: '/path/to/my-package',
+ *   packageDir: '/path/to/my-package',
  *   externalPackagesDirs: ['/path/to/monorepo/packages'],
  *   externalPackageNameFilter: name => name.startsWith('@my-org/'),
+ *   fileContentFilter: content => content.includes('from "@apollo/client"')
  * });
  * ```
  */
@@ -35,7 +36,7 @@ const { readFile } = fsPromises;
  * externalDocuments:
  *   '.':
  *     loader: '@graphql-tools/external-fragment-loader'
- *     targetPackageDir: ./packages/my-package
+ *     packageDir: ./packages/my-package
  *     externalPackagesDirs:
  *       - ./packages
  * ```
@@ -60,7 +61,7 @@ export default async function monorepoFragmentLoader(
 export class MonorepoFragmentLoader implements Loader<MonorepoFragmentLoaderOptions> {
   async load(_pointer: string, options: MonorepoFragmentLoaderOptions): Promise<Source[]> {
     const resolvedFiles = await resolveMonorepoFragments({
-      targetPackageDir: options.targetPackageDir,
+      packageDir: options.packageDir,
       externalPackagesDirs: options.externalPackagesDirs,
       externalPackageNameFilter: options.externalPackageNameFilter,
       includeDevDependencies: options.includeDevDependencies,
@@ -68,7 +69,7 @@ export class MonorepoFragmentLoader implements Loader<MonorepoFragmentLoaderOpti
       extensions: options.extensions,
       excludePatterns: options.excludePatterns,
       pluckConfig: options.pluckConfig,
-      sourceFileFilter: options.sourceFileFilter,
+      fileContentFilter: options.fileContentFilter,
       cacheTTL: options.cacheTTL,
       invalidateRootPackageCache: options.invalidateRootPackageCache,
     });
@@ -88,7 +89,7 @@ export class MonorepoFragmentLoader implements Loader<MonorepoFragmentLoaderOpti
 
   loadSync(_pointer: string, options: MonorepoFragmentLoaderOptions): Source[] {
     const resolvedFiles = resolveMonorepoFragmentsSync({
-      targetPackageDir: options.targetPackageDir,
+      packageDir: options.packageDir,
       externalPackagesDirs: options.externalPackagesDirs,
       externalPackageNameFilter: options.externalPackageNameFilter,
       includeDevDependencies: options.includeDevDependencies,
@@ -96,7 +97,7 @@ export class MonorepoFragmentLoader implements Loader<MonorepoFragmentLoaderOpti
       extensions: options.extensions,
       excludePatterns: options.excludePatterns,
       pluckConfig: options.pluckConfig,
-      sourceFileFilter: options.sourceFileFilter,
+      fileContentFilter: options.fileContentFilter,
       cacheTTL: options.cacheTTL,
       invalidateRootPackageCache: options.invalidateRootPackageCache,
     });

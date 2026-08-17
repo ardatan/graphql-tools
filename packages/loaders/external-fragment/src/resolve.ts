@@ -29,7 +29,7 @@ export interface ResolvedExternalFile {
 }
 
 export interface MonorepoFragmentResolverOptions {
-  targetPackageDir: string;
+  packageDir: string;
   externalPackagesDirs: string[];
   externalPackageNameFilter?: (packageName: string) => boolean;
   includeDevDependencies?: boolean;
@@ -37,7 +37,7 @@ export interface MonorepoFragmentResolverOptions {
   extensions?: string[];
   excludePatterns?: string[];
   pluckConfig?: GraphQLTagPluckOptions;
-  sourceFileFilter?: (content: string, filePath: string) => boolean;
+  fileContentFilter?: (content: string, filePath: string) => boolean;
   cacheTTL?: number;
   invalidateRootPackageCache?: boolean;
 }
@@ -107,7 +107,7 @@ function buildPackageFragmentMapRaw(
   extensions: string[],
   excludePatterns: string[],
   pluckConfig?: GraphQLTagPluckOptions,
-  sourceFileFilter?: (content: string, filePath: string) => boolean,
+  fileContentFilter?: (content: string, filePath: string) => boolean,
 ): PackageFragmentMap {
   const fragments = new Map<string, { filePath: string; typeCondition: string }>();
   const spreadsPerFile = new Map<string, Set<string>>();
@@ -131,7 +131,7 @@ function buildPackageFragmentMapRaw(
 
   for (const filePath of allFiles) {
     const content = readFileSync(filePath, 'utf8');
-    if (sourceFileFilter && !sourceFileFilter(content, filePath)) continue;
+    if (fileContentFilter && !fileContentFilter(content, filePath)) continue;
 
     const info = extractFragmentsAndSpreads(filePath, content, pluckConfig);
 
@@ -153,7 +153,7 @@ async function buildPackageFragmentMapAsyncRaw(
   extensions: string[],
   excludePatterns: string[],
   pluckConfig?: GraphQLTagPluckOptions,
-  sourceFileFilter?: (content: string, filePath: string) => boolean,
+  fileContentFilter?: (content: string, filePath: string) => boolean,
 ): Promise<PackageFragmentMap> {
   const fragments = new Map<string, { filePath: string; typeCondition: string }>();
   const spreadsPerFile = new Map<string, Set<string>>();
@@ -182,7 +182,7 @@ async function buildPackageFragmentMapAsyncRaw(
   await Promise.all(
     allFiles.map(async filePath => {
       const content = await readFile(filePath, 'utf8');
-      if (sourceFileFilter && !sourceFileFilter(content, filePath)) return;
+      if (fileContentFilter && !fileContentFilter(content, filePath)) return;
 
       const info = extractFragmentsAndSpreads(filePath, content, pluckConfig);
 
@@ -437,7 +437,7 @@ function getTransitiveDeps(
   filter: (name: string) => boolean,
   includeDevDependencies: boolean,
 ): Set<string> {
-  const packageJsonPath = join(options.targetPackageDir, 'package.json');
+  const packageJsonPath = join(options.packageDir, 'package.json');
   const rootDeps = readPackageJsonDeps(packageJsonPath, includeDevDependencies);
   const filteredRootDeps = rootDeps.filter(filter);
 
@@ -497,28 +497,25 @@ export async function resolveMonorepoFragments(
 
   if (invalidateRootPackageCache) {
     buildPackageFragmentMapAsync.delete(
-      options.targetPackageDir,
+      options.packageDir,
       scanInternalDirs,
       extensions,
       excludePatterns,
       options.pluckConfig,
-      options.sourceFileFilter,
+      options.fileContentFilter,
     );
-    readPackageJsonDeps.delete(
-      join(options.targetPackageDir, 'package.json'),
-      includeDevDependencies,
-    );
+    readPackageJsonDeps.delete(join(options.packageDir, 'package.json'), includeDevDependencies);
   }
 
-  const rootPackageName = getPackageNameFromDir(options.targetPackageDir);
+  const rootPackageName = getPackageNameFromDir(options.packageDir);
 
   const rootMap = await buildPackageFragmentMapAsync(
-    options.targetPackageDir,
+    options.packageDir,
     scanInternalDirs,
     extensions,
     excludePatterns,
     options.pluckConfig,
-    options.sourceFileFilter,
+    options.fileContentFilter,
   );
 
   const missingFragments = findMissingFragments(rootMap);
@@ -550,7 +547,7 @@ export async function resolveMonorepoFragments(
         extensions,
         excludePatterns,
         options.pluckConfig,
-        options.sourceFileFilter,
+        options.fileContentFilter,
       );
       depMaps.set(depName, map);
     }),
@@ -580,28 +577,25 @@ export function resolveMonorepoFragmentsSync(
 
   if (invalidateRootPackageCache) {
     buildPackageFragmentMap.delete(
-      options.targetPackageDir,
+      options.packageDir,
       scanInternalDirs,
       extensions,
       excludePatterns,
       options.pluckConfig,
-      options.sourceFileFilter,
+      options.fileContentFilter,
     );
-    readPackageJsonDeps.delete(
-      join(options.targetPackageDir, 'package.json'),
-      includeDevDependencies,
-    );
+    readPackageJsonDeps.delete(join(options.packageDir, 'package.json'), includeDevDependencies);
   }
 
-  const rootPackageName = getPackageNameFromDir(options.targetPackageDir);
+  const rootPackageName = getPackageNameFromDir(options.packageDir);
 
   const rootMap = buildPackageFragmentMap(
-    options.targetPackageDir,
+    options.packageDir,
     scanInternalDirs,
     extensions,
     excludePatterns,
     options.pluckConfig,
-    options.sourceFileFilter,
+    options.fileContentFilter,
   );
 
   const missingFragments = findMissingFragments(rootMap);
@@ -632,7 +626,7 @@ export function resolveMonorepoFragmentsSync(
       extensions,
       excludePatterns,
       options.pluckConfig,
-      options.sourceFileFilter,
+      options.fileContentFilter,
     );
     depMaps.set(depName, map);
   }
