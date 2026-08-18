@@ -74,7 +74,7 @@
     "@urql/core": "6.0.3",
     "babel-jest": "30.4.1",
     "bob-the-bundler": "7.0.1",
-    "concurrently": "10.0.4",
+    "concurrently": "10.0.5",
     "cookie": "2.0.1",
     "cross-env": "10.1.0",
     "eslint": "10.8.0",
