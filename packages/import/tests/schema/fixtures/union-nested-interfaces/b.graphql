@@ -1,0 +1,24 @@
+interface I {
+  c4: ID
+}
+
+type C2 {
+  c2: C3
+}
+
+union C3 = C4 | C5
+
+type C4 implements I {
+  c4: ID
+}
+
+type C5 {
+  C5: ID
+}
+
+union Pet = C4 | C5
+
+type Foo {
+  pet: Pet
+  nested: C2
+}

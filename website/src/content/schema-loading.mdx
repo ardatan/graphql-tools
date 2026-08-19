@@ -90,6 +90,11 @@ main()
 
 ### Using `#import` Expression
 
+<Callout>
+  `#import` / `# import` lines can appear anywhere in the file. A heading comment or license block
+  above them is fine.
+</Callout>
+
 Assume the following directory structure:
 
 ```text
@@ -143,6 +148,14 @@ type Comment {
   id: ID!
   text: String!
 }
+```
+
+`#import` can also resolve npm packages (and other `require.resolve` specifiers) with a `require:`
+prefix, from the importing file's directory:
+
+```graphql
+# import Post, Comment from "require:blog-graphql-types/schema.graphql"
+# import Shared from "require:./shared.graphql"
 ```
 
 ### Binding to HTTP Server

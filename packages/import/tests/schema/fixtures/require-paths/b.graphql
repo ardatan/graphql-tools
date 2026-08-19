@@ -1,0 +1,5 @@
+# import A from "require:./a.graphql"
+
+type B {
+  a: A
+}
