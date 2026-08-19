@@ -1,0 +1,8 @@
+type PilatesInstructor @key(fields: "appointmentInstanceId") {
+  appointmentInstanceId: String!
+  firstName: String
+}
+
+type UnusedWithoutKey {
+  firstName: String
+}

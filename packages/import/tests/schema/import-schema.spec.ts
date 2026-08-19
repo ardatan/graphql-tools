@@ -608,6 +608,22 @@ describe('importSchema', () => {
     expect(importSchema('./fixtures/require-paths/b.graphql')).toBeSimilarGqlDoc(expectedSDL);
   });
 
+  test('import * keeps unreferenced federation @key types (#4894)', () => {
+    const expectedSDL = /* GraphQL */ `
+      interface GraphQLError {
+        message: String!
+      }
+
+      type PilatesInstructor @key(fields: "appointmentInstanceId") {
+        appointmentInstanceId: String!
+        firstName: String
+      }
+    `;
+    expect(importSchema('./fixtures/import-star-federation-key/a.graphql')).toBeSimilarGqlDoc(
+      expectedSDL,
+    );
+  });
+
   test('importSchema: interface field typed as an implementer (#8383 review)', () => {
     const expectedSDL = /* GraphQL */ `
       interface Animal {

@@ -47,6 +47,8 @@ const builtinTypes = ['String', 'Float', 'Int', 'Boolean', 'ID', 'Upload'];
 
 const federationV1Directives = ['key', 'provides', 'requires', 'external'];
 
+const federationEntityDirectives = ['key', 'federation__key'];
+
 const builtinDirectives = [
   'deprecated',
   'skip',
@@ -218,13 +220,8 @@ function visitFile(
     // To prevent circular dependency
     visitedFiles.set(filePath, fileDefinitionMap);
 
-    const { allImportedDefinitionsMap, potentialTransitiveDefinitionsMap } = processImports(
-      importLines,
-      filePath,
-      visitedFiles,
-      predefinedImports,
-      pathAliases,
-    );
+    const { allImportedDefinitionsMap, potentialTransitiveDefinitionsMap, hasWildcardImport } =
+      processImports(importLines, filePath, visitedFiles, predefinedImports, pathAliases);
 
     // `visitedFiles.get(filePath)` is invariant for the duration of this call,
     // and `addDefinition` recurses across the entire dependency graph, so hoist
@@ -358,6 +355,9 @@ function visitFile(
               }
             }
           }
+        }
+        if (hasWildcardImport) {
+          addImportedFederationEntities(fileDefinitionMap, allImportedDefinitionsMap);
         }
       }
     }
@@ -698,9 +698,11 @@ export function processImports(
 ): {
   allImportedDefinitionsMap: Map<string, Set<DefinitionNode>>;
   potentialTransitiveDefinitionsMap: Map<string, Set<DefinitionNode>>;
+  hasWildcardImport: boolean;
 } {
   const potentialTransitiveDefinitionsMap = new Map<string, Set<DefinitionNode>>();
   const allImportedDefinitionsMap = new Map<string, Set<DefinitionNode>>();
+  let hasWildcardImport = false;
   for (const line of importLines) {
     const { imports, from } = parseImportLine(line.replace('#', '').trim());
     const importFileDefinitionMap = visitFile(
@@ -729,6 +731,7 @@ export function processImports(
     buildFullDefinitionMap(potentialTransitiveDefinitionsMap);
 
     if (imports.includes('*')) {
+      hasWildcardImport = true;
       buildFullDefinitionMap(allImportedDefinitionsMap);
     } else {
       for (let importedDefinitionName of imports) {
@@ -755,7 +758,38 @@ export function processImports(
       }
     }
   }
-  return { allImportedDefinitionsMap, potentialTransitiveDefinitionsMap };
+  return { allImportedDefinitionsMap, potentialTransitiveDefinitionsMap, hasWildcardImport };
+}
+
+function hasFederationEntityDirective(definition: DefinitionNode): boolean {
+  if (!('directives' in definition) || definition.directives == null) {
+    return false;
+  }
+  return definition.directives.some(directive =>
+    federationEntityDirectives.includes(directive.name.value),
+  );
+}
+
+function addImportedFederationEntities(
+  fileDefinitionMap: Map<string, Set<DefinitionNode>>,
+  allImportedDefinitionsMap: Map<string, Set<DefinitionNode>>,
+): void {
+  for (const [importedName, importedDefs] of allImportedDefinitionsMap) {
+    if (importedName.includes('.')) {
+      continue;
+    }
+    if (![...importedDefs].some(hasFederationEntityDirective)) {
+      continue;
+    }
+    let target = fileDefinitionMap.get(importedName);
+    if (target == null) {
+      target = new Set();
+      fileDefinitionMap.set(importedName, target);
+    }
+    for (const importedDefinition of importedDefs) {
+      target.add(importedDefinition);
+    }
+  }
 }
 
 /**
