@@ -643,6 +643,21 @@ type Query {
     );
   });
 
+  test('import * keeps unreferenced types with aliased federation @key', () => {
+    const expectedSDL = /* GraphQL */ `
+      interface GraphQLError {
+        message: String!
+      }
+
+      type User @entityKey(fields: "id") {
+        id: ID!
+      }
+    `;
+    expect(importSchema('./fixtures/import-star-federation-key-alias/a.graphql')).toBeSimilarGqlDoc(
+      expectedSDL,
+    );
+  });
+
   test('importSchema: interface field typed as an implementer (#8383 review)', () => {
     const expectedSDL = /* GraphQL */ `
       interface Animal {

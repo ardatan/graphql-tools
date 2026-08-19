@@ -4,5 +4,5 @@ type PilatesInstructor @key(fields: "appointmentInstanceId") {
 }
 
 type UnusedWithoutKey {
-  firstName: String
+  instructor: PilatesInstructor
 }

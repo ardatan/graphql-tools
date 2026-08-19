@@ -761,24 +761,58 @@ export function processImports(
   return { allImportedDefinitionsMap, potentialTransitiveDefinitionsMap, hasWildcardImport };
 }
 
-function hasFederationEntityDirective(definition: DefinitionNode): boolean {
+function collectFederationKeyDirectiveNames(
+  allImportedDefinitionsMap: Map<string, Set<DefinitionNode>>,
+): Set<string> {
+  const names = new Set(federationEntityDirectives);
+  const federationUrl = 'https://specs.apollo.dev/federation';
+  for (const importedDefs of allImportedDefinitionsMap.values()) {
+    for (const definition of importedDefs) {
+      if (definition.kind !== Kind.SCHEMA_DEFINITION && definition.kind !== Kind.SCHEMA_EXTENSION) {
+        continue;
+      }
+      const { matchesImplementation, resolveImportName } = extractLinkImplementations({
+        kind: Kind.DOCUMENT,
+        definitions: [definition],
+      });
+      if (!matchesImplementation(federationUrl, 'v2.0')) {
+        continue;
+      }
+      names.add(resolveImportName(federationUrl, '@key').replace(/^@/, ''));
+    }
+  }
+  return names;
+}
+
+function hasFederationEntityDirective(
+  definition: DefinitionNode,
+  keyDirectiveNames: Set<string>,
+): boolean {
+  if (!('name' in definition) || !definition.name) {
+    return false;
+  }
   if (!('directives' in definition) || definition.directives == null) {
     return false;
   }
-  return definition.directives.some(directive =>
-    federationEntityDirectives.includes(directive.name.value),
-  );
+  return definition.directives.some(directive => keyDirectiveNames.has(directive.name.value));
 }
 
 function addImportedFederationEntities(
   fileDefinitionMap: Map<string, Set<DefinitionNode>>,
   allImportedDefinitionsMap: Map<string, Set<DefinitionNode>>,
 ): void {
+  const keyDirectiveNames = collectFederationKeyDirectiveNames(allImportedDefinitionsMap);
   for (const [importedName, importedDefs] of allImportedDefinitionsMap) {
     if (importedName.includes('.')) {
       continue;
     }
-    if (![...importedDefs].some(hasFederationEntityDirective)) {
+    const isEntity = [...importedDefs].some(
+      definition =>
+        'name' in definition &&
+        definition.name?.value === importedName &&
+        hasFederationEntityDirective(definition, keyDirectiveNames),
+    );
+    if (!isEntity) {
       continue;
     }
     let target = fileDefinitionMap.get(importedName);
