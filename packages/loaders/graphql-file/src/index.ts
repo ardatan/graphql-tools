@@ -4,7 +4,7 @@ import { env, cwd as processCwd } from 'process';
 import type { GlobbyOptions } from 'globby';
 import globby from 'globby';
 import unixify from 'unixify';
-import { PathAliases, processImport } from '@graphql-tools/import';
+import { extractImportLines, PathAliases, processImport } from '@graphql-tools/import';
 import {
   asArray,
   BaseLoaderOptions,
@@ -42,8 +42,7 @@ export interface GraphQLFileLoaderOptions extends BaseLoaderOptions {
 }
 
 function isGraphQLImportFile(rawSDL: string) {
-  const trimmedRawSDL = rawSDL.trim();
-  return trimmedRawSDL.startsWith('# import') || trimmedRawSDL.startsWith('#import');
+  return extractImportLines(rawSDL).importLines.length > 0;
 }
 
 function createGlobbyOptions(options: GraphQLFileLoaderOptions): GlobbyOptions {

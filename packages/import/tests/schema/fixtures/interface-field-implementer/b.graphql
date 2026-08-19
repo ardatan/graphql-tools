@@ -1,0 +1,12 @@
+interface Animal {
+  favorite: Cat
+}
+
+type Cat implements Animal {
+  name: String
+  favorite: Cat
+}
+
+type Foo {
+  animal: Animal
+}

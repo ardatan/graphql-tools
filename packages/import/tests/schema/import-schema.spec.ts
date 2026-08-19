@@ -109,6 +109,13 @@ describe('importSchema', () => {
     });
   });
 
+  test('parseImportLine: default import with leading space (#3837)', () => {
+    expect(parseImportLine(` import "./ProfileForm.graphql"`)).toEqual({
+      imports: ['*'],
+      from: './ProfileForm.graphql',
+    });
+  });
+
   test('parseSDL: non-import comment', () => {
     expect(parseSDL(`#important: comment`)).toEqual([]);
   });
@@ -599,6 +606,30 @@ describe('importSchema', () => {
       }
     `;
     expect(importSchema('./fixtures/require-paths/b.graphql')).toBeSimilarGqlDoc(expectedSDL);
+  });
+
+  test('importSchema: interface field typed as an implementer (#8383 review)', () => {
+    const expectedSDL = /* GraphQL */ `
+      interface Animal {
+        favorite: Cat
+      }
+
+      type Cat implements Animal {
+        name: String
+        favorite: Cat
+      }
+
+      type Foo {
+        animal: Animal
+      }
+
+      type Query {
+        foo: Foo
+      }
+    `;
+    expect(importSchema('./fixtures/interface-field-implementer/a.graphql')).toBeSimilarGqlDoc(
+      expectedSDL,
+    );
   });
 
   test('importSchema: interfaces-many', () => {

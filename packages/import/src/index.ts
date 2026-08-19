@@ -639,43 +639,50 @@ function getFileDefinitionMap(
   dependenciesByDefinitionName: DependenciesByDefinitionName,
 ): Map<string, Set<DefinitionNode>> {
   const reverseInterfaceDependencies = collectReverseInterfaceDependencies(definitionsByName);
-  const fileDefinitionMap = new Map<string, Set<DefinitionNode>>();
 
+  // One forward-only fixpoint for the whole file so field-level keys
+  // (`Type.field`) reuse the same closures instead of repeating BFS.
+  const forwardClosure = new Map<string, Set<DefinitionNode>>();
   for (const [definitionName, definitions] of definitionsByName) {
-    const definitionsWithDependencies = new Set<DefinitionNode>(definitions);
-    const pending: string[] = [];
-    const seenNames = new Set<string>([definitionName]);
-
-    const enqueueDependencies = (name: string, includeReverse: boolean) => {
-      const dependenciesOfDefinition = dependenciesByDefinitionName.get(name);
+    forwardClosure.set(definitionName, new Set(definitions));
+  }
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const [definitionName, definitions] of forwardClosure) {
+      const dependenciesOfDefinition = dependenciesByDefinitionName.get(definitionName);
       if (dependenciesOfDefinition == null) {
-        return;
-      }
-      const reverseNames = reverseInterfaceDependencies.get(name);
-      for (const dependencyName of dependenciesOfDefinition.keys()) {
-        if (!includeReverse && reverseNames?.has(dependencyName)) {
-          continue;
-        }
-        pending.push(dependencyName);
-      }
-    };
-
-    enqueueDependencies(definitionName, true);
-    while (pending.length > 0) {
-      const dependencyName = pending.pop()!;
-      if (seenNames.has(dependencyName)) {
         continue;
       }
-      seenNames.add(dependencyName);
-      const dependencyDefinitions = definitionsByName.get(dependencyName);
-      if (dependencyDefinitions != null) {
-        for (const dependencyDefinition of dependencyDefinitions) {
-          definitionsWithDependencies.add(dependencyDefinition);
+      for (const dependencyName of dependenciesOfDefinition.keys()) {
+        const nested = forwardClosure.get(dependencyName);
+        if (nested == null) {
+          continue;
+        }
+        for (const nestedDefinition of nested) {
+          if (!definitions.has(nestedDefinition)) {
+            definitions.add(nestedDefinition);
+            changed = true;
+          }
         }
       }
-      enqueueDependencies(dependencyName, false);
     }
+  }
 
+  const fileDefinitionMap = new Map<string, Set<DefinitionNode>>();
+  for (const [definitionName, forwardDefinitions] of forwardClosure) {
+    const definitionsWithDependencies = new Set(forwardDefinitions);
+    const reverseNames = reverseInterfaceDependencies.get(definitionName);
+    if (reverseNames) {
+      for (const implementerName of reverseNames) {
+        const implementerForward = forwardClosure.get(implementerName);
+        if (implementerForward) {
+          for (const definition of implementerForward) {
+            definitionsWithDependencies.add(definition);
+          }
+        }
+      }
+    }
     fileDefinitionMap.set(definitionName, definitionsWithDependencies);
   }
 
@@ -763,7 +770,7 @@ export function extractImportLines(fileContent: string): {
   let otherLines = '';
   for (const line of fileContent.split('\n')) {
     const trimmedLine = line.trim();
-    if (trimmedLine.startsWith('#import ') || trimmedLine.startsWith('# import ')) {
+    if (/^#\s*import\s+/.test(trimmedLine)) {
       importLines.push(trimmedLine);
     } else if (trimmedLine) {
       otherLines += line + '\n';
@@ -779,6 +786,7 @@ export function extractImportLines(fileContent: string): {
  * Throws if the import line does not have a correct format.
  */
 export function parseImportLine(importLine: string): { imports: string[]; from: string } {
+  importLine = importLine.trim();
   let regexMatch = importLine.match(IMPORT_FROM_REGEX);
   if (regexMatch != null) {
     // Apply regex to import line
@@ -958,29 +966,11 @@ function visitFragmentDefinitionNode(node: FragmentDefinitionNode, dependencySet
 }
 
 function addInterfaceDependencies(
-  node: any,
+  node: { name: NameNode; interfaces?: readonly NamedTypeNode[] },
   dependencySet: DependencySet,
-  dependenciesByDefinitionName: DependenciesByDefinitionName,
 ) {
-  // all interfaces should be dependent to each other
-  const allDependencies = [
-    node.name,
-    ...((node as any).interfaces?.map((namedTypeNode: NamedTypeNode) => namedTypeNode.name) || []),
-  ];
-  (node as any).interfaces?.forEach((namedTypeNode: NamedTypeNode) => {
+  node.interfaces?.forEach(namedTypeNode => {
     visitNamedTypeNode(namedTypeNode, dependencySet);
-    const interfaceName = namedTypeNode.name.value;
-    let set = dependenciesByDefinitionName.get(interfaceName);
-    // interface should be dependent to the type as well
-    if (set == null) {
-      set = new Map();
-      dependenciesByDefinitionName.set(interfaceName, set);
-    }
-    allDependencies.forEach(dependency => {
-      if (dependency.value !== interfaceName) {
-        addToDependencySet(set!, dependency);
-      }
-    });
   });
 }
 
@@ -994,7 +984,7 @@ function visitObjectTypeDefinitionNode(
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName),
   );
-  addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
+  addInterfaceDependencies(node, dependencySet);
 }
 
 function visitDirectiveNode(node: DirectiveNode, dependencySet: DependencySet) {
@@ -1080,7 +1070,7 @@ function visitInterfaceTypeDefinitionNode(
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName),
   );
-  addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
+  addInterfaceDependencies(node, dependencySet);
 }
 
 function visitUnionTypeDefinitionNode(node: UnionTypeDefinitionNode, dependencySet: DependencySet) {
@@ -1135,7 +1125,7 @@ function visitObjectTypeExtensionNode(
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName),
   );
-  addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
+  addInterfaceDependencies(node, dependencySet);
 }
 
 function visitInterfaceTypeExtensionNode(
@@ -1148,7 +1138,7 @@ function visitInterfaceTypeExtensionNode(
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName),
   );
-  addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
+  addInterfaceDependencies(node, dependencySet);
 }
 
 function visitUnionTypeExtensionNode(node: UnionTypeExtensionNode, dependencySet: DependencySet) {

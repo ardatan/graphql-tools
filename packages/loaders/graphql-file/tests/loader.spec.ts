@@ -68,6 +68,32 @@ describe('GraphQLFileLoader', () => {
         `);
       });
 
+      it('should process #import after a leading comment (#6995)', async () => {
+        const [result] = await load(getPointer('type-defs-import-after-comment.graphql'), {});
+        expect(print(result.document!)).toBeSimilarGqlDoc(/* GraphQL */ `
+          type Query {
+            a: A
+          }
+
+          type A {
+            b: String
+          }
+        `);
+      });
+
+      it('should accept default # import with a space after # (#3837)', async () => {
+        const [result] = await load(getPointer('type-defs-spaced-default-import.graphql'), {});
+        expect(print(result.document!)).toBeSimilarGqlDoc(/* GraphQL */ `
+          type Query {
+            a: A
+          }
+
+          type A {
+            b: String
+          }
+        `);
+      });
+
       it('should load executable document with #import expression', async () => {
         const [result] = await load(getPointer('executable.graphql'), {});
         expect(print(result.document!)).toBeSimilarGqlDoc(/* GraphQL */ `
