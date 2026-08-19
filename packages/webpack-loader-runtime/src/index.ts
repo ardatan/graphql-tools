@@ -3,7 +3,7 @@ import { DefinitionNode } from 'graphql';
 export const uniqueCode = `
   var names = {};
   function unique(defs) {
-    return defs.filter(function (def) {
+    return (defs || []).filter(function (def) {
       if (def.kind !== 'FragmentDefinition') return true;
       var name = def.name.value;
       if (names[name]) {
@@ -19,7 +19,7 @@ export const uniqueCode = `
 export function useUnique() {
   const names = {};
   return function unique(defs: DefinitionNode[]) {
-    return defs.filter(def => {
+    return (defs || []).filter(def => {
       if (def.kind !== 'FragmentDefinition') return true;
       const name = def.name.value;
       if (names[name]) {

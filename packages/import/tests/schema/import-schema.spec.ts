@@ -552,6 +552,55 @@ describe('importSchema', () => {
     expect(importSchema('./fixtures/union-interfaces/a.graphql')).toBeSimilarGqlDoc(expectedSDL);
   });
 
+  test('importSchema: nested union of types that implement an interface (#5436)', () => {
+    const expectedSDL = /* GraphQL */ `
+      type C2 {
+        c2: C3
+      }
+
+      union C3 = C4 | C5
+
+      type C4 implements I {
+        c4: ID
+      }
+
+      type C5 {
+        C5: ID
+      }
+
+      type Foo {
+        pet: Pet
+        nested: C2
+      }
+
+      interface I {
+        c4: ID
+      }
+
+      union Pet = C4 | C5
+
+      type Query {
+        foo: Foo
+      }
+    `;
+    expect(importSchema('./fixtures/union-nested-interfaces/a.graphql')).toBeSimilarGqlDoc(
+      expectedSDL,
+    );
+  });
+
+  test('require: module paths', () => {
+    const expectedSDL = /* GraphQL */ `
+      type A {
+        field: String
+      }
+
+      type B {
+        a: A
+      }
+    `;
+    expect(importSchema('./fixtures/require-paths/b.graphql')).toBeSimilarGqlDoc(expectedSDL);
+  });
+
   test('importSchema: interfaces-many', () => {
     const expectedSDL = /* GraphQL */ `
       type A implements B {

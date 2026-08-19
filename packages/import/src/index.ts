@@ -1,4 +1,5 @@
 import { readFileSync, realpathSync } from 'fs';
+import { createRequire } from 'module';
 import { dirname, isAbsolute, join } from 'path';
 import {
   DefinitionNode,
@@ -39,7 +40,7 @@ import {
   UnionTypeExtensionNode,
 } from 'graphql';
 import resolveFrom from 'resolve-from';
-import { createGraphQLError, parseGraphQLSDL } from '@graphql-tools/utils';
+import { createGraphQLError, getLeadingCommentBlock, parseGraphQLSDL } from '@graphql-tools/utils';
 import { extractLinkImplementations } from './link/index.js';
 
 const builtinTypes = ['String', 'Float', 'Int', 'Boolean', 'ID', 'Upload'];
@@ -149,23 +150,20 @@ export function processImport(
   );
   const definitionStrSet = new Set<string>();
   let definitionsStr = '';
-  // A single definition node can appear in many of the dependency sets in
-  // `set` — any widely-referenced type is pulled in by every definition that
-  // depends on it — so without memoization `print` runs O(n²) times for n
-  // unique nodes. Printing is the dominant cost for large, densely-connected
-  // schemas, so cache the result per node identity. `print` is a pure function
-  // of its node, so this is output-identical.
-  const printCache = new Map<DefinitionNode, string>();
+  const printCache = new Map<DefinitionNode, { identity: string; withComments: string }>();
   for (const defs of set.values()) {
     for (const def of defs) {
-      let defStr = printCache.get(def);
-      if (defStr === undefined) {
-        defStr = print(def);
-        printCache.set(def, defStr);
+      let cached = printCache.get(def);
+      if (cached === undefined) {
+        cached = {
+          identity: print(def),
+          withComments: printDefinitionWithLeadingComments(def),
+        };
+        printCache.set(def, cached);
       }
-      if (!definitionStrSet.has(defStr)) {
-        definitionStrSet.add(defStr);
-        definitionsStr += defStr + '\n';
+      if (!definitionStrSet.has(cached.identity)) {
+        definitionStrSet.add(cached.identity);
+        definitionsStr += cached.withComments + '\n';
       }
     }
   }
@@ -196,9 +194,13 @@ function visitFile(
   pathAliases?: PathAliases,
 ): Map<string, Set<DefinitionNode>> {
   if (!(filePath in predefinedImports)) {
-    filePath = applyPathAliases(filePath, pathAliases);
-    if (!isAbsolute(filePath)) {
-      filePath = resolveFilePath(cwd, filePath);
+    if (filePath.startsWith('require:')) {
+      filePath = createRequire(cwd).resolve(filePath.slice('require:'.length));
+    } else {
+      filePath = applyPathAliases(filePath, pathAliases);
+      if (!isAbsolute(filePath)) {
+        filePath = resolveFilePath(cwd, filePath);
+      }
     }
   }
   if (!visitedFiles.has(filePath)) {
@@ -807,6 +809,18 @@ export function parseImportLine(importLine: string): { imports: string[]; from: 
     You can only have 'import' statements in the following pattern;
     # import [Type].[Field] from [File]
   `);
+}
+
+function printDefinitionWithLeadingComments(def: DefinitionNode): string {
+  const printed = print(def);
+  const commentBlock = getLeadingCommentBlock(def);
+  if (commentBlock == null || commentBlock.length === 0) {
+    return printed;
+  }
+  return `${commentBlock
+    .split('\n')
+    .map(line => (line.startsWith(' ') ? `#${line}` : `# ${line}`))
+    .join('\n')}\n${printed}`;
 }
 
 function resolveFilePath(filePath: string, importFrom: string): string {
