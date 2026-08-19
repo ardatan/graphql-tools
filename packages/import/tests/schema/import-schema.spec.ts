@@ -523,6 +523,35 @@ describe('importSchema', () => {
     expect(importSchema('./fixtures/interfaces/a.graphql')).toBeSimilarGqlDoc(expectedSDL);
   });
 
+  test('importSchema: union of types that implement an interface (#3797)', () => {
+    const expectedSDL = /* GraphQL */ `
+      interface Animal {
+        legs: Int!
+      }
+
+      type Cat implements Animal {
+        color: String!
+        legs: Int!
+      }
+
+      type Dog implements Animal {
+        legs: Int!
+        type: String!
+      }
+
+      type Foo {
+        pet: Pet
+      }
+
+      union Pet = Cat | Dog
+
+      type Query {
+        foo: Foo
+      }
+    `;
+    expect(importSchema('./fixtures/union-interfaces/a.graphql')).toBeSimilarGqlDoc(expectedSDL);
+  });
+
   test('importSchema: interfaces-many', () => {
     const expectedSDL = /* GraphQL */ `
       type A implements B {

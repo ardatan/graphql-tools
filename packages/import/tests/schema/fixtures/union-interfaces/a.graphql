@@ -1,0 +1,5 @@
+# import Foo from "b.graphql"
+
+type Query {
+  foo: Foo
+}

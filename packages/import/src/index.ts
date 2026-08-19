@@ -594,32 +594,87 @@ function visitDefinition(
   }
 }
 
-function getFileDefinitionMap(
+function collectReverseInterfaceDependencies(
   definitionsByName: Map<string, Set<DefinitionNode>>,
-  dependenciesByDefinitionName: DependenciesByDefinitionName,
-): Map<string, Set<DefinitionNode>> {
-  const fileDefinitionMap = new Map<string, Set<DefinitionNode>>();
+): Map<string, Set<string>> {
+  const reverseDependencies = new Map<string, Set<string>>();
+  const addReverse = (interfaceName: string, dependencyName: string) => {
+    let set = reverseDependencies.get(interfaceName);
+    if (set == null) {
+      set = new Set();
+      reverseDependencies.set(interfaceName, set);
+    }
+    set.add(dependencyName);
+  };
 
   for (const [definitionName, definitions] of definitionsByName) {
-    let definitionsWithDependencies = fileDefinitionMap.get(definitionName);
-    if (definitionsWithDependencies == null) {
-      definitionsWithDependencies = new Set();
-      fileDefinitionMap.set(definitionName, definitionsWithDependencies);
+    if (definitionName.includes('.')) {
+      continue;
     }
     for (const definition of definitions) {
-      definitionsWithDependencies.add(definition);
-    }
-    const dependenciesOfDefinition = dependenciesByDefinitionName.get(definitionName);
-    if (dependenciesOfDefinition) {
-      for (const dependencyName of dependenciesOfDefinition.keys()) {
-        const dependencyDefinitions = definitionsByName.get(dependencyName);
-        if (dependencyDefinitions != null) {
-          for (const dependencyDefinition of dependencyDefinitions) {
-            definitionsWithDependencies.add(dependencyDefinition);
+      if (!('interfaces' in definition) || !definition.interfaces) {
+        continue;
+      }
+      const interfaceNames = definition.interfaces.map(
+        (namedTypeNode: NamedTypeNode) => namedTypeNode.name.value,
+      );
+      for (const interfaceName of interfaceNames) {
+        addReverse(interfaceName, definitionName);
+        for (const siblingName of interfaceNames) {
+          if (siblingName !== interfaceName) {
+            addReverse(interfaceName, siblingName);
           }
         }
       }
     }
+  }
+
+  return reverseDependencies;
+}
+
+function getFileDefinitionMap(
+  definitionsByName: Map<string, Set<DefinitionNode>>,
+  dependenciesByDefinitionName: DependenciesByDefinitionName,
+): Map<string, Set<DefinitionNode>> {
+  const reverseInterfaceDependencies = collectReverseInterfaceDependencies(definitionsByName);
+  const fileDefinitionMap = new Map<string, Set<DefinitionNode>>();
+
+  for (const [definitionName, definitions] of definitionsByName) {
+    const definitionsWithDependencies = new Set<DefinitionNode>(definitions);
+    const pending: string[] = [];
+    const seenNames = new Set<string>([definitionName]);
+
+    const enqueueDependencies = (name: string, includeReverse: boolean) => {
+      const dependenciesOfDefinition = dependenciesByDefinitionName.get(name);
+      if (dependenciesOfDefinition == null) {
+        return;
+      }
+      const reverseNames = reverseInterfaceDependencies.get(name);
+      for (const dependencyName of dependenciesOfDefinition.keys()) {
+        if (!includeReverse && reverseNames?.has(dependencyName)) {
+          continue;
+        }
+        pending.push(dependencyName);
+      }
+    };
+
+    enqueueDependencies(definitionName, true);
+    while (pending.length > 0) {
+      const dependencyName = pending.pop()!;
+      if (seenNames.has(dependencyName)) {
+        continue;
+      }
+      seenNames.add(dependencyName);
+      const dependencyDefinitions = definitionsByName.get(dependencyName);
+      if (dependencyDefinitions != null) {
+        for (const dependencyDefinition of dependencyDefinitions) {
+          definitionsWithDependencies.add(dependencyDefinition);
+        }
+      }
+      enqueueDependencies(dependencyName, false);
+    }
+
+    fileDefinitionMap.set(definitionName, definitionsWithDependencies);
   }
 
   return fileDefinitionMap;
