@@ -837,29 +837,64 @@ export function extractImportLines(fileContent: string): {
   const importLines: string[] = [];
   let otherLines = '';
   let inBlockString = false;
+  let inString = false;
   for (const line of fileContent.split('\n')) {
     const trimmedLine = line.trim();
-    if (!inBlockString && /^#\s*import\s+/.test(trimmedLine)) {
+    if (!inBlockString && !inString && /^#\s*import\s+/.test(trimmedLine)) {
       importLines.push(trimmedLine);
     } else if (trimmedLine) {
       otherLines += line + '\n';
     }
-    if (countTripleQuotes(line) % 2 === 1) {
-      inBlockString = !inBlockString;
-    }
+    ({ inBlockString, inString } = advanceGraphQLStringState(line, inBlockString, inString));
   }
   return { importLines, otherLines };
 }
 
-function countTripleQuotes(line: string): number {
-  let count = 0;
-  for (let i = 0; i < line.length - 2; i++) {
-    if (line[i] === '"' && line[i + 1] === '"' && line[i + 2] === '"') {
-      count += 1;
-      i += 2;
+function advanceGraphQLStringState(
+  line: string,
+  inBlockString: boolean,
+  inString: boolean,
+): { inBlockString: boolean; inString: boolean } {
+  let i = 0;
+  while (i < line.length) {
+    if (inBlockString) {
+      if (line.startsWith('\\"""', i)) {
+        i += 4;
+        continue;
+      }
+      if (line.startsWith('"""', i)) {
+        inBlockString = false;
+        i += 3;
+        continue;
+      }
+      i += 1;
+      continue;
     }
+    if (inString) {
+      if (line[i] === '\\') {
+        i += 2;
+        continue;
+      }
+      if (line[i] === '"') {
+        inString = false;
+      }
+      i += 1;
+      continue;
+    }
+    if (line[i] === '#') {
+      break;
+    }
+    if (line.startsWith('"""', i)) {
+      inBlockString = true;
+      i += 3;
+      continue;
+    }
+    if (line[i] === '"') {
+      inString = true;
+    }
+    i += 1;
   }
-  return count;
+  return { inBlockString, inString };
 }
 
 /**
@@ -896,9 +931,12 @@ export function parseImportLine(importLine: string): { imports: string[]; from: 
   throw new Error(`
     Import statement is not valid:
     > ${importLine}
-    If you want to have comments starting with '# import', please use ''' instead!
-    You can only have 'import' statements in the following pattern;
-    # import [Type].[Field] from [File]
+    If you want comments that look like '# import', put them in a GraphQL block string (""").
+    Supported forms:
+    # import [Type].[Field] from "[File]"
+    # import [Type], [Type] from "[File]"
+    # import * from "[File]"
+    # import "[File]"
   `);
 }
 

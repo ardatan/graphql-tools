@@ -135,6 +135,35 @@ type Query {
     expect(extracted.otherLines).toContain('type Query');
   });
 
+  test('extractImportLines: ignores """ inside comments', () => {
+    const sdl = `# docs """
+# import User from "user.graphql"
+type Query { user: User }
+`;
+    const extracted = extractImportLines(sdl);
+    expect(extracted.importLines).toEqual(['# import User from "user.graphql"']);
+    expect(extracted.otherLines).toContain('type Query { user: User }');
+  });
+
+  test('extractImportLines: ignores escaped """ inside block strings', () => {
+    const sdl = `"""
+text \\""" inside the block string
+"""
+# import User from "user.graphql"
+type Query { user: User }
+`;
+    const extracted = extractImportLines(sdl);
+    expect(extracted.importLines).toEqual(['# import User from "user.graphql"']);
+    expect(extracted.otherLines).toContain('type Query { user: User }');
+    expect(extracted.otherLines).not.toContain('# import User from "user.graphql"');
+  });
+
+  test('parseImportLine: invalid message documents default imports and block strings', () => {
+    expect(() => parseImportLine(`import from "schema.graphql"`)).toThrow(/# import "\[File\]"/);
+    expect(() => parseImportLine(`import from "schema.graphql"`)).toThrow(/"""/);
+    expect(() => parseImportLine(`import from "schema.graphql"`)).not.toThrow(/'''/);
+  });
+
   test('parseSDL: non-import comment', () => {
     expect(parseSDL(`#important: comment`)).toEqual([]);
   });
