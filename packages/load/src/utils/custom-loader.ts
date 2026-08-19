@@ -1,5 +1,6 @@
+import { existsSync, readFileSync } from 'fs';
 import { createRequire } from 'module';
-import { isAbsolute, join as joinPaths } from 'path';
+import { dirname, isAbsolute, join as joinPaths } from 'path';
 import { pathToFileURL } from 'url';
 
 function extractLoaderFromModule(loaderModule: any) {
@@ -18,10 +19,76 @@ function createLoaderRequire(cwd: string) {
   return createRequire(joinPaths(cwd, 'noop.js'));
 }
 
-function resolveLoaderModuleUrl(path: string, cwd: string, requireFn: NodeRequire): string {
+function isBarePackageSpecifier(specifier: string): boolean {
+  return !isAbsolute(specifier) && !specifier.startsWith('.') && !specifier.startsWith('file:');
+}
+
+function findPackageDir(packageName: string, cwd: string): string | undefined {
+  let dir = cwd;
+  while (true) {
+    const candidate = joinPaths(dir, 'node_modules', ...packageName.split('/'));
+    if (existsSync(joinPaths(candidate, 'package.json'))) {
+      return candidate;
+    }
+    const parent = dirname(dir);
+    if (parent === dir) {
+      return undefined;
+    }
+    dir = parent;
+  }
+}
+
+function packageImportEntry(exportsField: unknown): string | undefined {
+  if (typeof exportsField === 'string') {
+    return exportsField;
+  }
+  if (exportsField == null || typeof exportsField !== 'object') {
+    return undefined;
+  }
+  const root = (exportsField as Record<string, unknown>)['.'];
+  if (typeof root === 'string') {
+    return root;
+  }
+  if (root == null || typeof root !== 'object') {
+    return undefined;
+  }
+  const importEntry = (root as Record<string, unknown>).import;
+  if (typeof importEntry === 'string') {
+    return importEntry;
+  }
+  if (importEntry != null && typeof importEntry === 'object') {
+    const nested = (importEntry as Record<string, unknown>).default;
+    if (typeof nested === 'string') {
+      return nested;
+    }
+  }
+  return undefined;
+}
+
+function resolvePackageImportPath(packageDir: string): string | undefined {
+  const pkg = JSON.parse(readFileSync(joinPaths(packageDir, 'package.json'), 'utf8')) as {
+    exports?: unknown;
+    module?: string;
+    main?: string;
+  };
+  const entry = packageImportEntry(pkg.exports) ?? pkg.module ?? pkg.main;
+  if (entry == null) {
+    return undefined;
+  }
+  return joinPaths(packageDir, entry);
+}
+
+export function resolveLoaderModuleUrl(path: string, cwd: string, requireFn: NodeRequire): string {
   try {
     return pathToFileURL(requireFn.resolve(path)).href;
   } catch {
+    if (isBarePackageSpecifier(path)) {
+      const packageDir = findPackageDir(path, cwd);
+      const entry = packageDir != null ? resolvePackageImportPath(packageDir) : undefined;
+      if (entry != null) {
+        return pathToFileURL(entry).href;
+      }
+    }
     const absolutePath = isAbsolute(path) ? path : joinPaths(cwd, path);
     return pathToFileURL(absolutePath).href;
   }
@@ -39,7 +106,8 @@ export async function getCustomLoaderByPath(path: string, cwd: string) {
   }
 
   try {
-    const importedModule = await import(resolveLoaderModuleUrl(path, cwd, requireFn));
+    const href = resolveLoaderModuleUrl(path, cwd, requireFn);
+    const importedModule = await import(href);
     return extractLoaderFromModule(importedModule);
   } catch {
     return null;
