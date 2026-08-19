@@ -553,6 +553,45 @@ describe('Merge TypeDefs', () => {
       );
     });
 
+    it('preserves multiple same-name directives when extending without the directive definition', () => {
+      const td1 = /* GraphQL */ `
+        type Foo @foo(person: "alice") @foo(person: "bob") {
+          hello: String
+        }
+      `;
+      const td2 = /* GraphQL */ `
+        extend type Foo {
+          goodbye: String
+        }
+      `;
+
+      const mergedWithoutDefinition = mergeTypeDefs([td1, td2]);
+      const fooWithoutDefinition = mergedWithoutDefinition.definitions.find(
+        d => d.kind === 'ObjectTypeDefinition' && d.name.value === 'Foo',
+      ) as any;
+      expect(fooWithoutDefinition).toBeDefined();
+      expect(fooWithoutDefinition.directives).toHaveLength(2);
+      expect(fooWithoutDefinition.directives).toMatchObject([
+        { name: { value: 'foo' }, arguments: [{ value: { value: 'alice' } }] },
+        { name: { value: 'foo' }, arguments: [{ value: { value: 'bob' } }] },
+      ]);
+
+      const mergedWithDefinition = mergeTypeDefs([
+        `directive @foo(person: String) repeatable on OBJECT`,
+        td1,
+        td2,
+      ]);
+      const fooWithDefinition = mergedWithDefinition.definitions.find(
+        d => d.kind === 'ObjectTypeDefinition' && d.name.value === 'Foo',
+      ) as any;
+      expect(fooWithDefinition).toBeDefined();
+      expect(fooWithDefinition.directives).toHaveLength(2);
+      expect(fooWithDefinition.directives).toMatchObject([
+        { name: { value: 'foo' }, arguments: [{ value: { value: 'alice' } }] },
+        { name: { value: 'foo' }, arguments: [{ value: { value: 'bob' } }] },
+      ]);
+    });
+
     it('should merge args if inputs of the same directive are different from each other', () => {
       const result = mergeTypeDefs([
         `directive @id on FIELD_DEFINITION`,
