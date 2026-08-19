@@ -80,4 +80,39 @@ describe('custom loaders', () => {
       rmSync(cwd, { recursive: true, force: true });
     }
   });
+
+  it('resolves root-level exports.import without a "." subpath', () => {
+    const cwd = mkdtempSync(join(tmpdir(), 'import-only-root-exports-'));
+    const packageDir = join(cwd, 'node_modules', 'import-only-root-exports-loader');
+    mkdirSync(packageDir, { recursive: true });
+    writeFileSync(
+      join(cwd, 'package.json'),
+      JSON.stringify({ name: 'import-only-root-exports-app' }),
+    );
+    writeFileSync(
+      join(packageDir, 'package.json'),
+      JSON.stringify({
+        name: 'import-only-root-exports-loader',
+        type: 'module',
+        exports: {
+          import: './index.mjs',
+        },
+      }),
+    );
+    writeFileSync(
+      join(packageDir, 'index.mjs'),
+      'export default function () { return "import-only"; }\n',
+    );
+
+    try {
+      const href = resolveLoaderModuleUrl(
+        'import-only-root-exports-loader',
+        cwd,
+        createRequire(join(cwd, 'noop.js')),
+      );
+      expect(fileURLToPath(href)).toBe(join(packageDir, 'index.mjs'));
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
 });

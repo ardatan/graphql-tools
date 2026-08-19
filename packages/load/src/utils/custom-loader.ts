@@ -38,6 +38,31 @@ function findPackageDir(packageName: string, cwd: string): string | undefined {
   }
 }
 
+function stringFromConditionalExport(entry: unknown): string | undefined {
+  if (typeof entry === 'string') {
+    return entry;
+  }
+  if (entry == null || typeof entry !== 'object') {
+    return undefined;
+  }
+  const record = entry as Record<string, unknown>;
+  const importEntry = record['import'];
+  if (typeof importEntry === 'string') {
+    return importEntry;
+  }
+  if (importEntry != null && typeof importEntry === 'object') {
+    const nested = (importEntry as Record<string, unknown>)['default'];
+    if (typeof nested === 'string') {
+      return nested;
+    }
+  }
+  const defaultEntry = record['default'];
+  if (typeof defaultEntry === 'string') {
+    return defaultEntry;
+  }
+  return undefined;
+}
+
 function packageImportEntry(exportsField: unknown): string | undefined {
   if (typeof exportsField === 'string') {
     return exportsField;
@@ -45,24 +70,11 @@ function packageImportEntry(exportsField: unknown): string | undefined {
   if (exportsField == null || typeof exportsField !== 'object') {
     return undefined;
   }
-  const root = (exportsField as Record<string, unknown>)['.'];
-  if (typeof root === 'string') {
-    return root;
+  const record = exportsField as Record<string, unknown>;
+  if (Object.prototype.hasOwnProperty.call(record, '.')) {
+    return stringFromConditionalExport(record['.']);
   }
-  if (root == null || typeof root !== 'object') {
-    return undefined;
-  }
-  const importEntry = (root as Record<string, unknown>).import;
-  if (typeof importEntry === 'string') {
-    return importEntry;
-  }
-  if (importEntry != null && typeof importEntry === 'object') {
-    const nested = (importEntry as Record<string, unknown>).default;
-    if (typeof nested === 'string') {
-      return nested;
-    }
-  }
-  return undefined;
+  return stringFromConditionalExport(record);
 }
 
 function resolvePackageImportPath(packageDir: string): string | undefined {
