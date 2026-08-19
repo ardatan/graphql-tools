@@ -18,7 +18,7 @@ import {
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { RenameTypes, wrapSchema } from '@graphql-tools/wrap';
-import { printSchemaWithDirectives } from '../src/index.js';
+import { printSchemaWithDirectives, pruneSchema } from '../src/index.js';
 
 describe('printSchemaWithDirectives', () => {
   it(`Should print with directives, while printSchema doesn't`, () => {
@@ -531,5 +531,42 @@ describe('printSchemaWithDirectives', () => {
 
     const output = printSchemaWithDirectives(schema);
     expect(output).toContain('me: String @scope(name: TEAMS_WRITE)');
+  });
+
+  it('omits pruned mutation and subscription from the schema definition', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        schema {
+          query: Query
+          mutation: Mutation
+          subscription: Subscription
+        }
+
+        type Query {
+          foo: Boolean
+        }
+
+        type Mutation
+
+        type Subscription
+      `,
+    });
+
+    const pruned = pruneSchema(schema);
+    expect(pruned.getMutationType()).toBeUndefined();
+    expect(pruned.getSubscriptionType()).toBeUndefined();
+
+    const output = stripIgnoredCharacters(printSchemaWithDirectives(pruned));
+    expect(output).toBe(
+      stripIgnoredCharacters(/* GraphQL */ `
+        schema {
+          query: Query
+        }
+
+        type Query {
+          foo: Boolean
+        }
+      `),
+    );
   });
 });

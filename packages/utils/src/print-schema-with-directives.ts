@@ -168,6 +168,9 @@ export function astFromSchema(
           type: rootTypeAST,
         } as OperationTypeDefinitionNode);
       }
+    } else {
+      // Drop operation types that no longer exist on the schema (e.g. after pruneSchema).
+      operationTypeMap.set(operationTypeNode, undefined);
     }
   }
 
