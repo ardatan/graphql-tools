@@ -802,15 +802,30 @@ export function extractImportLines(fileContent: string): {
 } {
   const importLines: string[] = [];
   let otherLines = '';
+  let inBlockString = false;
   for (const line of fileContent.split('\n')) {
     const trimmedLine = line.trim();
-    if (/^#\s*import\s+/.test(trimmedLine)) {
+    if (!inBlockString && /^#\s*import\s+/.test(trimmedLine)) {
       importLines.push(trimmedLine);
     } else if (trimmedLine) {
       otherLines += line + '\n';
     }
+    if (countTripleQuotes(line) % 2 === 1) {
+      inBlockString = !inBlockString;
+    }
   }
   return { importLines, otherLines };
+}
+
+function countTripleQuotes(line: string): number {
+  let count = 0;
+  for (let i = 0; i < line.length - 2; i++) {
+    if (line[i] === '"' && line[i + 1] === '"' && line[i + 2] === '"') {
+      count += 1;
+      i += 2;
+    }
+  }
+  return count;
 }
 
 /**

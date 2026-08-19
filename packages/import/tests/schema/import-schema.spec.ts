@@ -3,7 +3,12 @@ import * as path from 'path';
 import '../../../testing/to-be-similar-gql-doc';
 import { GraphQLError, Kind, print } from 'graphql';
 import { mergeTypeDefs } from '@graphql-tools/merge';
-import { parseImportLine, PathAliases, processImport } from '../../src/index.js';
+import {
+  extractImportLines,
+  parseImportLine,
+  PathAliases,
+  processImport,
+} from '../../src/index.js';
 
 const importSchema = (
   schema: string,
@@ -114,6 +119,20 @@ describe('importSchema', () => {
       imports: ['*'],
       from: './ProfileForm.graphql',
     });
+  });
+
+  test('extractImportLines: ignores # import inside block strings', () => {
+    const sdl = `"""
+# import "./missing.graphql"
+"""
+type Query {
+  ok: String
+}
+`;
+    const extracted = extractImportLines(sdl);
+    expect(extracted.importLines).toEqual([]);
+    expect(extracted.otherLines).toContain('# import "./missing.graphql"');
+    expect(extracted.otherLines).toContain('type Query');
   });
 
   test('parseSDL: non-import comment', () => {

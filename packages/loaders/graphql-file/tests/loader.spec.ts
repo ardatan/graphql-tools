@@ -94,6 +94,18 @@ describe('GraphQLFileLoader', () => {
         `);
       });
 
+      it('should not treat # import inside a block string as an import', async () => {
+        const [result] = await load(getPointer('type-defs-import-in-block-string.graphql'), {});
+        expect(print(result.document!)).toBeSimilarGqlDoc(/* GraphQL */ `
+          """
+          # import "./does-not-exist.graphql"
+          """
+          type Query {
+            a: String
+          }
+        `);
+      });
+
       it('should load executable document with #import expression', async () => {
         const [result] = await load(getPointer('executable.graphql'), {});
         expect(print(result.document!)).toBeSimilarGqlDoc(/* GraphQL */ `
