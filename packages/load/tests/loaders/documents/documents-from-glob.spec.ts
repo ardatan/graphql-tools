@@ -194,6 +194,24 @@ describe('documentsFromGlob', () => {
       expect(result).toHaveLength(1);
       expect(result[0].rawSDL).toContain(pointerOptions.fooFieldName);
     });
+    test('should load documents from an ESM custom loader (#6656)', async () => {
+      const result = await load(
+        {
+          pointer: {
+            loader: join(__dirname, '../../custom-loader.mjs'),
+            fooFieldName: 'myFooField',
+          },
+        },
+        {
+          loaders: [],
+          customLoaderContext: {
+            loaderType: 'documents',
+          },
+        },
+      );
+      expect(result).toHaveLength(1);
+      expect(result[0].rawSDL).toContain('myFooField');
+    });
     test('should work only with a document string', async () => {
       const result = await load('query { foo }', {
         loaders: [],

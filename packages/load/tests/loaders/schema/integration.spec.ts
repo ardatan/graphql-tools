@@ -176,5 +176,23 @@ describe('loadSchema', () => {
       expect(result).toBeInstanceOf(GraphQLSchema);
       expect(result.getQueryType()?.getFields()?.['myFooField']).toBeDefined();
     });
+    test(`should load an ESM custom schema loader (#6656)`, async () => {
+      const result = await load(
+        {
+          pointer: {
+            loader: join(__dirname, '../../custom-loader.mjs'),
+            fooFieldName: 'myFooField',
+          },
+        },
+        {
+          loaders: [],
+          customLoaderContext: {
+            loaderType: 'schema',
+          },
+        },
+      );
+      expect(result).toBeInstanceOf(GraphQLSchema);
+      expect(result.getQueryType()?.getFields()?.['myFooField']).toBeDefined();
+    });
   });
 });

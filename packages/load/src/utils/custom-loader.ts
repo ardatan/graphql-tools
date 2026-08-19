@@ -1,23 +1,57 @@
 import { createRequire } from 'module';
-import { join as joinPaths } from 'path';
+import { isAbsolute, join as joinPaths } from 'path';
+import { pathToFileURL } from 'url';
 
-export function getCustomLoaderByPath(path: string, cwd: string) {
+function extractLoaderFromModule(loaderModule: any) {
+  if (loaderModule == null) {
+    return undefined;
+  }
+  if (typeof loaderModule.default === 'function') {
+    return loaderModule.default;
+  }
+  if (typeof loaderModule === 'function') {
+    return loaderModule;
+  }
+}
+
+function createLoaderRequire(cwd: string) {
+  return createRequire(joinPaths(cwd, 'noop.js'));
+}
+
+function resolveLoaderModuleUrl(path: string, cwd: string, requireFn: NodeRequire): string {
   try {
-    const requireFn = createRequire(joinPaths(cwd, 'noop.js'));
-    const requiredModule = requireFn(path);
+    return pathToFileURL(requireFn.resolve(path)).href;
+  } catch {
+    const absolutePath = isAbsolute(path) ? path : joinPaths(cwd, path);
+    return pathToFileURL(absolutePath).href;
+  }
+}
 
-    if (requiredModule) {
-      if (requiredModule.default && typeof requiredModule.default === 'function') {
-        return requiredModule.default;
-      }
-
-      if (typeof requiredModule === 'function') {
-        return requiredModule;
-      }
+export async function getCustomLoaderByPath(path: string, cwd: string) {
+  const requireFn = createLoaderRequire(cwd);
+  try {
+    const loader = extractLoaderFromModule(requireFn(path));
+    if (typeof loader === 'function') {
+      return loader;
     }
-  } catch (e: any) {}
+  } catch {
+    // createRequire cannot load ESM; fall through to import().
+  }
 
-  return null;
+  try {
+    const importedModule = await import(resolveLoaderModuleUrl(path, cwd, requireFn));
+    return extractLoaderFromModule(importedModule);
+  } catch {
+    return null;
+  }
+}
+
+function getCustomLoaderByPathSync(path: string, cwd: string) {
+  try {
+    return extractLoaderFromModule(createLoaderRequire(cwd)(path)) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function useCustomLoader(loaderPointer: any, cwd: string) {
@@ -40,7 +74,7 @@ export function useCustomLoaderSync(loaderPointer: any, cwd: string) {
   let loader;
 
   if (typeof loaderPointer === 'string') {
-    loader = getCustomLoaderByPath(loaderPointer, cwd);
+    loader = getCustomLoaderByPathSync(loaderPointer, cwd);
   } else if (typeof loaderPointer === 'function') {
     loader = loaderPointer;
   }
