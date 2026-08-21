@@ -1,5 +1,16 @@
 # @graphql-tools/load
 
+## 8.1.17
+
+### Patch Changes
+
+- [#6660](https://github.com/ardatan/graphql-tools/pull/6660) [`12df2f5`](https://github.com/ardatan/graphql-tools/commit/12df2f5a5c51d508f0315e759e24ea1b7856c559) Thanks [@eirikur-nc](https://github.com/eirikur-nc)! - Load custom schema/document loaders with `import()` after `createRequire`, so ESM loader files and packages work with async `load` (including graphql-codegen). Closes [#6656](https://github.com/ardatan/graphql-tools/issues/6656).
+
+- [#8370](https://github.com/ardatan/graphql-tools/pull/8370) [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d) Thanks [@ardatan](https://github.com/ardatan)! - Always include "Failed to find any GraphQL type definitions" context when loaders error, even if there is only one error. Fixes [#7406](https://github.com/ardatan/graphql-tools/issues/7406).
+- Updated dependencies [[`60db079`](https://github.com/ardatan/graphql-tools/commit/60db079ef847a3a6cfad6053fee2c8f4021b43aa), [`57e316d`](https://github.com/ardatan/graphql-tools/commit/57e316d1ee21668761d6b8ad7692e494db8ffab4), [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d), [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d)]:
+  - @graphql-tools/utils@12.0.1
+  - @graphql-tools/schema@10.1.1
+
 ## 8.1.16
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 8.3.37
+
+### Patch Changes
+
+- [#8370](https://github.com/ardatan/graphql-tools/pull/8370) [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+    - Removed dependency [`@babel/plugin-syntax-import-assertions@^7.26.0` ↗︎](https://www.npmjs.com/package/@babel/plugin-syntax-import-assertions/v/7.26.0) (from `dependencies`)
+
+- [#8370](https://github.com/ardatan/graphql-tools/pull/8370) [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d) Thanks [@ardatan](https://github.com/ardatan)! - Parse with Babel `importAttributes` (and `deprecatedAssertSyntax` so existing `assert { … }` files still work), and drop the unused `@babel/plugin-syntax-import-assertions` dependency. Fixes [#5454](https://github.com/ardatan/graphql-tools/issues/5454).
+- Updated dependencies [[`60db079`](https://github.com/ardatan/graphql-tools/commit/60db079ef847a3a6cfad6053fee2c8f4021b43aa), [`57e316d`](https://github.com/ardatan/graphql-tools/commit/57e316d1ee21668761d6b8ad7692e494db8ffab4), [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d), [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d)]:
+  - @graphql-tools/utils@12.0.1
+
 ## 8.3.36
 
 ### Patch Changes

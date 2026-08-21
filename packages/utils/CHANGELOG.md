@@ -1,5 +1,17 @@
 # @graphql-tools/utils
 
+## 12.0.1
+
+### Patch Changes
+
+- [#8368](https://github.com/ardatan/graphql-tools/pull/8368) [`60db079`](https://github.com/ardatan/graphql-tools/commit/60db079ef847a3a6cfad6053fee2c8f4021b43aa) Thanks [@ardatan](https://github.com/ardatan)! - Omit mutation/subscription from `printSchemaWithDirectives` when those root types are no longer present on the schema (e.g. after `pruneSchema`).
+
+- [#8366](https://github.com/ardatan/graphql-tools/pull/8366) [`57e316d`](https://github.com/ardatan/graphql-tools/commit/57e316d1ee21668761d6b8ad7692e494db8ffab4) Thanks [@ardatan](https://github.com/ardatan)! - Allow `%` in paths checked by `isValidPath` (e.g. directories from URL-encoded repo names).
+
+- [#8370](https://github.com/ardatan/graphql-tools/pull/8370) [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d) Thanks [@ardatan](https://github.com/ardatan)! - Clean up `observableToAsyncIterable` queues and unsubscribe when the observable completes, so iterators do not retain references after `done`. Fixes leak detection flakes related to [#8057](https://github.com/ardatan/graphql-tools/issues/8057).
+
+- [#8370](https://github.com/ardatan/graphql-tools/pull/8370) [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d) Thanks [@ardatan](https://github.com/ardatan)! - Prefer runtime `description` values over stale `astNode` descriptions in `printSchemaWithDirectives` / `getDescriptionNode`. Fixes [#5508](https://github.com/ardatan/graphql-tools/issues/5508).
+
 ## 12.0.0
 
 ### Major Changes
