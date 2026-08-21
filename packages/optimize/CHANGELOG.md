@@ -1,5 +1,11 @@
 # @graphql-tools/optimize
 
+## 2.0.1
+
+### Patch Changes
+
+- [#8366](https://github.com/ardatan/graphql-tools/pull/8366) [`57e316d`](https://github.com/ardatan/graphql-tools/commit/57e316d1ee21668761d6b8ad7692e494db8ffab4) Thanks [@ardatan](https://github.com/ardatan)! - Remove descriptions from operation, variable, fragment, schema definition, and schema extension nodes in `removeDescriptions`.
+
 ## 2.0.0
 
 ### Major Changes
