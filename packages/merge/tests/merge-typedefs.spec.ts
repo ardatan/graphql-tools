@@ -1893,6 +1893,29 @@ describe('Merge TypeDefs', () => {
     expect(print(merged)).toBeSimilarString(print(expected));
   });
 
+  it('keeps the default operation types when a schema extension has no operation block', () => {
+    const merged = mergeTypeDefs(
+      [
+        /* GraphQL */ `
+          directive @link(url: String!, import: [String]) repeatable on SCHEMA
+
+          extend schema @link(url: "https://specs.apollo.dev/federation/v2.9", import: ["@key"])
+
+          type Query {
+            hello: String
+          }
+        `,
+      ],
+      { convertExtensions: true },
+    );
+
+    const queryType = makeExecutableSchema({ typeDefs: merged }).getQueryType();
+
+    expect(queryType).toBeDefined();
+    assertSome(queryType);
+    expect(queryType.name).toEqual('Query');
+  });
+
   it('keeps repeatable directives on schema definitions across documents', () => {
     const schema1 = parse(/* GraphQL */ `
       directive @tag(name: String!) repeatable on SCHEMA
