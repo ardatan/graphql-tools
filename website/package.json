@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "@theguild/tailwind-config": "0.6.4",
-    "@types/node": "26.2.0",
+    "@types/node": "26.4.0",
     "@types/react": "19.2.15",
     "estree-util-value-to-estree": "3.5.0",
     "pagefind": "^1.5.2",
@@ -29,6 +29,6 @@
     "postcss-lightningcss": "1.1.1",
     "tailwindcss": "3.4.19",
     "typescript": "7.0.2",
-    "wrangler": "4.125.0"
+    "wrangler": "4.127.1"
   }
 }
