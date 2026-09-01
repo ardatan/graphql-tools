@@ -55,7 +55,7 @@ export function expectJSON(actual: unknown) {
   };
 }
 
-export function expectToThrowJSON(fn: () => unknown) {
+export function expectToThrowJSON(fn: () => unknown): ReturnType<typeof expect<unknown>> {
   function mapException(): unknown {
     try {
       return fn();
@@ -64,5 +64,5 @@ export function expectToThrowJSON(fn: () => unknown) {
     }
   }
 
-  return expect(mapException());
+  return expect(mapException()) as ReturnType<typeof expect<unknown>>;
 }
