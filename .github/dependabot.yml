@@ -26,6 +26,15 @@ updates:
     schedule:
       interval: 'daily'
     groups:
+      jest-deps:
+        patterns:
+          - jest
+          - babel-jest
+          - '@jest/*'
+          - '@types/jest'
+        update-types:
+          - 'minor'
+          - 'patch'
       actions-deps:
         patterns:
           - '*'
@@ -40,6 +49,10 @@ updates:
           - 'typedoc'
           - '@img/sharp-*'
           - '@babel/*'
+          - jest
+          - babel-jest
+          - '@jest/*'
+          - '@types/jest'
         update-types:
           - 'minor'
           - 'patch'
