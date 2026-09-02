@@ -1879,6 +1879,83 @@ describe('Merge TypeDefs', () => {
     expect(print(merged)).toBeSimilarString(print(expected));
   });
 
+  it('backfills query, mutation and subscription onto an "extend schema" that declares none', () => {
+    const ast = parse(/* GraphQL */ `
+      directive @foo on SCHEMA
+
+      extend schema @foo
+
+      type Query {
+        hello: String
+      }
+
+      type Mutation {
+        doThing: Boolean
+      }
+
+      type Subscription {
+        onThing: Boolean
+      }
+    `);
+    const merged = mergeTypeDefs([ast]);
+    const expected = parse(/* GraphQL */ `
+      directive @foo on SCHEMA
+
+      extend schema @foo {
+        query: Query
+        mutation: Mutation
+        subscription: Subscription
+      }
+
+      type Query {
+        hello: String
+      }
+
+      type Mutation {
+        doThing: Boolean
+      }
+
+      type Subscription {
+        onThing: Boolean
+      }
+    `);
+    expect(print(merged)).toBeSimilarString(print(expected));
+  });
+
+  it('only backfills operation types for root types that actually exist', () => {
+    const ast = parse(/* GraphQL */ `
+      directive @foo on SCHEMA
+
+      extend schema @foo
+
+      type Query {
+        hello: String
+      }
+
+      type Mutation {
+        doThing: Boolean
+      }
+    `);
+    const merged = mergeTypeDefs([ast]);
+    const expected = parse(/* GraphQL */ `
+      directive @foo on SCHEMA
+
+      extend schema @foo {
+        query: Query
+        mutation: Mutation
+      }
+
+      type Query {
+        hello: String
+      }
+
+      type Mutation {
+        doThing: Boolean
+      }
+    `);
+    expect(print(merged)).toBeSimilarString(print(expected));
+  });
+
   it('keeps repeatable directives on schema definitions across documents', () => {
     const schema1 = parse(/* GraphQL */ `
       directive @tag(name: String!) repeatable on SCHEMA
