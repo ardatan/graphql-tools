@@ -1854,6 +1854,31 @@ describe('Merge TypeDefs', () => {
     expect(print(merged)).toBeSimilarString(print(expected));
   });
 
+  it('backfills root operation types onto an "extend schema" that declares none (e.g. only a directive)', () => {
+    const ast = parse(/* GraphQL */ `
+      directive @foo on SCHEMA
+
+      extend schema @foo
+
+      type Query {
+        hello: String
+      }
+    `);
+    const merged = mergeTypeDefs([ast]);
+    const expected = parse(/* GraphQL */ `
+      directive @foo on SCHEMA
+
+      extend schema @foo {
+        query: Query
+      }
+
+      type Query {
+        hello: String
+      }
+    `);
+    expect(print(merged)).toBeSimilarString(print(expected));
+  });
+
   it('keeps repeatable directives on schema definitions across documents', () => {
     const schema1 = parse(/* GraphQL */ `
       directive @tag(name: String!) repeatable on SCHEMA

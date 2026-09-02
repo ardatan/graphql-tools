@@ -268,7 +268,13 @@ export function mergeGraphQLTypes(typeSource: TypeSource, config: Config): Defin
       kind: Kind.SCHEMA_DEFINITION,
       operationTypes: [],
     };
-    const operationTypes = (schemaDef.operationTypes as OperationTypeDefinitionNode[]) || [];
+    // `schemaDef.operationTypes` can be `undefined` for a schema extension that declares no
+    // operation types (e.g. `extend schema @foo`). Normalize it in place so the operation types
+    // backfilled below are attached to `schemaDef` itself, not a disconnected local array.
+    if (schemaDef.operationTypes == null) {
+      schemaDef.operationTypes = [];
+    }
+    const operationTypes = schemaDef.operationTypes as OperationTypeDefinitionNode[];
     for (const opTypeDefNodeType in DEFAULT_OPERATION_TYPE_NAME_MAP) {
       const opTypeDefNode = operationTypes.find(
         operationType => operationType.operation === opTypeDefNodeType,
