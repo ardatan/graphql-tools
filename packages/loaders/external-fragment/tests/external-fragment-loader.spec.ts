@@ -6,9 +6,9 @@ import monorepoFragmentLoader, {
   resolveMonorepoFragmentsSync,
 } from '../src/index.js';
 
-const FIXTURES_DIR = path.join(__dirname, 'test-monorepo');
-const FIXTURES_TS_DIR = path.join(__dirname, 'test-monorepo-ts');
-const FIXTURES_DUP_DIR = path.join(__dirname, 'test-monorepo-dup');
+const FIXTURES_DIR = path.join(__dirname, 'test-external');
+const FIXTURES_TS_DIR = path.join(__dirname, 'test-external-ts');
+const FIXTURES_DUP_DIR = path.join(__dirname, 'test-external-dup');
 
 describe('MonorepoFragmentLoader', () => {
   const loader = new MonorepoFragmentLoader();
