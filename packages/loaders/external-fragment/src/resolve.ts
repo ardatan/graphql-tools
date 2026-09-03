@@ -459,10 +459,8 @@ function resolveFromMaps(
   rootMap: PackageFragmentMap,
   depMaps: Map<string, PackageFragmentMap>,
   rootPackageName: string,
+  missingFragments: Set<string>,
 ): ResolvedExternalFile[] {
-  const missingFragments = findMissingFragments(rootMap);
-  if (missingFragments.size === 0) return [];
-
   const resolvedFiles = resolveExternalFragments(
     missingFragments,
     depMaps,
@@ -553,7 +551,7 @@ export async function resolveMonorepoFragments(
     }),
   );
 
-  return resolveFromMaps(rootMap, depMaps, rootPackageName);
+  return resolveFromMaps(rootMap, depMaps, rootPackageName, missingFragments);
 }
 
 /**
@@ -631,5 +629,5 @@ export function resolveMonorepoFragmentsSync(
     depMaps.set(depName, map);
   }
 
-  return resolveFromMaps(rootMap, depMaps, rootPackageName);
+  return resolveFromMaps(rootMap, depMaps, rootPackageName, missingFragments);
 }
