@@ -1,5 +1,5 @@
 import { existsSync, promises as fsPromises, readFileSync } from 'fs';
-import { join, resolve } from 'path';
+import { basename, join, resolve } from 'path';
 import globby from 'globby';
 import { Kind, parse, visit } from 'graphql';
 import memoizee from 'memoizee';
@@ -139,12 +139,24 @@ function buildPackageFragmentMapRaw(
     const content = readFileSync(filePath, 'utf8');
     if (fileContentFilter && !fileContentFilter(content, filePath)) continue;
 
-    const info = extractFragmentsAndSpreads(filePath, content, pluckConfig);
+    let info;
+    try {
+      info = extractFragmentsAndSpreads(filePath, content, pluckConfig);
+    } catch {
+      continue;
+    }
 
     if (info.definitions.length > 0 || info.spreads.size > 0) {
       defsPerFile.set(filePath, info.definitions);
       spreadsPerFile.set(filePath, info.spreads);
       for (const def of info.definitions) {
+        const existing = fragments.get(def.name);
+        if (existing && existing.filePath !== filePath) {
+          throw new Error(
+            `Duplicate fragment "${def.name}" within package at "${packageDir}": ` +
+              `defined in "${existing.filePath}" and "${filePath}".`,
+          );
+        }
         fragments.set(def.name, { filePath, typeCondition: def.typeCondition });
       }
     }
@@ -190,12 +202,24 @@ async function buildPackageFragmentMapAsyncRaw(
       const content = await readFile(filePath, 'utf8');
       if (fileContentFilter && !fileContentFilter(content, filePath)) return;
 
-      const info = extractFragmentsAndSpreads(filePath, content, pluckConfig);
+      let info;
+      try {
+        info = extractFragmentsAndSpreads(filePath, content, pluckConfig);
+      } catch {
+        return;
+      }
 
       if (info.definitions.length > 0 || info.spreads.size > 0) {
         defsPerFile.set(filePath, info.definitions);
         spreadsPerFile.set(filePath, info.spreads);
         for (const def of info.definitions) {
+          const existing = fragments.get(def.name);
+          if (existing && existing.filePath !== filePath) {
+            throw new Error(
+              `Duplicate fragment "${def.name}" within package at "${packageDir}": ` +
+                `defined in "${existing.filePath}" and "${filePath}".`,
+            );
+          }
           fragments.set(def.name, { filePath, typeCondition: def.typeCondition });
         }
       }
@@ -211,21 +235,29 @@ let readPackageJsonDeps = memoizee(readPackageJsonDepsRaw, { primitive: true });
 let buildPackageFragmentMap = memoizee(buildPackageFragmentMapRaw);
 let buildPackageFragmentMapAsync = memoizee(buildPackageFragmentMapAsyncRaw, { promise: true });
 
-let cacheInitialized = false;
+let appliedCacheTTL: number | undefined;
+
+function createMemoized(cacheTTL?: number): void {
+  const ttlOpt = cacheTTL != null && cacheTTL !== Infinity ? { maxAge: cacheTTL } : undefined;
+
+  readPackageJsonDeps = memoizee(readPackageJsonDepsRaw, {
+    primitive: true,
+    ...ttlOpt,
+  });
+  buildPackageFragmentMap = memoizee(buildPackageFragmentMapRaw, {
+    ...ttlOpt,
+  });
+  buildPackageFragmentMapAsync = memoizee(buildPackageFragmentMapAsyncRaw, {
+    promise: true,
+    ...ttlOpt,
+  });
+
+  appliedCacheTTL = cacheTTL;
+}
 
 function initCache(cacheTTL?: number): void {
-  if (cacheInitialized) return;
-  cacheInitialized = true;
-
-  if (cacheTTL != null && cacheTTL !== Infinity) {
-    readPackageJsonDeps = memoizee(readPackageJsonDepsRaw, { primitive: true, maxAge: cacheTTL });
-    buildPackageFragmentMap = memoizee(buildPackageFragmentMapRaw, {
-      maxAge: cacheTTL,
-    });
-    buildPackageFragmentMapAsync = memoizee(buildPackageFragmentMapAsyncRaw, {
-      promise: true,
-      maxAge: cacheTTL,
-    });
+  if (cacheTTL !== appliedCacheTTL) {
+    createMemoized(cacheTTL);
   }
 }
 
@@ -236,6 +268,7 @@ export function clearCache(): void {
   readPackageJsonDeps.clear();
   buildPackageFragmentMap.clear();
   buildPackageFragmentMapAsync.clear();
+  appliedCacheTTL = undefined;
 }
 
 // --- Shared helpers ---
@@ -409,9 +442,9 @@ function detectDuplicateFragments(
 function getPackageNameFromDir(packageDir: string): string {
   try {
     const pkg = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8'));
-    return pkg.name || packageDir.split('/').pop() || 'unknown';
+    return pkg.name || basename(packageDir) || 'unknown';
   } catch {
-    return packageDir.split('/').pop() || 'unknown';
+    return basename(packageDir) || 'unknown';
   }
 }
 
