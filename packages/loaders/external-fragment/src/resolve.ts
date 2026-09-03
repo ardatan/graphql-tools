@@ -45,7 +45,13 @@ export interface MonorepoFragmentResolverOptions {
 // --- Core logic ---
 
 const DEFAULT_EXTENSIONS = ['ts', 'tsx', 'js', 'jsx', 'graphql', 'gql'];
+const DEFAULT_SCAN_INTERNAL_DIRS = ['src'];
+const DEFAULT_EXCLUDE_PATTERNS = ['**/__generated__/**', '**/node_modules/**'];
 const GQL_EXTENSIONS = ['graphql', 'gql'];
+
+function getSourceGlob(extensions: string[]): string {
+  return extensions.length === 1 ? `**/*.${extensions[0]}` : `**/*.{${extensions.join(',')}}`;
+}
 
 function isGraphQLFile(filePath: string): boolean {
   return GQL_EXTENSIONS.some(ext => filePath.endsWith(`.${ext}`));
@@ -119,7 +125,7 @@ function buildPackageFragmentMapRaw(
 
   if (dirs.length === 0) return { fragments, spreadsPerFile, defsPerFile };
 
-  const sourceGlob = `**/*.{${extensions.join(',')}}`;
+  const sourceGlob = getSourceGlob(extensions);
   const ignorePatterns = excludePatterns.map(p => `!${p}`);
 
   const allFiles = dirs.flatMap(dir =>
@@ -165,7 +171,7 @@ async function buildPackageFragmentMapAsyncRaw(
 
   if (dirs.length === 0) return { fragments, spreadsPerFile, defsPerFile };
 
-  const sourceGlob = `**/*.{${extensions.join(',')}}`;
+  const sourceGlob = getSourceGlob(extensions);
   const ignorePatterns = excludePatterns.map(p => `!${p}`);
 
   const allFiles = (
@@ -200,11 +206,10 @@ async function buildPackageFragmentMapAsyncRaw(
 }
 
 let readPackageJsonDeps = memoizee(readPackageJsonDepsRaw, { primitive: true });
-let buildPackageFragmentMap = memoizee(buildPackageFragmentMapRaw, { primitive: true });
-let buildPackageFragmentMapAsync = memoizee(buildPackageFragmentMapAsyncRaw, {
-  primitive: true,
-  promise: true,
-});
+// Fragment-map options contain arrays, objects, and callbacks. Use memoizee's
+// identity-based normalization so distinct option values cannot collide.
+let buildPackageFragmentMap = memoizee(buildPackageFragmentMapRaw);
+let buildPackageFragmentMapAsync = memoizee(buildPackageFragmentMapAsyncRaw, { promise: true });
 
 let cacheInitialized = false;
 
@@ -215,11 +220,9 @@ function initCache(cacheTTL?: number): void {
   if (cacheTTL != null && cacheTTL !== Infinity) {
     readPackageJsonDeps = memoizee(readPackageJsonDepsRaw, { primitive: true, maxAge: cacheTTL });
     buildPackageFragmentMap = memoizee(buildPackageFragmentMapRaw, {
-      primitive: true,
       maxAge: cacheTTL,
     });
     buildPackageFragmentMapAsync = memoizee(buildPackageFragmentMapAsyncRaw, {
-      primitive: true,
       promise: true,
       maxAge: cacheTTL,
     });
@@ -416,9 +419,9 @@ function normalizeOptions(options: MonorepoFragmentResolverOptions) {
   const externalPackagesDirs = options.externalPackagesDirs;
   const filter = options.externalPackageNameFilter ?? (() => true);
   const includeDevDependencies = options.includeDevDependencies ?? true;
-  const scanInternalDirs = options.scanInternalDirs ?? ['src'];
+  const scanInternalDirs = options.scanInternalDirs ?? DEFAULT_SCAN_INTERNAL_DIRS;
   const extensions = options.extensions ?? DEFAULT_EXTENSIONS;
-  const excludePatterns = options.excludePatterns ?? ['**/__generated__/**', '**/node_modules/**'];
+  const excludePatterns = options.excludePatterns ?? DEFAULT_EXCLUDE_PATTERNS;
   const invalidateRootPackageCache = options.invalidateRootPackageCache ?? false;
   return {
     externalPackagesDirs,
