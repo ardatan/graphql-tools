@@ -106,6 +106,7 @@
     "wonka": "6.3.6"
   },
   "overrides": {
+    "@xmldom/xmldom": "0.9.12",
     "cookie": "2.0.1",
     "esbuild": "0.28.1",
     "estree-util-value-to-estree": "3.5.0",
