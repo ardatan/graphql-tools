@@ -1,5 +1,15 @@
 # @graphql-tools/merge
 
+## 9.2.4
+
+### Patch Changes
+
+- [#8367](https://github.com/ardatan/graphql-tools/pull/8367) [`2262087`](https://github.com/ardatan/graphql-tools/commit/22620878132a2ad3f2bc50e88906a902f9b913a4) Thanks [@ardatan](https://github.com/ardatan)! - Preserve multiple applications of the same directive when extending a type even if the repeatable directive definition is not present in the merge inputs.
+
+- [#8394](https://github.com/ardatan/graphql-tools/pull/8394) [`5523c4b`](https://github.com/ardatan/graphql-tools/commit/5523c4b7a98bd4f3168008183fb0e9503c92f2f1) Thanks [@bengry](https://github.com/bengry)! - Write the synthesized default operation types back onto the schema definition node, so merging a `schema` extension that has no operation block (federation SDL, for example) still produces a query root on `graphql@17`.
+- Updated dependencies [[`60db079`](https://github.com/ardatan/graphql-tools/commit/60db079ef847a3a6cfad6053fee2c8f4021b43aa), [`57e316d`](https://github.com/ardatan/graphql-tools/commit/57e316d1ee21668761d6b8ad7692e494db8ffab4), [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d), [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d)]:
+  - @graphql-tools/utils@12.0.1
+
 ## 9.2.3
 
 ### Patch Changes

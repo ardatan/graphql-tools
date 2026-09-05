@@ -1,5 +1,37 @@
 # @graphql-tools/import
 
+## 7.2.0
+
+### Minor Changes
+
+- [#8383](https://github.com/ardatan/graphql-tools/pull/8383) [`04e8159`](https://github.com/ardatan/graphql-tools/commit/04e8159dd3ea33f2a0df543efd59d581476f9cf7) Thanks [@ardatan](https://github.com/ardatan)! - `# import` paths may use a `require:` prefix, resolved with Node's `require.resolve` from the importing file. Example: `# import Post from "require:blog-graphql-types/schema.graphql"` or `# import A from "require:./a.graphql"`.
+
+### Patch Changes
+
+- [#8383](https://github.com/ardatan/graphql-tools/pull/8383) [`04e8159`](https://github.com/ardatan/graphql-tools/commit/04e8159dd3ea33f2a0df543efd59d581476f9cf7) Thanks [@ardatan](https://github.com/ardatan)! - `# import "./file.graphql"` (space after `#`) is a valid default import, and `#import` is processed even when it is not the first non-blank line of the file.
+
+- [#8383](https://github.com/ardatan/graphql-tools/pull/8383) [`04e8159`](https://github.com/ardatan/graphql-tools/commit/04e8159dd3ea33f2a0df543efd59d581476f9cf7) Thanks [@ardatan](https://github.com/ardatan)! - Keep leading GraphQL comments (for example `# eslint-disable-next-line` above a query) when `#import` merges documents. Previously `processImport` reprinted definitions and dropped those comments from the merged source.
+
+- [#8383](https://github.com/ardatan/graphql-tools/pull/8383) [`04e8159`](https://github.com/ardatan/graphql-tools/commit/04e8159dd3ea33f2a0df543efd59d581476f9cf7) Thanks [@ardatan](https://github.com/ardatan)! - `# import *` keeps unreferenced types that carry a federation `@key` (subgraph entities). Other unused types are still tree-shaken, matching existing `import *` tests.
+
+- [#8383](https://github.com/ardatan/graphql-tools/pull/8383) [`04e8159`](https://github.com/ardatan/graphql-tools/commit/04e8159dd3ea33f2a0df543efd59d581476f9cf7) Thanks [@ardatan](https://github.com/ardatan)! - Named `# import` of a type no longer drops interfaces implemented by union members.
+  
+  Before this, a file like:
+  
+  ```graphql
+  # import Foo from "./types.graphql"
+  
+  type Query {
+    foo: Foo
+  }
+  ```
+  
+  with `types.graphql` containing `type Foo { pet: Pet }`, `union Pet = Cat | Dog`, and `type Cat implements Animal` built an invalid schema (`Unknown type "Animal"`). `Cat` and `Dog` were pulled in through the union, but `Animal` was not.
+  
+  Forward dependencies (fields, `implements`, union members) are now closed transitively. Reverse implementers are still attached only when the interface itself is the import, so `# import Query.posts` does not pull every other `Query` field.
+- Updated dependencies [[`60db079`](https://github.com/ardatan/graphql-tools/commit/60db079ef847a3a6cfad6053fee2c8f4021b43aa), [`57e316d`](https://github.com/ardatan/graphql-tools/commit/57e316d1ee21668761d6b8ad7692e494db8ffab4), [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d), [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d)]:
+  - @graphql-tools/utils@12.0.1
+
 ## 7.1.19
 
 ### Patch Changes
