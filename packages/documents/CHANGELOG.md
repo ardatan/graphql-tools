@@ -1,5 +1,11 @@
 # @graphql-tools/documents
 
+## 1.0.2
+
+### Patch Changes
+
+- [#8364](https://github.com/ardatan/graphql-tools/pull/8364) [`7315425`](https://github.com/ardatan/graphql-tools/commit/731542522e4f7635cba323b21b301a7108a0da1a) Thanks [@copilot-swe-agent](https://github.com/apps/copilot-swe-agent)! - Drop `lodash.sortby` from `@graphql-tools/documents` by replacing internal sorting usage with native `Array.prototype.sort`.
+
 ## 1.0.1
 
 ### Patch Changes
