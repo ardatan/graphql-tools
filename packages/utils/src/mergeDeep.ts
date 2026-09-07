@@ -83,12 +83,16 @@ export function mergeDeep<S extends any[]>(
       }
 
       for (const key in source) {
+        // never let a source key reach the prototype chain
+        if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+          continue;
+        }
         // An own key present with value `undefined` is an explicit override and must win,
         // distinct from the key being altogether absent from `source`. Assigning directly
         // (rather than recursing through mergeDeep) avoids the top-level `source === undefined`
         // skip above, which would otherwise silently discard this override and keep the prior
         // value.
-        if (key in output && source[key] !== undefined) {
+        if (Object.prototype.hasOwnProperty.call(output, key) && source[key] !== undefined) {
           output[key] = mergeDeep(
             [output[key], source[key]],
             respectPrototype,

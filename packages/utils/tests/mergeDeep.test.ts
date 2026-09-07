@@ -114,6 +114,23 @@ describe('mergeDeep', () => {
     expect(mergeDeep([])).toEqual(undefined);
   });
 
+  it('does not let an own __proto__ key from a source change the prototype of the output', () => {
+    // json parsing makes __proto__ a real own enumerable key, unlike an object literal
+    const payload = JSON.parse('{"nested":{"__proto__":{"polluted":"yes"}}}');
+    const merged = mergeDeep([{ nested: { a: 1 } }, payload]);
+    expect(merged.nested.a).toEqual(1);
+    expect(merged.nested.polluted).toBeUndefined();
+    expect(Object.getPrototypeOf(merged.nested)).toBe(Object.prototype);
+  });
+
+  it('does not walk into inherited constructor/prototype when merging', () => {
+    const payload = JSON.parse('{"constructor":{"prototype":{"polluted":"yes"}}}');
+    const merged = mergeDeep([{ a: 1 }, payload]);
+    expect(merged.a).toEqual(1);
+    expect(({} as any).polluted).toBeUndefined();
+    expect(Object.prototype).not.toHaveProperty('polluted');
+  });
+
   it('preserves non-enumerable symbol properties from the first source', () => {
     const sym = Symbol('annotation');
     const first: any = { a: 1 };
