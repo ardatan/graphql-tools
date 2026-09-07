@@ -30,8 +30,10 @@ describe('toImportSpecifier', () => {
     },
   );
 
-  it('Node rejects raw Windows absolute paths as import() specifiers', () => {
-    // Run outside Jest's module transform so we hit Node's ESM loader directly.
+  it('runtimes reject raw Windows absolute paths as import() specifiers', () => {
+    // Run outside Jest's module transform so we hit the runtime ESM loader directly.
+    // Node reports ERR_UNSUPPORTED_ESM_URL_SCHEME (`C:` parsed as a URL scheme);
+    // Bun reports ERR_MODULE_NOT_FOUND for the same specifier.
     const result = spawnSync(
       process.execPath,
       [
@@ -44,6 +46,8 @@ describe('toImportSpecifier', () => {
       { encoding: 'utf8' },
     );
     expect(result.status).toBe(0);
-    expect(result.stdout.trim()).toBe('ERR_UNSUPPORTED_ESM_URL_SCHEME');
+    expect(['ERR_UNSUPPORTED_ESM_URL_SCHEME', 'ERR_MODULE_NOT_FOUND']).toContain(
+      result.stdout.trim(),
+    );
   });
 });
