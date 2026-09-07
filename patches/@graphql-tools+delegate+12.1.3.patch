@@ -1,8 +1,8 @@
 diff --git a/node_modules/@graphql-tools/delegate/dist/index.cjs b/node_modules/@graphql-tools/delegate/dist/index.cjs
-index 41bef7b..7eb5239 100644
+index 6d0a779..18f0866 100644
 --- a/node_modules/@graphql-tools/delegate/dist/index.cjs
 +++ b/node_modules/@graphql-tools/delegate/dist/index.cjs
-@@ -3013,7 +3013,7 @@ function delegateToSchema(options) {
+@@ -3052,7 +3052,7 @@ function delegateToSchema(options) {
      }
    }
    const fragments = info ? getFragmentDefinitions(info) : void 0;
@@ -12,10 +12,10 @@ index 41bef7b..7eb5239 100644
      subgraphName: schema.name,
      fragments,
 diff --git a/node_modules/@graphql-tools/delegate/dist/index.js b/node_modules/@graphql-tools/delegate/dist/index.js
-index 869e6fa..256f81e 100644
+index 5a4dadc..a700578 100644
 --- a/node_modules/@graphql-tools/delegate/dist/index.js
 +++ b/node_modules/@graphql-tools/delegate/dist/index.js
-@@ -3013,7 +3013,7 @@ function delegateToSchema(options) {
+@@ -3052,7 +3052,7 @@ function delegateToSchema(options) {
      }
    }
    const fragments = info ? getFragmentDefinitions(info) : void 0;
