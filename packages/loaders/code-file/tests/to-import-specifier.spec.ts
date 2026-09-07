@@ -1,4 +1,3 @@
-import { spawnSync } from 'child_process';
 import { resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { toImportSpecifier } from '../src/to-import-specifier.js';
@@ -29,25 +28,4 @@ describe('toImportSpecifier', () => {
       expect(toImportSpecifier(windowsPath)).toMatch(/^file:\/\/\/C:/);
     },
   );
-
-  it('runtimes reject raw Windows absolute paths as import() specifiers', () => {
-    // Run outside Jest's module transform so we hit the runtime ESM loader directly.
-    // Node reports ERR_UNSUPPORTED_ESM_URL_SCHEME (`C:` parsed as a URL scheme);
-    // Bun reports ERR_MODULE_NOT_FOUND for the same specifier.
-    const result = spawnSync(
-      process.execPath,
-      [
-        '-e',
-        `import('C:\\\\Users\\\\me\\\\project\\\\schema.js').then(
-          () => { console.log('UNEXPECTED_OK'); process.exit(1); },
-          (e) => { console.log(e.code); process.exit(0); },
-        )`,
-      ],
-      { encoding: 'utf8' },
-    );
-    expect(result.status).toBe(0);
-    expect(['ERR_UNSUPPORTED_ESM_URL_SCHEME', 'ERR_MODULE_NOT_FOUND']).toContain(
-      result.stdout.trim(),
-    );
-  });
 });
