@@ -1,5 +1,6 @@
 import { DocumentNode, GraphQLSchema } from 'graphql';
 import { pickExportFromModule, pickExportFromModuleSync } from './exports.js';
+import { toImportSpecifier } from './to-import-specifier.js';
 
 /**
  * @internal
@@ -10,7 +11,7 @@ export async function tryToLoadFromExport(
   try {
     const filepath = ensureFilepath(rawFilePath);
 
-    const mod = await import(filepath);
+    const mod = await import(toImportSpecifier(filepath));
 
     return await pickExportFromModule({ module: mod, filepath });
   } catch (e: any) {
