@@ -14,11 +14,14 @@ import { dirname, join } from 'path';
 (process.platform === 'win32' ? describe : describe.skip)(
   'CodeFileLoader with absolute Windows paths (issue #8420)',
   () => {
-    it('loads a schema module referenced by an absolute path with a drive letter', () => {
+    it('can import() a module referenced by an absolute drive-letter path', () => {
       const tsxCli = join(dirname(require.resolve('tsx/package.json')), 'dist/cli.mjs');
 
       const loadFromModulePath = join(__dirname, '../src/load-from-module.ts');
-      const fixturePath = join(__dirname, 'test-files/loaders/module-exports.js');
+      // Must be `.cjs`: this package's package.json has `"type": "module"`, so a
+      // bare `.js` fixture is treated as ESM by Node's loader and its `require()`
+      // calls fail. Real ESM `import()` (what this test exercises) needs CJS.
+      const fixturePath = join(__dirname, 'test-files/loaders/module-exports.cjs');
 
       const tmpDir = mkdtempSync(join(tmpdir(), 'code-file-loader-'));
       const scriptPath = join(tmpDir, 'run.mjs');
@@ -30,8 +33,14 @@ import { dirname, join } from 'path';
           `const { tryToLoadFromExport } = await import(pathToFileURL(${JSON.stringify(
             loadFromModulePath,
           )}).href);`,
-          `const result = await tryToLoadFromExport(${JSON.stringify(fixturePath)});`,
-          'console.log(JSON.stringify({ hasSchema: !!result }));',
+          'try {',
+          `  await tryToLoadFromExport(${JSON.stringify(fixturePath)});`,
+          '  console.log(JSON.stringify({ ok: true }));',
+          '} catch (e) {',
+          '  const message = String(e && e.message);',
+          '  console.log(JSON.stringify({ ok: false, message }));',
+          "  process.exit(message.includes('ERR_UNSUPPORTED_ESM_URL_SCHEME') ? 1 : 0);",
+          '}',
         ].join('\n'),
       );
 
@@ -39,7 +48,7 @@ import { dirname, join } from 'path';
         encoding: 'utf8',
       });
 
-      expect(JSON.parse(output.trim())).toEqual({ hasSchema: true });
+      expect(JSON.parse(output.trim())).toEqual({ ok: true });
     });
   },
 );
