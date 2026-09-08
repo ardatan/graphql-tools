@@ -18,7 +18,7 @@ import {
 import { collectFields, collectSubFields } from './collectFields.js';
 import { getOperationASTFromRequest } from './getOperationASTFromRequest.js';
 import { ExecutionRequest, ExecutionResult } from './Interfaces.js';
-import { Maybe } from './types.js';
+import { Maybe, VariableValues } from './types.js';
 
 export type ValueVisitor = (value: any) => any;
 
@@ -92,7 +92,7 @@ export function visitResult(
     return acc;
   }, {});
 
-  const variableValues = request.variables || {};
+  const variableValues = normalizeVariableValues(request.variables);
 
   const errorInfo: ErrorInfo = {
     segmentInfoMap: new Map<GraphQLError, Array<SegmentInfo>>(),
@@ -123,6 +123,13 @@ export function visitResult(
   }
 
   return result;
+}
+
+function normalizeVariableValues(variables: Record<string, any> | undefined): VariableValues {
+  return {
+    coerced: variables ?? {},
+    sources: {},
+  };
 }
 
 function visitErrorsByType(
@@ -173,7 +180,7 @@ function visitRoot(
   operation: OperationDefinitionNode,
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
-  variableValues: Record<string, any>,
+  variableValues: VariableValues,
   resultVisitorMap: Maybe<ResultVisitorMap>,
   errors: Maybe<ReadonlyArray<GraphQLError>>,
   errorInfo: ErrorInfo,
@@ -207,7 +214,7 @@ function visitObjectValue(
   fieldNodeMap: Map<string, FieldNode[]>,
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
-  variableValues: Record<string, any>,
+  variableValues: VariableValues,
   resultVisitorMap: Maybe<ResultVisitorMap>,
   pathIndex: number,
   errors: Maybe<ReadonlyArray<GraphQLError>>,
@@ -325,7 +332,7 @@ function visitListValue(
   fieldNodes: Array<FieldNode>,
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
-  variableValues: Record<string, any>,
+  variableValues: VariableValues,
   resultVisitorMap: Maybe<ResultVisitorMap>,
   pathIndex: number,
   errors: ReadonlyArray<GraphQLError>,
@@ -353,7 +360,7 @@ function visitFieldValue(
   fieldNodes: Array<FieldNode>,
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
-  variableValues: Record<string, any>,
+  variableValues: VariableValues,
   resultVisitorMap: Maybe<ResultVisitorMap>,
   pathIndex: number,
   errors: ReadonlyArray<GraphQLError> | undefined = [],

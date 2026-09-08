@@ -1,5 +1,82 @@
 # @graphql-tools/import
 
+## 7.2.0
+
+### Minor Changes
+
+- [#8383](https://github.com/ardatan/graphql-tools/pull/8383) [`04e8159`](https://github.com/ardatan/graphql-tools/commit/04e8159dd3ea33f2a0df543efd59d581476f9cf7) Thanks [@ardatan](https://github.com/ardatan)! - `# import` paths may use a `require:` prefix, resolved with Node's `require.resolve` from the importing file. Example: `# import Post from "require:blog-graphql-types/schema.graphql"` or `# import A from "require:./a.graphql"`.
+
+### Patch Changes
+
+- [#8383](https://github.com/ardatan/graphql-tools/pull/8383) [`04e8159`](https://github.com/ardatan/graphql-tools/commit/04e8159dd3ea33f2a0df543efd59d581476f9cf7) Thanks [@ardatan](https://github.com/ardatan)! - `# import "./file.graphql"` (space after `#`) is a valid default import, and `#import` is processed even when it is not the first non-blank line of the file.
+
+- [#8383](https://github.com/ardatan/graphql-tools/pull/8383) [`04e8159`](https://github.com/ardatan/graphql-tools/commit/04e8159dd3ea33f2a0df543efd59d581476f9cf7) Thanks [@ardatan](https://github.com/ardatan)! - Keep leading GraphQL comments (for example `# eslint-disable-next-line` above a query) when `#import` merges documents. Previously `processImport` reprinted definitions and dropped those comments from the merged source.
+
+- [#8383](https://github.com/ardatan/graphql-tools/pull/8383) [`04e8159`](https://github.com/ardatan/graphql-tools/commit/04e8159dd3ea33f2a0df543efd59d581476f9cf7) Thanks [@ardatan](https://github.com/ardatan)! - `# import *` keeps unreferenced types that carry a federation `@key` (subgraph entities). Other unused types are still tree-shaken, matching existing `import *` tests.
+
+- [#8383](https://github.com/ardatan/graphql-tools/pull/8383) [`04e8159`](https://github.com/ardatan/graphql-tools/commit/04e8159dd3ea33f2a0df543efd59d581476f9cf7) Thanks [@ardatan](https://github.com/ardatan)! - Named `# import` of a type no longer drops interfaces implemented by union members.
+  
+  Before this, a file like:
+  
+  ```graphql
+  # import Foo from "./types.graphql"
+  
+  type Query {
+    foo: Foo
+  }
+  ```
+  
+  with `types.graphql` containing `type Foo { pet: Pet }`, `union Pet = Cat | Dog`, and `type Cat implements Animal` built an invalid schema (`Unknown type "Animal"`). `Cat` and `Dog` were pulled in through the union, but `Animal` was not.
+  
+  Forward dependencies (fields, `implements`, union members) are now closed transitively. Reverse implementers are still attached only when the interface itself is the import, so `# import Query.posts` does not pull every other `Query` field.
+- Updated dependencies [[`60db079`](https://github.com/ardatan/graphql-tools/commit/60db079ef847a3a6cfad6053fee2c8f4021b43aa), [`57e316d`](https://github.com/ardatan/graphql-tools/commit/57e316d1ee21668761d6b8ad7692e494db8ffab4), [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d), [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d), [`0b9529f`](https://github.com/ardatan/graphql-tools/commit/0b9529f1988fd36186a7c106a6efe0356f1b7f2e)]:
+  - @graphql-tools/utils@12.0.1
+
+## 7.1.19
+
+### Patch Changes
+
+- [#8259](https://github.com/ardatan/graphql-tools/pull/8259)
+  [`85f1de0`](https://github.com/ardatan/graphql-tools/commit/85f1de00a8ac33d82a2d5a3cea2aef235b0e4e26)
+  Thanks [@lemonmade](https://github.com/lemonmade)! - perf(import): remove redundant work in
+  `addDefinition`'s dependency traversal
+
+  `addDefinition` recurses across the whole dependency graph while assembling each definition's
+  imported dependencies. Two things were repeated on every call:
+
+  - `visitedFiles.get(filePath)` — invariant for the duration of the `processImport` call, so it's
+    now looked up once and hoisted out of the recursion.
+  - the per-field dependency-name derivation (`visitFieldDefinitionNode` /
+    `visitInputValueDefinitionNode` into a fresh `Map`) — a pure function of the field node and the
+    file's static dependency map, so it's now memoized by field identity instead of recomputed every
+    time the owning definition is added to a set.
+
+  Pure performance change; output is unchanged (the existing import tests pass and a real-world
+  ~12k-line schema produces byte-identical results). Building on the `print` memoization, this took
+  the same codegen pass from ~17s to ~13s. The remaining cost is the O(n²) shape of the closure
+  traversal itself (each definition's transitive set is still rebuilt independently); reducing that
+  is left for a follow-up as it's a more invasive change.
+
+- [#8258](https://github.com/ardatan/graphql-tools/pull/8258)
+  [`6bacf57`](https://github.com/ardatan/graphql-tools/commit/6bacf57f37d105ccd056b29539a9d447091dc861)
+  Thanks [@lemonmade](https://github.com/lemonmade)! - perf(import): memoize `print` per node when
+  assembling imported definitions
+
+  `processImport` de-duplicates the collected definitions by printing each one to SDL and comparing
+  the strings. A single definition node appears in many of the dependency sets (any
+  widely-referenced type is pulled in by every definition that depends on it), so `print` was called
+  roughly O(n²) times for n unique nodes. For large, densely-connected schemas this print/visit work
+  dominates import time.
+
+  Memoizing `print` by node identity makes each unique node print at most once. `print` is a pure
+  function of its node, so the output is identical; this is a pure performance change. On a
+  ~12k-line schema imported across three projects, this reduced a downstream codegen pass from ~133s
+  to ~17s.
+
+- Updated dependencies
+  [[`2273c21`](https://github.com/ardatan/graphql-tools/commit/2273c21960fa12b59f7793c01ee024b1cef002e6)]:
+  - @graphql-tools/utils@12.0.0
+
 ## 7.1.18
 
 ### Patch Changes

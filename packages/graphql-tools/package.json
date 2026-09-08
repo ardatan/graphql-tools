@@ -1,11 +1,11 @@
 {
   "name": "graphql-tools",
-  "version": "9.0.33",
+  "version": "9.0.35",
   "type": "module",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "repository": {
     "type": "git",
-    "url": "ardatan/graphql-tools",
+    "url": "git+https://github.com/ardatan/graphql-tools.git",
     "directory": "packages/graphql-tools"
   },
   "license": "MIT",
@@ -50,11 +50,11 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/schema": "^10.0.38",
+    "@graphql-tools/schema": "^10.1.1",
     "tslib": "^2.4.0"
   },
   "optionalDependencies": {
-    "@apollo/client": "~4.2.8"
+    "@apollo/client": "~4.2.12"
   },
   "publishConfig": {
     "directory": "dist",

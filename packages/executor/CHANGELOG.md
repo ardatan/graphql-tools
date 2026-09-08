@@ -1,5 +1,49 @@
 # @graphql-tools/executor
 
+## 2.0.1
+
+### Patch Changes
+
+- Updated dependencies [[`60db079`](https://github.com/ardatan/graphql-tools/commit/60db079ef847a3a6cfad6053fee2c8f4021b43aa), [`57e316d`](https://github.com/ardatan/graphql-tools/commit/57e316d1ee21668761d6b8ad7692e494db8ffab4), [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d), [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d), [`0b9529f`](https://github.com/ardatan/graphql-tools/commit/0b9529f1988fd36186a7c106a6efe0356f1b7f2e)]:
+  - @graphql-tools/utils@12.0.1
+
+## 2.0.0
+
+### Major Changes
+
+- [#8346](https://github.com/ardatan/graphql-tools/pull/8346)
+  [`2273c21`](https://github.com/ardatan/graphql-tools/commit/2273c21960fa12b59f7793c01ee024b1cef002e6)
+  Thanks [@ardatan](https://github.com/ardatan)! - This release adds GraphQL v17 support and aligns
+  the existing executor implementation with the latest GraphQL v17 API changes. The following
+  changes are included:
+
+  - `getAsyncHelpers` is now available on `GraphQLResolveInfo`. Its `track` method is used whenever
+    `waitUntil` is available, as in Yoga's
+    [Explicit Resource Management](https://the-guild.dev/graphql/yoga-server/docs/features/explicit-resource-management)
+  - `getAbortSignal` is now available on `GraphQLResolveInfo`, matching behavior that was already
+    available in this executor implementation, as in Yoga's
+    [Execution Cancellation](https://the-guild.dev/graphql/yoga-server/docs/features/execution-cancellation)
+  - `GraphQLResolveInfo` automatically aligns `variableValues` according to the GraphQL version for
+    better compatibility. In GraphQL v17 and above, `variableValues` follows the wrapped shape
+    (`{ coerced, sources }`) expected by GraphQL APIs. In GraphQL v16 and below, `variableValues`
+    remains a flat map as in previous versions.
+  - If your custom scalar resolvers define `__serialize` and `__parseValue`, they are automatically
+    mapped to `coerceOutputValue` and `coerceInputValue` in GraphQL v17.
+  - **BREAKING**: `@graphql-tools/executor`'s `getVariableValues` now returns `{ variableValues }`
+    on success, where `variableValues` is a `VariableValues` object (`{ coerced, sources }`). On
+    failure, it returns `{ errors }`.
+  - **BREAKING**: `collectFields`, `shouldIncludeNode`, `getDeferValues`, and `collectSubFields` now
+    need a `VariableValues` object instead of `Record<string, any>` for the `variableValues`
+    argument.
+  - `visitResult` now internally normalizes `ExecutionRequest.variables` into a
+    `VariableValues`-compatible shape (`{ coerced, sources }`) before traversing selections.
+
+### Patch Changes
+
+- Updated dependencies
+  [[`2273c21`](https://github.com/ardatan/graphql-tools/commit/2273c21960fa12b59f7793c01ee024b1cef002e6)]:
+  - @graphql-tools/utils@12.0.0
+
 ## 1.5.7
 
 ### Patch Changes

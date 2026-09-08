@@ -553,6 +553,45 @@ describe('Merge TypeDefs', () => {
       );
     });
 
+    it('preserves multiple same-name directives when extending without the directive definition', () => {
+      const td1 = /* GraphQL */ `
+        type Foo @foo(person: "alice") @foo(person: "bob") {
+          hello: String
+        }
+      `;
+      const td2 = /* GraphQL */ `
+        extend type Foo {
+          goodbye: String
+        }
+      `;
+
+      const mergedWithoutDefinition = mergeTypeDefs([td1, td2]);
+      const fooWithoutDefinition = mergedWithoutDefinition.definitions.find(
+        d => d.kind === 'ObjectTypeDefinition' && d.name.value === 'Foo',
+      ) as any;
+      expect(fooWithoutDefinition).toBeDefined();
+      expect(fooWithoutDefinition.directives).toHaveLength(2);
+      expect(fooWithoutDefinition.directives).toMatchObject([
+        { name: { value: 'foo' }, arguments: [{ value: { value: 'alice' } }] },
+        { name: { value: 'foo' }, arguments: [{ value: { value: 'bob' } }] },
+      ]);
+
+      const mergedWithDefinition = mergeTypeDefs([
+        `directive @foo(person: String) repeatable on OBJECT`,
+        td1,
+        td2,
+      ]);
+      const fooWithDefinition = mergedWithDefinition.definitions.find(
+        d => d.kind === 'ObjectTypeDefinition' && d.name.value === 'Foo',
+      ) as any;
+      expect(fooWithDefinition).toBeDefined();
+      expect(fooWithDefinition.directives).toHaveLength(2);
+      expect(fooWithDefinition.directives).toMatchObject([
+        { name: { value: 'foo' }, arguments: [{ value: { value: 'alice' } }] },
+        { name: { value: 'foo' }, arguments: [{ value: { value: 'bob' } }] },
+      ]);
+    });
+
     it('should merge args if inputs of the same directive are different from each other', () => {
       const result = mergeTypeDefs([
         `directive @id on FIELD_DEFINITION`,
@@ -1825,26 +1864,87 @@ describe('Merge TypeDefs', () => {
     expect(print(merged)).toBeSimilarString(print(ast));
   });
 
-  it.todo('supports multiple schema extensions');
-  // , () => {
-  //   const ast = parse(/* GraphQL */ `
-  //     directive @link(
-  //       url: String!,
-  //       as: String,
-  //       for: link__Purpose,
-  //       import: [link__Import]
-  //     ) repeatable on SCHEMA
+  it('supports multiple schema extensions', () => {
+    const ast = parse(/* GraphQL */ `
+      directive @link(
+        url: String!
+        as: String
+        for: link__Purpose
+        import: [link__Import]
+      ) repeatable on SCHEMA
 
-  //     extend schema
-  //       @link(url: "https://specs.apollo.dev/link/v1.0")
+      extend schema @link(url: "https://specs.apollo.dev/link/v1.0")
 
-  //     extend schema
-  //       @link(
-  //         url: "https://specs.apollo.dev/federation/v2.6"
-  //         import: ["@key"]
-  //       )
-  //   `);
-  //   const merged = mergeTypeDefs([ast]);
-  //   expect(print(merged)).toBeSimilarString(print(ast));
-  // })
+      extend schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"])
+    `);
+    const merged = mergeTypeDefs([ast]);
+    const expected = parse(/* GraphQL */ `
+      directive @link(
+        url: String!
+        as: String
+        for: link__Purpose
+        import: [link__Import]
+      ) repeatable on SCHEMA
+
+      extend schema
+        @link(url: "https://specs.apollo.dev/link/v1.0")
+        @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"])
+    `);
+    expect(print(merged)).toBeSimilarString(print(expected));
+  });
+
+  it('keeps the default operation types when a schema extension has no operation block', () => {
+    const merged = mergeTypeDefs(
+      [
+        /* GraphQL */ `
+          directive @link(url: String!, import: [String]) repeatable on SCHEMA
+
+          extend schema @link(url: "https://specs.apollo.dev/federation/v2.9", import: ["@key"])
+
+          type Query {
+            hello: String
+          }
+        `,
+      ],
+      { convertExtensions: true },
+    );
+
+    const queryType = makeExecutableSchema({ typeDefs: merged }).getQueryType();
+
+    expect(queryType).toBeDefined();
+    assertSome(queryType);
+    expect(queryType.name).toEqual('Query');
+  });
+
+  it('keeps repeatable directives on schema definitions across documents', () => {
+    const schema1 = parse(/* GraphQL */ `
+      directive @tag(name: String!) repeatable on SCHEMA
+
+      schema @tag(name: "first") {
+        query: Query
+      }
+
+      type Query {
+        foo: String
+      }
+    `);
+    const schema2 = parse(/* GraphQL */ `
+      schema @tag(name: "second") {
+        query: Query
+      }
+    `);
+    const merged = mergeTypeDefs([schema1, schema2]);
+    const expected = parse(/* GraphQL */ `
+      directive @tag(name: String!) repeatable on SCHEMA
+
+      schema @tag(name: "first") @tag(name: "second") {
+        query: Query
+      }
+
+      type Query {
+        foo: String
+      }
+    `);
+    expect(print(merged)).toBeSimilarString(print(expected));
+  });
 });

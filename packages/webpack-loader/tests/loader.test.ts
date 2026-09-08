@@ -59,6 +59,16 @@ test('basic query with esModules on', () => {
   `);
 });
 
+test('esModule #import uses the default export of the required document (#7935)', () => {
+  const docStr = `#import "./frag.graphql"\nquery Foo {\n  foo\n}`;
+  const doc = useLoader(docStr, {
+    esModule: true,
+  });
+
+  expect(doc).toContain('require("./frag.graphql").default');
+  expect(doc).toContain('export default doc');
+});
+
 test('replaceKinds enabled', () => {
   const docStr = /* GraphQL */ `
     query Foo {

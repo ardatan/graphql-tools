@@ -1,5 +1,33 @@
 # @graphql-tools/links
 
+## 10.0.14
+
+### Patch Changes
+
+- Updated dependencies [[`60db079`](https://github.com/ardatan/graphql-tools/commit/60db079ef847a3a6cfad6053fee2c8f4021b43aa), [`57e316d`](https://github.com/ardatan/graphql-tools/commit/57e316d1ee21668761d6b8ad7692e494db8ffab4), [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d), [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d), [`0b9529f`](https://github.com/ardatan/graphql-tools/commit/0b9529f1988fd36186a7c106a6efe0356f1b7f2e)]:
+  - @graphql-tools/utils@12.0.1
+
+## 10.0.13
+
+### Patch Changes
+
+- [#8324](https://github.com/ardatan/graphql-tools/pull/8324)
+  [`bdcce06`](https://github.com/ardatan/graphql-tools/commit/bdcce064ba9863633464a014a89cc4db551f0bc9)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`apollo-upload-client@^20.0.0` ↗︎](https://www.npmjs.com/package/apollo-upload-client/v/20.0.0)
+    (from `^19.0.0`, in `dependencies`)
+
+- [#8326](https://github.com/ardatan/graphql-tools/pull/8326)
+  [`f77fd40`](https://github.com/ardatan/graphql-tools/commit/f77fd40d9171bb7c8c18edadf7f3494eebacca45)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`apollo-upload-client@^20.0.0` ↗︎](https://www.npmjs.com/package/apollo-upload-client/v/20.0.0)
+    (from `^19.0.0`, in `dependencies`)
+- Updated dependencies
+  [[`2273c21`](https://github.com/ardatan/graphql-tools/commit/2273c21960fa12b59f7793c01ee024b1cef002e6)]:
+  - @graphql-tools/utils@12.0.0
+
 ## 10.0.12
 
 ### Patch Changes

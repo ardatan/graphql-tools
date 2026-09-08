@@ -45,11 +45,12 @@ export default function generateConfig(
     case '.cts':
     case '.mts':
       plugins.push('typescript');
-      plugins.push('importAssertions');
+      // importAttributes replaces importAssertions; keep deprecatedAssertSyntax for `assert { … }`
+      plugins.push(['importAttributes', { deprecatedAssertSyntax: true }]);
       break;
     case '.tsx':
       plugins.push('typescript', 'jsx');
-      plugins.push('importAssertions');
+      plugins.push(['importAttributes', { deprecatedAssertSyntax: true }]);
       break;
     // Adding .jsx extension by default because it doesn't affect other syntax features
     // (unlike .tsx) and because people are seem to use it with regular file extensions

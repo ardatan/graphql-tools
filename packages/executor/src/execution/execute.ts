@@ -3,7 +3,6 @@ import {
   DocumentNode,
   FieldNode,
   FragmentDefinitionNode,
-  getDirectiveValues,
   GraphQLAbstractType,
   GraphQLError,
   GraphQLField,
@@ -35,6 +34,7 @@ import {
   fakePromise,
   getArgumentValues,
   getDefinedRootType,
+  getDirectiveValues,
   GraphQLResolveInfo,
   GraphQLStreamDirective,
   inspect,
@@ -51,6 +51,7 @@ import {
   Path,
   pathToArray,
   promiseReduce,
+  VariableValues,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
@@ -118,7 +119,7 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   rootValue: unknown;
   contextValue: TContext;
   operation: OperationDefinitionNode;
-  variableValues: TVariables;
+  variableValues: VariableValues<TVariables>;
   fieldResolver: GraphQLFieldResolver<any, TContext>;
   typeResolver: GraphQLTypeResolver<any, TContext>;
   subscribeFieldResolver: GraphQLFieldResolver<any, TContext>;
@@ -525,7 +526,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     rootValue,
     contextValue,
     operation,
-    variableValues: coercedVariableValues.coerced,
+    variableValues: coercedVariableValues.variableValues,
     fieldResolver: fieldResolver ?? defaultFieldResolver,
     typeResolver: typeResolver ?? defaultTypeResolver,
     subscribeFieldResolver: subscribeFieldResolver ?? defaultFieldResolver,
@@ -716,7 +717,7 @@ function executeField(
     // Build a JS object of arguments from the field.arguments AST, using the
     // variables scope to fulfill any variable references.
     // TODO: find a way to memoize, in case this field is within a List type.
-    const args = getArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
+    const args = getArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues.coerced);
 
     // The resolve function's optional third argument is a context value that
     // is provided to every resolve function within an execution. It is commonly
@@ -816,6 +817,14 @@ export function buildResolveInfo(
 ): GraphQLResolveInfo {
   // The resolve function's optional fourth argument is a collection of
   // information about the current execution state.
+  // GraphQL.js v17 requires getAbortSignal / getAsyncHelpers on GraphQLResolveInfo.
+  // track() mirrors Yoga/Cloudflare waitUntil via context.waitUntil when available.
+  let asyncHelpers: {
+    promiseAll: typeof Promise.all;
+    track: (maybePromises: ReadonlyArray<unknown>) => void;
+  };
+  const variableValues =
+    versionInfo.major >= 17 ? exeContext.variableValues : exeContext.variableValues.coerced;
   return {
     fieldName: fieldDef.name,
     fieldNodes,
@@ -826,8 +835,26 @@ export function buildResolveInfo(
     fragments: exeContext.fragments,
     rootValue: exeContext.rootValue,
     operation: exeContext.operation,
-    variableValues: exeContext.variableValues,
+    variableValues: variableValues as GraphQLResolveInfo['variableValues'],
     signal: exeContext.signal,
+    getAbortSignal: () => exeContext.signal,
+    getAsyncHelpers: () =>
+      (asyncHelpers ??= {
+        promiseAll: Promise.all.bind(Promise),
+        track: maybePromises => {
+          const waitUntil = (
+            exeContext.contextValue as { waitUntil?: (p: PromiseLike<unknown>) => void } | null
+          )?.waitUntil;
+          if (typeof waitUntil !== 'function') {
+            return;
+          }
+          for (const value of maybePromises) {
+            if (isPromise(value)) {
+              waitUntil(value);
+            }
+          }
+        },
+      }),
   };
 }
 
@@ -1812,7 +1839,7 @@ function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIt
 
     // Build a JS object of arguments from the field.arguments AST, using the
     // variables scope to fulfill any variable references.
-    const args = getArgumentValues(fieldDef, fieldNodes[0], variableValues);
+    const args = getArgumentValues(fieldDef, fieldNodes[0], variableValues.coerced);
 
     // The resolve function's optional third argument is a context value that
     // is provided to every resolve function within an execution. It is commonly

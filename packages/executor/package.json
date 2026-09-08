@@ -1,10 +1,10 @@
 {
   "name": "@graphql-tools/executor",
-  "version": "1.5.7",
+  "version": "2.0.1",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ardatan/graphql-tools.git",
+    "url": "git+https://github.com/ardatan/graphql-tools.git",
     "directory": "packages/executor"
   },
   "author": "Saihajpreet Singh <saihajpreet.singh@gmail.com>",
@@ -55,7 +55,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^11.2.2",
+    "@graphql-tools/utils": "^12.0.1",
     "@graphql-typed-document-node/core": "^3.2.0",
     "@repeaterjs/repeater": "^3.1.0",
     "@whatwg-node/disposablestack": "^0.0.6",
@@ -64,7 +64,7 @@
   },
   "devDependencies": {
     "cross-inspect": "1.0.1",
-    "graphql": "^16.14.0"
+    "graphql-yoga": "^5.22.0"
   },
   "publishConfig": {
     "directory": "dist",

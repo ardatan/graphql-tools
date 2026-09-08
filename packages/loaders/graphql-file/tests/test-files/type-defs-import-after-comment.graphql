@@ -1,0 +1,6 @@
+# License or heading comment must not disable #import (#6995)
+# import A from "./import-me.graphql"
+
+type Query {
+  a: A
+}

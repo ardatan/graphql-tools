@@ -18,7 +18,7 @@ import {
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { RenameTypes, wrapSchema } from '@graphql-tools/wrap';
-import { printSchemaWithDirectives } from '../src/index.js';
+import { printSchemaWithDirectives, pruneSchema } from '../src/index.js';
 
 describe('printSchemaWithDirectives', () => {
   it(`Should print with directives, while printSchema doesn't`, () => {
@@ -302,6 +302,45 @@ describe('printSchemaWithDirectives', () => {
     expect(output).toContain('Test Query Comment');
     expect(output).toContain('Test Field Comment');
   });
+
+  it('prefers runtime descriptions over stale astNode descriptions (#5508)', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      """
+      Old type
+      """
+      type Query {
+        """
+        Old field
+        """
+        foo: String
+      }
+    `);
+
+    const queryType = schema.getQueryType()!;
+    const fooField = queryType.getFields()['foo'];
+    // Keep original astNodes (stale descriptions) while overriding runtime descriptions.
+    const transformedSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        description: 'New type',
+        astNode: queryType.astNode,
+        fields: {
+          foo: {
+            type: fooField.type,
+            description: 'New field',
+            astNode: fooField.astNode,
+          },
+        },
+      }),
+    });
+
+    const output = printSchemaWithDirectives(transformedSchema);
+    expect(output).toContain('New type');
+    expect(output).toContain('New field');
+    expect(output).not.toContain('Old type');
+    expect(output).not.toContain('Old field');
+  });
+
   it('should print transformed schema correctly', () => {
     const printedSchema = /* GraphQL */ `
       type Foo {
@@ -492,5 +531,42 @@ describe('printSchemaWithDirectives', () => {
 
     const output = printSchemaWithDirectives(schema);
     expect(output).toContain('me: String @scope(name: TEAMS_WRITE)');
+  });
+
+  it('omits pruned mutation and subscription from the schema definition', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        schema {
+          query: Query
+          mutation: Mutation
+          subscription: Subscription
+        }
+
+        type Query {
+          foo: Boolean
+        }
+
+        type Mutation
+
+        type Subscription
+      `,
+    });
+
+    const pruned = pruneSchema(schema);
+    expect(pruned.getMutationType()).toBeUndefined();
+    expect(pruned.getSubscriptionType()).toBeUndefined();
+
+    const output = stripIgnoredCharacters(printSchemaWithDirectives(pruned));
+    expect(output).toBe(
+      stripIgnoredCharacters(/* GraphQL */ `
+        schema {
+          query: Query
+        }
+
+        type Query {
+          foo: Boolean
+        }
+      `),
+    );
   });
 });

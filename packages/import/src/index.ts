@@ -1,4 +1,5 @@
 import { readFileSync, realpathSync } from 'fs';
+import { createRequire } from 'module';
 import { dirname, isAbsolute, join } from 'path';
 import {
   DefinitionNode,
@@ -39,12 +40,14 @@ import {
   UnionTypeExtensionNode,
 } from 'graphql';
 import resolveFrom from 'resolve-from';
-import { createGraphQLError, parseGraphQLSDL } from '@graphql-tools/utils';
+import { createGraphQLError, getLeadingCommentBlock, parseGraphQLSDL } from '@graphql-tools/utils';
 import { extractLinkImplementations } from './link/index.js';
 
 const builtinTypes = ['String', 'Float', 'Int', 'Boolean', 'ID', 'Upload'];
 
 const federationV1Directives = ['key', 'provides', 'requires', 'external'];
+
+const federationEntityDirectives = ['key', 'federation__key'];
 
 const builtinDirectives = [
   'deprecated',
@@ -149,12 +152,20 @@ export function processImport(
   );
   const definitionStrSet = new Set<string>();
   let definitionsStr = '';
+  const printCache = new Map<DefinitionNode, { identity: string; withComments: string }>();
   for (const defs of set.values()) {
     for (const def of defs) {
-      const defStr = print(def);
-      if (!definitionStrSet.has(defStr)) {
-        definitionStrSet.add(defStr);
-        definitionsStr += defStr + '\n';
+      let cached = printCache.get(def);
+      if (cached === undefined) {
+        cached = {
+          identity: print(def),
+          withComments: printDefinitionWithLeadingComments(def),
+        };
+        printCache.set(def, cached);
+      }
+      if (!definitionStrSet.has(cached.identity)) {
+        definitionStrSet.add(cached.identity);
+        definitionsStr += cached.withComments + '\n';
       }
     }
   }
@@ -167,6 +178,16 @@ export function processImport(
       };
 }
 
+/**
+ * Resolves a single GraphQL file and returns a map from each definition name to
+ * the set of definitions that make it up, including everything pulled in
+ * transitively through the file's `#import` statements.
+ *
+ * Results are memoized in `visitedFiles`, keyed by the resolved absolute path.
+ * This both avoids re-processing files shared by multiple imports and breaks
+ * circular imports (a file is recorded in `visitedFiles` before its own imports
+ * are followed).
+ */
 function visitFile(
   filePath: string,
   cwd: string,
@@ -175,9 +196,13 @@ function visitFile(
   pathAliases?: PathAliases,
 ): Map<string, Set<DefinitionNode>> {
   if (!(filePath in predefinedImports)) {
-    filePath = applyPathAliases(filePath, pathAliases);
-    if (!isAbsolute(filePath)) {
-      filePath = resolveFilePath(cwd, filePath);
+    if (filePath.startsWith('require:')) {
+      filePath = createRequire(cwd).resolve(filePath.slice('require:'.length));
+    } else {
+      filePath = applyPathAliases(filePath, pathAliases);
+      if (!isAbsolute(filePath)) {
+        filePath = resolveFilePath(cwd, filePath);
+      }
     }
   }
   if (!visitedFiles.has(filePath)) {
@@ -195,20 +220,32 @@ function visitFile(
     // To prevent circular dependency
     visitedFiles.set(filePath, fileDefinitionMap);
 
-    const { allImportedDefinitionsMap, potentialTransitiveDefinitionsMap } = processImports(
-      importLines,
-      filePath,
-      visitedFiles,
-      predefinedImports,
-      pathAliases,
-    );
+    const { allImportedDefinitionsMap, potentialTransitiveDefinitionsMap, hasWildcardImport } =
+      processImports(importLines, filePath, visitedFiles, predefinedImports, pathAliases);
 
+    // `visitedFiles.get(filePath)` is invariant for the duration of this call,
+    // and `addDefinition` recurses across the entire dependency graph, so hoist
+    // the lookup out of the hot path instead of repeating it on every call.
+    const hoistedFileDefinitionMap = visitedFiles.get(filePath);
+    // A field's dependency set is a pure function of the field node (and the
+    // file's static `dependenciesByDefinitionName`), but it was re-derived every
+    // time the owning definition was added to a set. Cache it by field identity.
+    const fieldDependencyCache = new Map<
+      FieldDefinitionNode | InputValueDefinitionNode,
+      Map<string, Set<NameNode>>
+    >();
+    /**
+     * Adds `definition` and everything it transitively depends on — referenced
+     * types, imported documents, and per-field dependencies — into
+     * `definitionSet`. Definitions already present in the set are skipped, which
+     * both dedupes shared dependencies and terminates the traversal on cycles.
+     */
     const addDefinition = (
       definition: DefinitionNode,
       definitionName: string,
       definitionSet: Set<DefinitionNode>,
     ) => {
-      const fileDefinitionMap = visitedFiles.get(filePath);
+      const fileDefinitionMap = hoistedFileDefinitionMap;
       if (fileDefinitionMap && !definitionSet.has(definition)) {
         definitionSet.add(definition);
 
@@ -238,18 +275,22 @@ function visitFile(
                 addDefinition(importedDefinition, fieldDefinitionName, definitionsWithDeps);
               }
             });
-            const newDependencySet = new Map<string, Set<NameNode>>();
-            switch (field.kind) {
-              case Kind.FIELD_DEFINITION:
-                visitFieldDefinitionNode(field, newDependencySet, dependenciesByDefinitionName);
-                break;
-              case Kind.INPUT_VALUE_DEFINITION:
-                visitInputValueDefinitionNode(
-                  field,
-                  newDependencySet,
-                  dependenciesByDefinitionName,
-                );
-                break;
+            let newDependencySet = fieldDependencyCache.get(field);
+            if (newDependencySet === undefined) {
+              newDependencySet = new Map<string, Set<NameNode>>();
+              switch (field.kind) {
+                case Kind.FIELD_DEFINITION:
+                  visitFieldDefinitionNode(field, newDependencySet, dependenciesByDefinitionName);
+                  break;
+                case Kind.INPUT_VALUE_DEFINITION:
+                  visitInputValueDefinitionNode(
+                    field,
+                    newDependencySet,
+                    dependenciesByDefinitionName,
+                  );
+                  break;
+              }
+              fieldDependencyCache.set(field, newDependencySet);
             }
             Array.from(newDependencySet.keys()).forEach(dependencyName => {
               const definitionsInCurrentFile = fileDefinitionMap.get(dependencyName);
@@ -314,6 +355,9 @@ function visitFile(
               }
             }
           }
+        }
+        if (hasWildcardImport) {
+          addImportedFederationEntities(fileDefinitionMap, allImportedDefinitionsMap);
         }
       }
     }
@@ -552,32 +596,94 @@ function visitDefinition(
   }
 }
 
-function getFileDefinitionMap(
+function collectReverseInterfaceDependencies(
   definitionsByName: Map<string, Set<DefinitionNode>>,
-  dependenciesByDefinitionName: DependenciesByDefinitionName,
-): Map<string, Set<DefinitionNode>> {
-  const fileDefinitionMap = new Map<string, Set<DefinitionNode>>();
+): Map<string, Set<string>> {
+  const reverseDependencies = new Map<string, Set<string>>();
+  const addReverse = (interfaceName: string, dependencyName: string) => {
+    let set = reverseDependencies.get(interfaceName);
+    if (set == null) {
+      set = new Set();
+      reverseDependencies.set(interfaceName, set);
+    }
+    set.add(dependencyName);
+  };
 
   for (const [definitionName, definitions] of definitionsByName) {
-    let definitionsWithDependencies = fileDefinitionMap.get(definitionName);
-    if (definitionsWithDependencies == null) {
-      definitionsWithDependencies = new Set();
-      fileDefinitionMap.set(definitionName, definitionsWithDependencies);
+    if (definitionName.includes('.')) {
+      continue;
     }
     for (const definition of definitions) {
-      definitionsWithDependencies.add(definition);
-    }
-    const dependenciesOfDefinition = dependenciesByDefinitionName.get(definitionName);
-    if (dependenciesOfDefinition) {
-      for (const dependencyName of dependenciesOfDefinition.keys()) {
-        const dependencyDefinitions = definitionsByName.get(dependencyName);
-        if (dependencyDefinitions != null) {
-          for (const dependencyDefinition of dependencyDefinitions) {
-            definitionsWithDependencies.add(dependencyDefinition);
+      if (!('interfaces' in definition) || !definition.interfaces) {
+        continue;
+      }
+      const interfaceNames = definition.interfaces.map(
+        (namedTypeNode: NamedTypeNode) => namedTypeNode.name.value,
+      );
+      for (const interfaceName of interfaceNames) {
+        addReverse(interfaceName, definitionName);
+        for (const siblingName of interfaceNames) {
+          if (siblingName !== interfaceName) {
+            addReverse(interfaceName, siblingName);
           }
         }
       }
     }
+  }
+
+  return reverseDependencies;
+}
+
+function getFileDefinitionMap(
+  definitionsByName: Map<string, Set<DefinitionNode>>,
+  dependenciesByDefinitionName: DependenciesByDefinitionName,
+): Map<string, Set<DefinitionNode>> {
+  const reverseInterfaceDependencies = collectReverseInterfaceDependencies(definitionsByName);
+
+  // One forward-only fixpoint for the whole file so field-level keys
+  // (`Type.field`) reuse the same closures instead of repeating BFS.
+  const forwardClosure = new Map<string, Set<DefinitionNode>>();
+  for (const [definitionName, definitions] of definitionsByName) {
+    forwardClosure.set(definitionName, new Set(definitions));
+  }
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const [definitionName, definitions] of forwardClosure) {
+      const dependenciesOfDefinition = dependenciesByDefinitionName.get(definitionName);
+      if (dependenciesOfDefinition == null) {
+        continue;
+      }
+      for (const dependencyName of dependenciesOfDefinition.keys()) {
+        const nested = forwardClosure.get(dependencyName);
+        if (nested == null) {
+          continue;
+        }
+        for (const nestedDefinition of nested) {
+          if (!definitions.has(nestedDefinition)) {
+            definitions.add(nestedDefinition);
+            changed = true;
+          }
+        }
+      }
+    }
+  }
+
+  const fileDefinitionMap = new Map<string, Set<DefinitionNode>>();
+  for (const [definitionName, forwardDefinitions] of forwardClosure) {
+    const definitionsWithDependencies = new Set(forwardDefinitions);
+    const reverseNames = reverseInterfaceDependencies.get(definitionName);
+    if (reverseNames) {
+      for (const implementerName of reverseNames) {
+        const implementerForward = forwardClosure.get(implementerName);
+        if (implementerForward) {
+          for (const definition of implementerForward) {
+            definitionsWithDependencies.add(definition);
+          }
+        }
+      }
+    }
+    fileDefinitionMap.set(definitionName, definitionsWithDependencies);
   }
 
   return fileDefinitionMap;
@@ -592,9 +698,11 @@ export function processImports(
 ): {
   allImportedDefinitionsMap: Map<string, Set<DefinitionNode>>;
   potentialTransitiveDefinitionsMap: Map<string, Set<DefinitionNode>>;
+  hasWildcardImport: boolean;
 } {
   const potentialTransitiveDefinitionsMap = new Map<string, Set<DefinitionNode>>();
   const allImportedDefinitionsMap = new Map<string, Set<DefinitionNode>>();
+  let hasWildcardImport = false;
   for (const line of importLines) {
     const { imports, from } = parseImportLine(line.replace('#', '').trim());
     const importFileDefinitionMap = visitFile(
@@ -623,6 +731,7 @@ export function processImports(
     buildFullDefinitionMap(potentialTransitiveDefinitionsMap);
 
     if (imports.includes('*')) {
+      hasWildcardImport = true;
       buildFullDefinitionMap(allImportedDefinitionsMap);
     } else {
       for (let importedDefinitionName of imports) {
@@ -649,7 +758,72 @@ export function processImports(
       }
     }
   }
-  return { allImportedDefinitionsMap, potentialTransitiveDefinitionsMap };
+  return { allImportedDefinitionsMap, potentialTransitiveDefinitionsMap, hasWildcardImport };
+}
+
+function collectFederationKeyDirectiveNames(
+  allImportedDefinitionsMap: Map<string, Set<DefinitionNode>>,
+): Set<string> {
+  const names = new Set(federationEntityDirectives);
+  const federationUrl = 'https://specs.apollo.dev/federation';
+  for (const importedDefs of allImportedDefinitionsMap.values()) {
+    for (const definition of importedDefs) {
+      if (definition.kind !== Kind.SCHEMA_DEFINITION && definition.kind !== Kind.SCHEMA_EXTENSION) {
+        continue;
+      }
+      const { matchesImplementation, resolveImportName } = extractLinkImplementations({
+        kind: Kind.DOCUMENT,
+        definitions: [definition],
+      });
+      if (!matchesImplementation(federationUrl, 'v2.0')) {
+        continue;
+      }
+      names.add(resolveImportName(federationUrl, '@key').replace(/^@/, ''));
+    }
+  }
+  return names;
+}
+
+function hasFederationEntityDirective(
+  definition: DefinitionNode,
+  keyDirectiveNames: Set<string>,
+): boolean {
+  if (!('name' in definition) || !definition.name) {
+    return false;
+  }
+  if (!('directives' in definition) || definition.directives == null) {
+    return false;
+  }
+  return definition.directives.some(directive => keyDirectiveNames.has(directive.name.value));
+}
+
+function addImportedFederationEntities(
+  fileDefinitionMap: Map<string, Set<DefinitionNode>>,
+  allImportedDefinitionsMap: Map<string, Set<DefinitionNode>>,
+): void {
+  const keyDirectiveNames = collectFederationKeyDirectiveNames(allImportedDefinitionsMap);
+  for (const [importedName, importedDefs] of allImportedDefinitionsMap) {
+    if (importedName.includes('.')) {
+      continue;
+    }
+    const isEntity = [...importedDefs].some(
+      definition =>
+        'name' in definition &&
+        definition.name?.value === importedName &&
+        hasFederationEntityDirective(definition, keyDirectiveNames),
+    );
+    if (!isEntity) {
+      continue;
+    }
+    let target = fileDefinitionMap.get(importedName);
+    if (target == null) {
+      target = new Set();
+      fileDefinitionMap.set(importedName, target);
+    }
+    for (const importedDefinition of importedDefs) {
+      target.add(importedDefinition);
+    }
+  }
 }
 
 /**
@@ -662,15 +836,65 @@ export function extractImportLines(fileContent: string): {
 } {
   const importLines: string[] = [];
   let otherLines = '';
+  let inBlockString = false;
+  let inString = false;
   for (const line of fileContent.split('\n')) {
     const trimmedLine = line.trim();
-    if (trimmedLine.startsWith('#import ') || trimmedLine.startsWith('# import ')) {
+    if (!inBlockString && !inString && /^#\s*import\s+/.test(trimmedLine)) {
       importLines.push(trimmedLine);
     } else if (trimmedLine) {
       otherLines += line + '\n';
     }
+    ({ inBlockString, inString } = advanceGraphQLStringState(line, inBlockString, inString));
   }
   return { importLines, otherLines };
+}
+
+function advanceGraphQLStringState(
+  line: string,
+  inBlockString: boolean,
+  inString: boolean,
+): { inBlockString: boolean; inString: boolean } {
+  let i = 0;
+  while (i < line.length) {
+    if (inBlockString) {
+      if (line.startsWith('\\"""', i)) {
+        i += 4;
+        continue;
+      }
+      if (line.startsWith('"""', i)) {
+        inBlockString = false;
+        i += 3;
+        continue;
+      }
+      i += 1;
+      continue;
+    }
+    if (inString) {
+      if (line[i] === '\\') {
+        i += 2;
+        continue;
+      }
+      if (line[i] === '"') {
+        inString = false;
+      }
+      i += 1;
+      continue;
+    }
+    if (line[i] === '#') {
+      break;
+    }
+    if (line.startsWith('"""', i)) {
+      inBlockString = true;
+      i += 3;
+      continue;
+    }
+    if (line[i] === '"') {
+      inString = true;
+    }
+    i += 1;
+  }
+  return { inBlockString, inString };
 }
 
 /**
@@ -680,6 +904,7 @@ export function extractImportLines(fileContent: string): {
  * Throws if the import line does not have a correct format.
  */
 export function parseImportLine(importLine: string): { imports: string[]; from: string } {
+  importLine = importLine.trim();
   let regexMatch = importLine.match(IMPORT_FROM_REGEX);
   if (regexMatch != null) {
     // Apply regex to import line
@@ -706,10 +931,25 @@ export function parseImportLine(importLine: string): { imports: string[]; from: 
   throw new Error(`
     Import statement is not valid:
     > ${importLine}
-    If you want to have comments starting with '# import', please use ''' instead!
-    You can only have 'import' statements in the following pattern;
-    # import [Type].[Field] from [File]
+    If you want comments that look like '# import', put them in a GraphQL block string (""").
+    Supported forms:
+    # import [Type].[Field] from "[File]"
+    # import [Type], [Type] from "[File]"
+    # import * from "[File]"
+    # import "[File]"
   `);
+}
+
+function printDefinitionWithLeadingComments(def: DefinitionNode): string {
+  const printed = print(def);
+  const commentBlock = getLeadingCommentBlock(def);
+  if (commentBlock == null || commentBlock.length === 0) {
+    return printed;
+  }
+  return `${commentBlock
+    .split('\n')
+    .map(line => (line.startsWith(' ') ? `#${line}` : `# ${line}`))
+    .join('\n')}\n${printed}`;
 }
 
 function resolveFilePath(filePath: string, importFrom: string): string {
@@ -847,29 +1087,11 @@ function visitFragmentDefinitionNode(node: FragmentDefinitionNode, dependencySet
 }
 
 function addInterfaceDependencies(
-  node: any,
+  node: { name: NameNode; interfaces?: readonly NamedTypeNode[] },
   dependencySet: DependencySet,
-  dependenciesByDefinitionName: DependenciesByDefinitionName,
 ) {
-  // all interfaces should be dependent to each other
-  const allDependencies = [
-    node.name,
-    ...((node as any).interfaces?.map((namedTypeNode: NamedTypeNode) => namedTypeNode.name) || []),
-  ];
-  (node as any).interfaces?.forEach((namedTypeNode: NamedTypeNode) => {
+  node.interfaces?.forEach(namedTypeNode => {
     visitNamedTypeNode(namedTypeNode, dependencySet);
-    const interfaceName = namedTypeNode.name.value;
-    let set = dependenciesByDefinitionName.get(interfaceName);
-    // interface should be dependent to the type as well
-    if (set == null) {
-      set = new Map();
-      dependenciesByDefinitionName.set(interfaceName, set);
-    }
-    allDependencies.forEach(dependency => {
-      if (dependency.value !== interfaceName) {
-        addToDependencySet(set!, dependency);
-      }
-    });
   });
 }
 
@@ -883,7 +1105,7 @@ function visitObjectTypeDefinitionNode(
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName),
   );
-  addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
+  addInterfaceDependencies(node, dependencySet);
 }
 
 function visitDirectiveNode(node: DirectiveNode, dependencySet: DependencySet) {
@@ -969,7 +1191,7 @@ function visitInterfaceTypeDefinitionNode(
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName),
   );
-  addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
+  addInterfaceDependencies(node, dependencySet);
 }
 
 function visitUnionTypeDefinitionNode(node: UnionTypeDefinitionNode, dependencySet: DependencySet) {
@@ -1024,7 +1246,7 @@ function visitObjectTypeExtensionNode(
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName),
   );
-  addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
+  addInterfaceDependencies(node, dependencySet);
 }
 
 function visitInterfaceTypeExtensionNode(
@@ -1037,7 +1259,7 @@ function visitInterfaceTypeExtensionNode(
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName),
   );
-  addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
+  addInterfaceDependencies(node, dependencySet);
 }
 
 function visitUnionTypeExtensionNode(node: UnionTypeExtensionNode, dependencySet: DependencySet) {

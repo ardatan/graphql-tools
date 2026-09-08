@@ -1,5 +1,11 @@
 # @graphql-tools/webpack-loader-runtime
 
+## 7.0.1
+
+### Patch Changes
+
+- [#8383](https://github.com/ardatan/graphql-tools/pull/8383) [`04e8159`](https://github.com/ardatan/graphql-tools/commit/04e8159dd3ea33f2a0df543efd59d581476f9cf7) Thanks [@ardatan](https://github.com/ardatan)! - With `esModule: true`, `#import` of another `.graphql` file now uses `require(...).default`, matching the loader's `export default`. `unique()` also treats a missing `definitions` array as empty so unused imports do not throw.
+
 ## 7.0.0
 
 ### Major Changes

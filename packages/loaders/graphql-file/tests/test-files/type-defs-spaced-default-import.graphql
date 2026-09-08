@@ -1,0 +1,5 @@
+# import "./import-me.graphql"
+
+type Query {
+  a: A
+}

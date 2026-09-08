@@ -1,0 +1,1 @@
+globalThis.__CODE_FILE_LOADER_REQUIRE_SIDE_EFFECT__ = true;

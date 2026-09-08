@@ -1,11 +1,11 @@
 {
   "name": "@graphql-tools/git-loader",
-  "version": "8.0.40",
+  "version": "8.0.42",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
-    "url": "ardatan/graphql-tools",
+    "url": "git+https://github.com/ardatan/graphql-tools.git",
     "directory": "packages/loaders/git"
   },
   "author": "Dotan Simha <dotansimha@gmail.com>",
@@ -51,8 +51,8 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/graphql-tag-pluck": "8.3.35",
-    "@graphql-tools/utils": "^11.2.2",
+    "@graphql-tools/graphql-tag-pluck": "8.3.37",
+    "@graphql-tools/utils": "^12.0.1",
     "is-glob": "4.0.3",
     "micromatch": "^4.0.8",
     "tslib": "^2.4.0",

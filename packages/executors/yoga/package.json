@@ -1,11 +1,11 @@
 {
   "name": "@graphql-tools/executor-yoga",
-  "version": "3.0.42",
+  "version": "3.0.44",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
-    "url": "ardatan/graphql-tools",
+    "url": "git+https://github.com/ardatan/graphql-tools.git",
     "directory": "packages/executors/yoga"
   },
   "author": "Arda TANRIKULU <ardatanrikulu@gmail.com>",
@@ -48,16 +48,16 @@
   },
   "typings": "dist/typings/index.d.ts",
   "peerDependencies": {
-    "graphql": "^15.2.0 || ^16.0.0",
+    "graphql": "^15.2.0 || ^16.0.0 || ^17.0.0",
     "graphql-yoga": "^3.5.1 || ^4.0.0 || ^5.0.0"
   },
   "dependencies": {
-    "@graphql-tools/executor-envelop": "^4.0.12",
-    "@graphql-tools/utils": "^11.2.2",
+    "@graphql-tools/executor-envelop": "^4.0.14",
+    "@graphql-tools/utils": "^12.0.1",
     "tslib": "^2.3.1"
   },
   "devDependencies": {
-    "graphql-yoga": "^5.21.2"
+    "graphql-yoga": "^5.22.0"
   },
   "publishConfig": {
     "directory": "dist",

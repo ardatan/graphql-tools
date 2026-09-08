@@ -1,11 +1,11 @@
 {
   "name": "@graphql-tools/documents",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "description": "Utilities for GraphQL documents.",
   "repository": {
     "type": "git",
-    "url": "ardatan/graphql-tools",
+    "url": "git+https://github.com/ardatan/graphql-tools.git",
     "directory": "packages/documents"
   },
   "license": "MIT",
@@ -50,11 +50,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "lodash.sortby": "^4.7.0",
     "tslib": "^2.4.0"
-  },
-  "devDependencies": {
-    "@types/lodash.sortby": "^4.7.7"
   },
   "publishConfig": {
     "directory": "dist",

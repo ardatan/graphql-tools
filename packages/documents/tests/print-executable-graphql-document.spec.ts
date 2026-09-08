@@ -42,6 +42,24 @@ describe('printExecutableGraphQLDocument', () => {
     );
   });
 
+  test('anonymous definitions are sorted after named definitions', () => {
+    const inputDocument = parse(/* GraphQL */ `
+      query {
+        z
+      }
+
+      query B {
+        b
+      }
+
+      query A {
+        a
+      }
+    `);
+    const outputStr = printExecutableGraphQLDocument(inputDocument);
+    expect(outputStr).toBe(`query A { a } query B { b } { z }`);
+  });
+
   test('inline fragments are sorted alphabetically based on the selection set', () => {
     const inputDocument = parse(/* GraphQL */ `
       query A {

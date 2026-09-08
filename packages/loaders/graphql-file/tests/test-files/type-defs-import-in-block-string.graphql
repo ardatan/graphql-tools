@@ -1,0 +1,6 @@
+"""
+# import "./does-not-exist.graphql"
+"""
+type Query {
+  a: String
+}

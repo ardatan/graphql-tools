@@ -1,11 +1,11 @@
 {
   "name": "@graphql-tools/executor-legacy-ws",
-  "version": "1.1.32",
+  "version": "1.1.35",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
-    "url": "ardatan/graphql-tools",
+    "url": "git+https://github.com/ardatan/graphql-tools.git",
     "directory": "packages/executors/legacy-ws"
   },
   "author": "Arda TANRIKULU <ardatanrikulu@gmail.com>",
@@ -51,11 +51,11 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^11.2.2",
+    "@graphql-tools/utils": "^12.0.1",
     "@types/ws": "^8.0.0",
     "isomorphic-ws": "^5.0.0",
     "tslib": "^2.4.0",
-    "ws": "^8.21.1"
+    "ws": "^8.21.3"
   },
   "publishConfig": {
     "directory": "dist",

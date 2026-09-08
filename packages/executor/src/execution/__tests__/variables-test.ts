@@ -20,6 +20,8 @@ import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { executeSync } from '../execute.js';
 import { getVariableValues } from '../values.js';
 
+const isGraphQL17 = versionInfo.major >= 17;
+
 const TestComplexScalar = new GraphQLScalarType({
   name: 'ComplexScalar',
   parseValue(value) {
@@ -244,10 +246,9 @@ describe('Execute: Handles inputs', () => {
         },
         errors: [
           {
-            message:
-              versionInfo.major === 17
-                ? 'Argument "input" has invalid value { c: "foo", e: "bar" }.'
-                : 'Argument "input" has invalid value {c: "foo", e: "bar"}.',
+            message: isGraphQL17
+              ? 'Argument "input" has invalid value { c: "foo", e: "bar" }.'
+              : 'Argument "input" has invalid value {c: "foo", e: "bar"}.',
             path: ['fieldWithObjectInput'],
             locations: [{ line: 3, column: 39 }],
           },
@@ -417,8 +418,9 @@ describe('Execute: Handles inputs', () => {
         expectJSON(result).toDeepEqual({
           errors: [
             {
-              message:
-                'Variable "$input" got invalid value null at "input.c"; Expected non-nullable type "String!" not to be null.',
+              message: isGraphQL17
+                ? 'Variable "$input" got invalid value null at "input.c"; Expected value of non-null type "String!" not to be null.'
+                : 'Variable "$input" got invalid value null at "input.c"; Expected non-nullable type "String!" not to be null.',
               locations: [{ line: 2, column: 16 }],
             },
           ],
@@ -431,8 +433,9 @@ describe('Execute: Handles inputs', () => {
         expectJSON(result).toDeepEqual({
           errors: [
             {
-              message:
-                'Variable "$input" got invalid value "foo bar"; Expected type "TestInputObject" to be an object.',
+              message: isGraphQL17
+                ? 'Variable "$input" got invalid value "foo bar"; Expected value of type "TestInputObject" to be an object, found: "foo bar".'
+                : 'Variable "$input" got invalid value "foo bar"; Expected type "TestInputObject" to be an object.',
               locations: [{ line: 2, column: 16 }],
             },
           ],
@@ -445,8 +448,9 @@ describe('Execute: Handles inputs', () => {
         expectJSON(result).toDeepEqual({
           errors: [
             {
-              message:
-                'Variable "$input" got invalid value { a: "foo", b: "bar" }; Field "c" of required type "String!" was not provided.',
+              message: isGraphQL17
+                ? 'Variable "$input" got invalid value { a: "foo", b: "bar" }; Expected value of type "TestInputObject" to include required field "c", found: { a: "foo", b: "bar" }.'
+                : 'Variable "$input" got invalid value { a: "foo", b: "bar" }; Field "c" of required type "String!" was not provided.',
               locations: [{ line: 2, column: 16 }],
             },
           ],
@@ -464,13 +468,15 @@ describe('Execute: Handles inputs', () => {
         expectJSON(result).toDeepEqual({
           errors: [
             {
-              message:
-                'Variable "$input" got invalid value { a: "foo" } at "input.na"; Field "c" of required type "String!" was not provided.',
+              message: isGraphQL17
+                ? 'Variable "$input" got invalid value { a: "foo" } at "input.na"; Expected value of type "TestInputObject" to include required field "c", found: { a: "foo" }.'
+                : 'Variable "$input" got invalid value { a: "foo" } at "input.na"; Field "c" of required type "String!" was not provided.',
               locations: [{ line: 2, column: 18 }],
             },
             {
-              message:
-                'Variable "$input" got invalid value { na: { a: "foo" } }; Field "nb" of required type "String!" was not provided.',
+              message: isGraphQL17
+                ? 'Variable "$input" got invalid value { na: { a: "foo" } }; Expected value of type "TestNestedInputObject" to include required field "nb", found: { na: { a: "foo" } }.'
+                : 'Variable "$input" got invalid value { na: { a: "foo" } }; Field "nb" of required type "String!" was not provided.',
               locations: [{ line: 2, column: 18 }],
             },
           ],
@@ -486,8 +492,9 @@ describe('Execute: Handles inputs', () => {
         expectJSON(result).toDeepEqual({
           errors: [
             {
-              message:
-                'Variable "$input" got invalid value { a: "foo", b: "bar", c: "baz", extra: "dog" }; Field "extra" is not defined by type "TestInputObject".',
+              message: isGraphQL17
+                ? 'Variable "$input" got invalid value { a: "foo", b: "bar", c: "baz", extra: "dog" }; Expected value of type "TestInputObject" not to include unknown field "extra", found: { a: "foo", b: "bar", c: "baz", extra: "dog" }.'
+                : 'Variable "$input" got invalid value { a: "foo", b: "bar", c: "baz", extra: "dog" }; Field "extra" is not defined by type "TestInputObject".',
               locations: [{ line: 2, column: 16 }],
             },
           ],
@@ -888,8 +895,9 @@ describe('Execute: Handles inputs', () => {
       expectJSON(result).toDeepEqual({
         errors: [
           {
-            message:
-              'Variable "$input" got invalid value null at "input[1]"; Expected non-nullable type "String!" not to be null.',
+            message: isGraphQL17
+              ? 'Variable "$input" got invalid value null at "input[1]"; Expected value of non-null type "String!" not to be null.'
+              : 'Variable "$input" got invalid value null at "input[1]"; Expected non-nullable type "String!" not to be null.',
             locations: [{ line: 2, column: 16 }],
           },
         ],
@@ -936,8 +944,9 @@ describe('Execute: Handles inputs', () => {
       expectJSON(result).toDeepEqual({
         errors: [
           {
-            message:
-              'Variable "$input" got invalid value null at "input[1]"; Expected non-nullable type "String!" not to be null.',
+            message: isGraphQL17
+              ? 'Variable "$input" got invalid value null at "input[1]"; Expected value of non-null type "String!" not to be null.'
+              : 'Variable "$input" got invalid value null at "input[1]"; Expected non-nullable type "String!" not to be null.',
             locations: [{ line: 2, column: 16 }],
           },
         ],
@@ -1015,18 +1024,26 @@ describe('Execute: Handles inputs', () => {
         }
       `);
 
-      expectJSON(result).toDeepEqual({
-        data: {
-          fieldWithDefaultArgumentValue: null,
-        },
-        errors: [
-          {
-            message: 'Argument "input" has invalid value WRONG_TYPE.',
-            locations: [{ line: 3, column: 48 }],
-            path: ['fieldWithDefaultArgumentValue'],
+      if (isGraphQL17) {
+        expectJSON(result).toDeepEqual({
+          data: {
+            fieldWithDefaultArgumentValue: '"WRONG_TYPE"',
           },
-        ],
-      });
+        });
+      } else {
+        expectJSON(result).toDeepEqual({
+          data: {
+            fieldWithDefaultArgumentValue: null,
+          },
+          errors: [
+            {
+              message: 'Argument "input" has invalid value WRONG_TYPE.',
+              locations: [{ line: 3, column: 48 }],
+              path: ['fieldWithDefaultArgumentValue'],
+            },
+          ],
+        });
+      }
     });
 
     it('when no runtime value is provided to a non-null argument', () => {

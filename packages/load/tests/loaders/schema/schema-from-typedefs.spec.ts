@@ -239,5 +239,20 @@ describe('schema from typedefs', () => {
       expect(schema.getTypeMap()['Bar']).toBeDefined();
       expect(schema.getTypeMap()['Ham']).toBeDefined();
     });
+
+    it('should parse nested import types with interfaces (#3797)', async () => {
+      const glob = './test-files/nested-imports/query-interfaces.graphql';
+      const schema = await load(glob, {
+        loaders: [new GraphQLFileLoader()],
+        cwd: __dirname,
+      });
+
+      expect(schema.getTypeMap()['Query']).toBeDefined();
+      expect(schema.getTypeMap()['Foo']).toBeDefined();
+      expect(schema.getTypeMap()['Cat']).toBeDefined();
+      expect(schema.getTypeMap()['Dog']).toBeDefined();
+      expect(schema.getTypeMap()['Pet']).toBeDefined();
+      expect(schema.getTypeMap()['Animal']).toBeDefined();
+    });
   });
 });

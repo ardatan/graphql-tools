@@ -1,11 +1,11 @@
 {
   "name": "@graphql-tools/executor-envelop",
-  "version": "4.0.12",
+  "version": "4.0.14",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
-    "url": "ardatan/graphql-tools",
+    "url": "git+https://github.com/ardatan/graphql-tools.git",
     "directory": "packages/executors/envelop"
   },
   "author": "Arda TANRIKULU <ardatanrikulu@gmail.com>",
@@ -51,12 +51,12 @@
     "@envelop/core": "^3.0.4 || ^4.0.0 || ^5.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^11.2.2",
+    "@graphql-tools/utils": "^12.0.1",
     "@graphql-tools/wrap": "^11.0.0",
     "tslib": "^2.3.1"
   },
   "devDependencies": {
-    "@envelop/core": "5.5.1"
+    "@envelop/core": "5.6.0"
   },
   "publishConfig": {
     "directory": "dist",

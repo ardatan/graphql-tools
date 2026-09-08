@@ -1,0 +1,5 @@
+# import * from "./entities.graphql"
+
+interface GraphQLError {
+  message: String!
+}

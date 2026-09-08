@@ -28,6 +28,20 @@ describe('import in documents', () => {
     `);
   });
 
+  it('should keep leading comments on imported documents', () => {
+    const document = processImport('./import-test/default/with-comments.graphql', __dirname);
+    expect(document.loc?.source.body).toMatch(/#\s*eslint-disable-next-line/);
+    expect(print(document)).toBeSimilarGqlDoc(/* GraphQL */ `
+      query Foo {
+        ...BarFragment
+      }
+
+      fragment BarFragment on Bar {
+        baz
+      }
+    `);
+  });
+
   it('should get documents with specific imports properly', async () => {
     const document = importDocuments('./import-test/specific/a.graphql');
 

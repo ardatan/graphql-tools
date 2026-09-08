@@ -1,11 +1,11 @@
 {
   "name": "@graphql-tools/executor-urql-exchange",
-  "version": "1.0.34",
+  "version": "1.0.36",
   "type": "module",
   "description": "",
   "repository": {
     "type": "git",
-    "url": "ardatan/graphql-tools",
+    "url": "git+https://github.com/ardatan/graphql-tools.git",
     "directory": "packages/executors/urql-exchange"
   },
   "author": "Arda TANRIKULU <ardatanrikulu@gmail.com>",
@@ -44,11 +44,11 @@
   },
   "peerDependencies": {
     "@urql/core": "^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0",
-    "graphql": "^15.2.0 || ^16.0.0",
+    "graphql": "^15.2.0 || ^16.0.0 || ^17.0.0",
     "wonka": "^6.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^11.2.2",
+    "@graphql-tools/utils": "^12.0.1",
     "@whatwg-node/promise-helpers": "^1.2.4",
     "tslib": "^2.4.0"
   },

@@ -26,7 +26,9 @@ describe('loadSchema', () => {
         });
         expect(true).toBeFalsy(); // should throw
       } catch (e: any) {
-        expect(e.toString()).toContain(`SyntaxError`);
+        // Single loader failures are wrapped in AggregateError with context (#7406)
+        expect(e.toString()).toContain('Failed to find any GraphQL type definitions');
+        expect(e.toString()).toMatch(/Unterminated template|SyntaxError/);
       }
     });
 
@@ -169,6 +171,24 @@ describe('loadSchema', () => {
         {
           loaders: [],
           customLoaderContext,
+        },
+      );
+      expect(result).toBeInstanceOf(GraphQLSchema);
+      expect(result.getQueryType()?.getFields()?.['myFooField']).toBeDefined();
+    });
+    test(`should load an ESM custom schema loader (#6656)`, async () => {
+      const result = await load(
+        {
+          pointer: {
+            loader: join(__dirname, '../../custom-loader.mjs'),
+            fooFieldName: 'myFooField',
+          },
+        },
+        {
+          loaders: [],
+          customLoaderContext: {
+            loaderType: 'schema',
+          },
         },
       );
       expect(result).toBeInstanceOf(GraphQLSchema);

@@ -3,7 +3,12 @@ import * as path from 'path';
 import '../../../testing/to-be-similar-gql-doc';
 import { GraphQLError, Kind, print } from 'graphql';
 import { mergeTypeDefs } from '@graphql-tools/merge';
-import { parseImportLine, PathAliases, processImport } from '../../src/index.js';
+import {
+  extractImportLines,
+  parseImportLine,
+  PathAliases,
+  processImport,
+} from '../../src/index.js';
 
 const importSchema = (
   schema: string,
@@ -107,6 +112,56 @@ describe('importSchema', () => {
       imports: ['*'],
       from: 'module-name',
     });
+  });
+
+  test('parseImportLine: default import with leading space (#3837)', () => {
+    expect(parseImportLine(` import "./ProfileForm.graphql"`)).toEqual({
+      imports: ['*'],
+      from: './ProfileForm.graphql',
+    });
+  });
+
+  test('extractImportLines: ignores # import inside block strings', () => {
+    const sdl = `"""
+# import "./missing.graphql"
+"""
+type Query {
+  ok: String
+}
+`;
+    const extracted = extractImportLines(sdl);
+    expect(extracted.importLines).toEqual([]);
+    expect(extracted.otherLines).toContain('# import "./missing.graphql"');
+    expect(extracted.otherLines).toContain('type Query');
+  });
+
+  test('extractImportLines: ignores """ inside comments', () => {
+    const sdl = `# docs """
+# import User from "user.graphql"
+type Query { user: User }
+`;
+    const extracted = extractImportLines(sdl);
+    expect(extracted.importLines).toEqual(['# import User from "user.graphql"']);
+    expect(extracted.otherLines).toContain('type Query { user: User }');
+  });
+
+  test('extractImportLines: ignores escaped """ inside block strings', () => {
+    const sdl = `"""
+text \\""" inside the block string
+"""
+# import User from "user.graphql"
+type Query { user: User }
+`;
+    const extracted = extractImportLines(sdl);
+    expect(extracted.importLines).toEqual(['# import User from "user.graphql"']);
+    expect(extracted.otherLines).toContain('type Query { user: User }');
+    expect(extracted.otherLines).not.toContain('# import User from "user.graphql"');
+  });
+
+  test('parseImportLine: invalid message documents default imports and block strings', () => {
+    expect(() => parseImportLine(`import from "schema.graphql"`)).toThrow(/# import "\[File\]"/);
+    expect(() => parseImportLine(`import from "schema.graphql"`)).toThrow(/"""/);
+    expect(() => parseImportLine(`import from "schema.graphql"`)).not.toThrow(/'''/);
   });
 
   test('parseSDL: non-import comment', () => {
@@ -521,6 +576,139 @@ describe('importSchema', () => {
       }
     `;
     expect(importSchema('./fixtures/interfaces/a.graphql')).toBeSimilarGqlDoc(expectedSDL);
+  });
+
+  test('importSchema: union of types that implement an interface (#3797)', () => {
+    const expectedSDL = /* GraphQL */ `
+      interface Animal {
+        legs: Int!
+      }
+
+      type Cat implements Animal {
+        color: String!
+        legs: Int!
+      }
+
+      type Dog implements Animal {
+        legs: Int!
+        type: String!
+      }
+
+      type Foo {
+        pet: Pet
+      }
+
+      union Pet = Cat | Dog
+
+      type Query {
+        foo: Foo
+      }
+    `;
+    expect(importSchema('./fixtures/union-interfaces/a.graphql')).toBeSimilarGqlDoc(expectedSDL);
+  });
+
+  test('importSchema: nested union of types that implement an interface (#5436)', () => {
+    const expectedSDL = /* GraphQL */ `
+      type C2 {
+        c2: C3
+      }
+
+      union C3 = C4 | C5
+
+      type C4 implements I {
+        c4: ID
+      }
+
+      type C5 {
+        C5: ID
+      }
+
+      type Foo {
+        pet: Pet
+        nested: C2
+      }
+
+      interface I {
+        c4: ID
+      }
+
+      union Pet = C4 | C5
+
+      type Query {
+        foo: Foo
+      }
+    `;
+    expect(importSchema('./fixtures/union-nested-interfaces/a.graphql')).toBeSimilarGqlDoc(
+      expectedSDL,
+    );
+  });
+
+  test('require: module paths', () => {
+    const expectedSDL = /* GraphQL */ `
+      type A {
+        field: String
+      }
+
+      type B {
+        a: A
+      }
+    `;
+    expect(importSchema('./fixtures/require-paths/b.graphql')).toBeSimilarGqlDoc(expectedSDL);
+  });
+
+  test('import * keeps unreferenced federation @key types (#4894)', () => {
+    const expectedSDL = /* GraphQL */ `
+      interface GraphQLError {
+        message: String!
+      }
+
+      type PilatesInstructor @key(fields: "appointmentInstanceId") {
+        appointmentInstanceId: String!
+        firstName: String
+      }
+    `;
+    expect(importSchema('./fixtures/import-star-federation-key/a.graphql')).toBeSimilarGqlDoc(
+      expectedSDL,
+    );
+  });
+
+  test('import * keeps unreferenced types with aliased federation @key', () => {
+    const expectedSDL = /* GraphQL */ `
+      interface GraphQLError {
+        message: String!
+      }
+
+      type User @entityKey(fields: "id") {
+        id: ID!
+      }
+    `;
+    expect(importSchema('./fixtures/import-star-federation-key-alias/a.graphql')).toBeSimilarGqlDoc(
+      expectedSDL,
+    );
+  });
+
+  test('importSchema: interface field typed as an implementer (#8383 review)', () => {
+    const expectedSDL = /* GraphQL */ `
+      interface Animal {
+        favorite: Cat
+      }
+
+      type Cat implements Animal {
+        name: String
+        favorite: Cat
+      }
+
+      type Foo {
+        animal: Animal
+      }
+
+      type Query {
+        foo: Foo
+      }
+    `;
+    expect(importSchema('./fixtures/interface-field-implementer/a.graphql')).toBeSimilarGqlDoc(
+      expectedSDL,
+    );
   });
 
   test('importSchema: interfaces-many', () => {

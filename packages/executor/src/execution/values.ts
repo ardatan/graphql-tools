@@ -10,11 +10,19 @@ import {
   valueFromAST,
   VariableDefinitionNode,
 } from 'graphql';
-import { createGraphQLError, hasOwnProperty, inspect, printPathArray } from '@graphql-tools/utils';
+import {
+  createGraphQLError,
+  hasOwnProperty,
+  inspect,
+  printPathArray,
+  VariableValues,
+  VariableValueSource,
+} from '@graphql-tools/utils';
+import { validateInputValue } from './validateInputValue.js';
 
-type CoercedVariableValues =
-  | { errors: ReadonlyArray<GraphQLError>; coerced?: never }
-  | { coerced: { [variable: string]: unknown }; errors?: never };
+export type VariableValuesOrErrors =
+  | { errors: ReadonlyArray<GraphQLError>; variableValues?: never }
+  | { variableValues: VariableValues; errors?: never };
 
 /**
  * Prepares an object map of variableValues of the correct type based on the
@@ -30,11 +38,11 @@ export function getVariableValues(
   varDefNodes: ReadonlyArray<VariableDefinitionNode>,
   inputs: { readonly [variable: string]: unknown },
   options?: { maxErrors?: number },
-): CoercedVariableValues {
+): VariableValuesOrErrors {
   const errors: any[] = [];
   const maxErrors = options?.maxErrors;
   try {
-    const coerced = coerceVariableValues(schema, varDefNodes, inputs, error => {
+    const variableValues = coerceVariableValues(schema, varDefNodes, inputs, error => {
       if (maxErrors != null && errors.length >= maxErrors) {
         throw createGraphQLError(
           'Too many errors processing variables, error limit reached. Execution aborted.',
@@ -44,7 +52,7 @@ export function getVariableValues(
     });
 
     if (errors.length === 0) {
-      return { coerced };
+      return { variableValues };
     }
   } catch (error) {
     errors.push(error);
@@ -58,8 +66,9 @@ function coerceVariableValues(
   varDefNodes: ReadonlyArray<VariableDefinitionNode>,
   inputs: { readonly [variable: string]: unknown },
   onError: (error: GraphQLError) => void,
-): { [variable: string]: unknown } {
+): VariableValues {
   const coercedValues: { [variable: string]: unknown } = {};
+  const sources: Record<string, VariableValueSource> = {};
   for (const varDefNode of varDefNodes) {
     const varName = varDefNode.variable.name.value;
     const varType = typeFromAST(schema, varDefNode.type as NamedTypeNode);
@@ -76,7 +85,14 @@ function coerceVariableValues(
       continue;
     }
 
+    const signature = {
+      name: varName,
+      type: varType,
+      default: varDefNode.defaultValue == null ? undefined : { literal: varDefNode.defaultValue },
+    };
+
     if (!hasOwnProperty(inputs, varName)) {
+      sources[varName] = { signature };
       if (varDefNode.defaultValue) {
         coercedValues[varName] = valueFromAST(varDefNode.defaultValue, varType);
       } else if (isNonNullType(varType)) {
@@ -94,6 +110,7 @@ function coerceVariableValues(
     }
 
     const value = inputs[varName];
+    sources[varName] = { signature, value };
     if (value === null && isNonNullType(varType)) {
       const varTypeStr = inspect(varType);
       onError(
@@ -107,7 +124,13 @@ function coerceVariableValues(
       continue;
     }
 
-    coercedValues[varName] = coerceInputValue(value, varType, (path, invalidValue, error) => {
+    let errored = false;
+    const callback = (
+      path: ReadonlyArray<string | number>,
+      invalidValue: unknown,
+      error: GraphQLError,
+    ) => {
+      errored = true;
       let prefix = `Variable "$${varName}" got invalid value ` + inspect(invalidValue);
       if (path.length > 0) {
         prefix += ` at "${varName}${printPathArray(path)}"`;
@@ -118,8 +141,17 @@ function coerceVariableValues(
           originalError: error,
         }),
       );
-    });
+    };
+
+    coercedValues[varName] = (coerceInputValue as any)(value, varType, callback);
+
+    if (coercedValues[varName] === undefined && !errored) {
+      validateInputValue(value, varType, callback);
+    }
   }
 
-  return coercedValues;
+  return {
+    coerced: coercedValues,
+    sources,
+  };
 }
