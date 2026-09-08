@@ -1,5 +1,39 @@
 # @graphql-tools/url-loader
 
+## 9.1.9
+
+### Patch Changes
+
+- [#8426](https://github.com/ardatan/graphql-tools/pull/8426) [`3831a06`](https://github.com/ardatan/graphql-tools/commit/3831a0661514c91d99971052f983552556880402) Thanks [@ardatan](https://github.com/ardatan)! - **Security:** Enable TLS certificate validation by default for legacy GraphQL WebSocket (`graphql-ws` protocol) connections over `wss://`.
+  
+  `buildWSLegacyExecutor()` previously hardcoded `rejectUnauthorized: false`, so Node.js clients accepted any certificate (including self-signed or attacker-controlled ones). Credentials in `connectionParams` / `headers` and subscription payloads could be exposed to a network MITM. This addresses [GHSA-6fw5-9hq8-w87g](https://github.com/ardatan/graphql-tools/security/advisories/GHSA-6fw5-9hq8-w87g) (CWE-295).
+  
+  ### Corrected behavior
+  - Default is now `rejectUnauthorized: true` (Node TLS verifies the peer certificate), matching secure-by-default expectations.
+  - Connections to endpoints with untrusted/self-signed certificates will fail unless you opt out.
+  
+  ### Opt-out (trusted / local self-signed only)
+  
+  ```ts
+  buildWSLegacyExecutor(url, WebSocket, {
+    rejectUnauthorized: false,
+    connectionParams: { /* ... */ },
+  })
+  ```
+  
+  Or via `UrlLoader` / `LoadFromUrlOptions` when `subscriptionsProtocol` is `LEGACY_WS`:
+  
+  ```ts
+  {
+    subscriptionsProtocol: SubscriptionProtocol.LEGACY_WS,
+    rejectUnauthorized: false,
+  }
+  ```
+  
+  Browser WebSocket clients were never affected by this flag (browsers always validate certificates).
+- Updated dependencies [[`3831a06`](https://github.com/ardatan/graphql-tools/commit/3831a0661514c91d99971052f983552556880402)]:
+  - @graphql-tools/executor-legacy-ws@1.1.35
+
 ## 9.1.8
 
 ### Patch Changes
