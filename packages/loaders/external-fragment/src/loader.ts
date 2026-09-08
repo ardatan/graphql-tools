@@ -1,5 +1,5 @@
 import { promises as fsPromises, readFileSync } from 'fs';
-import { parse } from 'graphql';
+import { concatAST, parse } from 'graphql';
 import type { DocumentNode } from 'graphql';
 import {
   gqlPluckFromCodeString,
@@ -39,25 +39,29 @@ function extractSDLSync(
   return sources.map(source => source.body);
 }
 
-export default async function monorepoFragmentLoader(
+/**
+ * Custom-loader entry point for `@graphql-tools/load`.
+ *
+ * Custom loaders must return a single DocumentNode (or Source), and the sync
+ * load path cannot consume a Promise. Use the synchronous resolver here so
+ * this entry point works for both `loadTypedefs` and `loadTypedefsSync`.
+ */
+export default function monorepoFragmentLoader(
   _pointer: string,
   options: MonorepoFragmentLoaderOptions,
-): Promise<Array<{ document: DocumentNode; location: string }>> {
-  const resolvedFiles = await resolveMonorepoFragments(options);
+): DocumentNode {
+  const resolvedFiles = resolveMonorepoFragmentsSync(options);
 
-  const sources: Array<{ document: DocumentNode; location: string }> = [];
+  const documents: DocumentNode[] = [];
   for (const file of resolvedFiles) {
-    const content = await readFile(file.filePath, 'utf8');
-    const sdls = await extractSDL(file.filePath, content, options.pluckConfig);
+    const content = readFileSync(file.filePath, 'utf8');
+    const sdls = extractSDLSync(file.filePath, content, options.pluckConfig);
     for (const sdl of sdls) {
-      sources.push({
-        location: file.filePath,
-        document: parse(sdl, { noLocation: true }),
-      });
+      documents.push(parse(sdl, { noLocation: true }));
     }
   }
 
-  return sources;
+  return concatAST(documents);
 }
 
 export class MonorepoFragmentLoader implements Loader<MonorepoFragmentLoaderOptions> {

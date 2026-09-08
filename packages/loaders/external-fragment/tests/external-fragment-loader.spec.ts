@@ -1,4 +1,5 @@
 import * as path from 'path';
+import { loadDocuments, loadDocumentsSync } from '@graphql-tools/load';
 import monorepoFragmentLoader, {
   clearCache,
   MonorepoFragmentLoader,
@@ -10,63 +11,59 @@ const FIXTURES_DIR = path.join(__dirname, 'test-external');
 const FIXTURES_TS_DIR = path.join(__dirname, 'test-external-ts');
 const FIXTURES_DUP_DIR = path.join(__dirname, 'test-external-dup');
 
+const packageAOpts = {
+  packageDir: path.join(FIXTURES_DIR, 'package-a'),
+  externalPackagesDirs: [FIXTURES_DIR],
+};
+
+const tsOpts = {
+  packageDir: path.join(FIXTURES_TS_DIR, 'app'),
+  externalPackagesDirs: [FIXTURES_TS_DIR],
+  extensions: ['ts', 'tsx', 'js', 'jsx'] as string[],
+};
+
 describe('MonorepoFragmentLoader', () => {
   const loader = new MonorepoFragmentLoader();
 
   describe('resolveMonorepoFragments', () => {
-    it('should resolve direct fragment dependency from a sibling package', async () => {
-      const result = await resolveMonorepoFragments({
-        packageDir: path.join(FIXTURES_DIR, 'package-a'),
-        externalPackagesDirs: [FIXTURES_DIR],
-      });
+    it('should resolve direct and transitive fragment dependencies', async () => {
+      const result = await resolveMonorepoFragments(packageAOpts);
 
-      expect(result.length).toBe(2);
-
-      const fileNames = result.map(r => path.basename(r.filePath)).sort();
-      expect(fileNames).toEqual(['user-email.graphql', 'user-fields.graphql']);
+      expect(result.map(r => path.basename(r.filePath)).sort()).toEqual([
+        'user-email.graphql',
+        'user-fields.graphql',
+      ]);
 
       const userFields = result.find(r => r.filePath.includes('user-fields.graphql'))!;
       expect(userFields.packageName).toBe('package-b');
       expect(userFields.definitions).toEqual([{ name: 'UserFields', typeCondition: 'User' }]);
-    });
-
-    it('should resolve fragments with a single custom extension', async () => {
-      const result = await resolveMonorepoFragments({
-        packageDir: path.join(FIXTURES_DIR, 'package-a'),
-        externalPackagesDirs: [FIXTURES_DIR],
-        extensions: ['graphql'],
-      });
-
-      expect(result.map(r => path.basename(r.filePath)).sort()).toEqual([
-        'user-email.graphql',
-        'user-fields.graphql',
-      ]);
-    });
-
-    it('should resolve fragments with a single custom extension synchronously', () => {
-      const result = resolveMonorepoFragmentsSync({
-        packageDir: path.join(FIXTURES_DIR, 'package-a'),
-        externalPackagesDirs: [FIXTURES_DIR],
-        extensions: ['graphql'],
-      });
-
-      expect(result.map(r => path.basename(r.filePath)).sort()).toEqual([
-        'user-email.graphql',
-        'user-fields.graphql',
-      ]);
-    });
-
-    it('should resolve transitive fragment dependencies (fragments that spread other external fragments)', async () => {
-      const result = await resolveMonorepoFragments({
-        packageDir: path.join(FIXTURES_DIR, 'package-a'),
-        externalPackagesDirs: [FIXTURES_DIR],
-      });
 
       const userEmail = result.find(r => r.filePath.includes('user-email.graphql'))!;
-      expect(userEmail).toBeDefined();
       expect(userEmail.packageName).toBe('package-c');
       expect(userEmail.definitions).toEqual([{ name: 'UserEmail', typeCondition: 'User' }]);
     });
+
+    it.each([
+      [
+        'async',
+        (opts: typeof packageAOpts & { extensions?: string[] }) => resolveMonorepoFragments(opts),
+      ],
+      [
+        'sync',
+        (opts: typeof packageAOpts & { extensions?: string[] }) =>
+          resolveMonorepoFragmentsSync(opts),
+      ],
+    ] as const)(
+      'should resolve fragments with a single custom extension (%s)',
+      async (_label, resolve) => {
+        const result = await resolve({ ...packageAOpts, extensions: ['graphql'] });
+
+        expect(result.map(r => path.basename(r.filePath)).sort()).toEqual([
+          'user-email.graphql',
+          'user-fields.graphql',
+        ]);
+      },
+    );
 
     it('should return empty array when no external fragments are needed', async () => {
       const result = await resolveMonorepoFragments({
@@ -78,12 +75,9 @@ describe('MonorepoFragmentLoader', () => {
     });
 
     it('should respect the filter option', async () => {
-      // Only package-b passes the filter, so package-c (which defines UserEmail)
-      // won't be found in transitive deps. This should throw.
       await expect(
         resolveMonorepoFragments({
-          packageDir: path.join(FIXTURES_DIR, 'package-a'),
-          externalPackagesDirs: [FIXTURES_DIR],
+          ...packageAOpts,
           externalPackageNameFilter: name => name === 'package-b',
         }),
       ).rejects.toThrow(
@@ -101,8 +95,6 @@ describe('MonorepoFragmentLoader', () => {
     });
 
     it('should throw when a fragment is not found in any dependency', async () => {
-      // package-b spreads UserEmail but has no dependency on package-c
-      // when we set filter to reject package-c
       await expect(
         resolveMonorepoFragments({
           packageDir: path.join(FIXTURES_DIR, 'package-b'),
@@ -114,42 +106,28 @@ describe('MonorepoFragmentLoader', () => {
   });
 
   describe('loader interface', () => {
-    it('should return Source objects with document and location', async () => {
-      const sources = await loader.load('.', {
-        packageDir: path.join(FIXTURES_DIR, 'package-a'),
-        externalPackagesDirs: [FIXTURES_DIR],
-      });
+    it.each([
+      ['async', () => loader.load('.', packageAOpts)],
+      ['sync', () => loader.loadSync('.', packageAOpts)],
+    ] as const)(
+      'should return Source objects with document and location (%s)',
+      async (_label, load) => {
+        const sources = await load();
 
-      expect(sources.length).toBe(2);
-      for (const source of sources) {
-        expect(source.location).toBeDefined();
-        expect(source.document).toBeDefined();
-        expect(source.rawSDL).toBeDefined();
-        expect(source.document!.kind).toBe('Document');
-      }
-    });
-
-    it('should work synchronously via loadSync', () => {
-      const sources = loader.loadSync('.', {
-        packageDir: path.join(FIXTURES_DIR, 'package-a'),
-        externalPackagesDirs: [FIXTURES_DIR],
-      });
-
-      expect(sources.length).toBe(2);
-      const locations = sources.map(s => path.basename(s.location!)).sort();
-      expect(locations).toEqual(['user-email.graphql', 'user-fields.graphql']);
-    });
+        expect(sources.length).toBe(2);
+        const locations = sources.map(s => path.basename(s.location!)).sort();
+        expect(locations).toEqual(['user-email.graphql', 'user-fields.graphql']);
+        for (const source of sources) {
+          expect(source.document!.kind).toBe('Document');
+          expect(source.rawSDL).toBeDefined();
+        }
+      },
+    );
   });
 
   describe('TypeScript code files', () => {
-    const options = {
-      packageDir: path.join(FIXTURES_TS_DIR, 'app'),
-      externalPackagesDirs: [FIXTURES_TS_DIR],
-      extensions: ['ts', 'tsx', 'js', 'jsx'],
-    };
-
-    it('should resolve fragments from .ts files using CodeFileLoader', async () => {
-      const result = await resolveMonorepoFragments(options);
+    it('should resolve fragments from .ts files', async () => {
+      const result = await resolveMonorepoFragments(tsOpts);
 
       expect(result.length).toBe(1);
       expect(result[0].packageName).toBe('shared');
@@ -158,8 +136,11 @@ describe('MonorepoFragmentLoader', () => {
       ]);
     });
 
-    it('should load fragments from .ts files with the async loader interface', async () => {
-      const sources = await loader.load('.', options);
+    it.each([
+      ['async loader', () => loader.load('.', tsOpts)],
+      ['sync loader', () => loader.loadSync('.', tsOpts)],
+    ] as const)('should pluck and load fragments from .ts files (%s)', async (_label, load) => {
+      const sources = await load();
 
       expect(sources).toHaveLength(1);
       expect(sources[0].rawSDL).toContain('fragment SharedUserFragment on User');
@@ -167,29 +148,33 @@ describe('MonorepoFragmentLoader', () => {
       expect(sources[0].document?.definitions).toHaveLength(1);
     });
 
-    it('should load fragments from .ts files with the sync loader interface', () => {
-      const sources = loader.loadSync('.', options);
+    it('should load fragments from .ts files with the function loader', () => {
+      const document = monorepoFragmentLoader('.', tsOpts);
 
-      expect(sources).toHaveLength(1);
-      expect(sources[0].rawSDL).toContain('fragment SharedUserFragment on User');
-      expect(sources[0].rawSDL).not.toContain('import { gql }');
-      expect(sources[0].document?.definitions).toHaveLength(1);
+      expect(document.kind).toBe('Document');
+      expect(document.definitions).toHaveLength(1);
     });
 
-    it('should load fragments from .ts files with the function loader', async () => {
-      const sources = await monorepoFragmentLoader('.', options);
+    it('should work as an @graphql-tools/load custom loader', async () => {
+      const pointer = {
+        '.': {
+          loader: monorepoFragmentLoader,
+          ...packageAOpts,
+        },
+      };
 
-      expect(sources).toHaveLength(1);
-      expect(sources[0].document.definitions).toHaveLength(1);
+      const [asyncSource] = await loadDocuments(pointer, { loaders: [] });
+      const [syncSource] = loadDocumentsSync(pointer, { loaders: [] });
+
+      expect(asyncSource.document?.definitions).toHaveLength(2);
+      expect(syncSource.document?.definitions).toHaveLength(2);
     });
   });
 
   describe('fileContentFilter option', () => {
     it('should skip files that do not pass the filter', async () => {
       const result = await resolveMonorepoFragments({
-        packageDir: path.join(FIXTURES_TS_DIR, 'app'),
-        externalPackagesDirs: [FIXTURES_TS_DIR],
-        extensions: ['ts', 'tsx', 'js', 'jsx'],
+        ...tsOpts,
         fileContentFilter: content => content.includes('graphql-tag'),
       });
 
@@ -198,9 +183,7 @@ describe('MonorepoFragmentLoader', () => {
 
     it('should return empty when fileContentFilter rejects all files in root', async () => {
       const result = await resolveMonorepoFragments({
-        packageDir: path.join(FIXTURES_TS_DIR, 'app'),
-        externalPackagesDirs: [FIXTURES_TS_DIR],
-        extensions: ['ts', 'tsx', 'js', 'jsx'],
+        ...tsOpts,
         fileContentFilter: () => false,
       });
 
@@ -214,63 +197,40 @@ describe('MonorepoFragmentLoader', () => {
     });
 
     it('should return cached results on second call', async () => {
-      const opts = {
-        packageDir: path.join(FIXTURES_DIR, 'package-a'),
-        externalPackagesDirs: [FIXTURES_DIR],
-      };
-
-      const result1 = await resolveMonorepoFragments(opts);
-      const result2 = await resolveMonorepoFragments(opts);
+      const result1 = await resolveMonorepoFragments(packageAOpts);
+      const result2 = await resolveMonorepoFragments(packageAOpts);
 
       expect(result1).toEqual(result2);
     });
 
-    it('should not reuse async fragment maps for different pluck configurations', async () => {
-      const baseOptions = {
-        packageDir: path.join(FIXTURES_TS_DIR, 'app'),
-        externalPackagesDirs: [FIXTURES_TS_DIR],
-        extensions: ['ts', 'tsx'],
-      };
+    it.each([
+      ['async', (opts: Record<string, unknown>) => resolveMonorepoFragments(opts as any)],
+      ['sync', (opts: Record<string, unknown>) => resolveMonorepoFragmentsSync(opts as any)],
+    ] as const)(
+      'should not reuse fragment maps for different pluck configurations (%s)',
+      async (_label, resolve) => {
+        const baseOptions = {
+          packageDir: path.join(FIXTURES_TS_DIR, 'app'),
+          externalPackagesDirs: [FIXTURES_TS_DIR],
+          extensions: ['ts', 'tsx'],
+        };
 
-      const withGqlIdentifier = await resolveMonorepoFragments({
-        ...baseOptions,
-        pluckConfig: { globalGqlIdentifierName: ['gql'] },
-      });
-      const withGraphqlIdentifier = await resolveMonorepoFragments({
-        ...baseOptions,
-        pluckConfig: { globalGqlIdentifierName: ['graphql'] },
-      });
+        const withGqlIdentifier = await resolve({
+          ...baseOptions,
+          pluckConfig: { globalGqlIdentifierName: ['gql'] },
+        });
+        const withGraphqlIdentifier = await resolve({
+          ...baseOptions,
+          pluckConfig: { globalGqlIdentifierName: ['graphql'] },
+        });
 
-      expect(withGqlIdentifier).toHaveLength(1);
-      expect(withGraphqlIdentifier).toEqual([]);
-    });
-
-    it('should not reuse sync fragment maps for different pluck configurations', () => {
-      const baseOptions = {
-        packageDir: path.join(FIXTURES_TS_DIR, 'app'),
-        externalPackagesDirs: [FIXTURES_TS_DIR],
-        extensions: ['ts', 'tsx'],
-      };
-
-      const withGqlIdentifier = resolveMonorepoFragmentsSync({
-        ...baseOptions,
-        pluckConfig: { globalGqlIdentifierName: ['gql'] },
-      });
-      const withGraphqlIdentifier = resolveMonorepoFragmentsSync({
-        ...baseOptions,
-        pluckConfig: { globalGqlIdentifierName: ['graphql'] },
-      });
-
-      expect(withGqlIdentifier).toHaveLength(1);
-      expect(withGraphqlIdentifier).toEqual([]);
-    });
+        expect(withGqlIdentifier).toHaveLength(1);
+        expect(withGraphqlIdentifier).toEqual([]);
+      },
+    );
 
     it('should invalidate root package cache when invalidateRootPackageCache is set', async () => {
-      const opts = {
-        packageDir: path.join(FIXTURES_DIR, 'package-a'),
-        externalPackagesDirs: [FIXTURES_DIR],
-        invalidateRootPackageCache: true,
-      };
+      const opts = { ...packageAOpts, invalidateRootPackageCache: true };
 
       const result1 = await resolveMonorepoFragments(opts);
       const result2 = await resolveMonorepoFragments(opts);
@@ -280,17 +240,9 @@ describe('MonorepoFragmentLoader', () => {
     });
 
     it('clearCache should reset all caches', async () => {
-      await resolveMonorepoFragments({
-        packageDir: path.join(FIXTURES_DIR, 'package-a'),
-        externalPackagesDirs: [FIXTURES_DIR],
-      });
-
+      await resolveMonorepoFragments(packageAOpts);
       clearCache();
-
-      const result = await resolveMonorepoFragments({
-        packageDir: path.join(FIXTURES_DIR, 'package-a'),
-        externalPackagesDirs: [FIXTURES_DIR],
-      });
+      const result = await resolveMonorepoFragments(packageAOpts);
       expect(result.length).toBe(2);
     });
   });
