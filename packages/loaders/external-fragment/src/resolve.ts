@@ -28,7 +28,7 @@ export interface ResolvedExternalFile {
   packageName: string;
 }
 
-export interface MonorepoFragmentResolverOptions {
+export interface ExternalFragmentResolverOptions {
   packageDir: string;
   externalPackagesDirs: string[];
   externalPackageNameFilter?: (packageName: string) => boolean;
@@ -328,7 +328,7 @@ function findMissingFragments(rootMap: PackageFragmentMap): Set<string> {
   return missing;
 }
 
-function resolveExternalFragments(
+function findExternalFragments(
   missingFragments: Set<string>,
   depMaps: Map<string, PackageFragmentMap>,
   rootMap: PackageFragmentMap,
@@ -448,7 +448,7 @@ function getPackageNameFromDir(packageDir: string): string {
   }
 }
 
-function normalizeOptions(options: MonorepoFragmentResolverOptions) {
+function normalizeOptions(options: ExternalFragmentResolverOptions) {
   const externalPackagesDirs = options.externalPackagesDirs;
   const filter = options.externalPackageNameFilter ?? (() => true);
   const includeDevDependencies = options.includeDevDependencies ?? true;
@@ -468,7 +468,7 @@ function normalizeOptions(options: MonorepoFragmentResolverOptions) {
 }
 
 function getTransitiveDeps(
-  options: MonorepoFragmentResolverOptions,
+  options: ExternalFragmentResolverOptions,
   externalPackagesDirs: string[],
   filter: (name: string) => boolean,
   includeDevDependencies: boolean,
@@ -497,12 +497,7 @@ function resolveFromMaps(
   rootPackageName: string,
   missingFragments: Set<string>,
 ): ResolvedExternalFile[] {
-  const resolvedFiles = resolveExternalFragments(
-    missingFragments,
-    depMaps,
-    rootMap,
-    rootPackageName,
-  );
+  const resolvedFiles = findExternalFragments(missingFragments, depMaps, rootMap, rootPackageName);
   detectDuplicateFragments(rootMap, resolvedFiles, rootPackageName);
 
   return resolvedFiles;
@@ -511,11 +506,11 @@ function resolveFromMaps(
 // --- Public API ---
 
 /**
- * Resolves cross-package GraphQL fragment dependencies in a monorepo.
+ * Resolves cross-package GraphQL fragment dependencies across external packages.
  * Async version — reads files in parallel for better performance on large codebases.
  */
-export async function resolveMonorepoFragments(
-  options: MonorepoFragmentResolverOptions,
+export async function resolveExternalFragments(
+  options: ExternalFragmentResolverOptions,
 ): Promise<ResolvedExternalFile[]> {
   const {
     externalPackagesDirs,
@@ -591,11 +586,11 @@ export async function resolveMonorepoFragments(
 }
 
 /**
- * Resolves cross-package GraphQL fragment dependencies in a monorepo.
+ * Resolves cross-package GraphQL fragment dependencies across external packages.
  * Sync version.
  */
-export function resolveMonorepoFragmentsSync(
-  options: MonorepoFragmentResolverOptions,
+export function resolveExternalFragmentsSync(
+  options: ExternalFragmentResolverOptions,
 ): ResolvedExternalFile[] {
   const {
     externalPackagesDirs,

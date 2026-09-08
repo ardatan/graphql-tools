@@ -1,10 +1,10 @@
 import * as path from 'path';
 import { loadDocuments, loadDocumentsSync } from '@graphql-tools/load';
-import monorepoFragmentLoader, {
+import externalFragmentLoader, {
   clearCache,
-  MonorepoFragmentLoader,
-  resolveMonorepoFragments,
-  resolveMonorepoFragmentsSync,
+  ExternalFragmentLoader,
+  resolveExternalFragments,
+  resolveExternalFragmentsSync,
 } from '../src/index.js';
 
 const FIXTURES_DIR = path.join(__dirname, 'test-external');
@@ -22,12 +22,12 @@ const tsOpts = {
   extensions: ['ts', 'tsx', 'js', 'jsx'] as string[],
 };
 
-describe('MonorepoFragmentLoader', () => {
-  const loader = new MonorepoFragmentLoader();
+describe('ExternalFragmentLoader', () => {
+  const loader = new ExternalFragmentLoader();
 
-  describe('resolveMonorepoFragments', () => {
+  describe('resolveExternalFragments', () => {
     it('should resolve direct and transitive fragment dependencies', async () => {
-      const result = await resolveMonorepoFragments(packageAOpts);
+      const result = await resolveExternalFragments(packageAOpts);
 
       expect(result.map(r => path.basename(r.filePath)).sort()).toEqual([
         'user-email.graphql',
@@ -46,12 +46,12 @@ describe('MonorepoFragmentLoader', () => {
     it.each([
       [
         'async',
-        (opts: typeof packageAOpts & { extensions?: string[] }) => resolveMonorepoFragments(opts),
+        (opts: typeof packageAOpts & { extensions?: string[] }) => resolveExternalFragments(opts),
       ],
       [
         'sync',
         (opts: typeof packageAOpts & { extensions?: string[] }) =>
-          resolveMonorepoFragmentsSync(opts),
+          resolveExternalFragmentsSync(opts),
       ],
     ] as const)(
       'should resolve fragments with a single custom extension (%s)',
@@ -66,7 +66,7 @@ describe('MonorepoFragmentLoader', () => {
     );
 
     it('should return empty array when no external fragments are needed', async () => {
-      const result = await resolveMonorepoFragments({
+      const result = await resolveExternalFragments({
         packageDir: path.join(FIXTURES_DIR, 'package-c'),
         externalPackagesDirs: [FIXTURES_DIR],
       });
@@ -76,7 +76,7 @@ describe('MonorepoFragmentLoader', () => {
 
     it('should respect the filter option', async () => {
       await expect(
-        resolveMonorepoFragments({
+        resolveExternalFragments({
           ...packageAOpts,
           externalPackageNameFilter: name => name === 'package-b',
         }),
@@ -87,7 +87,7 @@ describe('MonorepoFragmentLoader', () => {
 
     it('should throw on duplicate fragments across dependencies', async () => {
       await expect(
-        resolveMonorepoFragments({
+        resolveExternalFragments({
           packageDir: path.join(FIXTURES_DUP_DIR, 'pkg-main'),
           externalPackagesDirs: [FIXTURES_DUP_DIR],
         }),
@@ -96,7 +96,7 @@ describe('MonorepoFragmentLoader', () => {
 
     it('should throw when a fragment is not found in any dependency', async () => {
       await expect(
-        resolveMonorepoFragments({
+        resolveExternalFragments({
           packageDir: path.join(FIXTURES_DIR, 'package-b'),
           externalPackagesDirs: [FIXTURES_DIR],
           externalPackageNameFilter: name => name !== 'package-c',
@@ -127,7 +127,7 @@ describe('MonorepoFragmentLoader', () => {
 
   describe('TypeScript code files', () => {
     it('should resolve fragments from .ts files', async () => {
-      const result = await resolveMonorepoFragments(tsOpts);
+      const result = await resolveExternalFragments(tsOpts);
 
       expect(result.length).toBe(1);
       expect(result[0].packageName).toBe('shared');
@@ -149,7 +149,7 @@ describe('MonorepoFragmentLoader', () => {
     });
 
     it('should load fragments from .ts files with the function loader', () => {
-      const document = monorepoFragmentLoader('.', tsOpts);
+      const document = externalFragmentLoader('.', tsOpts);
 
       expect(document.kind).toBe('Document');
       expect(document.definitions).toHaveLength(1);
@@ -158,7 +158,7 @@ describe('MonorepoFragmentLoader', () => {
     it('should work as an @graphql-tools/load custom loader', async () => {
       const pointer = {
         '.': {
-          loader: monorepoFragmentLoader,
+          loader: externalFragmentLoader,
           ...packageAOpts,
         },
       };
@@ -173,7 +173,7 @@ describe('MonorepoFragmentLoader', () => {
 
   describe('fileContentFilter option', () => {
     it('should skip files that do not pass the filter', async () => {
-      const result = await resolveMonorepoFragments({
+      const result = await resolveExternalFragments({
         ...tsOpts,
         fileContentFilter: content => content.includes('graphql-tag'),
       });
@@ -182,7 +182,7 @@ describe('MonorepoFragmentLoader', () => {
     });
 
     it('should return empty when fileContentFilter rejects all files in root', async () => {
-      const result = await resolveMonorepoFragments({
+      const result = await resolveExternalFragments({
         ...tsOpts,
         fileContentFilter: () => false,
       });
@@ -197,15 +197,15 @@ describe('MonorepoFragmentLoader', () => {
     });
 
     it('should return cached results on second call', async () => {
-      const result1 = await resolveMonorepoFragments(packageAOpts);
-      const result2 = await resolveMonorepoFragments(packageAOpts);
+      const result1 = await resolveExternalFragments(packageAOpts);
+      const result2 = await resolveExternalFragments(packageAOpts);
 
       expect(result1).toEqual(result2);
     });
 
     it.each([
-      ['async', (opts: Record<string, unknown>) => resolveMonorepoFragments(opts as any)],
-      ['sync', (opts: Record<string, unknown>) => resolveMonorepoFragmentsSync(opts as any)],
+      ['async', (opts: Record<string, unknown>) => resolveExternalFragments(opts as any)],
+      ['sync', (opts: Record<string, unknown>) => resolveExternalFragmentsSync(opts as any)],
     ] as const)(
       'should not reuse fragment maps for different pluck configurations (%s)',
       async (_label, resolve) => {
@@ -232,17 +232,17 @@ describe('MonorepoFragmentLoader', () => {
     it('should invalidate root package cache when invalidateRootPackageCache is set', async () => {
       const opts = { ...packageAOpts, invalidateRootPackageCache: true };
 
-      const result1 = await resolveMonorepoFragments(opts);
-      const result2 = await resolveMonorepoFragments(opts);
+      const result1 = await resolveExternalFragments(opts);
+      const result2 = await resolveExternalFragments(opts);
 
       expect(result1.length).toBe(2);
       expect(result2.length).toBe(2);
     });
 
     it('clearCache should reset all caches', async () => {
-      await resolveMonorepoFragments(packageAOpts);
+      await resolveExternalFragments(packageAOpts);
       clearCache();
-      const result = await resolveMonorepoFragments(packageAOpts);
+      const result = await resolveExternalFragments(packageAOpts);
       expect(result.length).toBe(2);
     });
   });

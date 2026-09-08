@@ -7,8 +7,8 @@ import {
   type GraphQLTagPluckOptions,
 } from '@graphql-tools/graphql-tag-pluck';
 import type { Loader, Source } from '@graphql-tools/utils';
-import type { MonorepoFragmentLoaderOptions } from './options.js';
-import { resolveMonorepoFragments, resolveMonorepoFragmentsSync } from './resolve.js';
+import type { ExternalFragmentLoaderOptions } from './options.js';
+import { resolveExternalFragments, resolveExternalFragmentsSync } from './resolve.js';
 
 const { readFile } = fsPromises;
 const GQL_EXTENSIONS = ['.graphql', '.gql'];
@@ -46,11 +46,11 @@ function extractSDLSync(
  * load path cannot consume a Promise. Use the synchronous resolver here so
  * this entry point works for both `loadTypedefs` and `loadTypedefsSync`.
  */
-export default function monorepoFragmentLoader(
+export default function externalFragmentLoader(
   _pointer: string,
-  options: MonorepoFragmentLoaderOptions,
+  options: ExternalFragmentLoaderOptions,
 ): DocumentNode {
-  const resolvedFiles = resolveMonorepoFragmentsSync(options);
+  const resolvedFiles = resolveExternalFragmentsSync(options);
 
   const documents: DocumentNode[] = [];
   for (const file of resolvedFiles) {
@@ -64,9 +64,9 @@ export default function monorepoFragmentLoader(
   return concatAST(documents);
 }
 
-export class MonorepoFragmentLoader implements Loader<MonorepoFragmentLoaderOptions> {
-  async load(_pointer: string, options: MonorepoFragmentLoaderOptions): Promise<Source[]> {
-    const resolvedFiles = await resolveMonorepoFragments(options);
+export class ExternalFragmentLoader implements Loader<ExternalFragmentLoaderOptions> {
+  async load(_pointer: string, options: ExternalFragmentLoaderOptions): Promise<Source[]> {
+    const resolvedFiles = await resolveExternalFragments(options);
 
     const sources: Source[] = [];
     for (const file of resolvedFiles) {
@@ -84,8 +84,8 @@ export class MonorepoFragmentLoader implements Loader<MonorepoFragmentLoaderOpti
     return sources;
   }
 
-  loadSync(_pointer: string, options: MonorepoFragmentLoaderOptions): Source[] {
-    const resolvedFiles = resolveMonorepoFragmentsSync(options);
+  loadSync(_pointer: string, options: ExternalFragmentLoaderOptions): Source[] {
+    const resolvedFiles = resolveExternalFragmentsSync(options);
 
     const sources: Source[] = [];
     for (const file of resolvedFiles) {

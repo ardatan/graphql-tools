@@ -1,9 +1,9 @@
 export { default } from './loader.js';
-export { MonorepoFragmentLoader } from './loader.js';
-export type { MonorepoFragmentLoaderOptions } from './options.js';
-export { resolveMonorepoFragments, resolveMonorepoFragmentsSync, clearCache } from './resolve.js';
+export { ExternalFragmentLoader } from './loader.js';
+export type { ExternalFragmentLoaderOptions } from './options.js';
+export { resolveExternalFragments, resolveExternalFragmentsSync, clearCache } from './resolve.js';
 export type {
   ResolvedExternalFile,
   PackageFragmentMap,
-  MonorepoFragmentResolverOptions,
+  ExternalFragmentResolverOptions,
 } from './resolve.js';
