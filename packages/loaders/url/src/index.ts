@@ -96,6 +96,11 @@ export interface LoadFromUrlOptions
    */
   connectionParams?: Record<string, unknown> | (() => Record<string, unknown>);
   /**
+   * Whether to reject unauthorized TLS certificates for legacy `wss://` subscriptions.
+   * Defaults to `true`. Only applies when `subscriptionsProtocol` is `LEGACY_WS`.
+   */
+  rejectUnauthorized?: boolean;
+  /**
    * Enable Batching
    */
   batch?: boolean;
