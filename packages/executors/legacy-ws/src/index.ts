@@ -22,6 +22,12 @@ export enum LEGACY_WS {
 export interface LegacyWSExecutorOpts {
   connectionParams?: Record<string, unknown> | (() => Record<string, unknown>);
   headers?: Record<string, any>;
+  /**
+   * Whether to reject unauthorized TLS certificates when connecting over `wss://`.
+   * Defaults to `true`. Set to `false` only for trusted environments that use
+   * self-signed certificates (for example local development).
+   */
+  rejectUnauthorized?: boolean;
 }
 
 export function buildWSLegacyExecutor(
@@ -37,7 +43,7 @@ export function buildWSLegacyExecutor(
       websocket = new WebSocketImpl(subscriptionsEndpoint, 'graphql-ws', {
         followRedirects: true,
         headers: options?.headers,
-        rejectUnauthorized: false,
+        rejectUnauthorized: options?.rejectUnauthorized ?? true,
         skipUTF8Validation: true,
       });
 
