@@ -21,6 +21,7 @@ import {
   Source,
 } from '@graphql-tools/utils';
 import { tryToLoadFromExport, tryToLoadFromExportSync } from './load-from-module.js';
+import { toImportSpecifier } from './to-import-specifier.js';
 
 const { readFile, access } = fsPromises;
 
@@ -253,7 +254,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
     if (!options.noRequire) {
       try {
         if (options && options.require) {
-          await Promise.all(asArray(options.require).map(m => import(m)));
+          await Promise.all(asArray(options.require).map(m => import(toImportSpecifier(m))));
         }
 
         const loaded = await tryToLoadFromExport(normalizedFilePath);
