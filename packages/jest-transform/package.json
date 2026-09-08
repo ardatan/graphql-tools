@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/jest-transform",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "type": "module",
   "description": "Jest Plugin to load and parse imported GraphQL files",
   "repository": {
@@ -50,7 +50,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/webpack-loader": "7.0.0",
+    "@graphql-tools/webpack-loader": "7.0.1",
     "@jest/transform": "^30.0.0",
     "@jest/types": "^30.0.0",
     "tslib": "^2.4.0"

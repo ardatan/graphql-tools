@@ -1,5 +1,47 @@
 # @graphql-tools/url-loader
 
+## 9.1.9
+
+### Patch Changes
+
+- [#8426](https://github.com/ardatan/graphql-tools/pull/8426) [`3831a06`](https://github.com/ardatan/graphql-tools/commit/3831a0661514c91d99971052f983552556880402) Thanks [@ardatan](https://github.com/ardatan)! - **Security:** Enable TLS certificate validation by default for legacy GraphQL WebSocket (`graphql-ws` protocol) connections over `wss://`.
+  
+  `buildWSLegacyExecutor()` previously hardcoded `rejectUnauthorized: false`, so Node.js clients accepted any certificate (including self-signed or attacker-controlled ones). Credentials in `connectionParams` / `headers` and subscription payloads could be exposed to a network MITM. This addresses [GHSA-6fw5-9hq8-w87g](https://github.com/ardatan/graphql-tools/security/advisories/GHSA-6fw5-9hq8-w87g) (CWE-295).
+  
+  ### Corrected behavior
+  - Default is now `rejectUnauthorized: true` (Node TLS verifies the peer certificate), matching secure-by-default expectations.
+  - Connections to endpoints with untrusted/self-signed certificates will fail unless you opt out.
+  
+  ### Opt-out (trusted / local self-signed only)
+  
+  ```ts
+  buildWSLegacyExecutor(url, WebSocket, {
+    rejectUnauthorized: false,
+    connectionParams: { /* ... */ },
+  })
+  ```
+  
+  Or via `UrlLoader` / `LoadFromUrlOptions` when `subscriptionsProtocol` is `LEGACY_WS`:
+  
+  ```ts
+  {
+    subscriptionsProtocol: SubscriptionProtocol.LEGACY_WS,
+    rejectUnauthorized: false,
+  }
+  ```
+  
+  Browser WebSocket clients were never affected by this flag (browsers always validate certificates).
+- Updated dependencies [[`3831a06`](https://github.com/ardatan/graphql-tools/commit/3831a0661514c91d99971052f983552556880402)]:
+  - @graphql-tools/executor-legacy-ws@1.1.35
+
+## 9.1.8
+
+### Patch Changes
+
+- Updated dependencies [[`60db079`](https://github.com/ardatan/graphql-tools/commit/60db079ef847a3a6cfad6053fee2c8f4021b43aa), [`57e316d`](https://github.com/ardatan/graphql-tools/commit/57e316d1ee21668761d6b8ad7692e494db8ffab4), [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d), [`1c1c5a0`](https://github.com/ardatan/graphql-tools/commit/1c1c5a02931d3e444401beef6d6765054d29369d), [`0b9529f`](https://github.com/ardatan/graphql-tools/commit/0b9529f1988fd36186a7c106a6efe0356f1b7f2e)]:
+  - @graphql-tools/utils@12.0.1
+  - @graphql-tools/executor-legacy-ws@1.1.34
+
 ## 9.1.7
 
 ### Patch Changes
