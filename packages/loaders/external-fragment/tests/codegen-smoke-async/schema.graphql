@@ -1,0 +1,16 @@
+type Query {
+  user: User!
+}
+
+type User {
+  id: ID!
+  name: String
+  email: String
+  emailVerified: Boolean
+  address: Address
+}
+
+type Address {
+  street: String
+  city: String
+}
