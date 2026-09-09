@@ -1,5 +1,11 @@
 # @graphql-tools/code-file-loader
 
+## 8.1.39
+
+### Patch Changes
+
+- [#8421](https://github.com/ardatan/graphql-tools/pull/8421) [`89e78a5`](https://github.com/ardatan/graphql-tools/commit/89e78a56cab81a92b81cd36d419f0ba28d519bf5) Thanks [@ardatan](https://github.com/ardatan)! - Convert absolute filesystem paths to `file://` URLs before dynamic `import()` in the ESM build so schema/document loading works on native Windows, while leaving raw paths for the CJS build where `import()` is downleveled to `require()`. Closes [#8420](https://github.com/ardatan/graphql-tools/issues/8420).
+
 ## 8.1.38
 
 ### Patch Changes

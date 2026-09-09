@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/code-file-loader",
-  "version": "8.1.38",
+  "version": "8.1.39",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
