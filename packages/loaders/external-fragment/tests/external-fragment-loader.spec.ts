@@ -1,3 +1,4 @@
+import { readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
 import { loadDocuments, loadDocumentsSync } from '@graphql-tools/load';
 import type { LoadTypedefsOptions } from '@graphql-tools/load';
@@ -38,7 +39,10 @@ describe('ExternalFragmentLoader', () => {
 
       const userFields = result.find(r => r.filePath.includes('user-fields.graphql'))!;
       expect(userFields.packageName).toBe('package-b');
-      expect(userFields.definitions).toEqual([{ name: 'UserFields', typeCondition: 'User' }]);
+      expect(userFields.definitions).toEqual([
+        { name: 'UserFields', typeCondition: 'User' },
+        { name: 'UnusedUserFragment', typeCondition: 'User' },
+      ]);
 
       const userEmail = result.find(r => r.filePath.includes('user-email.graphql'))!;
       expect(userEmail.packageName).toBe('package-c');
@@ -123,6 +127,13 @@ describe('ExternalFragmentLoader', () => {
           expect(source.document!.kind).toBe('Document');
           expect(source.rawSDL).toBeDefined();
         }
+
+        const userFieldsSource = sources.find(source =>
+          source.location?.endsWith('user-fields.graphql'),
+        );
+        expect(userFieldsSource?.document?.definitions).toHaveLength(1);
+        expect(userFieldsSource?.rawSDL).toContain('fragment UserFields');
+        expect(userFieldsSource?.rawSDL).not.toContain('UnusedUserFragment');
       },
     );
 
@@ -194,6 +205,16 @@ describe('ExternalFragmentLoader', () => {
 
       expect(asyncSource.document?.definitions).toHaveLength(2);
       expect(syncSource.document?.definitions).toHaveLength(2);
+      expect(
+        asyncSource.document?.definitions
+          .filter(definition => definition.kind === 'FragmentDefinition')
+          .map(definition => definition.name.value),
+      ).toEqual(['UserFields', 'UserEmail']);
+      expect(
+        syncSource.document?.definitions
+          .filter(definition => definition.kind === 'FragmentDefinition')
+          .map(definition => definition.name.value),
+      ).toEqual(['UserFields', 'UserEmail']);
     });
   });
 
@@ -228,6 +249,45 @@ describe('ExternalFragmentLoader', () => {
 
       expect(result1).toEqual(result2);
     });
+
+    it.each([
+      ['async', (opts: Record<string, unknown>) => resolveExternalFragments(opts as any)],
+      ['sync', (opts: Record<string, unknown>) => resolveExternalFragmentsSync(opts as any)],
+    ] as const)(
+      'should avoid caching consumer maps but reuse provider maps (%s)',
+      async (_label, resolve) => {
+        const consumerFile = path.join(FIXTURES_DIR, 'package-a/src/query.graphql');
+        const providerFile = path.join(FIXTURES_DIR, 'package-b/src/user-fields.graphql');
+        const originalConsumer = readFileSync(consumerFile, 'utf8');
+        const originalProvider = readFileSync(providerFile, 'utf8');
+
+        try {
+          await resolve(packageAOpts);
+
+          writeFileSync(consumerFile, originalConsumer.replace('    ...UserFields\n', ''));
+          expect(
+            await resolve({
+              ...packageAOpts,
+              invalidateRootPackageCache: false,
+            }),
+          ).toEqual([]);
+
+          writeFileSync(providerFile, originalProvider.replace('  ...UserEmail\n', ''));
+          const providerResult = await resolve({
+            ...packageAOpts,
+            packageDir: path.join(FIXTURES_DIR, 'package-b'),
+          });
+
+          expect(providerResult.map(result => path.basename(result.filePath))).toEqual([
+            'user-email.graphql',
+          ]);
+        } finally {
+          writeFileSync(consumerFile, originalConsumer);
+          writeFileSync(providerFile, originalProvider);
+          clearCache();
+        }
+      },
+    );
 
     it.each([
       ['async', (opts: Record<string, unknown>) => resolveExternalFragments(opts as any)],

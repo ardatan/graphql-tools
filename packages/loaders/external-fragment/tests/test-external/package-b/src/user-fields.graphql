@@ -3,3 +3,7 @@ fragment UserFields on User {
   name
   ...UserEmail
 }
+
+fragment UnusedUserFragment on User {
+  id
+}

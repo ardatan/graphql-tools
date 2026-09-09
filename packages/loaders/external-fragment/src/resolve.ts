@@ -1,7 +1,7 @@
 import { existsSync, promises as fsPromises, readFileSync } from 'fs';
 import { basename, join, resolve } from 'path';
 import globby from 'globby';
-import { Kind, parse, visit } from 'graphql';
+import { Kind, parse, print, visit, type DocumentNode } from 'graphql';
 import memoizee from 'memoizee';
 import unixify from 'unixify';
 import {
@@ -16,6 +16,18 @@ interface FragmentInfo {
   typeCondition: string;
 }
 
+interface ParsedSource {
+  rawSDL: string;
+  document: DocumentNode;
+}
+
+interface PackageMapData {
+  sourcesPerFile: Map<string, ParsedSource[]>;
+  spreadsPerFragment: Map<string, Set<string>>;
+}
+
+const packageMapData = new WeakMap<PackageFragmentMap, PackageMapData>();
+
 export interface PackageFragmentMap {
   fragments: Map<string, { filePath: string; typeCondition: string }>;
   spreadsPerFile: Map<string, Set<string>>;
@@ -26,6 +38,10 @@ export interface ResolvedExternalFile {
   filePath: string;
   definitions: FragmentInfo[];
   packageName: string;
+}
+
+interface ResolvedExternalFileWithSources extends ResolvedExternalFile {
+  sources: ParsedSource[];
 }
 
 export interface ExternalFragmentResolverOptions {
@@ -40,7 +56,9 @@ export interface ExternalFragmentResolverOptions {
   fileContentFilter?: (content: string, filePath: string) => boolean;
   /**
    * Time-to-live for cache entries in milliseconds. Cache configuration is
-   * shared by all resolver calls in this module. Supplying a different value
+   * shared by all resolver calls in this module. External package maps include
+   * parsed sources; root package maps are not retained unless they were
+   * already cached as external dependencies. Supplying a different value
    * recreates all memoized caches and discards their existing entries.
    * @default Infinity (cache forever)
    */
@@ -67,23 +85,39 @@ function extractFragmentsAndSpreads(
   filePath: string,
   fileContent: string,
   pluckConfig?: GraphQLTagPluckOptions,
-): { definitions: FragmentInfo[]; spreads: Set<string> } {
-  const docs = isGraphQLFile(filePath)
-    ? [parse(fileContent, { noLocation: true })]
-    : gqlPluckFromCodeStringSync(filePath, fileContent, pluckConfig).map(source =>
-        parse(source, { noLocation: true }),
-      );
+): {
+  sources: ParsedSource[];
+  definitions: FragmentInfo[];
+  spreads: Set<string>;
+  spreadsPerFragment: Map<string, Set<string>>;
+} {
+  const rawSDLs = isGraphQLFile(filePath)
+    ? [fileContent]
+    : gqlPluckFromCodeStringSync(filePath, fileContent, pluckConfig).map(source => source.body);
+  const sources = rawSDLs.map(rawSDL => ({
+    rawSDL,
+    document: parse(rawSDL, { noLocation: true }),
+  }));
 
   const definitions: FragmentInfo[] = [];
   const spreads = new Set<string>();
+  const spreadsPerFragment = new Map<string, Set<string>>();
 
-  for (const doc of docs) {
-    visit(doc, {
+  for (const source of sources) {
+    visit(source.document, {
       [Kind.FRAGMENT_DEFINITION](node) {
         definitions.push({
           name: node.name.value,
           typeCondition: node.typeCondition.name.value,
         });
+
+        const fragmentSpreads = spreadsPerFragment.get(node.name.value) ?? new Set<string>();
+        visit(node, {
+          [Kind.FRAGMENT_SPREAD](spread) {
+            fragmentSpreads.add(spread.name.value);
+          },
+        });
+        spreadsPerFragment.set(node.name.value, fragmentSpreads);
       },
       [Kind.FRAGMENT_SPREAD](node) {
         spreads.add(node.name.value);
@@ -91,10 +125,30 @@ function extractFragmentsAndSpreads(
     });
   }
 
-  return { definitions, spreads };
+  return { sources, definitions, spreads, spreadsPerFragment };
 }
 
 // --- Memoized functions ---
+
+function createPackageFragmentMap(
+  fragments: Map<string, { filePath: string; typeCondition: string }>,
+  spreadsPerFile: Map<string, Set<string>>,
+  defsPerFile: Map<string, FragmentInfo[]>,
+  sourcesPerFile: Map<string, ParsedSource[]>,
+  spreadsPerFragment: Map<string, Set<string>>,
+): PackageFragmentMap {
+  const map = { fragments, spreadsPerFile, defsPerFile };
+  packageMapData.set(map, { sourcesPerFile, spreadsPerFragment });
+  return map;
+}
+
+function getPackageMapData(map: PackageFragmentMap): PackageMapData {
+  const data = packageMapData.get(map);
+  if (!data) {
+    throw new Error('External fragment package map metadata is missing.');
+  }
+  return data;
+}
 
 function readPackageJsonDepsRaw(
   packageJsonPath: string,
@@ -124,12 +178,22 @@ function buildPackageFragmentMapRaw(
   const fragments = new Map<string, { filePath: string; typeCondition: string }>();
   const spreadsPerFile = new Map<string, Set<string>>();
   const defsPerFile = new Map<string, FragmentInfo[]>();
+  const sourcesPerFile = new Map<string, ParsedSource[]>();
+  const spreadsPerFragment = new Map<string, Set<string>>();
 
   const dirs = scanInternalDirs
     .map(folder => resolve(packageDir, folder))
     .filter(dir => existsSync(dir));
 
-  if (dirs.length === 0) return { fragments, spreadsPerFile, defsPerFile };
+  if (dirs.length === 0) {
+    return createPackageFragmentMap(
+      fragments,
+      spreadsPerFile,
+      defsPerFile,
+      sourcesPerFile,
+      spreadsPerFragment,
+    );
+  }
 
   const sourceGlob = getSourceGlob(extensions);
   const ignorePatterns = excludePatterns.map(p => `!${p}`);
@@ -152,9 +216,20 @@ function buildPackageFragmentMapRaw(
       continue;
     }
 
+    sourcesPerFile.set(filePath, info.sources);
     if (info.definitions.length > 0 || info.spreads.size > 0) {
       defsPerFile.set(filePath, info.definitions);
       spreadsPerFile.set(filePath, info.spreads);
+      for (const [fragmentName, fragmentSpreads] of info.spreadsPerFragment) {
+        const existingSpreads = spreadsPerFragment.get(fragmentName);
+        if (existingSpreads) {
+          for (const spread of fragmentSpreads) {
+            existingSpreads.add(spread);
+          }
+        } else {
+          spreadsPerFragment.set(fragmentName, fragmentSpreads);
+        }
+      }
       for (const def of info.definitions) {
         const existing = fragments.get(def.name);
         if (existing && existing.filePath !== filePath) {
@@ -168,7 +243,13 @@ function buildPackageFragmentMapRaw(
     }
   }
 
-  return { fragments, spreadsPerFile, defsPerFile };
+  return createPackageFragmentMap(
+    fragments,
+    spreadsPerFile,
+    defsPerFile,
+    sourcesPerFile,
+    spreadsPerFragment,
+  );
 }
 
 async function buildPackageFragmentMapAsyncRaw(
@@ -182,12 +263,22 @@ async function buildPackageFragmentMapAsyncRaw(
   const fragments = new Map<string, { filePath: string; typeCondition: string }>();
   const spreadsPerFile = new Map<string, Set<string>>();
   const defsPerFile = new Map<string, FragmentInfo[]>();
+  const sourcesPerFile = new Map<string, ParsedSource[]>();
+  const spreadsPerFragment = new Map<string, Set<string>>();
 
   const dirs = scanInternalDirs
     .map(folder => resolve(packageDir, folder))
     .filter(dir => existsSync(dir));
 
-  if (dirs.length === 0) return { fragments, spreadsPerFile, defsPerFile };
+  if (dirs.length === 0) {
+    return createPackageFragmentMap(
+      fragments,
+      spreadsPerFile,
+      defsPerFile,
+      sourcesPerFile,
+      spreadsPerFragment,
+    );
+  }
 
   const sourceGlob = getSourceGlob(extensions);
   const ignorePatterns = excludePatterns.map(p => `!${p}`);
@@ -215,9 +306,20 @@ async function buildPackageFragmentMapAsyncRaw(
         return;
       }
 
+      sourcesPerFile.set(filePath, info.sources);
       if (info.definitions.length > 0 || info.spreads.size > 0) {
         defsPerFile.set(filePath, info.definitions);
         spreadsPerFile.set(filePath, info.spreads);
+        for (const [fragmentName, fragmentSpreads] of info.spreadsPerFragment) {
+          const existingSpreads = spreadsPerFragment.get(fragmentName);
+          if (existingSpreads) {
+            for (const spread of fragmentSpreads) {
+              existingSpreads.add(spread);
+            }
+          } else {
+            spreadsPerFragment.set(fragmentName, fragmentSpreads);
+          }
+        }
         for (const def of info.definitions) {
           const existing = fragments.get(def.name);
           if (existing && existing.filePath !== filePath) {
@@ -232,14 +334,40 @@ async function buildPackageFragmentMapAsyncRaw(
     }),
   );
 
-  return { fragments, spreadsPerFile, defsPerFile };
+  return createPackageFragmentMap(
+    fragments,
+    spreadsPerFile,
+    defsPerFile,
+    sourcesPerFile,
+    spreadsPerFragment,
+  );
 }
+
+type PackageMapArgs = [
+  packageDir: string,
+  scanInternalDirs: string[],
+  extensions: string[],
+  excludePatterns: string[],
+  pluckConfig?: GraphQLTagPluckOptions,
+  fileContentFilter?: (content: string, filePath: string) => boolean,
+];
+
+type MemoizedPackageMap<Result> = ((...args: PackageMapArgs) => Result) & {
+  _get(...args: PackageMapArgs): Result | undefined;
+  _has(...args: PackageMapArgs): boolean;
+  delete(...args: PackageMapArgs): void;
+  clear(): void;
+};
 
 let readPackageJsonDeps = memoizee(readPackageJsonDepsRaw, { primitive: true });
 // Fragment-map options contain arrays, objects, and callbacks. Use memoizee's
 // identity-based normalization so distinct option values cannot collide.
-let buildPackageFragmentMap = memoizee(buildPackageFragmentMapRaw);
-let buildPackageFragmentMapAsync = memoizee(buildPackageFragmentMapAsyncRaw, { promise: true });
+let buildPackageFragmentMap = memoizee(
+  buildPackageFragmentMapRaw,
+) as MemoizedPackageMap<PackageFragmentMap>;
+let buildPackageFragmentMapAsync = memoizee(buildPackageFragmentMapAsyncRaw, {
+  promise: true,
+}) as MemoizedPackageMap<Promise<PackageFragmentMap>>;
 
 let appliedCacheTTL: number | undefined;
 
@@ -252,11 +380,11 @@ function createMemoized(cacheTTL?: number): void {
   });
   buildPackageFragmentMap = memoizee(buildPackageFragmentMapRaw, {
     ...ttlOpt,
-  });
+  }) as MemoizedPackageMap<PackageFragmentMap>;
   buildPackageFragmentMapAsync = memoizee(buildPackageFragmentMapAsyncRaw, {
     promise: true,
     ...ttlOpt,
-  });
+  }) as MemoizedPackageMap<Promise<PackageFragmentMap>>;
 
   appliedCacheTTL = cacheTTL;
 }
@@ -275,6 +403,41 @@ export function clearCache(): void {
   buildPackageFragmentMap.clear();
   buildPackageFragmentMapAsync.clear();
   appliedCacheTTL = undefined;
+}
+
+function getCachedPackageFragmentMap(args: PackageMapArgs): PackageFragmentMap | undefined {
+  if (!buildPackageFragmentMap._has(...args)) {
+    return undefined;
+  }
+  return buildPackageFragmentMap._get(...args);
+}
+
+function getCachedPackageFragmentMapAsync(
+  args: PackageMapArgs,
+): Promise<PackageFragmentMap> | undefined {
+  if (!buildPackageFragmentMapAsync._has(...args)) {
+    return undefined;
+  }
+  return buildPackageFragmentMapAsync._get(...args);
+}
+
+function getPackageFragmentMap(args: PackageMapArgs, cacheResult: boolean): PackageFragmentMap {
+  if (cacheResult) {
+    return buildPackageFragmentMap(...args);
+  }
+
+  return getCachedPackageFragmentMap(args) ?? buildPackageFragmentMapRaw(...args);
+}
+
+function getPackageFragmentMapAsync(
+  args: PackageMapArgs,
+  cacheResult: boolean,
+): Promise<PackageFragmentMap> {
+  if (cacheResult) {
+    return buildPackageFragmentMapAsync(...args);
+  }
+
+  return getCachedPackageFragmentMapAsync(args) ?? buildPackageFragmentMapAsyncRaw(...args);
 }
 
 // --- Shared helpers ---
@@ -339,7 +502,8 @@ function findExternalFragments(
   depMaps: Map<string, PackageFragmentMap>,
   rootMap: PackageFragmentMap,
   rootPackageName: string,
-): ResolvedExternalFile[] {
+  filterToRequiredFragments: boolean,
+): ResolvedExternalFileWithSources[] {
   const globalIndex = new Map<
     string,
     { packageName: string; filePath: string; typeCondition: string }[]
@@ -361,6 +525,7 @@ function findExternalFragments(
   }
 
   const resolvedFiles = new Map<string, ResolvedExternalFile>();
+  const requiredFragmentNamesPerFile = new Map<string, Set<string>>();
   const resolvedFragmentNames = new Set<string>();
   const localFragmentNames = new Set(rootMap.fragments.keys());
 
@@ -385,19 +550,27 @@ function findExternalFragments(
         const entry = entries[0];
         resolvedFragmentNames.add(fragName);
 
+        const requiredFragmentNames =
+          requiredFragmentNamesPerFile.get(entry.filePath) ?? new Set<string>();
+        requiredFragmentNames.add(fragName);
+        requiredFragmentNamesPerFile.set(entry.filePath, requiredFragmentNames);
+
+        const depMap = depMaps.get(entry.packageName)!;
         if (!resolvedFiles.has(entry.filePath)) {
-          const depMap = depMaps.get(entry.packageName)!;
           const defs = depMap.defsPerFile.get(entry.filePath) || [];
           resolvedFiles.set(entry.filePath, {
             filePath: entry.filePath,
             definitions: defs,
             packageName: entry.packageName,
           });
+        }
 
-          for (const spread of depMap.spreadsPerFile.get(entry.filePath) ?? []) {
-            if (!resolvedFragmentNames.has(spread) && !localFragmentNames.has(spread)) {
-              nextUnresolved.add(spread);
-            }
+        const spreads = filterToRequiredFragments
+          ? getPackageMapData(depMap).spreadsPerFragment.get(fragName)
+          : depMap.spreadsPerFile.get(entry.filePath);
+        for (const spread of spreads ?? []) {
+          if (!resolvedFragmentNames.has(spread) && !localFragmentNames.has(spread)) {
+            nextUnresolved.add(spread);
           }
         }
       }
@@ -412,7 +585,48 @@ function findExternalFragments(
     for (const s of nextUnresolved) unresolved.add(s);
   }
 
-  return [...resolvedFiles.values()];
+  return [...resolvedFiles.values()].map(file => {
+    const depMap = depMaps.get(file.packageName)!;
+    const sources = getPackageMapData(depMap).sourcesPerFile.get(file.filePath) ?? [];
+    const requiredFragmentNames = requiredFragmentNamesPerFile.get(file.filePath) ?? new Set();
+
+    return {
+      ...file,
+      sources: filterToRequiredFragments ? filterParsedSources(sources, requiredFragmentNames) : [],
+    };
+  });
+}
+
+function filterParsedSources(
+  sources: ParsedSource[],
+  requiredFragmentNames: Set<string>,
+): ParsedSource[] {
+  const filteredSources: ParsedSource[] = [];
+
+  for (const source of sources) {
+    const definitions = source.document.definitions.filter(
+      definition =>
+        definition.kind === Kind.FRAGMENT_DEFINITION &&
+        requiredFragmentNames.has(definition.name.value),
+    );
+
+    if (definitions.length === 0) {
+      continue;
+    }
+
+    const document: DocumentNode =
+      definitions.length === source.document.definitions.length
+        ? source.document
+        : { kind: Kind.DOCUMENT, definitions };
+
+    filteredSources.push({
+      rawSDL:
+        definitions.length === source.document.definitions.length ? source.rawSDL : print(document),
+      document,
+    });
+  }
+
+  return filteredSources;
 }
 
 function detectDuplicateFragments(
@@ -502,22 +716,56 @@ function resolveFromMaps(
   depMaps: Map<string, PackageFragmentMap>,
   rootPackageName: string,
   missingFragments: Set<string>,
-): ResolvedExternalFile[] {
-  const resolvedFiles = findExternalFragments(missingFragments, depMaps, rootMap, rootPackageName);
+  filterToRequiredFragments: boolean,
+): ResolvedExternalFileWithSources[] {
+  const resolvedFiles = findExternalFragments(
+    missingFragments,
+    depMaps,
+    rootMap,
+    rootPackageName,
+    filterToRequiredFragments,
+  );
   detectDuplicateFragments(rootMap, resolvedFiles, rootPackageName);
 
   return resolvedFiles;
 }
 
+function toPublicResolvedFiles(
+  resolvedFiles: ResolvedExternalFileWithSources[],
+): ResolvedExternalFile[] {
+  return resolvedFiles.map(({ filePath, definitions, packageName }) => ({
+    filePath,
+    definitions,
+    packageName,
+  }));
+}
+
 // --- Public API ---
+
+function getPackageMapArgs(
+  options: ExternalFragmentResolverOptions,
+  scanInternalDirs: string[],
+  extensions: string[],
+  excludePatterns: string[],
+): PackageMapArgs {
+  return [
+    options.packageDir,
+    scanInternalDirs,
+    extensions,
+    excludePatterns,
+    options.pluckConfig,
+    options.fileContentFilter,
+  ];
+}
 
 /**
  * Resolves cross-package GraphQL fragment dependencies across external packages.
  * Async version — reads files in parallel for better performance on large codebases.
  */
-export async function resolveExternalFragments(
+export async function resolveExternalFragmentsWithSources(
   options: ExternalFragmentResolverOptions,
-): Promise<ResolvedExternalFile[]> {
+  filterToRequiredFragments = true,
+): Promise<ResolvedExternalFileWithSources[]> {
   const {
     externalPackagesDirs,
     filter,
@@ -530,28 +778,23 @@ export async function resolveExternalFragments(
 
   initCache(options.cacheTTL);
 
+  const rootPackageMapArgs = getPackageMapArgs(
+    options,
+    scanInternalDirs,
+    extensions,
+    excludePatterns,
+  );
+
   if (invalidateRootPackageCache) {
-    buildPackageFragmentMapAsync.delete(
-      options.packageDir,
-      scanInternalDirs,
-      extensions,
-      excludePatterns,
-      options.pluckConfig,
-      options.fileContentFilter,
-    );
+    buildPackageFragmentMapAsync.delete(...rootPackageMapArgs);
     readPackageJsonDeps.delete(join(options.packageDir, 'package.json'), includeDevDependencies);
   }
 
   const rootPackageName = getPackageNameFromDir(options.packageDir);
 
-  const rootMap = await buildPackageFragmentMapAsync(
-    options.packageDir,
-    scanInternalDirs,
-    extensions,
-    excludePatterns,
-    options.pluckConfig,
-    options.fileContentFilter,
-  );
+  // Consumer packages are intentionally not inserted into the cache. If this
+  // package was already encountered as a provider, reuse that cached map.
+  const rootMap = await getPackageFragmentMapAsync(rootPackageMapArgs, false);
 
   const missingFragments = findMissingFragments(rootMap);
   if (missingFragments.size === 0) return [];
@@ -576,28 +819,45 @@ export async function resolveExternalFragments(
     [...transitiveDeps].map(async depName => {
       const depDir = findPackageDir(depName, externalPackagesDirs);
       if (!depDir) return;
-      const map = await buildPackageFragmentMapAsync(
-        depDir,
-        scanInternalDirs,
-        extensions,
-        excludePatterns,
-        options.pluckConfig,
-        options.fileContentFilter,
+      const map = await getPackageFragmentMapAsync(
+        [
+          depDir,
+          scanInternalDirs,
+          extensions,
+          excludePatterns,
+          options.pluckConfig,
+          options.fileContentFilter,
+        ],
+        true,
       );
       depMaps.set(depName, map);
     }),
   );
 
-  return resolveFromMaps(rootMap, depMaps, rootPackageName, missingFragments);
+  return resolveFromMaps(
+    rootMap,
+    depMaps,
+    rootPackageName,
+    missingFragments,
+    filterToRequiredFragments,
+  );
+}
+
+export async function resolveExternalFragments(
+  options: ExternalFragmentResolverOptions,
+): Promise<ResolvedExternalFile[]> {
+  const resolvedFiles = await resolveExternalFragmentsWithSources(options, false);
+  return toPublicResolvedFiles(resolvedFiles);
 }
 
 /**
  * Resolves cross-package GraphQL fragment dependencies across external packages.
  * Sync version.
  */
-export function resolveExternalFragmentsSync(
+export function resolveExternalFragmentsSyncWithSources(
   options: ExternalFragmentResolverOptions,
-): ResolvedExternalFile[] {
+  filterToRequiredFragments = true,
+): ResolvedExternalFileWithSources[] {
   const {
     externalPackagesDirs,
     filter,
@@ -610,28 +870,23 @@ export function resolveExternalFragmentsSync(
 
   initCache(options.cacheTTL);
 
+  const rootPackageMapArgs = getPackageMapArgs(
+    options,
+    scanInternalDirs,
+    extensions,
+    excludePatterns,
+  );
+
   if (invalidateRootPackageCache) {
-    buildPackageFragmentMap.delete(
-      options.packageDir,
-      scanInternalDirs,
-      extensions,
-      excludePatterns,
-      options.pluckConfig,
-      options.fileContentFilter,
-    );
+    buildPackageFragmentMap.delete(...rootPackageMapArgs);
     readPackageJsonDeps.delete(join(options.packageDir, 'package.json'), includeDevDependencies);
   }
 
   const rootPackageName = getPackageNameFromDir(options.packageDir);
 
-  const rootMap = buildPackageFragmentMap(
-    options.packageDir,
-    scanInternalDirs,
-    extensions,
-    excludePatterns,
-    options.pluckConfig,
-    options.fileContentFilter,
-  );
+  // Consumer packages are intentionally not inserted into the cache. If this
+  // package was already encountered as a provider, reuse that cached map.
+  const rootMap = getPackageFragmentMap(rootPackageMapArgs, false);
 
   const missingFragments = findMissingFragments(rootMap);
   if (missingFragments.size === 0) return [];
@@ -655,16 +910,32 @@ export function resolveExternalFragmentsSync(
   for (const depName of transitiveDeps) {
     const depDir = findPackageDir(depName, externalPackagesDirs);
     if (!depDir) continue;
-    const map = buildPackageFragmentMap(
-      depDir,
-      scanInternalDirs,
-      extensions,
-      excludePatterns,
-      options.pluckConfig,
-      options.fileContentFilter,
+    const map = getPackageFragmentMap(
+      [
+        depDir,
+        scanInternalDirs,
+        extensions,
+        excludePatterns,
+        options.pluckConfig,
+        options.fileContentFilter,
+      ],
+      true,
     );
     depMaps.set(depName, map);
   }
 
-  return resolveFromMaps(rootMap, depMaps, rootPackageName, missingFragments);
+  return resolveFromMaps(
+    rootMap,
+    depMaps,
+    rootPackageName,
+    missingFragments,
+    filterToRequiredFragments,
+  );
+}
+
+export function resolveExternalFragmentsSync(
+  options: ExternalFragmentResolverOptions,
+): ResolvedExternalFile[] {
+  const resolvedFiles = resolveExternalFragmentsSyncWithSources(options, false);
+  return toPublicResolvedFiles(resolvedFiles);
 }
