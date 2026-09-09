@@ -1,7 +1,7 @@
 # GraphQL Code Generator sync-loader smoke test
 
-This config loads `package-a`'s query normally and loads `UserFields` and `UserEmail` through the
-package's synchronous default custom loader.
+This config loads `fragment-consumer`'s query normally and loads `UserFields` and `UserEmail`
+through the package's synchronous default custom loader.
 
 From the repository root:
 

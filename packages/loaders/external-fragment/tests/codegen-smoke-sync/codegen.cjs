@@ -2,8 +2,8 @@ const os = require('node:os');
 const path = require('node:path');
 
 const exampleDir = __dirname;
-const fixturesDir = path.resolve(exampleDir, '../test-external');
-const packageDir = path.join(fixturesDir, 'package-a');
+const fixturesDir = path.resolve(exampleDir, '../fixtures');
+const packageDir = path.join(fixturesDir, 'fragment-consumer');
 
 // Use the local built package by default. Set EXTERNAL_FRAGMENT_LOADER to the
 // package name when testing an installed/published version instead.

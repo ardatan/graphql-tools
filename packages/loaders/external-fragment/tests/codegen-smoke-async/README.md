@@ -1,8 +1,9 @@
 # GraphQL Code Generator async-loader smoke test
 
-This config loads `package-a`'s query normally and loads `UserFields` and `UserEmail` through an
-asynchronous custom loader. The adapter in `async-loader.cjs` uses `ExternalFragmentLoader.load()`
-and merges its `Source[]` result into the single `DocumentNode` required by Codegen.
+This config loads `fragment-consumer`'s query normally and loads `UserFields` and `UserEmail`
+through an asynchronous custom loader. The adapter in `async-loader.cjs` uses
+`ExternalFragmentLoader.load()` and merges its `Source[]` result into the single `DocumentNode`
+required by Codegen.
 
 From the repository root:
 

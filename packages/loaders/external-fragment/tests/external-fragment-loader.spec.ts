@@ -9,18 +9,18 @@ import externalFragmentLoader, {
   resolveExternalFragmentsSync,
 } from '../src/index.js';
 
-const FIXTURES_DIR = path.join(__dirname, 'test-external');
-const FIXTURES_TS_DIR = path.join(__dirname, 'test-external-ts');
-const FIXTURES_DUP_DIR = path.join(__dirname, 'test-external-dup');
+const FIXTURES_DIR = path.join(__dirname, 'fixtures');
+const FIXTURES_TS_DIR = FIXTURES_DIR;
+const FIXTURES_DUP_DIR = FIXTURES_DIR;
 type LoadOptions = LoadTypedefsOptions & Record<string, unknown>;
 
 const packageAOpts = {
-  packageDir: path.join(FIXTURES_DIR, 'package-a'),
+  packageDir: path.join(FIXTURES_DIR, 'fragment-consumer'),
   externalPackagesDirs: [FIXTURES_DIR],
 };
 
 const tsOpts = {
-  packageDir: path.join(FIXTURES_TS_DIR, 'app'),
+  packageDir: path.join(FIXTURES_TS_DIR, 'typescript-consumer'),
   externalPackagesDirs: [FIXTURES_TS_DIR],
   extensions: ['ts', 'tsx', 'js', 'jsx'] as string[],
 };
@@ -38,14 +38,14 @@ describe('ExternalFragmentLoader', () => {
       ]);
 
       const userFields = result.find(r => r.filePath.includes('user-fields.graphql'))!;
-      expect(userFields.packageName).toBe('package-b');
+      expect(userFields.packageName).toBe('fragment-direct-provider');
       expect(userFields.definitions).toEqual([
         { name: 'UserFields', typeCondition: 'User' },
         { name: 'UnusedUserFragment', typeCondition: 'User' },
       ]);
 
       const userEmail = result.find(r => r.filePath.includes('user-email.graphql'))!;
-      expect(userEmail.packageName).toBe('package-c');
+      expect(userEmail.packageName).toBe('fragment-transitive-provider');
       expect(userEmail.definitions).toEqual([{ name: 'UserEmail', typeCondition: 'User' }]);
     });
 
@@ -73,7 +73,7 @@ describe('ExternalFragmentLoader', () => {
 
     it('should return empty array when no external fragments are needed', async () => {
       const result = await resolveExternalFragments({
-        packageDir: path.join(FIXTURES_DIR, 'package-c'),
+        packageDir: path.join(FIXTURES_DIR, 'fragment-transitive-provider'),
         externalPackagesDirs: [FIXTURES_DIR],
       });
 
@@ -84,17 +84,17 @@ describe('ExternalFragmentLoader', () => {
       await expect(
         resolveExternalFragments({
           ...packageAOpts,
-          externalPackageNameFilter: name => name === 'package-b',
+          externalPackageNameFilter: name => name === 'fragment-direct-provider',
         }),
       ).rejects.toThrow(
-        'Fragment "UserEmail" is spread in "package-a" but not defined in any of its transitive dependencies.',
+        'Fragment "UserEmail" is spread in "fragment-consumer" but not defined in any of its transitive dependencies.',
       );
     });
 
     it('should throw on duplicate fragments across dependencies', async () => {
       await expect(
         resolveExternalFragments({
-          packageDir: path.join(FIXTURES_DUP_DIR, 'pkg-main'),
+          packageDir: path.join(FIXTURES_DUP_DIR, 'duplicate-fragment-consumer'),
           externalPackagesDirs: [FIXTURES_DUP_DIR],
         }),
       ).rejects.toThrow('Duplicate fragment "ItemFields"');
@@ -103,9 +103,9 @@ describe('ExternalFragmentLoader', () => {
     it('should throw when a fragment is not found in any dependency', async () => {
       await expect(
         resolveExternalFragments({
-          packageDir: path.join(FIXTURES_DIR, 'package-b'),
+          packageDir: path.join(FIXTURES_DIR, 'fragment-direct-provider'),
           externalPackagesDirs: [FIXTURES_DIR],
-          externalPackageNameFilter: name => name !== 'package-c',
+          externalPackageNameFilter: name => name !== 'fragment-transitive-provider',
         }),
       ).rejects.toThrow('no transitive dependencies were found to search');
     });
@@ -144,8 +144,8 @@ describe('ExternalFragmentLoader', () => {
       'should load external fragments only once for multiple pointers (%s)',
       async (_label, load) => {
         const pointers = [
-          path.join(FIXTURES_DIR, 'package-a/src/query.graphql'),
-          path.join(FIXTURES_DIR, 'package-b/src/user-fields.graphql'),
+          path.join(FIXTURES_DIR, 'fragment-consumer/src/query.graphql'),
+          path.join(FIXTURES_DIR, 'fragment-direct-provider/src/user-fields.graphql'),
         ];
 
         const sources = await load(pointers, {
@@ -167,7 +167,7 @@ describe('ExternalFragmentLoader', () => {
       const result = await resolveExternalFragments(tsOpts);
 
       expect(result.length).toBe(1);
-      expect(result[0].packageName).toBe('shared');
+      expect(result[0].packageName).toBe('typescript-provider');
       expect(result[0].definitions).toEqual([
         { name: 'SharedUserFragment', typeCondition: 'User' },
       ]);
@@ -256,8 +256,11 @@ describe('ExternalFragmentLoader', () => {
     ] as const)(
       'should avoid caching consumer maps but reuse provider maps (%s)',
       async (_label, resolve) => {
-        const consumerFile = path.join(FIXTURES_DIR, 'package-a/src/query.graphql');
-        const providerFile = path.join(FIXTURES_DIR, 'package-b/src/user-fields.graphql');
+        const consumerFile = path.join(FIXTURES_DIR, 'fragment-consumer/src/query.graphql');
+        const providerFile = path.join(
+          FIXTURES_DIR,
+          'fragment-direct-provider/src/user-fields.graphql',
+        );
         const originalConsumer = readFileSync(consumerFile, 'utf8');
         const originalProvider = readFileSync(providerFile, 'utf8');
 
@@ -275,7 +278,7 @@ describe('ExternalFragmentLoader', () => {
           writeFileSync(providerFile, originalProvider.replace('  ...UserEmail\n', ''));
           const providerResult = await resolve({
             ...packageAOpts,
-            packageDir: path.join(FIXTURES_DIR, 'package-b'),
+            packageDir: path.join(FIXTURES_DIR, 'fragment-direct-provider'),
           });
 
           expect(providerResult.map(result => path.basename(result.filePath))).toEqual([
@@ -296,7 +299,7 @@ describe('ExternalFragmentLoader', () => {
       'should not reuse fragment maps for different pluck configurations (%s)',
       async (_label, resolve) => {
         const baseOptions = {
-          packageDir: path.join(FIXTURES_TS_DIR, 'app'),
+          packageDir: path.join(FIXTURES_TS_DIR, 'typescript-consumer'),
           externalPackagesDirs: [FIXTURES_TS_DIR],
           extensions: ['ts', 'tsx'],
         };

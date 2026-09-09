@@ -1,8 +1,0 @@
-{
-  "name": "pkg-main",
-  "version": "1.0.0",
-  "dependencies": {
-    "pkg-dep1": "1.0.0",
-    "pkg-dep2": "1.0.0"
-  }
-}

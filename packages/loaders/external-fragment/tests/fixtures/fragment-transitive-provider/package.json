@@ -1,5 +1,5 @@
 {
-  "name": "pkg-dep1",
+  "name": "fragment-transitive-provider",
   "version": "1.0.0",
   "dependencies": {}
 }

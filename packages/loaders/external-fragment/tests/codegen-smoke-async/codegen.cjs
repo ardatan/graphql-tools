@@ -2,8 +2,8 @@ const os = require('node:os');
 const path = require('node:path');
 
 const exampleDir = __dirname;
-const fixturesDir = path.resolve(exampleDir, '../test-external');
-const packageDir = path.join(fixturesDir, 'package-a');
+const fixturesDir = path.resolve(exampleDir, '../fixtures');
+const packageDir = path.join(fixturesDir, 'fragment-consumer');
 const loader = path.resolve(exampleDir, 'async-loader.cjs');
 
 const queryFile = path.join(packageDir, 'src/query.graphql');
