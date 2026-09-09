@@ -31,8 +31,6 @@ EXTERNAL_FRAGMENT_LOADER=@graphql-tools/external-fragment-loader \
 
 The generated file is written to the system temporary directory:
 
-The generated file is written to the system temporary directory:
-
 ```sh
 output_file="$(node -p "require('node:os').tmpdir() + '/external-fragment-codegen-smoke-sync-generated.ts'")"
 vi $output_file
