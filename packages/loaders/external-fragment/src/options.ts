@@ -49,7 +49,7 @@ export interface ExternalFragmentLoaderOptions extends BaseLoaderOptions {
    * Receives the file content as a string. Return true to include the file.
    * Useful to skip files that don't import a GraphQL tag function.
    *
-   * @example (content) => content.includes('from "@apollo/client"')
+   * @example (content) => content.includes('gql`')
    */
   fileContentFilter?: (content: string, filePath: string) => boolean;
 
