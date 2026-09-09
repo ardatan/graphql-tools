@@ -67,8 +67,10 @@ export interface ExternalFragmentLoaderOptions extends BaseLoaderOptions {
   /**
    * Time-to-live for cache entries in milliseconds.
    * Set this for long-running processes (e.g. watch mode) so stale entries
-   * are automatically evicted. Applied once on the first call; subsequent
-   * calls ignore this value.
+   * are automatically evicted. Cache configuration is shared by all resolver
+   * calls in this module. Calls with a different value recreate all memoized
+   * caches, discard their existing entries, and apply the new value to later
+   * calls.
    * @default Infinity (cache forever)
    */
   cacheTTL?: number;

@@ -38,6 +38,12 @@ export interface ExternalFragmentResolverOptions {
   excludePatterns?: string[];
   pluckConfig?: GraphQLTagPluckOptions;
   fileContentFilter?: (content: string, filePath: string) => boolean;
+  /**
+   * Time-to-live for cache entries in milliseconds. Cache configuration is
+   * shared by all resolver calls in this module. Supplying a different value
+   * recreates all memoized caches and discards their existing entries.
+   * @default Infinity (cache forever)
+   */
   cacheTTL?: number;
   invalidateRootPackageCache?: boolean;
 }

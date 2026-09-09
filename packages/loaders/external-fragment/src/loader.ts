@@ -13,6 +13,10 @@ import { resolveExternalFragments, resolveExternalFragmentsSync } from './resolv
 const { readFile } = fsPromises;
 const GQL_EXTENSIONS = ['.graphql', '.gql'];
 
+type LoaderOptionsWithCache = ExternalFragmentLoaderOptions & {
+  cache?: object;
+};
+
 function isGraphQLFile(filePath: string): boolean {
   return GQL_EXTENSIONS.some(extension => filePath.endsWith(extension));
 }
@@ -65,41 +69,84 @@ export default function externalFragmentLoader(
 }
 
 export class ExternalFragmentLoader implements Loader<ExternalFragmentLoaderOptions> {
-  async load(_pointer: string, options: ExternalFragmentLoaderOptions): Promise<Source[]> {
-    const resolvedFiles = await resolveExternalFragments(options);
+  /**
+   * `@graphql-tools/load` invokes a loader once for every pointer in a load
+   * operation. Its cache object is shared by those invocations, so use it to
+   * ensure that external fragments are added only once per operation.
+   */
+  private readonly loadedOperations = new WeakSet<object>();
 
-    const sources: Source[] = [];
-    for (const file of resolvedFiles) {
-      const content = await readFile(file.filePath, 'utf8');
-      const sdls = await extractSDL(file.filePath, content, options.pluckConfig);
-      for (const sdl of sdls) {
-        sources.push({
-          location: file.filePath,
-          rawSDL: sdl,
-          document: parse(sdl, { noLocation: true }),
-        });
-      }
+  private claimLoadOperation(options: ExternalFragmentLoaderOptions): object | false | undefined {
+    const cache = (options as LoaderOptionsWithCache).cache;
+    if (!cache) {
+      return undefined;
+    }
+    if (this.loadedOperations.has(cache)) {
+      return false;
+    }
+    this.loadedOperations.add(cache);
+    return cache;
+  }
+
+  async load(_pointer: string, options: ExternalFragmentLoaderOptions): Promise<Source[]> {
+    const operation = this.claimLoadOperation(options);
+    if (operation === false) {
+      return [];
     }
 
-    return sources;
+    try {
+      const resolvedFiles = await resolveExternalFragments(options);
+
+      const sources: Source[] = [];
+      for (const file of resolvedFiles) {
+        const content = await readFile(file.filePath, 'utf8');
+        const sdls = await extractSDL(file.filePath, content, options.pluckConfig);
+        for (const sdl of sdls) {
+          sources.push({
+            location: file.filePath,
+            rawSDL: sdl,
+            document: parse(sdl, { noLocation: true }),
+          });
+        }
+      }
+
+      return sources;
+    } catch (error) {
+      if (operation) {
+        this.loadedOperations.delete(operation);
+      }
+      throw error;
+    }
   }
 
   loadSync(_pointer: string, options: ExternalFragmentLoaderOptions): Source[] {
-    const resolvedFiles = resolveExternalFragmentsSync(options);
-
-    const sources: Source[] = [];
-    for (const file of resolvedFiles) {
-      const content = readFileSync(file.filePath, 'utf8');
-      const sdls = extractSDLSync(file.filePath, content, options.pluckConfig);
-      for (const sdl of sdls) {
-        sources.push({
-          location: file.filePath,
-          rawSDL: sdl,
-          document: parse(sdl, { noLocation: true }),
-        });
-      }
+    const operation = this.claimLoadOperation(options);
+    if (operation === false) {
+      return [];
     }
 
-    return sources;
+    try {
+      const resolvedFiles = resolveExternalFragmentsSync(options);
+
+      const sources: Source[] = [];
+      for (const file of resolvedFiles) {
+        const content = readFileSync(file.filePath, 'utf8');
+        const sdls = extractSDLSync(file.filePath, content, options.pluckConfig);
+        for (const sdl of sdls) {
+          sources.push({
+            location: file.filePath,
+            rawSDL: sdl,
+            document: parse(sdl, { noLocation: true }),
+          });
+        }
+      }
+
+      return sources;
+    } catch (error) {
+      if (operation) {
+        this.loadedOperations.delete(operation);
+      }
+      throw error;
+    }
   }
 }

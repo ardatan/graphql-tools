@@ -1,5 +1,6 @@
 import * as path from 'path';
 import { loadDocuments, loadDocumentsSync } from '@graphql-tools/load';
+import type { LoadTypedefsOptions } from '@graphql-tools/load';
 import externalFragmentLoader, {
   clearCache,
   ExternalFragmentLoader,
@@ -10,6 +11,7 @@ import externalFragmentLoader, {
 const FIXTURES_DIR = path.join(__dirname, 'test-external');
 const FIXTURES_TS_DIR = path.join(__dirname, 'test-external-ts');
 const FIXTURES_DUP_DIR = path.join(__dirname, 'test-external-dup');
+type LoadOptions = LoadTypedefsOptions & Record<string, unknown>;
 
 const packageAOpts = {
   packageDir: path.join(FIXTURES_DIR, 'package-a'),
@@ -121,6 +123,30 @@ describe('ExternalFragmentLoader', () => {
           expect(source.document!.kind).toBe('Document');
           expect(source.rawSDL).toBeDefined();
         }
+      },
+    );
+
+    it.each([
+      ['async', (pointers: string[], options: LoadOptions) => loadDocuments(pointers, options)],
+      ['sync', (pointers: string[], options: LoadOptions) => loadDocumentsSync(pointers, options)],
+    ] as const)(
+      'should load external fragments only once for multiple pointers (%s)',
+      async (_label, load) => {
+        const pointers = [
+          path.join(FIXTURES_DIR, 'package-a/src/query.graphql'),
+          path.join(FIXTURES_DIR, 'package-b/src/user-fields.graphql'),
+        ];
+
+        const sources = await load(pointers, {
+          loaders: [loader],
+          ...packageAOpts,
+        });
+
+        expect(sources).toHaveLength(2);
+        expect(sources.map(source => path.basename(source.location!)).sort()).toEqual([
+          'user-email.graphql',
+          'user-fields.graphql',
+        ]);
       },
     );
   });
