@@ -7,13 +7,6 @@ and merges its `Source[]` result into the single `DocumentNode` required by Code
 From the repository root:
 
 ```sh
-npm install --save-dev \
-  @graphql-codegen/cli \
-  @graphql-codegen/typescript \
-  @graphql-codegen/typescript-operations
-```
-
-```sh
 npx bob build --incremental
 npx --no-install graphql-codegen \
   --config packages/loaders/external-fragment/tests/codegen-smoke-async/codegen.cjs
@@ -22,7 +15,10 @@ npx --no-install graphql-codegen \
 The Codegen CLI and plugins must be installed in the project where the command is run:
 
 ```sh
-npm install --save-dev @graphql-codegen/cli @graphql-codegen/typescript @graphql-codegen/typescript-operations
+npm install --save-dev \
+  @graphql-codegen/cli \
+  @graphql-codegen/typescript \
+  @graphql-codegen/typescript-operations
 ```
 
 The adapter uses the local `dist/cjs` build by default. To test an installed or published package
