@@ -21,6 +21,21 @@ interface ParsedSource {
   document: DocumentNode;
 }
 
+interface ExtractedFileInfo {
+  sources: ParsedSource[];
+  definitions: FragmentInfo[];
+  spreads: Set<string>;
+  spreadsPerFragment: Map<string, Set<string>>;
+}
+
+interface PackageMapBuilder {
+  fragments: Map<string, { filePath: string; typeCondition: string }>;
+  spreadsPerFile: Map<string, Set<string>>;
+  defsPerFile: Map<string, FragmentInfo[]>;
+  sourcesPerFile: Map<string, ParsedSource[]>;
+  spreadsPerFragment: Map<string, Set<string>>;
+}
+
 interface PackageMapData {
   sourcesPerFile: Map<string, ParsedSource[]>;
   spreadsPerFragment: Map<string, Set<string>>;
@@ -85,12 +100,7 @@ function extractFragmentsAndSpreads(
   filePath: string,
   fileContent: string,
   pluckConfig?: GraphQLTagPluckOptions,
-): {
-  sources: ParsedSource[];
-  definitions: FragmentInfo[];
-  spreads: Set<string>;
-  spreadsPerFragment: Map<string, Set<string>>;
-} {
+): ExtractedFileInfo {
   const rawSDLs = isGraphQLFile(filePath)
     ? [fileContent]
     : gqlPluckFromCodeStringSync(filePath, fileContent, pluckConfig).map(source => source.body);
@@ -128,17 +138,75 @@ function extractFragmentsAndSpreads(
   return { sources, definitions, spreads, spreadsPerFragment };
 }
 
+function createPackageMapBuilder(): PackageMapBuilder {
+  return {
+    fragments: new Map(),
+    spreadsPerFile: new Map(),
+    defsPerFile: new Map(),
+    sourcesPerFile: new Map(),
+    spreadsPerFragment: new Map(),
+  };
+}
+
+function registerFile(
+  builder: PackageMapBuilder,
+  packageDir: string,
+  filePath: string,
+  info: ExtractedFileInfo,
+): void {
+  builder.sourcesPerFile.set(filePath, info.sources);
+  if (info.definitions.length === 0 && info.spreads.size === 0) return;
+
+  builder.defsPerFile.set(filePath, info.definitions);
+  builder.spreadsPerFile.set(filePath, info.spreads);
+
+  for (const [fragmentName, fragmentSpreads] of info.spreadsPerFragment) {
+    const spreads = builder.spreadsPerFragment.get(fragmentName) ?? new Set<string>();
+    for (const spread of fragmentSpreads) {
+      spreads.add(spread);
+    }
+    builder.spreadsPerFragment.set(fragmentName, spreads);
+  }
+
+  for (const def of info.definitions) {
+    const existing = builder.fragments.get(def.name);
+    if (existing && existing.filePath !== filePath) {
+      throw new Error(
+        `Duplicate fragment "${def.name}" within package at "${packageDir}": ` +
+          `defined in "${existing.filePath}" and "${filePath}".`,
+      );
+    }
+    builder.fragments.set(def.name, { filePath, typeCondition: def.typeCondition });
+  }
+}
+
+function parseFile(
+  filePath: string,
+  content: string,
+  pluckConfig?: GraphQLTagPluckOptions,
+  fileContentFilter?: (content: string, filePath: string) => boolean,
+): ExtractedFileInfo | undefined {
+  if (fileContentFilter && !fileContentFilter(content, filePath)) return;
+
+  try {
+    return extractFragmentsAndSpreads(filePath, content, pluckConfig);
+  } catch {
+    return undefined;
+  }
+}
+
 // --- Memoized functions ---
 
-function createPackageFragmentMap(
-  fragments: Map<string, { filePath: string; typeCondition: string }>,
-  spreadsPerFile: Map<string, Set<string>>,
-  defsPerFile: Map<string, FragmentInfo[]>,
-  sourcesPerFile: Map<string, ParsedSource[]>,
-  spreadsPerFragment: Map<string, Set<string>>,
-): PackageFragmentMap {
-  const map = { fragments, spreadsPerFile, defsPerFile };
-  packageMapData.set(map, { sourcesPerFile, spreadsPerFragment });
+function createPackageFragmentMap(builder: PackageMapBuilder): PackageFragmentMap {
+  const map = {
+    fragments: builder.fragments,
+    spreadsPerFile: builder.spreadsPerFile,
+    defsPerFile: builder.defsPerFile,
+  };
+  packageMapData.set(map, {
+    sourcesPerFile: builder.sourcesPerFile,
+    spreadsPerFragment: builder.spreadsPerFragment,
+  });
   return map;
 }
 
@@ -175,24 +243,14 @@ function buildPackageFragmentMapRaw(
   pluckConfig?: GraphQLTagPluckOptions,
   fileContentFilter?: (content: string, filePath: string) => boolean,
 ): PackageFragmentMap {
-  const fragments = new Map<string, { filePath: string; typeCondition: string }>();
-  const spreadsPerFile = new Map<string, Set<string>>();
-  const defsPerFile = new Map<string, FragmentInfo[]>();
-  const sourcesPerFile = new Map<string, ParsedSource[]>();
-  const spreadsPerFragment = new Map<string, Set<string>>();
+  const builder = createPackageMapBuilder();
 
   const dirs = scanInternalDirs
     .map(folder => resolve(packageDir, folder))
     .filter(dir => existsSync(dir));
 
   if (dirs.length === 0) {
-    return createPackageFragmentMap(
-      fragments,
-      spreadsPerFile,
-      defsPerFile,
-      sourcesPerFile,
-      spreadsPerFragment,
-    );
+    return createPackageFragmentMap(builder);
   }
 
   const sourceGlob = getSourceGlob(extensions);
@@ -207,49 +265,11 @@ function buildPackageFragmentMapRaw(
 
   for (const filePath of allFiles) {
     const content = readFileSync(filePath, 'utf8');
-    if (fileContentFilter && !fileContentFilter(content, filePath)) continue;
-
-    let info;
-    try {
-      info = extractFragmentsAndSpreads(filePath, content, pluckConfig);
-    } catch {
-      continue;
-    }
-
-    sourcesPerFile.set(filePath, info.sources);
-    if (info.definitions.length > 0 || info.spreads.size > 0) {
-      defsPerFile.set(filePath, info.definitions);
-      spreadsPerFile.set(filePath, info.spreads);
-      for (const [fragmentName, fragmentSpreads] of info.spreadsPerFragment) {
-        const existingSpreads = spreadsPerFragment.get(fragmentName);
-        if (existingSpreads) {
-          for (const spread of fragmentSpreads) {
-            existingSpreads.add(spread);
-          }
-        } else {
-          spreadsPerFragment.set(fragmentName, fragmentSpreads);
-        }
-      }
-      for (const def of info.definitions) {
-        const existing = fragments.get(def.name);
-        if (existing && existing.filePath !== filePath) {
-          throw new Error(
-            `Duplicate fragment "${def.name}" within package at "${packageDir}": ` +
-              `defined in "${existing.filePath}" and "${filePath}".`,
-          );
-        }
-        fragments.set(def.name, { filePath, typeCondition: def.typeCondition });
-      }
-    }
+    const info = parseFile(filePath, content, pluckConfig, fileContentFilter);
+    if (info) registerFile(builder, packageDir, filePath, info);
   }
 
-  return createPackageFragmentMap(
-    fragments,
-    spreadsPerFile,
-    defsPerFile,
-    sourcesPerFile,
-    spreadsPerFragment,
-  );
+  return createPackageFragmentMap(builder);
 }
 
 async function buildPackageFragmentMapAsyncRaw(
@@ -260,24 +280,14 @@ async function buildPackageFragmentMapAsyncRaw(
   pluckConfig?: GraphQLTagPluckOptions,
   fileContentFilter?: (content: string, filePath: string) => boolean,
 ): Promise<PackageFragmentMap> {
-  const fragments = new Map<string, { filePath: string; typeCondition: string }>();
-  const spreadsPerFile = new Map<string, Set<string>>();
-  const defsPerFile = new Map<string, FragmentInfo[]>();
-  const sourcesPerFile = new Map<string, ParsedSource[]>();
-  const spreadsPerFragment = new Map<string, Set<string>>();
+  const builder = createPackageMapBuilder();
 
   const dirs = scanInternalDirs
     .map(folder => resolve(packageDir, folder))
     .filter(dir => existsSync(dir));
 
   if (dirs.length === 0) {
-    return createPackageFragmentMap(
-      fragments,
-      spreadsPerFile,
-      defsPerFile,
-      sourcesPerFile,
-      spreadsPerFragment,
-    );
+    return createPackageFragmentMap(builder);
   }
 
   const sourceGlob = getSourceGlob(extensions);
@@ -297,50 +307,12 @@ async function buildPackageFragmentMapAsyncRaw(
   await Promise.all(
     allFiles.map(async filePath => {
       const content = await readFile(filePath, 'utf8');
-      if (fileContentFilter && !fileContentFilter(content, filePath)) return;
-
-      let info;
-      try {
-        info = extractFragmentsAndSpreads(filePath, content, pluckConfig);
-      } catch {
-        return;
-      }
-
-      sourcesPerFile.set(filePath, info.sources);
-      if (info.definitions.length > 0 || info.spreads.size > 0) {
-        defsPerFile.set(filePath, info.definitions);
-        spreadsPerFile.set(filePath, info.spreads);
-        for (const [fragmentName, fragmentSpreads] of info.spreadsPerFragment) {
-          const existingSpreads = spreadsPerFragment.get(fragmentName);
-          if (existingSpreads) {
-            for (const spread of fragmentSpreads) {
-              existingSpreads.add(spread);
-            }
-          } else {
-            spreadsPerFragment.set(fragmentName, fragmentSpreads);
-          }
-        }
-        for (const def of info.definitions) {
-          const existing = fragments.get(def.name);
-          if (existing && existing.filePath !== filePath) {
-            throw new Error(
-              `Duplicate fragment "${def.name}" within package at "${packageDir}": ` +
-                `defined in "${existing.filePath}" and "${filePath}".`,
-            );
-          }
-          fragments.set(def.name, { filePath, typeCondition: def.typeCondition });
-        }
-      }
+      const info = parseFile(filePath, content, pluckConfig, fileContentFilter);
+      if (info) registerFile(builder, packageDir, filePath, info);
     }),
   );
 
-  return createPackageFragmentMap(
-    fragments,
-    spreadsPerFile,
-    defsPerFile,
-    sourcesPerFile,
-    spreadsPerFragment,
-  );
+  return createPackageFragmentMap(builder);
 }
 
 type PackageMapArgs = [
@@ -668,7 +640,17 @@ function getPackageNameFromDir(packageDir: string): string {
   }
 }
 
-function normalizeOptions(options: ExternalFragmentResolverOptions) {
+interface NormalizedOptions {
+  externalPackagesDirs: string[];
+  filter: (packageName: string) => boolean;
+  includeDevDependencies: boolean;
+  scanInternalDirs: string[];
+  extensions: string[];
+  excludePatterns: string[];
+  invalidateRootPackageCache: boolean;
+}
+
+function normalizeOptions(options: ExternalFragmentResolverOptions): NormalizedOptions {
   const externalPackagesDirs = options.externalPackagesDirs;
   const filter = options.externalPackageNameFilter ?? (() => true);
   const includeDevDependencies = options.includeDevDependencies ?? true;
@@ -688,12 +670,10 @@ function normalizeOptions(options: ExternalFragmentResolverOptions) {
 }
 
 function getTransitiveDeps(
-  options: ExternalFragmentResolverOptions,
-  externalPackagesDirs: string[],
-  filter: (name: string) => boolean,
-  includeDevDependencies: boolean,
+  packageDir: string,
+  { externalPackagesDirs, filter, includeDevDependencies }: NormalizedOptions,
 ): Set<string> {
-  const packageJsonPath = join(options.packageDir, 'package.json');
+  const packageJsonPath = join(packageDir, 'package.json');
   const rootDeps = readPackageJsonDeps(packageJsonPath, includeDevDependencies);
   const filteredRootDeps = rootDeps.filter(filter);
 
@@ -740,16 +720,13 @@ function toPublicResolvedFiles(
   }));
 }
 
-// --- Public API ---
-
 function getPackageMapArgs(
+  packageDir: string,
   options: ExternalFragmentResolverOptions,
-  scanInternalDirs: string[],
-  extensions: string[],
-  excludePatterns: string[],
+  { scanInternalDirs, extensions, excludePatterns }: NormalizedOptions,
 ): PackageMapArgs {
   return [
-    options.packageDir,
+    packageDir,
     scanInternalDirs,
     extensions,
     excludePatterns,
@@ -757,6 +734,65 @@ function getPackageMapArgs(
     options.fileContentFilter,
   ];
 }
+
+function invalidateRootPackageCacheIfRequested(
+  options: ExternalFragmentResolverOptions,
+  { includeDevDependencies, invalidateRootPackageCache }: NormalizedOptions,
+  rootPackageMapArgs: PackageMapArgs,
+  deleteMap: (...args: PackageMapArgs) => void,
+): void {
+  if (!invalidateRootPackageCache) return;
+
+  deleteMap(...rootPackageMapArgs);
+  readPackageJsonDeps.delete(join(options.packageDir, 'package.json'), includeDevDependencies);
+}
+
+interface ResolutionContext {
+  rootMap: PackageFragmentMap;
+  rootPackageName: string;
+  missingFragments: Set<string>;
+  transitiveDeps: Set<string>;
+}
+
+function createResolutionContext(
+  packageDir: string,
+  normalized: NormalizedOptions,
+  rootMap: PackageFragmentMap,
+): ResolutionContext | undefined {
+  const missingFragments = findMissingFragments(rootMap);
+  if (missingFragments.size === 0) return;
+
+  const rootPackageName = getPackageNameFromDir(packageDir);
+  const transitiveDeps = getTransitiveDeps(packageDir, normalized);
+  if (transitiveDeps.size === 0) {
+    const errors = [...missingFragments].map(
+      frag =>
+        `Fragment "${frag}" is spread in "${rootPackageName}" but no transitive dependencies were found to search.`,
+    );
+    throw new Error(errors.join('\n'));
+  }
+
+  return { rootMap, rootPackageName, missingFragments, transitiveDeps };
+}
+
+function getDependencyPackages(
+  options: ExternalFragmentResolverOptions,
+  normalized: NormalizedOptions,
+  packageNames: Set<string>,
+): { name: string; args: PackageMapArgs }[] {
+  const dependencies: { name: string; args: PackageMapArgs }[] = [];
+
+  for (const name of packageNames) {
+    const packageDir = findPackageDir(name, normalized.externalPackagesDirs);
+    if (packageDir) {
+      dependencies.push({ name, args: getPackageMapArgs(packageDir, options, normalized) });
+    }
+  }
+
+  return dependencies;
+}
+
+// --- Public API ---
 
 /**
  * Resolves cross-package GraphQL fragment dependencies across external packages.
@@ -766,79 +802,37 @@ export async function resolveExternalFragmentsWithSources(
   options: ExternalFragmentResolverOptions,
   filterToRequiredFragments = true,
 ): Promise<ResolvedExternalFileWithSources[]> {
-  const {
-    externalPackagesDirs,
-    filter,
-    includeDevDependencies,
-    scanInternalDirs,
-    extensions,
-    excludePatterns,
-    invalidateRootPackageCache,
-  } = normalizeOptions(options);
+  const normalized = normalizeOptions(options);
 
   initCache(options.cacheTTL);
 
-  const rootPackageMapArgs = getPackageMapArgs(
+  const rootPackageMapArgs = getPackageMapArgs(options.packageDir, options, normalized);
+  invalidateRootPackageCacheIfRequested(
     options,
-    scanInternalDirs,
-    extensions,
-    excludePatterns,
+    normalized,
+    rootPackageMapArgs,
+    buildPackageFragmentMapAsync.delete,
   );
-
-  if (invalidateRootPackageCache) {
-    buildPackageFragmentMapAsync.delete(...rootPackageMapArgs);
-    readPackageJsonDeps.delete(join(options.packageDir, 'package.json'), includeDevDependencies);
-  }
-
-  const rootPackageName = getPackageNameFromDir(options.packageDir);
 
   // Consumer packages are intentionally not inserted into the cache. If this
   // package was already encountered as a provider, reuse that cached map.
   const rootMap = await getPackageFragmentMapAsync(rootPackageMapArgs, false);
-
-  const missingFragments = findMissingFragments(rootMap);
-  if (missingFragments.size === 0) return [];
-
-  const transitiveDeps = getTransitiveDeps(
-    options,
-    externalPackagesDirs,
-    filter,
-    includeDevDependencies,
-  );
-
-  if (transitiveDeps.size === 0) {
-    const errors = [...missingFragments].map(
-      frag =>
-        `Fragment "${frag}" is spread in "${rootPackageName}" but no transitive dependencies were found to search.`,
-    );
-    throw new Error(errors.join('\n'));
-  }
+  const context = createResolutionContext(options.packageDir, normalized, rootMap);
+  if (!context) return [];
 
   const depMaps = new Map<string, PackageFragmentMap>();
   await Promise.all(
-    [...transitiveDeps].map(async depName => {
-      const depDir = findPackageDir(depName, externalPackagesDirs);
-      if (!depDir) return;
-      const map = await getPackageFragmentMapAsync(
-        [
-          depDir,
-          scanInternalDirs,
-          extensions,
-          excludePatterns,
-          options.pluckConfig,
-          options.fileContentFilter,
-        ],
-        true,
-      );
-      depMaps.set(depName, map);
+    getDependencyPackages(options, normalized, context.transitiveDeps).map(async dependency => {
+      const map = await getPackageFragmentMapAsync(dependency.args, true);
+      depMaps.set(dependency.name, map);
     }),
   );
 
   return resolveFromMaps(
-    rootMap,
+    context.rootMap,
     depMaps,
-    rootPackageName,
-    missingFragments,
+    context.rootPackageName,
+    context.missingFragments,
     filterToRequiredFragments,
   );
 }
@@ -858,77 +852,34 @@ export function resolveExternalFragmentsSyncWithSources(
   options: ExternalFragmentResolverOptions,
   filterToRequiredFragments = true,
 ): ResolvedExternalFileWithSources[] {
-  const {
-    externalPackagesDirs,
-    filter,
-    includeDevDependencies,
-    scanInternalDirs,
-    extensions,
-    excludePatterns,
-    invalidateRootPackageCache,
-  } = normalizeOptions(options);
+  const normalized = normalizeOptions(options);
 
   initCache(options.cacheTTL);
 
-  const rootPackageMapArgs = getPackageMapArgs(
+  const rootPackageMapArgs = getPackageMapArgs(options.packageDir, options, normalized);
+  invalidateRootPackageCacheIfRequested(
     options,
-    scanInternalDirs,
-    extensions,
-    excludePatterns,
+    normalized,
+    rootPackageMapArgs,
+    buildPackageFragmentMap.delete,
   );
-
-  if (invalidateRootPackageCache) {
-    buildPackageFragmentMap.delete(...rootPackageMapArgs);
-    readPackageJsonDeps.delete(join(options.packageDir, 'package.json'), includeDevDependencies);
-  }
-
-  const rootPackageName = getPackageNameFromDir(options.packageDir);
 
   // Consumer packages are intentionally not inserted into the cache. If this
   // package was already encountered as a provider, reuse that cached map.
   const rootMap = getPackageFragmentMap(rootPackageMapArgs, false);
-
-  const missingFragments = findMissingFragments(rootMap);
-  if (missingFragments.size === 0) return [];
-
-  const transitiveDeps = getTransitiveDeps(
-    options,
-    externalPackagesDirs,
-    filter,
-    includeDevDependencies,
-  );
-
-  if (transitiveDeps.size === 0) {
-    const errors = [...missingFragments].map(
-      frag =>
-        `Fragment "${frag}" is spread in "${rootPackageName}" but no transitive dependencies were found to search.`,
-    );
-    throw new Error(errors.join('\n'));
-  }
+  const context = createResolutionContext(options.packageDir, normalized, rootMap);
+  if (!context) return [];
 
   const depMaps = new Map<string, PackageFragmentMap>();
-  for (const depName of transitiveDeps) {
-    const depDir = findPackageDir(depName, externalPackagesDirs);
-    if (!depDir) continue;
-    const map = getPackageFragmentMap(
-      [
-        depDir,
-        scanInternalDirs,
-        extensions,
-        excludePatterns,
-        options.pluckConfig,
-        options.fileContentFilter,
-      ],
-      true,
-    );
-    depMaps.set(depName, map);
+  for (const dependency of getDependencyPackages(options, normalized, context.transitiveDeps)) {
+    depMaps.set(dependency.name, getPackageFragmentMap(dependency.args, true));
   }
 
   return resolveFromMaps(
-    rootMap,
+    context.rootMap,
     depMaps,
-    rootPackageName,
-    missingFragments,
+    context.rootPackageName,
+    context.missingFragments,
     filterToRequiredFragments,
   );
 }
