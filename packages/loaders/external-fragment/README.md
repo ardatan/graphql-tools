@@ -26,11 +26,11 @@ the options described in [`options.ts`](./src/options.ts).
 
 ## Three API entry points
 
-| Entry point                | Returns                                                      | Use it when                                          |
-| -------------------------- | ------------------------------------------------------------ | ---------------------------------------------------- |
-| Default export             | One merged `DocumentNode`                                    | Configuring a Codegen or GraphQL Tools custom loader |
-| `ExternalFragmentLoader`   | `Source[]` with `document`, `rawSDL`, and `location`         | Using `@graphql-tools/load` programmatically         |
-| `resolveExternalFragments` | File metadata, including `filePath` and fragment definitions | Building a file list or another custom workflow      |
+| Entry point                | Returns                                                      | Use it when                                                      |
+| -------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------- |
+| Default export             | One merged `DocumentNode`                                    | Configuring a Codegen or GraphQL Tools custom loader (sync only) |
+| `ExternalFragmentLoader`   | `Source[]` with `document`, `rawSDL`, and `location`         | Using `@graphql-tools/load` programmatically (can be async)      |
+| `resolveExternalFragments` | File metadata, including `filePath` and fragment definitions | Building a file list or another custom workflow                  |
 
 Each entry point has a synchronous variant where applicable. The async and sync variants are:
 
@@ -71,8 +71,8 @@ module.exports = {
 The pointer (`./external-fragments.graphql` in this example) is only used to trigger the loader; the
 resolver uses `packageDir` to identify the consumer package.
 
-The default export is synchronous so it works with both synchronous and asynchronous GraphQL Tools
-load calls. It uses the resolver's synchronous path internally.
+The default export is synchronous so while it works with both synchronous and asynchronous GraphQL
+Tools load calls, it uses the resolver's **synchronous** path internally.
 
 ### 2. Class-based loader
 
@@ -103,7 +103,7 @@ const sources = await loadDocuments(['./external-fragments.graphql'], {
 })
 ```
 
-The loader also exposes a synchronous method:
+The loader also exposes a **synchronous** method:
 
 ```ts
 const syncSources = loader.loadSync('.', options)
@@ -146,8 +146,8 @@ class-based loader when you want to reuse the parsed documents.
 
 ## Async Codegen custom loaders
 
-The default export is synchronous. Async version is much faster for large monorepos. To use async
-loader, adapt the class loader's `Source[]` result into one merged `DocumentNode`:
+The default export is synchronous. Asynchronous version is much faster for large monorepos. To use
+async loader, adapt the class loader's `Source[]` result into one merged `DocumentNode`:
 
 ```js
 const { concatAST } = require('graphql')
