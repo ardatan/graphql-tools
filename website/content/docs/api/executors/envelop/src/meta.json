@@ -1,0 +1,8 @@
+{
+  "title": "@graphql-tools/executor-envelop",
+  "pages": [
+    "functions",
+    "interfaces",
+    "type-aliases"
+  ]
+}

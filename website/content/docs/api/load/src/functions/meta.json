@@ -1,0 +1,12 @@
+{
+  "title": "Functions",
+  "pages": [
+    "filterkind",
+    "loaddocuments",
+    "loaddocumentssync",
+    "loadschema",
+    "loadschemasync",
+    "loadtypedefs",
+    "loadtypedefssync"
+  ]
+}

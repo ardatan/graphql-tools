@@ -13,8 +13,7 @@
   "workspaces": [
     "packages/*",
     "packages/loaders/*",
-    "packages/executors/*",
-    "website"
+    "packages/executors/*"
   ],
   "packageManager": "npm@12.0.1",
   "keywords": [
@@ -30,6 +29,7 @@
   "scripts": {
     "build": "bob build",
     "build:api-docs": "tsx scripts/build-api-docs.mts",
+    "build:changelogs": "tsx scripts/build-changelogs.mts",
     "ci:lint": "eslint \"**/*.ts\" --output-file eslint_report.json --format json",
     "clean-dist": "rimraf \"packages/**/dist\" && rimraf \".bob\"",
     "lint": "eslint \"**/*.ts\"",

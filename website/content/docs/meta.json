@@ -1,0 +1,21 @@
+{
+  "pages": [
+    "introduction",
+    "generate-schema",
+    "resolvers",
+    "resolvers-composition",
+    "scalars",
+    "mocking",
+    "connectors",
+    "schema-directives",
+    "schema-merging",
+    "[Schema Stitching](https://the-guild.dev/graphql/stitching)",
+    "server-setup",
+    "schema-loading",
+    "documents-loading",
+    "graphql-tag-pluck",
+    "relay-operation-optimizer",
+    "migration",
+    "api"
+  ]
+}

@@ -42,10 +42,11 @@ contribute to the library. If you see a piece of content that can be better, ope
 improvement, no matter how small! If you would like to suggest a big change or major rewrite, we’d
 love to hear your ideas but please open an issue for discussion before writing the PR.
 
-If you want to edit the documentation locally you have to clone this project, install the
-dependencies using `npm` and run the command `npm run build:api-docs`. Afterwards, run
-`npm workspace website dev` and visit `http://localhost:3000`. All the documentation can be found
-within `website/src/pages/docs`.
+The documentation lives in `website/content` and is rendered by
+[the-guild-org/website](https://github.com/the-guild-org/website); see `website/README.md` for the
+layout and how to preview a change. The API reference (`website/content/docs/api`) and the changelog
+pages (`website/content/changelogs`) are generated from the packages with `npm run build:api-docs`
+and `npm run build:changelogs` and regenerated automatically on `master`.
 
 ### Responding to issues
 

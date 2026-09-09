@@ -1,0 +1,28 @@
+{
+  "title": "Interfaces",
+  "pages": [
+    "directiveannotation",
+    "executionrequest",
+    "executionresult",
+    "fieldsandpatches",
+    "getdocumentnodefromschemaoptions",
+    "graphqlparseoptions",
+    "graphqlresolveinfo",
+    "graphqlresolveinfohelpers",
+    "iaddresolverstoschemaoptions",
+    "ifieldresolveroptions",
+    "iresolvervalidationoptions",
+    "loader",
+    "observable",
+    "observer",
+    "patchfields",
+    "path",
+    "promisewithresolvers",
+    "pruneschemaoptions",
+    "schemamapper",
+    "schemaprintoptions",
+    "source",
+    "variablevalues",
+    "variablevaluesource"
+  ]
+}

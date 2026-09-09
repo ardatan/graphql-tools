@@ -1,0 +1,13 @@
+{
+  "title": "Loaders",
+  "pages": [
+    "apollo-engine",
+    "code-file",
+    "git",
+    "github",
+    "graphql-file",
+    "json-file",
+    "module",
+    "url"
+  ]
+}

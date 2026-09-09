@@ -1,0 +1,7 @@
+{
+  "title": "@graphql-tools/webpack-loader-runtime",
+  "pages": [
+    "functions",
+    "variables"
+  ]
+}

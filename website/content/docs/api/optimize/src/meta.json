@@ -1,0 +1,8 @@
+{
+  "title": "@graphql-tools/optimize",
+  "pages": [
+    "functions",
+    "type-aliases",
+    "variables"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "title": "Variables",
+  "pages": [
+    "critical_error",
+    "defaultfieldresolver",
+    "defaulttyperesolver",
+    "executorfromschema",
+    "getfragmentsfromdocument"
+  ]
+}
