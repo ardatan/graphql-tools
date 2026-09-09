@@ -46,7 +46,7 @@
     "version": "npx changeset version"
   },
   "optionalDependencies": {
-    "bun": "1.4.1"
+    "bun": "1.4.2"
   },
   "devDependencies": {
     "@apollo/client": "4.2.12",
@@ -89,7 +89,7 @@
     "graphql-yoga": "5.22.0",
     "husky": "9.1.7",
     "jest": "30.4.2",
-    "lint-staged": "17.4.1",
+    "lint-staged": "17.5.0",
     "lru-cache": "11.5.2",
     "patch-package": "8.0.1",
     "prettier": "3.9.6",
