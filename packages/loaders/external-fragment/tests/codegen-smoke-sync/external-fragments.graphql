@@ -1,0 +1,2 @@
+# The custom loader handles this pointer; this placeholder definition is ignored.
+scalar ExternalFragmentLoaderPointer
