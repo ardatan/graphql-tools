@@ -219,6 +219,17 @@ const options = {
   externalPackagesDirs,
   fileContentFilter: (content, filePath) => content.includes('gql`')
 }
+
+Or more generic but a little slower:
+
+  fileContentFilter: (content, filePath) => {
+    // Match the default gql/graphql tag conventions and GraphQL magic comments.
+    return (
+      /\b(?:gql|graphql)\s*`/.test(content) ||
+      /\/\*\s*graphql\s*\*\//i.test(content)
+    )
+  }
+
 ```
 
 This is especially useful when packages contain many TypeScript or JavaScript files but only a small
