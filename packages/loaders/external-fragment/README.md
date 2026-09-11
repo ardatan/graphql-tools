@@ -167,16 +167,23 @@ configurations.
 
 ## Caching
 
-Package fragment maps, parsed sources, and `package.json` dependency metadata are cached across
-resolver calls. Consumer package maps are not normally retained, unless the consumer package was
-previously loaded as a provider. Use `cacheTTL` for watch-mode processes or `clearCache()` to clear
-all caches.
+Package fragment maps, parsed sources, and `package.json` dependency metadata are cached between
+resolver calls. Consumer package maps are not normally retained unless the consumer package was
+previously loaded as a provider.
 
-Also, for watch-mode processes, if a package was previously cached as a provider and is later used
-as the consumer, set `invalidateRootPackageCache: true` to force its root fragment map to be
-rebuilt.
+When running the loader in **watch mode** — for example, to run Codegen in the background while
+using an IDE so that the package's generated GraphQL types are regenerated automatically whenever a
+file changes — consider setting the following options:
 
-## Using filters options
+- Set `invalidateRootPackageCache: true` to force the root package's fragment map to be rebuilt.
+  This prevents stale data when a package that was previously cached as a provider is later scanned
+  as the consumer.
+
+- Set `cacheTTL` (for example, to `10000` for 10 seconds) so cached provider data eventually
+  expires. This helps avoid stale data when a provider package is updated indirectly, for example by
+  a `git merge`, while the watch process is still running.
+
+## Using filters
 
 The filters are pre-filters: they run before the expensive dependency scanning and GraphQL parsing
 work. Restricting the package names and files early can be much faster than parsing every source
