@@ -1,0 +1,12 @@
+{
+  "title": "Functions",
+  "pages": [
+    "addresolverstoschema",
+    "assertresolverspresent",
+    "chainresolvers",
+    "checkforresolvetyperesolver",
+    "extendresolversfrominterfaces",
+    "makeexecutableschema",
+    "mergeschemas"
+  ]
+}

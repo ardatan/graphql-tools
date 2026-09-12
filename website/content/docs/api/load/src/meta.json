@@ -1,0 +1,9 @@
+{
+  "title": "@graphql-tools/load",
+  "pages": [
+    "classes",
+    "functions",
+    "type-aliases",
+    "variables"
+  ]
+}

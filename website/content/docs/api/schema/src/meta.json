@@ -1,0 +1,8 @@
+{
+  "title": "@graphql-tools/schema",
+  "pages": [
+    "functions",
+    "interfaces",
+    "type-aliases"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "title": "@graphql-tools/url-loader",
+  "pages": [
+    "classes",
+    "enumerations",
+    "interfaces",
+    "type-aliases"
+  ]
+}

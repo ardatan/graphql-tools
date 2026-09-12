@@ -1,0 +1,8 @@
+{
+  "title": "@graphql-tools/jest-transform",
+  "pages": [
+    "functions",
+    "type-aliases",
+    "variables"
+  ]
+}

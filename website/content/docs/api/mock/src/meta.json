@@ -1,0 +1,9 @@
+{
+  "title": "@graphql-tools/mock",
+  "pages": [
+    "classes",
+    "functions",
+    "interfaces",
+    "type-aliases"
+  ]
+}

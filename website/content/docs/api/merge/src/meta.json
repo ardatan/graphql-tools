@@ -1,0 +1,10 @@
+{
+  "title": "@graphql-tools/merge",
+  "pages": [
+    "enumerations",
+    "functions",
+    "interfaces",
+    "type-aliases",
+    "variables"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "title": "Functions",
+  "pages": [
+    "applyextensions",
+    "defaultstringcomparator",
+    "extracttype",
+    "islisttypenode",
+    "isnameddefinitionnode",
+    "isnonnulltypenode",
+    "issourcetypes",
+    "isstringtypes",
+    "iswrappingtypenode",
+    "mergearguments",
+    "mergedirective",
+    "mergedirectives",
+    "mergeenum",
+    "mergeenumvalues",
+    "mergeextensions",
+    "mergefields",
+    "mergegraphqlnodes",
+    "mergegraphqltypes",
+    "mergeinputtype",
+    "mergeinterface",
+    "mergenamedtypearray",
+    "mergeresolvers",
+    "mergescalar",
+    "mergetype",
+    "mergetypedefs",
+    "mergeunion",
+    "printtypenode"
+  ]
+}

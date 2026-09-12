@@ -1,0 +1,75 @@
+name: website-content
+
+# The API reference (website/content/docs/api) and the package changelogs
+# (website/content/changelogs) are generated from packages/** and committed,
+# so that the-guild-org/website — which fetches this repo's website/ folder
+# at build time — never has to build this monorepo. Regenerate them whenever
+# a package changes on master, commit the result, and tell the website to
+# redeploy (a push made with the workflow token fires no other workflow, so
+# notify-website would not run for that commit).
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - packages/**
+      - scripts/build-api-docs.mts
+      - scripts/build-changelogs.mts
+      - .github/workflows/website-content.yaml
+  workflow_dispatch:
+
+concurrency:
+  group: website-content
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+
+      - name: setup env
+        uses: the-guild-org/shared-config/setup@df0dca6de5f09799154435d7e5031465849306e3 # v1
+        with:
+          node-version-file: .node-version
+
+      - name: build packages
+        run: npm run build
+
+      - name: generate API reference and changelogs
+        run: |
+          npm run build:api-docs
+          npm run build:changelogs
+
+      - name: commit
+        id: commit
+        run: |
+          git add website/content
+          if git diff --cached --quiet; then
+            echo "website/content is up to date"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Regenerate the website API reference and changelogs [skip ci]"
+          git push origin HEAD:master
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: trigger website rebuild
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          # Fine-grained PAT for the-guild-org/website with contents:write
+          # (repository_dispatch permission).
+          TOKEN: ${{ secrets.WEBSITE_DISPATCH_TOKEN }}
+        run: |
+          curl --fail-with-body -X POST \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/the-guild-org/website/dispatches \
+            -d '{"event_type":"product-content-update","client_payload":{"product":"tools"}}'

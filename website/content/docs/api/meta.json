@@ -1,0 +1,26 @@
+{
+  "title": "API Reference",
+  "pages": [
+    "documents",
+    "executor",
+    "graphql-tag-pluck",
+    "import",
+    "jest-transform",
+    "links",
+    "load",
+    "load-files",
+    "merge",
+    "mock",
+    "node-require",
+    "optimize",
+    "relay-operation-optimizer",
+    "resolvers-composition",
+    "schema",
+    "utils",
+    "webpack-loader",
+    "webpack-loader-runtime",
+    "inspect",
+    "executors",
+    "loaders"
+  ]
+}

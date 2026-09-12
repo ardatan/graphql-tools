@@ -1,0 +1,10 @@
+{
+  "title": "@graphql-tools/utils",
+  "pages": [
+    "enumerations",
+    "functions",
+    "interfaces",
+    "type-aliases",
+    "variables"
+  ]
+}

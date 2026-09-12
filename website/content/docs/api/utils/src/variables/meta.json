@@ -1,0 +1,13 @@
+{
+  "title": "Variables",
+  "pages": [
+    "collectsubfields",
+    "getabortpromise",
+    "getoperationastfromrequest",
+    "getroottypemap",
+    "getroottypenames",
+    "getroottypes",
+    "graphqldeferdirective",
+    "graphqlstreamdirective"
+  ]
+}

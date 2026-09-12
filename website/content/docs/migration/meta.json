@@ -1,0 +1,9 @@
+{
+  "pages": [
+    "migration-from-import",
+    "migration-from-merge-graphql-schemas",
+    "migration-from-toolkit",
+    "migration-from-tools"
+  ],
+  "title": "Migration"
+}

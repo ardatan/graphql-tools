@@ -1,0 +1,17 @@
+{
+  "title": "Functions",
+  "pages": [
+    "assertvalidexecutionarguments",
+    "buildexecutioncontext",
+    "buildresolveinfo",
+    "execute",
+    "executesync",
+    "flattenincrementalresults",
+    "getfielddef",
+    "getvariablevalues",
+    "isincrementalresult",
+    "isincrementalresults",
+    "normalizedexecutor",
+    "subscribe"
+  ]
+}

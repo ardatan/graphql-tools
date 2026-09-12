@@ -1,0 +1,8 @@
+{
+  "title": "@graphql-tools/executor-legacy-ws",
+  "pages": [
+    "enumerations",
+    "functions",
+    "interfaces"
+  ]
+}

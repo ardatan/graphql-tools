@@ -1,0 +1,9 @@
+{
+  "title": "@graphql-tools/executor",
+  "pages": [
+    "functions",
+    "interfaces",
+    "type-aliases",
+    "variables"
+  ]
+}
