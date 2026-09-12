@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/url-loader",
-  "version": "9.1.9",
+  "version": "9.1.10",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
