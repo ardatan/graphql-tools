@@ -25,6 +25,7 @@ import {
   IResolverValidationOptions,
   TypeSource,
 } from '@graphql-tools/utils';
+import { testIf } from '../../testing/utils.js';
 import TypeA from './fixtures/circularSchemaA.js';
 
 interface Bird {
@@ -355,6 +356,33 @@ describe('generating schema from shorthand', () => {
     const extensions = jsSchema.getQueryType()?.getFields()['foo'].extensions;
     expect(extensions).toHaveProperty('verbose');
     expect(extensions!['verbose']).toBe(true);
+  });
+
+  testIf(versionInfo.major >= 17)('preserves symbol-keyed schema extensions', () => {
+    const Extension1 = 'Key1';
+    const Extension2 = Symbol('Key2');
+
+    const jsSchema = makeExecutableSchema({
+      schemaExtensions: [
+        {
+          schemaExtensions: {
+            [Extension1]: 'Extension 1',
+            [Extension2]: 'Extension 2',
+          },
+          types: {},
+        },
+      ],
+      typeDefs: /* GraphQL */ `
+        type Query {
+          test: String!
+        }
+      `,
+    });
+
+    expect(jsSchema.extensions).toEqual({
+      [Extension1]: 'Extension 1',
+      [Extension2]: 'Extension 2',
+    });
   });
 
   test('properly deduplicates the array of type DefinitionNodes', () => {

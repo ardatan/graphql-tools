@@ -1,10 +1,18 @@
-import { GraphQLEnumType, GraphQLObjectType, GraphQLSchema } from 'graphql';
+import { GraphQLEnumType, GraphQLObjectType, GraphQLSchema, versionInfo } from 'graphql';
 import { ExtensionsObject, Maybe, mergeDeep, SchemaExtensions } from '@graphql-tools/utils';
 
 export { extractExtensionsFromSchema } from '@graphql-tools/utils';
 
+const mergeExtensionsOptions =
+  versionInfo.major >= 17
+    ? ({
+        respectArrays: true,
+        respectSymbols: { enumerable: true, nonEnumerable: true },
+      } as const)
+    : ({ respectArrays: true } as const);
+
 export function mergeExtensions(extensions: SchemaExtensions[]): SchemaExtensions {
-  return mergeDeep(extensions, false, true);
+  return mergeDeep(extensions, mergeExtensionsOptions);
 }
 
 function applyExtensionObject(
@@ -18,7 +26,7 @@ function applyExtensionObject(
     obj.extensions = extensions;
     return;
   }
-  obj.extensions = mergeDeep([obj.extensions, extensions], false, true);
+  obj.extensions = mergeDeep([obj.extensions, extensions], mergeExtensionsOptions);
 }
 
 export function applyExtensions(

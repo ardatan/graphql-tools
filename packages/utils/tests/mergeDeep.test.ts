@@ -7,8 +7,8 @@ describe('mergeDeep', () => {
     expect(mergeDeep([x, y])).toEqual({ a: { one: 1, two: 2 } });
   });
 
-  test('strips property symbols', () => {
-    const x = {};
+  test('strips property symbols by default', () => {
+    const x: any = {};
     const symbol = Symbol('symbol');
     x[symbol] = 'value';
     const y = { a: 2 };
@@ -16,6 +16,80 @@ describe('mergeDeep', () => {
     const merged = mergeDeep([x, y]);
     expect(merged).toStrictEqual({ a: 2 });
     expect(Object.getOwnPropertySymbols(merged)).toEqual([]);
+  });
+
+  test('preserves enumerable property symbols when respectSymbols.enumerable is set', () => {
+    const x: any = {};
+    const symbol = Symbol('symbol');
+    x[symbol] = 'value';
+    const y = { a: 2 };
+
+    const merged = mergeDeep([x, y], { respectSymbols: { enumerable: true } });
+    expect(merged.a).toEqual(2);
+    expect(merged[symbol]).toEqual('value');
+    expect(Object.getOwnPropertySymbols(merged)).toEqual([symbol]);
+  });
+
+  test('merges enumerable property symbols from later sources when respectSymbols.enumerable is set', () => {
+    const sym = Symbol('shared');
+    const x: any = { [sym]: { one: 1 } };
+    const y: any = { [sym]: { two: 2 } };
+
+    const merged = mergeDeep([x, y], { respectSymbols: { enumerable: true } });
+    expect(merged[sym]).toEqual({ one: 1, two: 2 });
+  });
+
+  test('preserves both enumerable and non-enumerable symbols when both flags are set', () => {
+    const enumerableSym = Symbol('enumerable');
+    const nonEnumerableSym = Symbol('annotation');
+    const first: any = { a: 1, [enumerableSym]: 'visible' };
+    Object.defineProperty(first, nonEnumerableSym, { value: 'annotated', writable: true });
+    const second = { b: 2 };
+
+    const merged = mergeDeep([first, second], {
+      respectSymbols: { enumerable: true, nonEnumerable: true },
+    });
+    expect(merged.a).toEqual(1);
+    expect(merged.b).toEqual(2);
+    expect(merged[enumerableSym]).toEqual('visible');
+    expect(merged[nonEnumerableSym]).toEqual('annotated');
+  });
+
+  test('preserves non-enumerable symbols via respectSymbols.nonEnumerable', () => {
+    const sym = Symbol('annotation');
+    const first: any = { a: 1 };
+    Object.defineProperty(first, sym, { value: 'annotated', writable: true });
+    const second = { b: 2 };
+    const merged = mergeDeep([first, second], { respectSymbols: { nonEnumerable: true } });
+    expect(merged.a).toEqual(1);
+    expect(merged.b).toEqual(2);
+    expect(merged[sym]).toEqual('annotated');
+  });
+
+  test('does not copy enumerable symbols when only nonEnumerable is enabled', () => {
+    const enumerableSym = Symbol('enumerable');
+    const nonEnumerableSym = Symbol('annotation');
+    const first: any = { a: 1, [enumerableSym]: 'visible' };
+    Object.defineProperty(first, nonEnumerableSym, { value: 'annotated', writable: true });
+    const second = { b: 2 };
+    const merged = mergeDeep([first, second], { respectSymbols: { nonEnumerable: true } });
+    expect(merged.a).toEqual(1);
+    expect(merged.b).toEqual(2);
+    expect(merged[enumerableSym]).toBeUndefined();
+    expect(merged[nonEnumerableSym]).toEqual('annotated');
+  });
+
+  test('overrides a repeated non-enumerable symbol from a later source without throwing', () => {
+    const sym = Symbol('annotation');
+    const first: any = { a: 1 };
+    const second: any = { b: 2 };
+    Object.defineProperty(first, sym, { value: 'first', writable: true });
+    Object.defineProperty(second, sym, { value: 'second', writable: true });
+
+    const merged = mergeDeep([first, second], { respectSymbols: { nonEnumerable: true } });
+    expect(merged.a).toEqual(1);
+    expect(merged.b).toEqual(2);
+    expect(merged[sym]).toEqual('second');
   });
 
   test('merges prototypes', () => {
@@ -30,7 +104,7 @@ describe('mergeDeep', () => {
       }
     };
 
-    const merged = mergeDeep([new ClassA(), new ClassB()], true);
+    const merged = mergeDeep([new ClassA(), new ClassB()], { respectPrototype: true });
     expect(merged.a()).toEqual('a');
     expect(merged.b()).toEqual('b');
   });
@@ -47,7 +121,9 @@ describe('mergeDeep', () => {
       }
     };
 
-    const merged = mergeDeep([{ one: new ClassA() }, { one: new ClassB() }], true);
+    const merged = mergeDeep([{ one: new ClassA() }, { one: new ClassB() }], {
+      respectPrototype: true,
+    });
     expect(merged.one.a()).toEqual('a');
     expect(merged.one.b()).toEqual('b');
     expect(merged.a).toBeUndefined();
@@ -56,12 +132,13 @@ describe('mergeDeep', () => {
   it('merges arrays', () => {
     const x = { a: [1, 2, 5] };
     const y = { a: [3, 4] };
-    expect(mergeDeep([x, y], false, true)).toEqual({ a: [1, 2, 5, 3, 4] });
+    expect(mergeDeep([x, y], { respectArrays: true })).toEqual({ a: [1, 2, 5, 3, 4] });
   });
+
   it('merges arrays with the same length', () => {
     const x = [{ a: 1 }, { b: 2 }];
     const y = [{ c: 3 }, { d: 4 }];
-    expect(mergeDeep([x, y], false, true, true)).toEqual([
+    expect(mergeDeep([x, y], { respectArrays: true, respectArrayLength: true })).toEqual([
       { a: 1, c: 3 },
       { b: 2, d: 4 },
     ]);
@@ -70,7 +147,9 @@ describe('mergeDeep', () => {
   it('merges string arrays', () => {
     const a = { options: ['$A', '$B'] };
     const b = { options: ['$A', '$B'] };
-    expect(mergeDeep([a, b], undefined, true, true)).toEqual({ options: ['$A', '$B'] });
+    expect(mergeDeep([a, b], { respectArrays: true, respectArrayLength: true })).toEqual({
+      options: ['$A', '$B'],
+    });
   });
 
   it('skips undefined sources', () => {
@@ -131,14 +210,41 @@ describe('mergeDeep', () => {
     expect(Object.prototype).not.toHaveProperty('polluted');
   });
 
-  it('preserves non-enumerable symbol properties from the first source', () => {
-    const sym = Symbol('annotation');
-    const first: any = { a: 1 };
-    Object.defineProperty(first, sym, { value: 'annotated', writable: true });
-    const second = { b: 2 };
-    const merged = mergeDeep([first, second], false, false, false, true);
-    expect(merged.a).toEqual(1);
-    expect(merged.b).toEqual(2);
-    expect(merged[sym]).toEqual('annotated');
+  describe('deprecated positional boolean API', () => {
+    it('still accepts respectPrototype as the second argument', () => {
+      const ClassA = class {
+        a() {
+          return 'a';
+        }
+      };
+      const ClassB = class {
+        b() {
+          return 'b';
+        }
+      };
+
+      const merged = mergeDeep([new ClassA(), new ClassB()], true);
+      expect(merged.a()).toEqual('a');
+      expect(merged.b()).toEqual('b');
+    });
+
+    it('still accepts respectArrays / respectArrayLength positionally', () => {
+      const x = { a: [1, 2, 5] };
+      const y = { a: [3, 4] };
+      expect(mergeDeep([x, y], false, true)).toEqual({ a: [1, 2, 5, 3, 4] });
+    });
+
+    it('still maps the 5th positional flag to non-enumerable symbols only', () => {
+      const enumerableSym = Symbol('enumerable');
+      const nonEnumerableSym = Symbol('annotation');
+      const first: any = { a: 1, [enumerableSym]: 'visible' };
+      Object.defineProperty(first, nonEnumerableSym, { value: 'annotated', writable: true });
+      const second = { b: 2 };
+      const merged = mergeDeep([first, second], false, false, false, true);
+      expect(merged.a).toEqual(1);
+      expect(merged.b).toEqual(2);
+      expect(merged[enumerableSym]).toBeUndefined();
+      expect(merged[nonEnumerableSym]).toEqual('annotated');
+    });
   });
 });
