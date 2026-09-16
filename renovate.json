@@ -25,8 +25,26 @@
         "!/husky/",
         "!/@img/sharp-libvips-linux-x64/",
         "!/sharp/",
+        "!/^@jest//",
+        "!/jest/",
+        "!/babel-jest/",
         "!/@babel/*/"
       ]
+    },
+    {
+      "groupName": "all jest dependencies",
+      "groupSlug": "all-jest",
+      "matchPackageNames": ["/^@jest//", "/jest/", "/babel-jest/", "/ts-jest/"]
+    },
+    {
+      "groupName": "all sharp dependencies",
+      "groupSlug": "all-sharp",
+      "matchPackageNames": ["/@img/sharp-libvips-linux-x64/", "/sharp/"]
+    },
+    {
+      "groupName": "all babel dependencies",
+      "groupSlug": "all-babel",
+      "matchPackageNames": ["/@babel/*/"]
     }
   ]
 }
