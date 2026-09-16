@@ -91,7 +91,7 @@ describe('extensions', () => {
         });
 
         const result = extractExtensionsFromSchema(schema);
-        expect(result.schemaExtensions.tagged).toBe(true);
+        expect(result.schemaExtensions['tagged']).toBe(true);
         expect(result.schemaExtensions[hidden]).toBe('secret');
       },
     );

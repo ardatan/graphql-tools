@@ -82,12 +82,13 @@ describe('Merge Resolvers', () => {
         },
       ]);
 
-      expect(merged.Query.hello.extensions).toEqual({
+      const hello = (merged['Query'] as any).hello;
+      expect(hello.extensions).toEqual({
         [META]: { from: 'second' },
         tagged: true,
         extra: true,
       });
-      expect(merged.Query.hello.resolve()).toBe('b');
+      expect(hello.resolve()).toBe('b');
     },
   );
 });
