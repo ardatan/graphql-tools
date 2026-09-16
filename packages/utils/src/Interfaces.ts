@@ -215,13 +215,15 @@ export interface IAddResolversToSchemaOptions {
   updateResolversInPlace?: boolean;
 }
 
+type ResolverExtensions = Record<string | symbol, any>;
+
 export type IScalarTypeResolver = GraphQLScalarType & {
   __name?: string;
   __description?: string;
   __serialize?: GraphQLScalarSerializer<any>;
   __parseValue?: GraphQLScalarValueParser<any>;
   __parseLiteral?: GraphQLScalarLiteralParser<any>;
-  __extensions?: Record<string, any>;
+  __extensions?: ResolverExtensions;
   __astNode?: ScalarTypeDefinitionNode;
   __extensionASTNodes?: Array<ScalarTypeExtensionNode>;
 };
@@ -229,7 +231,7 @@ export type IScalarTypeResolver = GraphQLScalarType & {
 export type IEnumTypeResolver = Record<string, any> & {
   __name?: string;
   __description?: string;
-  __extensions?: Record<string, any>;
+  __extensions?: ResolverExtensions;
   __astNode?: EnumTypeDefinitionNode;
   __extensionASTNodes?: Array<EnumTypeExtensionNode>;
 };
@@ -243,7 +245,7 @@ export interface IFieldResolverOptions<TSource = any, TContext = any, TArgs = an
   subscribe?: IFieldResolver<TSource, TContext, TArgs>;
   isDeprecated?: boolean;
   deprecationReason?: string;
-  extensions?: Record<string, any>;
+  extensions?: ResolverExtensions;
   astNode?: FieldDefinitionNode;
 }
 
@@ -324,7 +326,7 @@ export type IObjectTypeResolver<TSource = any, TContext = any, TArgs = any> = {
   __name?: string;
   __description?: string;
   __isTypeOf?: GraphQLIsTypeOfFn<TSource, TContext>;
-  __extensions?: Record<string, any>;
+  __extensions?: ResolverExtensions;
   __astNode?: ObjectTypeDefinitionNode;
   __extensionASTNodes?: ObjectTypeExtensionNode;
 };
@@ -336,7 +338,7 @@ export type IInterfaceTypeResolver<TSource = any, TContext = any, TArgs = any> =
   __name?: string;
   __description?: string;
   __resolveType?: GraphQLTypeResolver<any, any>;
-  __extensions?: Record<string, any>;
+  __extensions?: ResolverExtensions;
   __astNode?: InterfaceTypeDefinitionNode;
   __extensionASTNodes?: Array<InterfaceTypeExtensionNode>;
 };
@@ -345,7 +347,7 @@ export type IUnionTypeResolver = {
   __name?: string;
   __description?: string;
   __resolveType?: GraphQLTypeResolver<any, any>;
-  __extensions?: Record<string, any>;
+  __extensions?: ResolverExtensions;
   __astNode?: UnionTypeDefinitionNode;
   __extensionASTNodes?: Array<UnionTypeExtensionNode>;
 };
@@ -353,7 +355,7 @@ export type IUnionTypeResolver = {
 export type IInputObjectTypeResolver = {
   __name?: string;
   __description?: string;
-  __extensions?: Record<string, any>;
+  __extensions?: ResolverExtensions;
   __astNode?: InputObjectTypeDefinitionNode;
   __extensionASTNodes?: Array<InputObjectTypeExtensionNode>;
 };

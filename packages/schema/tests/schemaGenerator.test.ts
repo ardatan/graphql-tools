@@ -358,6 +358,32 @@ describe('generating schema from shorthand', () => {
     expect(extensions!['verbose']).toBe(true);
   });
 
+  testIf(versionInfo.major >= 17)('allow symbol-keyed extensions in field resolver', () => {
+    const verbose = Symbol('verbose');
+    const resolvers = {
+      Query: {
+        foo: {
+          resolve() {
+            return 'Foo';
+          },
+          extensions: {
+            [verbose]: true,
+          },
+        },
+      },
+    } satisfies IResolvers;
+    const jsSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          foo: String
+        }
+      `,
+      resolvers,
+    });
+    const extensions = jsSchema.getQueryType()?.getFields()['foo'].extensions;
+    expect(extensions?.[verbose]).toBe(true);
+  });
+
   testIf(versionInfo.major >= 17)('preserves symbol-keyed schema extensions', () => {
     const Extension1 = 'Key1';
     const Extension2 = Symbol('Key2');
