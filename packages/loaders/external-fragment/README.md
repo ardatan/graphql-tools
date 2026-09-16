@@ -190,8 +190,8 @@ The filters are optional pre-filters: they run before the expensive dependency s
 parsing work. Restricting the package names and files early can be faster than parsing every source
 file in every dependency package.
 
-In a benchmark of the large monorepo this package was written for, the approximate observed time
-reductions were as follows, with total reduction of 68%:
+In a benchmark of the large monorepo this loader was written for, the approximate observed time
+reductions were as follows (with total reduction of 68%):
 
 - `fileContentFilter`: 60%
 - `packageNameFilter`: 4%
