@@ -1,3 +1,4 @@
+import { versionInfo } from 'graphql';
 import { IResolvers, Maybe, mergeDeep } from '@graphql-tools/utils';
 
 /**
@@ -66,7 +67,12 @@ export function mergeResolvers<TSource, TContext>(
       resolvers.push(resolversDefinition);
     }
   }
-  const result = mergeDeep(resolvers, true);
+  const result = mergeDeep(resolvers, {
+    respectPrototype: true,
+    ...(versionInfo?.major >= 17
+      ? { respectSymbols: { enumerable: true, nonEnumerable: true } }
+      : null),
+  });
 
   if (options?.exclusions) {
     for (const exclusion of options.exclusions) {

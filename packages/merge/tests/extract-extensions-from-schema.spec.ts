@@ -1,4 +1,11 @@
-import { buildASTSchema, buildSchema, GraphQLSchema, parse, printSchema } from 'graphql';
+import {
+  buildASTSchema,
+  buildSchema,
+  GraphQLSchema,
+  parse,
+  printSchema,
+  versionInfo,
+} from 'graphql';
 import { extractExtensionsFromSchema } from '@graphql-tools/schema';
 import { assertSome } from '@graphql-tools/utils';
 import {
@@ -9,6 +16,7 @@ import {
   assertGraphQLScalerType,
   assertGraphQLUnionType,
 } from '../../testing/assertion.js';
+import { testIf } from '../../testing/utils.js';
 import { applyExtensions, mergeExtensions } from '../src/extensions.js';
 
 describe('extensions', () => {
@@ -55,6 +63,38 @@ describe('extensions', () => {
       const result = extractExtensionsFromSchema(schema);
       expect(result.schemaExtensions).toEqual({ schema: true });
     });
+
+    testIf(versionInfo.major >= 17)('Should preserve symbol-keyed schema extensions', () => {
+      const stringKey = 'Key1';
+      const symbolKey = Symbol('Key2');
+      schema.extensions = {
+        [stringKey]: 'Extension 1',
+        [symbolKey]: 'Extension 2',
+      };
+      const result = extractExtensionsFromSchema(schema);
+      expect(result.schemaExtensions).toEqual({
+        [stringKey]: 'Extension 1',
+        [symbolKey]: 'Extension 2',
+      });
+    });
+
+    testIf(versionInfo.major >= 17)(
+      'Should preserve non-enumerable symbol-keyed schema extensions',
+      () => {
+        const hidden = Symbol('hidden');
+        schema.extensions = { tagged: true };
+        Object.defineProperty(schema.extensions, hidden, {
+          value: 'secret',
+          enumerable: false,
+          writable: true,
+          configurable: true,
+        });
+
+        const result = extractExtensionsFromSchema(schema);
+        expect(result.schemaExtensions['tagged']).toBe(true);
+        expect(result.schemaExtensions[hidden]).toBe('secret');
+      },
+    );
 
     it('Should extract extensions correctly for all possible types', () => {
       const MyInput = schema.getType('MyInput');
@@ -159,6 +199,35 @@ describe('extensions', () => {
         querySecondTest: true,
       });
     });
+
+    testIf(versionInfo.major >= 17)(
+      'Should merge symbol-keyed schema extensions from multiple sources',
+      () => {
+        const META = Symbol('META');
+        const merged = mergeExtensions([
+          {
+            schemaExtensions: {
+              [META]: { from: 'first' },
+              tagged: true,
+            },
+            types: {},
+          },
+          {
+            schemaExtensions: {
+              [META]: { from: 'second' },
+              extra: true,
+            },
+            types: {},
+          },
+        ]);
+
+        expect(merged.schemaExtensions).toEqual({
+          [META]: { from: 'second' },
+          tagged: true,
+          extra: true,
+        });
+      },
+    );
   });
 
   describe('applyExtensionsToSchema', () => {
