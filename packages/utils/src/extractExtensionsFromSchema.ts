@@ -19,7 +19,7 @@ function handleDirectiveExtensions(extensions: any, removeDirectives: boolean) {
   // rest/spread already copies enumerable own symbols; this loop also picks up
   // non-enumerable ones (assignment makes them enumerable on the result). Gated to
   // v17+ to avoid surprising behavior on older runtimes.
-  if (versionInfo.major >= 17) {
+  if (versionInfo?.major >= 17) {
     for (const sym of Object.getOwnPropertySymbols(extensions)) {
       finalExtensions[sym] = extensions[sym];
     }

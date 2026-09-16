@@ -69,7 +69,7 @@ export function mergeResolvers<TSource, TContext>(
   }
   const result = mergeDeep(resolvers, {
     respectPrototype: true,
-    ...(versionInfo.major >= 17
+    ...(versionInfo?.major >= 17
       ? { respectSymbols: { enumerable: true, nonEnumerable: true } }
       : null),
   });

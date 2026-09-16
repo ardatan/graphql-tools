@@ -3,8 +3,9 @@ import { ExtensionsObject, Maybe, mergeDeep, SchemaExtensions } from '@graphql-t
 
 export { extractExtensionsFromSchema } from '@graphql-tools/utils';
 
+// versionInfo exists from graphql@14.4.0; older 14.0.x peers omit it (still in ^14.0.0 range).
 const mergeExtensionsOptions =
-  versionInfo.major >= 17
+  versionInfo?.major >= 17
     ? ({
         respectArrays: true,
         respectSymbols: { enumerable: true, nonEnumerable: true },
