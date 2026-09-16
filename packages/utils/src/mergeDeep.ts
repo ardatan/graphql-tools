@@ -218,10 +218,36 @@ function mergeDeepWithOptions<S extends any[]>(
           if (!respectEnumerableSymbols) {
             continue;
           }
-          if (Object.prototype.hasOwnProperty.call(output, sym) && source[sym] !== undefined) {
-            output[sym] = mergeDeepWithOptions([output[sym], source[sym]], options);
-          } else {
+          const hasOwnSymbol = Object.prototype.hasOwnProperty.call(output, sym);
+          if (hasOwnSymbol && source[sym] !== undefined) {
+            const existing = Object.getOwnPropertyDescriptor(output, sym)!;
+            const mergedValue = mergeDeepWithOptions([output[sym], source[sym]], options);
+            if (existing.writable || existing.set) {
+              output[sym] = mergedValue;
+            } else if (existing.configurable) {
+              Object.defineProperty(output, sym, {
+                value: mergedValue,
+                writable: true,
+                enumerable: true,
+                configurable: true,
+              });
+            }
+            // Non-configurable read-only properties cannot be updated; keep the prior value.
+          } else if (!hasOwnSymbol) {
             output[sym] = source[sym];
+          } else {
+            // Explicit undefined override, matching string-key behavior.
+            const existing = Object.getOwnPropertyDescriptor(output, sym)!;
+            if (existing.writable || existing.set) {
+              output[sym] = source[sym];
+            } else if (existing.configurable) {
+              Object.defineProperty(output, sym, {
+                value: source[sym],
+                writable: true,
+                enumerable: true,
+                configurable: true,
+              });
+            }
           }
         }
       }

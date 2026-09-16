@@ -78,6 +78,24 @@ describe('extensions', () => {
       });
     });
 
+    testIf(versionInfo.major >= 17)(
+      'Should preserve non-enumerable symbol-keyed schema extensions',
+      () => {
+        const hidden = Symbol('hidden');
+        schema.extensions = { tagged: true };
+        Object.defineProperty(schema.extensions, hidden, {
+          value: 'secret',
+          enumerable: false,
+          writable: true,
+          configurable: true,
+        });
+
+        const result = extractExtensionsFromSchema(schema);
+        expect(result.schemaExtensions.tagged).toBe(true);
+        expect(result.schemaExtensions[hidden]).toBe('secret');
+      },
+    );
+
     it('Should extract extensions correctly for all possible types', () => {
       const MyInput = schema.getType('MyInput');
       assertSome(MyInput);

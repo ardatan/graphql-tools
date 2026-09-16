@@ -9,7 +9,7 @@
 GraphQL.js v17 allows `string | symbol` keys on schema/type/field `extensions` (via `toObjMapWithSymbols`). `@graphql-tools` was dropping those symbol keys in two places:
 
 1. `mergeDeep` only walked enumerable **string** keys (`for...in`), so symbol extensions were lost when applying `schemaExtensions`.
-2. `extractExtensionsFromSchema` used object rest/spread, which also copies only string keys.
+2. `extractExtensionsFromSchema` did not copy **non-enumerable** own symbol keys (enumerable symbols already survive object rest/spread; the explicit loop covers the non-enumerable case).
 
 ### Example (bug)
 
