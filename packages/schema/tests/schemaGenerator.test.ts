@@ -358,7 +358,7 @@ describe('generating schema from shorthand', () => {
     expect(extensions!['verbose']).toBe(true);
   });
 
-  testIf(versionInfo.major >= 17)('allow symbol-keyed extensions in field resolver', () => {
+  testIf(versionInfo.major >= 17)('preserves symbol-keyed field resolver extensions', () => {
     const verbose = Symbol('verbose');
     const resolvers = {
       Query: {
@@ -381,7 +381,7 @@ describe('generating schema from shorthand', () => {
       resolvers,
     });
     const extensions = jsSchema.getQueryType()?.getFields()['foo'].extensions;
-    // GraphQL.js types extensions as string-keyed on v15/v16; assert via Reflect for symbol keys.
+    // GraphQL.js types field.extensions as string-keyed on v15/v16; Reflect avoids TS2538.
     expect(Reflect.get(extensions ?? {}, verbose)).toBe(true);
   });
 

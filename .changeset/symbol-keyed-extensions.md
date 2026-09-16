@@ -69,3 +69,5 @@ mergeDeep([a, b], {
 `respectSymbols` defaults to `{ enumerable: false, nonEnumerable: false }` (symbols dropped), matching the historical default. The legacy 5th positional flag still maps to `{ nonEnumerable: true }` only.
 
 Schema extension merge/extract and resolver merging enable `{ enumerable: true, nonEnumerable: true }` automatically when `graphql` major >= 17.
+
+Resolver map types (`IResolvers` / field resolver `extensions` and type `__extensions`) now use `ExtensionsObject` (`Record<string | symbol, any>`), so symbol-keyed resolver extensions type-check under GraphQL.js v17+.
