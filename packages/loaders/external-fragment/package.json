@@ -8,7 +8,7 @@
     "url": "ardatan/graphql-tools",
     "directory": "packages/loaders/external-fragment"
   },
-  "author": "Dotan Simha <dotansimha@gmail.com>",
+  "author": "Igor Kusakov <igor@kusakov.com>",
   "license": "MIT",
   "engines": {
     "node": ">=16.0.0"

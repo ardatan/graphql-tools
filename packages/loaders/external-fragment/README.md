@@ -26,11 +26,11 @@ the options described in [`options.ts`](./src/options.ts).
 
 ## Three API entry points
 
-| Entry point                | Returns                                                      | Use it when                                                      |
-| -------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------- |
-| Default export             | One merged `DocumentNode`                                    | Configuring a Codegen or GraphQL Tools custom loader (sync only) |
-| `ExternalFragmentLoader`   | `Source[]` with `document`, `rawSDL`, and `location`         | Using `@graphql-tools/load` programmatically (can be async)      |
-| `resolveExternalFragments` | File metadata, including `filePath` and fragment definitions | Building a file list or another custom workflow                  |
+| Entry point                | Returns                                                      | Use it when                                                                                    |
+| -------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| Default export             | One merged `DocumentNode`                                    | Configuring a Codegen or GraphQL Tools custom loader; uses the synchronous resolver internally |
+| `ExternalFragmentLoader`   | `Source[]` with `document`, `rawSDL`, and `location`         | Using `@graphql-tools/load` programmatically (can be async)                                    |
+| `resolveExternalFragments` | File metadata, including `filePath` and fragment definitions | Building a file list or another custom workflow                                                |
 
 Each entry point has a synchronous variant where applicable. The async and sync variants are:
 
@@ -71,8 +71,8 @@ module.exports = {
 The pointer (`./external-fragments.graphql` in this example) is only used to trigger the loader; the
 resolver uses `packageDir` to identify the consumer package.
 
-The default export is synchronous so while it works with both synchronous and asynchronous GraphQL
-Tools load calls, it uses the resolver's **synchronous** path internally.
+The default export is synchronous. It works with both synchronous and asynchronous GraphQL Tools
+load calls, but it uses the resolver's **synchronous** path internally.
 
 ### 2. Class-based loader
 
@@ -146,8 +146,9 @@ class-based loader when you want to reuse the parsed documents.
 
 ## Async Codegen custom loaders
 
-The default export is synchronous. Asynchronous version is much faster for large monorepos. To use
-async loader, adapt the class loader's `Source[]` result into one merged `DocumentNode`:
+The default export is synchronous. For large monorepos, the asynchronous resolver can be much
+faster. To use it with Codegen, adapt the class loader's `Source[]` result into one merged
+`DocumentNode`:
 
 ```js
 const { concatAST } = require('graphql')
@@ -185,27 +186,16 @@ file changes — consider setting the following options:
 
 ## Using filters
 
-The filters are pre-filters: they run before the expensive dependency scanning and GraphQL parsing
-work. Restricting the package names and files early can be much faster than parsing every source
+The filters are optional pre-filters: they run before the expensive dependency scanning and GraphQL
+parsing work. Restricting the package names and files early can be faster than parsing every source
 file in every dependency package.
 
-### Filtering dependency packages
+In a benchmark of the large monorepo this package was written for, the approximate observed time
+reductions were as follows, with total reduction of 68%:
 
-Use `externalPackageNameFilter` to limit which `package.json` dependencies are considered as
-providers. The filter is applied to direct and transitive dependency names before their files are
-scanned:
-
-```ts
-const options = {
-  packageDir,
-  externalPackagesDirs,
-  externalPackageNameFilter: packageName =>
-    packageName.startsWith('my-company-name-') || packageName === 'shared-graphql'
-}
-```
-
-Packages rejected by this filter are not searched. If a required fragment is defined in a rejected
-package, the resolver reports it as unresolved.
+- `fileContentFilter`: 60%
+- `packageNameFilter`: 4%
+- `packageDependencyFilter`: 4%
 
 ### Filtering files by content
 
@@ -217,21 +207,56 @@ documents:
 const options = {
   packageDir,
   externalPackagesDirs,
-  fileContentFilter: (content, filePath) => content.includes('gql`')
-}
-
-Or more generic but a little slower:
-
   fileContentFilter: (content, filePath) => {
     // Match the default gql/graphql tag conventions and GraphQL magic comments.
-    return (
-      /\b(?:gql|graphql)\s*`/.test(content) ||
-      /\/\*\s*graphql\s*\*\//i.test(content)
-    )
+    return /\b(?:gql|graphql)\s*`/.test(content) || /\/\*\s*graphql\s*\*\//i.test(content)
   }
-
+}
 ```
 
 This is especially useful when packages contain many TypeScript or JavaScript files but only a small
 number of them contain GraphQL tags. A file-content filter should be broad enough not to exclude
 custom GraphQL tag identifiers that are configured through `pluckConfig`.
+
+### Filtering dependency packages by name
+
+Use `packageNameFilter` to limit which `package.json` dependencies are considered as providers. The
+filter is applied to direct and transitive dependency names before their files are scanned:
+
+```ts
+const options = {
+  packageDir,
+  externalPackagesDirs,
+  packageNameFilter: packageName =>
+    packageName.startsWith('my-company-name-') || packageName === 'shared-graphql'
+}
+```
+
+Packages rejected by this filter are not searched. If a required fragment is defined in a rejected
+package, the resolver reports it as unresolved.
+
+### Filtering by package dependencies
+
+Use `packageDependencyFilter` to skip scanning packages that don't use GraphQL, without affecting
+dependency traversal. The filter receives the merged `dependencies` and `devDependencies` record
+from each package's `package.json` by default, or only `dependencies` when `includeDevDependencies`
+is `false`. It returns `boolean`. Packages that return `false` are still traversed for their own
+transitive dependencies — they are just not scanned for fragment definitions:
+
+```ts
+const options = {
+  packageDir,
+  externalPackagesDirs,
+  packageDependencyFilter: deps => '@apollo/client' in deps
+}
+```
+
+This is useful in large monorepos where many packages don't contain GraphQL but sit in the
+dependency chain between the consumer and the packages that do. Without this filter, every reachable
+package gets its source files globbed and read. With the filter, only packages that pass the
+predicate are scanned, while non-GraphQL intermediaries are still traversed so that GraphQL packages
+behind them are found:
+
+```text
+A (consumer) → B (no GraphQL) → C (has GraphQL)
+```

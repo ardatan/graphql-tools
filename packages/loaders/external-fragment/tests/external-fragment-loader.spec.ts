@@ -84,7 +84,7 @@ describe('ExternalFragmentLoader', () => {
       await expect(
         resolveExternalFragments({
           ...packageAOpts,
-          externalPackageNameFilter: name => name === 'fragment-direct-provider',
+          packageNameFilter: name => name === 'fragment-direct-provider',
         }),
       ).rejects.toThrow(
         'Fragment "UserEmail" is spread in "fragment-consumer" but not defined in any of its transitive dependencies.',
@@ -105,7 +105,7 @@ describe('ExternalFragmentLoader', () => {
         resolveExternalFragments({
           packageDir: path.join(FIXTURES_DIR, 'fragment-direct-provider'),
           externalPackagesDirs: [FIXTURES_DIR],
-          externalPackageNameFilter: name => name !== 'fragment-transitive-provider',
+          packageNameFilter: name => name !== 'fragment-transitive-provider',
         }),
       ).rejects.toThrow('no transitive dependencies were found to search');
     });
@@ -235,6 +235,40 @@ describe('ExternalFragmentLoader', () => {
       });
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('packageDependencyFilter option', () => {
+    const depFilterOpts = {
+      packageDir: path.join(FIXTURES_DIR, 'dep-filter-consumer'),
+      externalPackagesDirs: [FIXTURES_DIR],
+    };
+
+    it('should scan only packages whose deps pass the filter, traversing intermediaries', async () => {
+      const result = await resolveExternalFragments({
+        ...depFilterOpts,
+        packageDependencyFilter: deps => 'graphql-tag' in deps,
+      });
+
+      expect(result.length).toBe(1);
+      expect(result[0].packageName).toBe('dep-filter-provider');
+      expect(result[0].definitions).toEqual([{ name: 'ProductFields', typeCondition: 'Product' }]);
+    });
+
+    it('should scan all packages when packageDependencyFilter is not provided', async () => {
+      const result = await resolveExternalFragments(depFilterOpts);
+
+      expect(result.length).toBe(1);
+      expect(result[0].packageName).toBe('dep-filter-provider');
+    });
+
+    it('should throw when the filter excludes the package that defines the needed fragment', async () => {
+      await expect(
+        resolveExternalFragments({
+          ...depFilterOpts,
+          packageDependencyFilter: () => false,
+        }),
+      ).rejects.toThrow('ProductFields');
     });
   });
 

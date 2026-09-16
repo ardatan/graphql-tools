@@ -35,20 +35,36 @@ export interface ExternalFragmentLoaderOptions extends BaseLoaderOptions {
   excludePatterns?: string[];
 
   /**
-   * Filter function to decide which dependencies from package.json
-   * should be considered as potential packages with fragments.
+   * Optional filter function to decide which dependencies from `package.json`
+   * should be considered as potential packages with fragments based on their package name.
    * Return true to include the dependency in the search.
    * @default () => true (all dependencies are considered)
    *
    * @example (name) => name.startsWith('my-org-')
    */
-  externalPackageNameFilter?: (packageName: string) => boolean;
+  packageNameFilter?: (packageName: string) => boolean;
+
+  /**
+   * Optional filter to decide whether a dependency package should be scanned
+   * for GraphQL fragments based on its package.json dependencies.
+   * Return true to scan the package.
+   *
+   * Unlike `packageNameFilter`, packages rejected by this filter are still
+   * traversed for their own transitive dependencies — they are just not scanned
+   * for fragment definitions.
+   *
+   * @example (deps) => '@apollo/client' in deps
+   */
+  packageDependencyFilter?: (dependencies: Record<string, string>) => boolean;
 
   /**
    * Optional predicate to filter which files should be scanned for fragments.
    * Receives the file content as a string. Return true to include the file.
    * Useful to skip files that don't import a GraphQL tag function.
    *
+   * filter by import statement:
+   * @example (content) => content.includes("from '@apollo/client'")
+   * or filter by actual gql tag:
    * @example (content) => content.includes('gql`')
    */
   fileContentFilter?: (content: string, filePath: string) => boolean;

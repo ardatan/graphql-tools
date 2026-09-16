@@ -1,0 +1,7 @@
+{
+  "name": "dep-filter-intermediary",
+  "version": "1.0.0",
+  "dependencies": {
+    "dep-filter-provider": "1.0.0"
+  }
+}

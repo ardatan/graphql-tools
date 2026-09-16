@@ -62,7 +62,8 @@ interface ResolvedExternalFileWithSources extends ResolvedExternalFile {
 export interface ExternalFragmentResolverOptions {
   packageDir: string;
   externalPackagesDirs: string[];
-  externalPackageNameFilter?: (packageName: string) => boolean;
+  packageNameFilter?: (packageName: string) => boolean;
+  packageDependencyFilter?: (dependencies: Record<string, string>) => boolean;
   includeDevDependencies?: boolean;
   scanInternalDirs?: string[];
   extensions?: string[];
@@ -218,18 +219,23 @@ function getPackageMapData(map: PackageFragmentMap): PackageMapData {
   return data;
 }
 
+interface PackageDeps {
+  names: string[];
+  record: Record<string, string>;
+}
+
 function readPackageJsonDepsRaw(
   packageJsonPath: string,
   includeDevDependencies: boolean,
-): string[] {
+): PackageDeps {
   try {
     const content = readFileSync(packageJsonPath, 'utf8');
     const { dependencies = {}, devDependencies = {} } = JSON.parse(content);
     const allDeps = includeDevDependencies ? { ...dependencies, ...devDependencies } : dependencies;
-    return Object.keys(allDeps);
+    return { names: Object.keys(allDeps), record: allDeps };
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-      return [];
+      return { names: [], record: {} };
     }
     throw err;
   }
@@ -332,12 +338,11 @@ type MemoizedPackageMap<Result> = ((...args: PackageMapArgs) => Result) & {
 };
 
 let readPackageJsonDeps = memoizee(readPackageJsonDepsRaw, { primitive: true });
-// Fragment-map options contain arrays, objects, and callbacks. Use memoizee's
-// identity-based normalization so distinct option values cannot collide.
-let buildPackageFragmentMap = memoizee(
-  buildPackageFragmentMapRaw,
-) as MemoizedPackageMap<PackageFragmentMap>;
+let buildPackageFragmentMap = memoizee(buildPackageFragmentMapRaw, {
+  primitive: true,
+}) as MemoizedPackageMap<PackageFragmentMap>;
 let buildPackageFragmentMapAsync = memoizee(buildPackageFragmentMapAsyncRaw, {
+  primitive: true,
   promise: true,
 }) as MemoizedPackageMap<Promise<PackageFragmentMap>>;
 
@@ -351,9 +356,11 @@ function createMemoized(cacheTTL?: number): void {
     ...ttlOpt,
   });
   buildPackageFragmentMap = memoizee(buildPackageFragmentMapRaw, {
+    primitive: true,
     ...ttlOpt,
   }) as MemoizedPackageMap<PackageFragmentMap>;
   buildPackageFragmentMapAsync = memoizee(buildPackageFragmentMapAsyncRaw, {
+    primitive: true,
     promise: true,
     ...ttlOpt,
   }) as MemoizedPackageMap<Promise<PackageFragmentMap>>;
@@ -429,6 +436,7 @@ function collectTransitiveDeps(
   externalPackagesDirs: string[],
   filter: (name: string) => boolean,
   includeDevDependencies: boolean,
+  packageDependencyFilter?: (dependencies: Record<string, string>) => boolean,
   visited: Set<string> = new Set(),
   result: Set<string> = new Set(),
 ): Set<string> {
@@ -438,10 +446,15 @@ function collectTransitiveDeps(
   const pkgDir = findPackageDir(packageName, externalPackagesDirs);
   if (!pkgDir) return result;
 
-  result.add(packageName);
-
   const packageJsonPath = join(pkgDir, 'package.json');
-  const deps = readPackageJsonDeps(packageJsonPath, includeDevDependencies);
+  const { names: deps, record: depsRecord } = readPackageJsonDeps(
+    packageJsonPath,
+    includeDevDependencies,
+  );
+
+  if (!packageDependencyFilter || packageDependencyFilter(depsRecord)) {
+    result.add(packageName);
+  }
 
   for (const dep of deps.filter(filter)) {
     collectTransitiveDeps(
@@ -449,6 +462,7 @@ function collectTransitiveDeps(
       externalPackagesDirs,
       filter,
       includeDevDependencies,
+      packageDependencyFilter,
       visited,
       result,
     );
@@ -643,6 +657,7 @@ function getPackageNameFromDir(packageDir: string): string {
 interface NormalizedOptions {
   externalPackagesDirs: string[];
   filter: (packageName: string) => boolean;
+  packageDependencyFilter?: (dependencies: Record<string, string>) => boolean;
   includeDevDependencies: boolean;
   scanInternalDirs: string[];
   extensions: string[];
@@ -652,7 +667,8 @@ interface NormalizedOptions {
 
 function normalizeOptions(options: ExternalFragmentResolverOptions): NormalizedOptions {
   const externalPackagesDirs = options.externalPackagesDirs;
-  const filter = options.externalPackageNameFilter ?? (() => true);
+  const filter = options.packageNameFilter ?? (() => true);
+  const packageDependencyFilter = options.packageDependencyFilter;
   const includeDevDependencies = options.includeDevDependencies ?? true;
   const scanInternalDirs = options.scanInternalDirs ?? DEFAULT_SCAN_INTERNAL_DIRS;
   const extensions = options.extensions ?? DEFAULT_EXTENSIONS;
@@ -661,6 +677,7 @@ function normalizeOptions(options: ExternalFragmentResolverOptions): NormalizedO
   return {
     externalPackagesDirs,
     filter,
+    packageDependencyFilter,
     includeDevDependencies,
     scanInternalDirs,
     extensions,
@@ -671,10 +688,15 @@ function normalizeOptions(options: ExternalFragmentResolverOptions): NormalizedO
 
 function getTransitiveDeps(
   packageDir: string,
-  { externalPackagesDirs, filter, includeDevDependencies }: NormalizedOptions,
+  {
+    externalPackagesDirs,
+    filter,
+    packageDependencyFilter,
+    includeDevDependencies,
+  }: NormalizedOptions,
 ): Set<string> {
   const packageJsonPath = join(packageDir, 'package.json');
-  const rootDeps = readPackageJsonDeps(packageJsonPath, includeDevDependencies);
+  const { names: rootDeps } = readPackageJsonDeps(packageJsonPath, includeDevDependencies);
   const filteredRootDeps = rootDeps.filter(filter);
 
   const transitiveDeps = new Set<string>();
@@ -684,6 +706,7 @@ function getTransitiveDeps(
       externalPackagesDirs,
       filter,
       includeDevDependencies,
+      packageDependencyFilter,
       new Set(),
       transitiveDeps,
     );
