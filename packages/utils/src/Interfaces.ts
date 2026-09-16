@@ -48,6 +48,7 @@ import {
   UnionTypeExtensionNode,
 } from 'graphql';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
+import { ExtensionsObject } from './types.js';
 
 /**
  * The result of GraphQL execution.
@@ -215,7 +216,7 @@ export interface IAddResolversToSchemaOptions {
   updateResolversInPlace?: boolean;
 }
 
-type ResolverExtensions = Record<string | symbol, any>;
+type ResolverExtensions = ExtensionsObject;
 
 export type IScalarTypeResolver = GraphQLScalarType & {
   __name?: string;

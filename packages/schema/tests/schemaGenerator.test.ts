@@ -381,7 +381,8 @@ describe('generating schema from shorthand', () => {
       resolvers,
     });
     const extensions = jsSchema.getQueryType()?.getFields()['foo'].extensions;
-    expect(extensions?.[verbose]).toBe(true);
+    // GraphQL.js types extensions as string-keyed on v15/v16; assert via Reflect for symbol keys.
+    expect(Reflect.get(extensions ?? {}, verbose)).toBe(true);
   });
 
   testIf(versionInfo.major >= 17)('preserves symbol-keyed schema extensions', () => {
