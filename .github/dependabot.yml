@@ -26,15 +26,6 @@ updates:
     schedule:
       interval: 'daily'
     groups:
-      jest-deps:
-        patterns:
-          - jest
-          - babel-jest
-          - '@jest/*'
-          - '@types/jest'
-        update-types:
-          - 'minor'
-          - 'patch'
       actions-deps:
         patterns:
           - '*'
@@ -45,14 +36,37 @@ updates:
           - 'next'
           - 'tailwindcss'
           - 'husky'
-          - '@pulumi/*'
           - 'typedoc'
-          - '@img/sharp-*'
-          - '@babel/*'
-          - jest
-          - babel-jest
+          - '@img/sharp-libvips-linux-x64'
+          - 'sharp'
           - '@jest/*'
-          - '@types/jest'
+          - 'jest'
+          - 'babel-jest'
+          - '@babel/*'
         update-types:
+          - 'minor'
+          - 'patch'
+      actions-deps-jest:
+        patterns:
+          - '@jest/*'
+          - 'jest'
+          - 'babel-jest'
+        update-types:
+          - 'major'
+          - 'minor'
+          - 'patch'
+      actions-deps-sharp:
+        patterns:
+          - '@img/sharp-libvips-linux-x64'
+          - 'sharp'
+        update-types:
+          - 'major'
+          - 'minor'
+          - 'patch'
+      actions-deps-babel:
+        patterns:
+          - '@babel/*'
+        update-types:
+          - 'major'
           - 'minor'
           - 'patch'
