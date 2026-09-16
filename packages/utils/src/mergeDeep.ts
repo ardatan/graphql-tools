@@ -16,8 +16,10 @@ export interface MergeDeepOptions {
   respectArrays?: boolean;
   respectArrayLength?: boolean;
   /**
-   * How to handle own symbol keys while merging.
-   * Omitted / empty: drop symbols (historical default).
+   * How to handle own symbol keys while merging multiple sources.
+   * Omitted / empty: drop symbols when merging two or more sources (historical default).
+   * A single-source call is still an identity return (same object reference), including
+   * any symbol keys, matching the previous `mergeDeep([x])` behavior.
    * - `enumerable`: merge enumerable symbols like string keys
    * - `nonEnumerable`: copy non-enumerable symbols via property descriptors
    */
@@ -116,6 +118,8 @@ function mergeDeepWithOptions<S extends any[]>(
   if (sources.length === 0) {
     return;
   }
+  // Single-source is an identity return (historical behavior). Symbol policy below only
+  // applies when merging two or more sources; stripping here would require cloning.
   if (sources.length === 1) {
     return sources[0];
   }

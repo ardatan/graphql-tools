@@ -18,6 +18,15 @@ describe('mergeDeep', () => {
     expect(Object.getOwnPropertySymbols(merged)).toEqual([]);
   });
 
+  test('returns a single source by identity, including its symbol keys', () => {
+    const symbol = Symbol('symbol');
+    const x: any = { a: 1, [symbol]: 'value' };
+
+    const merged = mergeDeep([x]);
+    expect(merged).toBe(x);
+    expect(merged[symbol]).toEqual('value');
+  });
+
   test('preserves enumerable property symbols when respectSymbols.enumerable is set', () => {
     const x: any = {};
     const symbol = Symbol('symbol');
