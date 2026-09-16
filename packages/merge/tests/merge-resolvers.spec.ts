@@ -1,3 +1,5 @@
+import { versionInfo } from 'graphql';
+import { testIf } from '../../testing/utils.js';
 import { mergeResolvers } from '../src/index.js';
 
 describe('Merge Resolvers', () => {
@@ -50,4 +52,42 @@ describe('Merge Resolvers', () => {
       },
     });
   });
+
+  testIf(versionInfo.major >= 17)(
+    'should preserve symbol-keyed field extensions when merging resolver arrays',
+    () => {
+      const META = Symbol('META');
+      const merged = mergeResolvers([
+        {
+          Query: {
+            hello: {
+              resolve: () => 'a',
+              extensions: {
+                [META]: { from: 'first' },
+                tagged: true,
+              },
+            },
+          },
+        },
+        {
+          Query: {
+            hello: {
+              resolve: () => 'b',
+              extensions: {
+                [META]: { from: 'second' },
+                extra: true,
+              },
+            },
+          },
+        },
+      ]);
+
+      expect(merged.Query.hello.extensions).toEqual({
+        [META]: { from: 'second' },
+        tagged: true,
+        extra: true,
+      });
+      expect(merged.Query.hello.resolve()).toBe('b');
+    },
+  );
 });

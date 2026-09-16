@@ -203,10 +203,10 @@ function mergeDeepWithOptions<S extends any[]>(
               if (Object.prototype.hasOwnProperty.call(output, sym)) {
                 const existing = Object.getOwnPropertyDescriptor(output, sym)!;
                 // Later sources should win. Non-configurable properties cannot be redefined,
-                // so fall back to value assignment when writable.
+                // so fall back to value assignment when writable or setter-backed.
                 if (existing.configurable) {
                   Object.defineProperty(output, sym, descriptor);
-                } else if (existing.writable) {
+                } else if (existing.writable || existing.set) {
                   output[sym] = source[sym];
                 }
               } else {

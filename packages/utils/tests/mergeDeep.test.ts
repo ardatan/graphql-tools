@@ -92,6 +92,29 @@ describe('mergeDeep', () => {
     expect(merged[sym]).toEqual('second');
   });
 
+  test('updates a non-configurable setter-backed non-enumerable symbol from a later source', () => {
+    const sym = Symbol('annotation');
+    let current = 'first';
+    const first: any = { a: 1 };
+    Object.defineProperty(first, sym, {
+      enumerable: false,
+      configurable: false,
+      get() {
+        return current;
+      },
+      set(value: string) {
+        current = value;
+      },
+    });
+    const second: any = { b: 2 };
+    Object.defineProperty(second, sym, { value: 'second', writable: true });
+
+    const merged = mergeDeep([first, second], { respectSymbols: { nonEnumerable: true } });
+    expect(merged.a).toEqual(1);
+    expect(merged.b).toEqual(2);
+    expect(merged[sym]).toEqual('second');
+  });
+
   test('merges prototypes', () => {
     const ClassA = class {
       a() {

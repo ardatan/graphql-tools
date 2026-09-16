@@ -68,4 +68,4 @@ mergeDeep([a, b], {
 
 `respectSymbols` defaults to `{ enumerable: false, nonEnumerable: false }` (symbols dropped), matching the historical default. The legacy 5th positional flag still maps to `{ nonEnumerable: true }` only.
 
-Schema extension merge/extract enables `{ enumerable: true, nonEnumerable: true }` automatically when `graphql` major >= 17.
+Schema extension merge/extract and resolver merging enable `{ enumerable: true, nonEnumerable: true }` automatically when `graphql` major >= 17.
