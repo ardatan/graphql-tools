@@ -57,7 +57,6 @@ export * from './debugTimer.js';
 export * from './getDirectiveExtensions.js';
 export {
   mapAsyncIterator,
-  mapMaybePromise,
   fakePromise,
   createDeferredPromise as createDeferred,
 } from '@whatwg-node/promise-helpers';
