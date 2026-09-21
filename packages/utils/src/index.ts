@@ -55,6 +55,7 @@ export * from './directives.js';
 export * from './mergeIncrementalResult.js';
 export * from './debugTimer.js';
 export * from './getDirectiveExtensions.js';
+export { mapMaybePromise } from './jsutils.js';
 export {
   mapAsyncIterator,
   fakePromise,
