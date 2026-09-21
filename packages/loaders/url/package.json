@@ -60,24 +60,24 @@
     "@whatwg-node/fetch": "^0.10.13",
     "@whatwg-node/promise-helpers": "^1.0.0",
     "isomorphic-ws": "^5.0.0",
-    "sync-fetch": "0.6.0",
+    "sync-fetch": "0.7.1",
     "tslib": "^2.4.0",
     "ws": "^8.21.3"
   },
   "devDependencies": {
-    "@envelop/core": "5.6.0",
-    "@envelop/live-query": "10.2.0",
-    "@graphql-yoga/plugin-defer-stream": "3.23.0",
+    "@envelop/core": "5.6.1",
+    "@envelop/live-query": "10.2.1",
+    "@graphql-yoga/plugin-defer-stream": "3.24.1",
     "@types/express": "5.0.6",
     "@types/valid-url": "1.0.7",
     "babel-loader": "10.1.1",
     "express": "5.2.1",
     "graphql-sse": "2.6.1",
     "graphql-upload": "18.0.0",
-    "graphql-yoga": "5.23.0",
+    "graphql-yoga": "5.24.1",
     "puppeteer": "25.11.0",
     "subscriptions-transport-ws": "0.11.0",
-    "webpack": "5.111.0"
+    "webpack": "5.111.1"
   },
   "publishConfig": {
     "directory": "dist",
