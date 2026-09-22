@@ -7,88 +7,66 @@ import {
   resolveExternalFragmentsWithSources,
 } from './resolve.js';
 
-type LoaderOptionsWithCache = ExternalFragmentLoaderOptions & {
-  cache?: object;
-};
-
 /**
  * Custom-loader entry point for `@graphql-tools/load`.
  *
- * Custom loaders must return a single DocumentNode (or Source), and the sync
- * load path cannot consume a Promise. Use the synchronous resolver here so
- * this entry point works for both `loadTypedefs` and `loadTypedefsSync`.
+ * Custom loaders must return a single DocumentNode (or Source). By default,
+ * use the synchronous resolver so this entry point works for both
+ * `loadTypedefs` and `loadTypedefsSync`. Set `options.async` to use the
+ * asynchronous resolver from an asynchronous load call.
  */
-export default function externalFragmentLoader(
-  _pointer: string,
-  options: ExternalFragmentLoaderOptions,
+type AsyncExternalFragmentLoaderOptions = ExternalFragmentLoaderOptions & { async: true };
+type SyncExternalFragmentLoaderOptions = ExternalFragmentLoaderOptions & { async?: false };
+
+function mergeResolvedDocuments(
+  resolvedFiles: Array<{ sources: Array<{ document: DocumentNode }> }>,
 ): DocumentNode {
-  const resolvedFiles = resolveExternalFragmentsSyncWithSources(options);
   return concatAST(resolvedFiles.flatMap(file => file.sources.map(source => source.document)));
 }
 
-export class ExternalFragmentLoader implements Loader<ExternalFragmentLoaderOptions> {
-  /**
-   * `@graphql-tools/load` invokes a loader once for every pointer in a load
-   * operation. Its cache object is shared by those invocations, so use it to
-   * ensure that external fragments are added only once per operation.
-   */
-  private readonly loadedOperations = new WeakSet<object>();
-
-  private claimLoadOperation(options: ExternalFragmentLoaderOptions): object | false | undefined {
-    const cache = (options as LoaderOptionsWithCache).cache;
-    if (!cache) {
-      return undefined;
-    }
-    if (this.loadedOperations.has(cache)) {
-      return false;
-    }
-    this.loadedOperations.add(cache);
-    return cache;
+export default function externalFragmentLoader(
+  _pointer: string,
+  options: AsyncExternalFragmentLoaderOptions,
+): Promise<DocumentNode>;
+export default function externalFragmentLoader(
+  _pointer: string,
+  options: SyncExternalFragmentLoaderOptions,
+): DocumentNode;
+export default function externalFragmentLoader(
+  _pointer: string,
+  options: ExternalFragmentLoaderOptions,
+): DocumentNode | Promise<DocumentNode>;
+export default function externalFragmentLoader(
+  _pointer: string,
+  options: ExternalFragmentLoaderOptions,
+): DocumentNode | Promise<DocumentNode> {
+  if (options.async === true) {
+    return resolveExternalFragmentsWithSources(options).then(mergeResolvedDocuments);
   }
 
+  return mergeResolvedDocuments(resolveExternalFragmentsSyncWithSources(options));
+}
+
+export class ExternalFragmentLoader implements Loader<ExternalFragmentLoaderOptions> {
   async load(_pointer: string, options: ExternalFragmentLoaderOptions): Promise<Source[]> {
-    const operation = this.claimLoadOperation(options);
-    if (operation === false) {
-      return [];
-    }
+    const resolvedFiles = await resolveExternalFragmentsWithSources(options);
 
-    try {
-      const resolvedFiles = await resolveExternalFragmentsWithSources(options);
-
-      return resolvedFiles.flatMap(file =>
-        file.sources.map(source => ({
-          location: file.filePath,
-          ...source,
-        })),
-      );
-    } catch (error) {
-      if (operation) {
-        this.loadedOperations.delete(operation);
-      }
-      throw error;
-    }
+    return resolvedFiles.flatMap(file =>
+      file.sources.map(source => ({
+        location: file.filePath,
+        ...source,
+      })),
+    );
   }
 
   loadSync(_pointer: string, options: ExternalFragmentLoaderOptions): Source[] {
-    const operation = this.claimLoadOperation(options);
-    if (operation === false) {
-      return [];
-    }
+    const resolvedFiles = resolveExternalFragmentsSyncWithSources(options);
 
-    try {
-      const resolvedFiles = resolveExternalFragmentsSyncWithSources(options);
-
-      return resolvedFiles.flatMap(file =>
-        file.sources.map(source => ({
-          location: file.filePath,
-          ...source,
-        })),
-      );
-    } catch (error) {
-      if (operation) {
-        this.loadedOperations.delete(operation);
-      }
-      throw error;
-    }
+    return resolvedFiles.flatMap(file =>
+      file.sources.map(source => ({
+        location: file.filePath,
+        ...source,
+      })),
+    );
   }
 }

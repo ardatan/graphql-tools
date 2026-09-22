@@ -26,11 +26,11 @@ the options described in [`options.ts`](./src/options.ts).
 
 ## Three API entry points
 
-| Entry point                | Returns                                                      | Use it when                                                                                    |
-| -------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| Default export             | One merged `DocumentNode`                                    | Configuring a Codegen or GraphQL Tools custom loader; uses the synchronous resolver internally |
-| `ExternalFragmentLoader`   | `Source[]` with `document`, `rawSDL`, and `location`         | Using `@graphql-tools/load` programmatically (can be async)                                    |
-| `resolveExternalFragments` | File metadata, including `filePath` and fragment definitions | Building a file list or another custom workflow                                                |
+| Entry point                | Returns                                                        | Use it when                                                                                    |
+| -------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Default export             | `DocumentNode` (or `Promise<DocumentNode>` with `async: true`) | Configuring a Codegen or GraphQL Tools custom loader; uses the synchronous resolver by default |
+| `ExternalFragmentLoader`   | `Source[]` with `document`, `rawSDL`, and `location`           | Using `@graphql-tools/load` programmatically (can be async)                                    |
+| `resolveExternalFragments` | File metadata, including `filePath` and fragment definitions   | Building a file list or another custom workflow                                                |
 
 Each entry point has a synchronous variant where applicable. The async and sync variants are:
 
@@ -57,7 +57,8 @@ module.exports = {
     './external-fragments.graphql': {
       loader: '@graphql-tools/external-fragment-loader',
       packageDir,
-      externalPackagesDirs: [externalPackagesDir]
+      externalPackagesDirs: [externalPackagesDir],
+      async: true // codegen can consume Promise<DocumentNode> directly
     }
   },
   generates: {
@@ -71,8 +72,17 @@ module.exports = {
 The pointer (`./external-fragments.graphql` in this example) is only used to trigger the loader; the
 resolver uses `packageDir` to identify the consumer package.
 
-The default export is synchronous. It works with both synchronous and asynchronous GraphQL Tools
-load calls, but it uses the resolver's **synchronous** path internally.
+Use at most one external-fragment pointer for each `packageDir` in a Codegen configuration. The
+loader returns all required external fragments for that package; repeating the pointer causes those
+fragments to be loaded more than once and can produce duplicate fragment definitions. Normal
+document pointers can still be listed alongside the single external-fragment pointer.
+
+The default export uses the synchronous resolver unless `async: true` is set. With `async: true`, it
+returns a `Promise<DocumentNode>` and uses the asynchronous resolver. Use this option with Codegen
+or another asynchronous loading API; omit it or set it to `false` when using `loadDocumentsSync`.
+
+See the repository's [async Codegen smoke test](./tests/codegen-smoke-async/README.md) and
+[sync Codegen smoke test](./tests/codegen-smoke-sync/README.md) for runnable configurations.
 
 ### 2. Class-based loader
 
@@ -110,8 +120,9 @@ const syncSources = loader.loadSync('.', options)
 ```
 
 Each returned source contains the parsed `document`, the matching `rawSDL`, and the provider file's
-`location`. The class loader also deduplicates external sources when `@graphql-tools/load` invokes
-it multiple times during one load operation.
+`location`. When registering the class with `@graphql-tools/load`, use one external-fragment pointer
+for each package being resolved. The loader does not de-duplicate separate invocations for repeated
+pointers.
 
 ### 3. Direct resolver API
 
@@ -143,28 +154,6 @@ The result has this shape:
 This API returns file metadata, not parsed ASTs. Passing the returned `filePath` values as Codegen
 `documents` works, but Codegen will read and parse those files again. Use the default loader or the
 class-based loader when you want to reuse the parsed documents.
-
-## Async Codegen custom loaders
-
-The default export is synchronous. For large monorepos, the asynchronous resolver can be much
-faster. To use it with Codegen, adapt the class loader's `Source[]` result into one merged
-`DocumentNode`:
-
-```js
-const { concatAST } = require('graphql')
-const { ExternalFragmentLoader } = require('@graphql-tools/external-fragment-loader')
-
-const loader = new ExternalFragmentLoader()
-
-module.exports = async function externalFragmentLoader(pointer, options) {
-  const sources = await loader.load(pointer, options)
-  return concatAST(sources.flatMap(source => (source.document ? [source.document] : [])))
-}
-```
-
-See the repository's [sync Codegen smoke test](./tests/codegen-smoke-sync/README.md) and
-[async Codegen smoke test](./tests/codegen-smoke-async/README.md) for complete runnable
-configurations.
 
 ## Caching
 

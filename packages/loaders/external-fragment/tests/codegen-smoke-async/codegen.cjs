@@ -4,7 +4,8 @@ const path = require('node:path');
 const exampleDir = __dirname;
 const fixturesDir = path.resolve(exampleDir, '../fixtures');
 const packageDir = path.join(fixturesDir, 'fragment-consumer');
-const loader = path.resolve(exampleDir, 'async-loader.cjs');
+const loader =
+  process.env.EXTERNAL_FRAGMENT_LOADER || path.resolve(exampleDir, '../../dist/cjs/index.js');
 
 const queryFile = path.join(packageDir, 'src/query.graphql');
 const externalFragmentsPointer = path.join(exampleDir, 'external-fragments.graphql');
@@ -15,12 +16,13 @@ module.exports = {
     // Load the operation itself with the normal GraphQL file loader.
     [queryFile]: {},
 
-    // This pointer is handled by the asynchronous custom loader adapter.
+    // This pointer uses the default loader's asynchronous resolver.
     [externalFragmentsPointer]: {
       loader,
       packageDir,
       externalPackagesDirs: [fixturesDir],
       extensions: ['graphql'],
+      async: true,
     },
   },
   generates: {

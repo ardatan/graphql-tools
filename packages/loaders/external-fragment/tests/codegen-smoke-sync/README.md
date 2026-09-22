@@ -1,7 +1,7 @@
-# GraphQL Code Generator sync-loader smoke test
+# GraphQL Code Generator sync-resolver smoke test
 
 This config loads `fragment-consumer`'s query normally and loads `UserFields` and `UserEmail`
-through the package's synchronous default custom loader.
+through the package's default loader with the synchronous resolver.
 
 From the repository root:
 

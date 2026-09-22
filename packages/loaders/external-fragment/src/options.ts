@@ -17,6 +17,15 @@ export interface ExternalFragmentLoaderOptions extends BaseLoaderOptions {
   externalPackagesDirs: string[];
 
   /**
+   * Whether the default function export should use the asynchronous resolver.
+   * Use this with asynchronous loading APIs such as Codegen or `loadDocuments`.
+   * The synchronous loading API cannot consume the Promise returned in async mode.
+   * The class loader's `load` and `loadSync` methods select their path explicitly.
+   * @default false
+   */
+  async?: boolean;
+
+  /**
    * Directories within each package to scan for GraphQL fragments.
    * @default ['src']
    */

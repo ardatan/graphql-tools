@@ -1,7 +1,6 @@
 import { readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
 import { loadDocuments, loadDocumentsSync } from '@graphql-tools/load';
-import type { LoadTypedefsOptions } from '@graphql-tools/load';
 import externalFragmentLoader, {
   clearCache,
   ExternalFragmentLoader,
@@ -12,7 +11,6 @@ import externalFragmentLoader, {
 const FIXTURES_DIR = path.join(__dirname, 'fixtures');
 const FIXTURES_TS_DIR = FIXTURES_DIR;
 const FIXTURES_DUP_DIR = FIXTURES_DIR;
-type LoadOptions = LoadTypedefsOptions & Record<string, unknown>;
 
 const packageAOpts = {
   packageDir: path.join(FIXTURES_DIR, 'fragment-consumer'),
@@ -136,30 +134,6 @@ describe('ExternalFragmentLoader', () => {
         expect(userFieldsSource?.rawSDL).not.toContain('UnusedUserFragment');
       },
     );
-
-    it.each([
-      ['async', (pointers: string[], options: LoadOptions) => loadDocuments(pointers, options)],
-      ['sync', (pointers: string[], options: LoadOptions) => loadDocumentsSync(pointers, options)],
-    ] as const)(
-      'should load external fragments only once for multiple pointers (%s)',
-      async (_label, load) => {
-        const pointers = [
-          path.join(FIXTURES_DIR, 'fragment-consumer/src/query.graphql'),
-          path.join(FIXTURES_DIR, 'fragment-direct-provider/src/user-fields.graphql'),
-        ];
-
-        const sources = await load(pointers, {
-          loaders: [loader],
-          ...packageAOpts,
-        });
-
-        expect(sources).toHaveLength(2);
-        expect(sources.map(source => path.basename(source.location!)).sort()).toEqual([
-          'user-email.graphql',
-          'user-fields.graphql',
-        ]);
-      },
-    );
   });
 
   describe('TypeScript code files', () => {
@@ -192,6 +166,23 @@ describe('ExternalFragmentLoader', () => {
       expect(document.definitions).toHaveLength(1);
     });
 
+    it('should use the async resolver when async is true', async () => {
+      const documentPromise = externalFragmentLoader('.', { ...tsOpts, async: true });
+
+      expect(documentPromise).toBeInstanceOf(Promise);
+
+      const document = await documentPromise;
+      expect(document.kind).toBe('Document');
+      expect(document.definitions).toHaveLength(1);
+    });
+
+    it('should use the sync resolver when async is false', () => {
+      const document = externalFragmentLoader('.', { ...tsOpts, async: false });
+
+      expect(document.kind).toBe('Document');
+      expect(document.definitions).toHaveLength(1);
+    });
+
     it('should work as an @graphql-tools/load custom loader', async () => {
       const pointer = {
         '.': {
@@ -212,6 +203,25 @@ describe('ExternalFragmentLoader', () => {
       ).toEqual(['UserFields', 'UserEmail']);
       expect(
         syncSource.document?.definitions
+          .filter(definition => definition.kind === 'FragmentDefinition')
+          .map(definition => definition.name.value),
+      ).toEqual(['UserFields', 'UserEmail']);
+    });
+
+    it('should select the async resolver from the custom-loader options', async () => {
+      const pointer = {
+        '.': {
+          loader: externalFragmentLoader,
+          ...packageAOpts,
+          async: true,
+        },
+      };
+
+      const [source] = await loadDocuments(pointer, { loaders: [] });
+
+      expect(source.document?.definitions).toHaveLength(2);
+      expect(
+        source.document?.definitions
           .filter(definition => definition.kind === 'FragmentDefinition')
           .map(definition => definition.name.value),
       ).toEqual(['UserFields', 'UserEmail']);

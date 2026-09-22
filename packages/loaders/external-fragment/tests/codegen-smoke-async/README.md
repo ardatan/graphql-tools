@@ -1,9 +1,8 @@
-# GraphQL Code Generator async-loader smoke test
+# GraphQL Code Generator async-resolver smoke test
 
 This config loads `fragment-consumer`'s query normally and loads `UserFields` and `UserEmail`
-through an asynchronous custom loader. The adapter in `async-loader.cjs` uses
-`ExternalFragmentLoader.load()` and merges its `Source[]` result into the single `DocumentNode`
-required by Codegen.
+through the package's default loader with `async: true`. Codegen uses its asynchronous document
+loading path, so the loader can use the asynchronous resolver without a custom adapter.
 
 From the repository root:
 
@@ -22,11 +21,11 @@ npm install --save-dev \
   @graphql-codegen/typescript-operations
 ```
 
-The adapter uses the local `dist/cjs` build by default. To test an installed or published package
-instead, set the package override before running Codegen:
+The config uses the local `dist/cjs` build by default. To test an installed or published package
+instead, set the loader override before running Codegen:
 
 ```sh
-EXTERNAL_FRAGMENT_PACKAGE=@graphql-tools/external-fragment-loader \
+EXTERNAL_FRAGMENT_LOADER=@graphql-tools/external-fragment-loader \
   npx --no-install graphql-codegen \
   --config packages/loaders/external-fragment/tests/codegen-smoke-async/codegen.cjs
 ```
