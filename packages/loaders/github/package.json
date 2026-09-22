@@ -56,7 +56,7 @@
     "@graphql-tools/utils": "^12.0.1",
     "@whatwg-node/fetch": "^0.12.0",
     "@whatwg-node/promise-helpers": "^2.0.0",
-    "sync-fetch": "0.6.0",
+    "sync-fetch": "0.7.1",
     "tslib": "^2.4.0"
   },
   "publishConfig": {

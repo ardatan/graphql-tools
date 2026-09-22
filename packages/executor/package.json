@@ -64,7 +64,7 @@
   },
   "devDependencies": {
     "cross-inspect": "1.0.1",
-    "graphql-yoga": "^5.23.0"
+    "graphql-yoga": "^5.24.1"
   },
   "publishConfig": {
     "directory": "dist",
