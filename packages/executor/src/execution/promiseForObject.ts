@@ -1,4 +1,4 @@
-import { handleMaybePromise, isPromise, MaybePromise } from '@whatwg-node/promise-helpers';
+import { handleMaybePromise, isPromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 
 type ResolvedObject<TData> = {
   [TKey in keyof TData]: TData[TKey] extends Promise<infer TValue> ? TValue : TData[TKey];

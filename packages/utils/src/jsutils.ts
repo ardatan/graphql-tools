@@ -10,6 +10,14 @@ export function isObjectLike(value: unknown): value is { [key: string]: unknown 
 
 export { isPromise };
 
+export function mapMaybePromise<TInput, TOutput>(
+  input: MaybePromise<TInput>,
+  onSuccess: (value: TInput) => MaybePromise<TOutput>,
+  onError?: (err: any) => MaybePromise<TOutput>,
+): MaybePromise<TOutput> {
+  return handleMaybePromise(() => input, onSuccess, onError);
+}
+
 export function promiseReduce<T, U>(
   values: Iterable<T>,
   callbackFn: (accumulator: U, currentValue: T) => MaybePromise<U>,

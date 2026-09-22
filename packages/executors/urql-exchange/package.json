@@ -49,7 +49,7 @@
   },
   "dependencies": {
     "@graphql-tools/utils": "^12.0.1",
-    "@whatwg-node/promise-helpers": "^1.2.4",
+    "@whatwg-node/promise-helpers": "^2.0.0",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
