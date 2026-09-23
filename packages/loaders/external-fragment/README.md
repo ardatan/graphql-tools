@@ -197,8 +197,12 @@ const options = {
   packageDir,
   externalPackagesDirs,
   fileContentFilter: (content, filePath) => {
-    // Match the default gql/graphql tag conventions and GraphQL magic comments.
-    return /\b(?:gql|graphql)\s*`/.test(content) || /\/\*\s*graphql\s*\*\//i.test(content)
+    // Keep standalone GraphQL files and match GraphQL tags or magic comments in code files.
+    return (
+      /\.(graphql|gql)$/.test(filePath) ||
+      /\b(?:gql|graphql)\s*`/.test(content) ||
+      /\/\*\s*graphql\s*\*\//i.test(content)
+    )
   }
 }
 ```
