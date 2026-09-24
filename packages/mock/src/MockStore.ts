@@ -13,6 +13,7 @@ import {
   isObjectType,
   isScalarType,
 } from 'graphql';
+import { isDangerousObjectKey } from '@graphql-tools/utils';
 import { deepResolveMockList, isMockList } from './MockList.js';
 import {
   assertIsRef,
@@ -277,7 +278,7 @@ export class MockStore implements IMockStore {
       value = deepResolveMockList(value);
     }
 
-    if (typeName === '__proto__' || typeName === 'constructor' || typeName === 'prototype') {
+    if (isDangerousObjectKey(typeName)) {
       throw new Error(`Invalid typeName: ${typeName}`);
     }
 
@@ -285,7 +286,7 @@ export class MockStore implements IMockStore {
       this.store[typeName] = {};
     }
 
-    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+    if (isDangerousObjectKey(key)) {
       throw new Error(`Invalid key: ${key}`);
     }
 
@@ -446,7 +447,7 @@ export class MockStore implements IMockStore {
       });
     }
 
-    if (typeName === '__proto__' || typeName === 'constructor' || typeName === 'prototype') {
+    if (isDangerousObjectKey(typeName)) {
       throw new Error(`Invalid typeName: ${typeName}`);
     }
 
@@ -454,7 +455,7 @@ export class MockStore implements IMockStore {
       this.store[typeName] = {};
     }
 
-    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+    if (isDangerousObjectKey(key)) {
       throw new Error(`Invalid key: ${key}`);
     }
 

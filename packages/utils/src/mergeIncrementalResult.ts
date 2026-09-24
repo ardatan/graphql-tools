@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql';
 import { ExecutionResult } from './Interfaces.js';
+import { hasOwnProperty, isSafeObjectKey } from './jsutils.js';
 import { mergeDeep } from './mergeDeep.js';
 
 export function mergeIncrementalResult({
@@ -42,24 +43,24 @@ export function mergeIncrementalResult({
   }
 }
 
-function setObjectKeyPath(obj: Record<string, any>, keyPath: (string | number)[], value: any) {
+function setObjectKeyPath(obj: Record<string, any>, keyPath: readonly unknown[], value: any) {
   let current = obj;
   let i: number;
   for (i = 0; i < keyPath.length - 1; i++) {
     const key = keyPath[i];
-    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+    if (!isSafeObjectKey(key)) {
       return;
     }
-    if (current[key] == null) {
+    if (!hasOwnProperty(current, key) || current[key] == null) {
       // Determine if the next key is a number to create an array, otherwise create an object
       current[key] = typeof keyPath[i + 1] === 'number' ? [] : {};
     }
     current = current[key];
   }
   const finalKey = keyPath[i];
-  if (finalKey === '__proto__' || finalKey === 'constructor' || finalKey === 'prototype') {
+  if (!isSafeObjectKey(finalKey)) {
     return;
   }
-  const existingValue = current[finalKey];
+  const existingValue = hasOwnProperty(current, finalKey) ? current[finalKey] : undefined;
   current[finalKey] = existingValue != null ? mergeDeep([existingValue, value]) : value;
 }

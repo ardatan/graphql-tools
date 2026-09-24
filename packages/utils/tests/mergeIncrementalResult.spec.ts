@@ -197,4 +197,58 @@ describe('mergeIncrementalResult', () => {
       extensions: { ext1: { a: 'b' } },
     });
   });
+
+  it('rejects array path segments that coerce to __proto__', () => {
+    delete (Object.prototype as any).polluted;
+    const executionResult = { data: {} };
+    const incrementalResult = JSON.parse('{"path":[["__proto__"],"polluted"],"data":"yes"}');
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(({} as any).polluted).toBeUndefined();
+    expect(executionResult).toEqual({ data: {} });
+    delete (Object.prototype as any).polluted;
+  });
+
+  it('rejects plain-string __proto__ path segments', () => {
+    delete (Object.prototype as any).polluted;
+    const executionResult = { data: {} };
+    const incrementalResult = {
+      path: ['__proto__', 'polluted'],
+      data: 'yes',
+    };
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(({} as any).polluted).toBeUndefined();
+    expect(executionResult).toEqual({ data: {} });
+    delete (Object.prototype as any).polluted;
+  });
+
+  it('rejects object path segments that coerce via toString', () => {
+    delete (Object.prototype as any).polluted;
+    const executionResult = { data: {} };
+    const incrementalResult = {
+      path: [{ toString: () => '__proto__' }, 'polluted'],
+      data: 'yes',
+    };
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(({} as any).polluted).toBeUndefined();
+    expect(executionResult).toEqual({ data: {} });
+    delete (Object.prototype as any).polluted;
+  });
+
+  it('rejects array path segments that coerce to __proto__ via items', () => {
+    delete (Object.prototype as any).polluted;
+    const executionResult = { data: {} };
+    const incrementalResult = JSON.parse('{"path":[["__proto__"],"polluted",0],"items":["yes"]}');
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(({} as any).polluted).toBeUndefined();
+    expect(executionResult).toEqual({ data: {} });
+    delete (Object.prototype as any).polluted;
+  });
 });
