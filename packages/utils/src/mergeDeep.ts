@@ -6,16 +6,120 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   : never;
 type UnboxIntersection<T> = T extends { 0: infer U } ? U : never;
 
+export interface MergeDeepRespectSymbols {
+  enumerable?: boolean;
+  nonEnumerable?: boolean;
+}
+
+export interface MergeDeepOptions {
+  respectPrototype?: boolean;
+  respectArrays?: boolean;
+  respectArrayLength?: boolean;
+  /**
+   * How to handle own symbol keys while merging multiple sources.
+   * Omitted / empty: drop symbols when merging two or more sources (historical default).
+   * A single-source call is still an identity return (same object reference), including
+   * any symbol keys, matching the previous `mergeDeep([x])` behavior.
+   * - `enumerable`: merge enumerable symbols like string keys
+   * - `nonEnumerable`: copy non-enumerable symbols via property descriptors
+   */
+  respectSymbols?: MergeDeepRespectSymbols;
+}
+
+type NormalizedMergeDeepOptions = {
+  respectPrototype: boolean;
+  respectArrays: boolean;
+  respectArrayLength: boolean;
+  respectSymbols: {
+    enumerable: boolean;
+    nonEnumerable: boolean;
+  };
+};
+
+function isMergeDeepOptions(value: unknown): value is MergeDeepOptions {
+  return value != null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function normalizeRespectSymbols(
+  respectSymbols: MergeDeepRespectSymbols | undefined,
+): NormalizedMergeDeepOptions['respectSymbols'] {
+  return {
+    enumerable: respectSymbols?.enumerable ?? false,
+    nonEnumerable: respectSymbols?.nonEnumerable ?? false,
+  };
+}
+
+function normalizeMergeDeepOptions(
+  respectPrototypeOrOptions?: boolean | MergeDeepOptions,
+  respectArrays = false,
+  respectArrayLength = false,
+  respectNonEnumerableSymbols = false,
+): NormalizedMergeDeepOptions {
+  if (isMergeDeepOptions(respectPrototypeOrOptions)) {
+    return {
+      respectPrototype: respectPrototypeOrOptions.respectPrototype ?? false,
+      respectArrays: respectPrototypeOrOptions.respectArrays ?? false,
+      respectArrayLength: respectPrototypeOrOptions.respectArrayLength ?? false,
+      respectSymbols: normalizeRespectSymbols(respectPrototypeOrOptions.respectSymbols),
+    };
+  }
+
+  return {
+    respectPrototype: respectPrototypeOrOptions ?? false,
+    respectArrays,
+    respectArrayLength,
+    // Legacy 5th positional arg maps to non-enumerable-only symbol handling.
+    respectSymbols: {
+      enumerable: false,
+      nonEnumerable: respectNonEnumerableSymbols,
+    },
+  };
+}
+
 export function mergeDeep<S extends any[]>(
   sources: S,
-  respectPrototype = false,
+  options?: MergeDeepOptions,
+): UnboxIntersection<UnionToIntersection<BoxedTupleTypes<S>>> & any;
+/**
+ * @deprecated Prefer the `MergeDeepOptions` object form:
+ * `mergeDeep(sources, { respectPrototype, respectArrays, respectArrayLength, respectSymbols })`.
+ */
+export function mergeDeep<S extends any[]>(
+  sources: S,
+  respectPrototype?: boolean,
+  respectArrays?: boolean,
+  respectArrayLength?: boolean,
+  respectNonEnumerableSymbols?: boolean,
+): UnboxIntersection<UnionToIntersection<BoxedTupleTypes<S>>> & any;
+export function mergeDeep<S extends any[]>(
+  sources: S,
+  respectPrototypeOrOptions: boolean | MergeDeepOptions = false,
   respectArrays = false,
   respectArrayLength = false,
   respectNonEnumerableSymbols = false,
 ): UnboxIntersection<UnionToIntersection<BoxedTupleTypes<S>>> & any {
+  const options = normalizeMergeDeepOptions(
+    respectPrototypeOrOptions,
+    respectArrays,
+    respectArrayLength,
+    respectNonEnumerableSymbols,
+  );
+  return mergeDeepWithOptions(sources, options);
+}
+
+function mergeDeepWithOptions<S extends any[]>(
+  sources: S,
+  options: NormalizedMergeDeepOptions,
+): UnboxIntersection<UnionToIntersection<BoxedTupleTypes<S>>> & any {
+  const { respectPrototype, respectArrayLength, respectSymbols } = options;
+  const respectEnumerableSymbols = respectSymbols.enumerable;
+  const respectNonEnumerableSymbols = respectSymbols.nonEnumerable;
+
   if (sources.length === 0) {
     return;
   }
+  // Single-source is an identity return (historical behavior). Symbol policy below only
+  // applies when merging two or more sources; stripping here would require cloning.
   if (sources.length === 1) {
     return sources[0];
   }
@@ -37,12 +141,9 @@ export function mergeDeep<S extends any[]>(
 
   if (respectArrayLength && areArraysInTheSameLength) {
     return new Array(expectedLength).fill(null).map((_, index) =>
-      mergeDeep(
+      mergeDeepWithOptions(
         sources.map(source => source[index]),
-        respectPrototype,
-        respectArrays,
-        respectArrayLength,
-        respectNonEnumerableSymbols,
+        options,
       ),
     );
   }
@@ -93,22 +194,64 @@ export function mergeDeep<S extends any[]>(
         // skip above, which would otherwise silently discard this override and keep the prior
         // value.
         if (Object.prototype.hasOwnProperty.call(output, key) && source[key] !== undefined) {
-          output[key] = mergeDeep(
-            [output[key], source[key]],
-            respectPrototype,
-            respectArrays,
-            respectArrayLength,
-            respectNonEnumerableSymbols,
-          );
+          output[key] = mergeDeepWithOptions([output[key], source[key]], options);
         } else {
           output[key] = source[key];
         }
       }
-      if (respectNonEnumerableSymbols && output != null) {
+      if (output != null && (respectEnumerableSymbols || respectNonEnumerableSymbols)) {
         for (const sym of Object.getOwnPropertySymbols(source)) {
           const descriptor = Object.getOwnPropertyDescriptor(source, sym)!;
           if (!descriptor.enumerable) {
-            Object.defineProperty(output, sym, descriptor);
+            if (respectNonEnumerableSymbols) {
+              if (Object.prototype.hasOwnProperty.call(output, sym)) {
+                const existing = Object.getOwnPropertyDescriptor(output, sym)!;
+                // Later sources should win. Non-configurable properties cannot be redefined,
+                // so fall back to value assignment when writable or setter-backed.
+                if (existing.configurable) {
+                  Object.defineProperty(output, sym, descriptor);
+                } else if (existing.writable || existing.set) {
+                  output[sym] = source[sym];
+                }
+              } else {
+                Object.defineProperty(output, sym, descriptor);
+              }
+            }
+            continue;
+          }
+          if (!respectEnumerableSymbols) {
+            continue;
+          }
+          const hasOwnSymbol = Object.prototype.hasOwnProperty.call(output, sym);
+          if (hasOwnSymbol && source[sym] !== undefined) {
+            const existing = Object.getOwnPropertyDescriptor(output, sym)!;
+            const mergedValue = mergeDeepWithOptions([output[sym], source[sym]], options);
+            if (existing.writable || existing.set) {
+              output[sym] = mergedValue;
+            } else if (existing.configurable) {
+              Object.defineProperty(output, sym, {
+                value: mergedValue,
+                writable: true,
+                enumerable: true,
+                configurable: true,
+              });
+            }
+            // Non-configurable read-only properties cannot be updated; keep the prior value.
+          } else if (!hasOwnSymbol) {
+            output[sym] = source[sym];
+          } else {
+            // Explicit undefined override, matching string-key behavior.
+            const existing = Object.getOwnPropertyDescriptor(output, sym)!;
+            if (existing.writable || existing.set) {
+              output[sym] = source[sym];
+            } else if (existing.configurable) {
+              Object.defineProperty(output, sym, {
+                value: source[sym],
+                writable: true,
+                enumerable: true,
+                configurable: true,
+              });
+            }
           }
         }
       }
@@ -116,7 +259,7 @@ export function mergeDeep<S extends any[]>(
       if (!Array.isArray(output)) {
         output = source;
       } else {
-        output = mergeDeep([output, source], respectPrototype, respectArrays, respectArrayLength);
+        output = mergeDeepWithOptions([output, source], options);
       }
     } else {
       output = source;
