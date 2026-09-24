@@ -233,7 +233,10 @@ describe('mergeIncrementalResult', () => {
       data: 'yes',
     };
 
-    mergeIncrementalResult({ incrementalResult, executionResult });
+    mergeIncrementalResult({
+      incrementalResult: incrementalResult as any,
+      executionResult,
+    });
 
     expect(({} as any).polluted).toBeUndefined();
     expect(executionResult).toEqual({ data: {} });
@@ -249,6 +252,33 @@ describe('mergeIncrementalResult', () => {
 
     expect(({} as any).polluted).toBeUndefined();
     expect(executionResult).toEqual({ data: {} });
+    delete (Object.prototype as any).polluted;
+  });
+
+  it('does not create parent objects before rejecting a later unsafe segment', () => {
+    delete (Object.prototype as any).polluted;
+    const executionResult = { data: {} };
+    const incrementalResult = JSON.parse(
+      '{"path":["viewer",["__proto__"],"polluted"],"data":"yes"}',
+    );
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(({} as any).polluted).toBeUndefined();
+    expect(executionResult).toEqual({ data: {} });
+    delete (Object.prototype as any).polluted;
+  });
+
+  it('does not write later items after rejecting an unsafe items path', () => {
+    delete (Object.prototype as any).polluted;
+    const executionResult = { data: {} };
+    const incrementalResult = JSON.parse('{"path":[["__proto__"]],"items":["yes","no"]}');
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(({} as any).polluted).toBeUndefined();
+    expect(executionResult).toEqual({ data: {} });
+    expect((executionResult.data as any).NaN).toBeUndefined();
     delete (Object.prototype as any).polluted;
   });
 });
