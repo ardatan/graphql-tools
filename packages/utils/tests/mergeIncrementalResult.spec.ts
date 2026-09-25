@@ -197,4 +197,88 @@ describe('mergeIncrementalResult', () => {
       extensions: { ext1: { a: 'b' } },
     });
   });
+
+  it('rejects array path segments that coerce to __proto__', () => {
+    delete (Object.prototype as any).polluted;
+    const executionResult = { data: {} };
+    const incrementalResult = JSON.parse('{"path":[["__proto__"],"polluted"],"data":"yes"}');
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(({} as any).polluted).toBeUndefined();
+    expect(executionResult).toEqual({ data: {} });
+    delete (Object.prototype as any).polluted;
+  });
+
+  it('rejects plain-string __proto__ path segments', () => {
+    delete (Object.prototype as any).polluted;
+    const executionResult = { data: {} };
+    const incrementalResult = {
+      path: ['__proto__', 'polluted'],
+      data: 'yes',
+    };
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(({} as any).polluted).toBeUndefined();
+    expect(executionResult).toEqual({ data: {} });
+    delete (Object.prototype as any).polluted;
+  });
+
+  it('rejects object path segments that coerce via toString', () => {
+    delete (Object.prototype as any).polluted;
+    const executionResult = { data: {} };
+    const incrementalResult = {
+      path: [{ toString: () => '__proto__' }, 'polluted'],
+      data: 'yes',
+    };
+
+    mergeIncrementalResult({
+      incrementalResult: incrementalResult as any,
+      executionResult,
+    });
+
+    expect(({} as any).polluted).toBeUndefined();
+    expect(executionResult).toEqual({ data: {} });
+    delete (Object.prototype as any).polluted;
+  });
+
+  it('rejects array path segments that coerce to __proto__ via items', () => {
+    delete (Object.prototype as any).polluted;
+    const executionResult = { data: {} };
+    const incrementalResult = JSON.parse('{"path":[["__proto__"],"polluted",0],"items":["yes"]}');
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(({} as any).polluted).toBeUndefined();
+    expect(executionResult).toEqual({ data: {} });
+    delete (Object.prototype as any).polluted;
+  });
+
+  it('does not create parent objects before rejecting a later unsafe segment', () => {
+    delete (Object.prototype as any).polluted;
+    const executionResult = { data: {} };
+    const incrementalResult = JSON.parse(
+      '{"path":["viewer",["__proto__"],"polluted"],"data":"yes"}',
+    );
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(({} as any).polluted).toBeUndefined();
+    expect(executionResult).toEqual({ data: {} });
+    delete (Object.prototype as any).polluted;
+  });
+
+  it('does not write later items after rejecting an unsafe items path', () => {
+    delete (Object.prototype as any).polluted;
+    const executionResult = { data: {} };
+    const incrementalResult = JSON.parse('{"path":[["__proto__"]],"items":["yes","no"]}');
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(({} as any).polluted).toBeUndefined();
+    expect(executionResult).toEqual({ data: {} });
+    expect((executionResult.data as any).NaN).toBeUndefined();
+    delete (Object.prototype as any).polluted;
+  });
 });

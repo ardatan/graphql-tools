@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql';
 import { ExecutionResult } from './Interfaces.js';
+import { hasOwnProperty, isSafeObjectKey } from './jsutils.js';
 import { mergeDeep } from './mergeDeep.js';
 
 export function mergeIncrementalResult({
@@ -12,10 +13,14 @@ export function mergeIncrementalResult({
   const path = ['data', ...(incrementalResult.path ?? [])];
 
   if (incrementalResult.items) {
-    for (const item of incrementalResult.items) {
-      setObjectKeyPath(executionResult, path, item);
-      // Increment the last path segment (the array index) to merge the next item at the next index
-      (path[path.length - 1] as number)++;
+    // Reject the whole items batch if any path segment is unsafe, so a later
+    // index increment cannot turn a bad segment into a write at `data.NaN`.
+    if (isSafeKeyPath(path)) {
+      for (const item of incrementalResult.items) {
+        setObjectKeyPath(executionResult, path, item);
+        // Increment the last path segment (the array index) to merge the next item at the next index
+        (path[path.length - 1] as number)++;
+      }
     }
   }
 
@@ -42,24 +47,27 @@ export function mergeIncrementalResult({
   }
 }
 
-function setObjectKeyPath(obj: Record<string, any>, keyPath: (string | number)[], value: any) {
+function isSafeKeyPath(keyPath: readonly unknown[]): boolean {
+  return keyPath.every(isSafeObjectKey);
+}
+
+function setObjectKeyPath(obj: Record<string, any>, keyPath: readonly unknown[], value: any) {
+  // Validate the full path before creating any parent containers, so a late
+  // unsafe segment cannot leave partial writes on executionResult.
+  if (!isSafeKeyPath(keyPath)) {
+    return;
+  }
   let current = obj;
   let i: number;
   for (i = 0; i < keyPath.length - 1; i++) {
-    const key = keyPath[i];
-    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
-      return;
-    }
-    if (current[key] == null) {
+    const key = keyPath[i] as string | number;
+    if (!hasOwnProperty(current, key) || current[key] == null) {
       // Determine if the next key is a number to create an array, otherwise create an object
       current[key] = typeof keyPath[i + 1] === 'number' ? [] : {};
     }
     current = current[key];
   }
-  const finalKey = keyPath[i];
-  if (finalKey === '__proto__' || finalKey === 'constructor' || finalKey === 'prototype') {
-    return;
-  }
-  const existingValue = current[finalKey];
+  const finalKey = keyPath[i] as string | number;
+  const existingValue = hasOwnProperty(current, finalKey) ? current[finalKey] : undefined;
   current[finalKey] = existingValue != null ? mergeDeep([existingValue, value]) : value;
 }
