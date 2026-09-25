@@ -1,5 +1,14 @@
 # @graphql-tools/links
 
+## 10.0.15
+
+### Patch Changes
+
+- [#8455](https://github.com/ardatan/graphql-tools/pull/8455) [`e0cce45`](https://github.com/ardatan/graphql-tools/commit/e0cce45f04fcc7c3995b9c5f595c85f3a9ff66d7) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+    - Updated dependency [`@whatwg-node/fetch@^0.12.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.12.0) (from `^0.10.13`, in `dependencies`)
+- Updated dependencies [[`b1fbba2`](https://github.com/ardatan/graphql-tools/commit/b1fbba2c52ce6b6d6f0aa92b927654d3eeaa0a8d)]:
+  - @graphql-tools/utils@12.0.2
+
 ## 10.0.14
 
 ### Patch Changes

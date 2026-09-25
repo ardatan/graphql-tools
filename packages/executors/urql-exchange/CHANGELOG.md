@@ -1,5 +1,14 @@
 # @graphql-tools/executor-urql-exchange
 
+## 1.0.37
+
+### Patch Changes
+
+- [#8456](https://github.com/ardatan/graphql-tools/pull/8456) [`b1fbba2`](https://github.com/ardatan/graphql-tools/commit/b1fbba2c52ce6b6d6f0aa92b927654d3eeaa0a8d) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+    - Updated dependency [`@whatwg-node/promise-helpers@^2.0.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/promise-helpers/v/2.0.0) (from `^1.2.4`, in `dependencies`)
+- Updated dependencies [[`b1fbba2`](https://github.com/ardatan/graphql-tools/commit/b1fbba2c52ce6b6d6f0aa92b927654d3eeaa0a8d)]:
+  - @graphql-tools/utils@12.0.2
+
 ## 1.0.36
 
 ### Patch Changes
