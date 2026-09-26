@@ -20,6 +20,8 @@ export function promiseForObject<TData>(
   const resolvedObject = Object.create(null);
   const promises: Promise<void>[] = [];
   for (const key in object) {
+    // Reserve the key in input order before its value resolves.
+    resolvedObject[key] = undefined;
     const valueSet$ = handleMaybePromise(
       () => object[key],
       resolvedValue => {
