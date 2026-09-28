@@ -332,7 +332,6 @@ type PackageMapArgs = [
 
 type MemoizedPackageMap<Result> = ((...args: PackageMapArgs) => Result) & {
   _get(...args: PackageMapArgs): Result | undefined;
-  _has(...args: PackageMapArgs): boolean;
   delete(...args: PackageMapArgs): void;
   clear(): void;
 };
@@ -348,7 +347,9 @@ let buildPackageFragmentMapAsync = memoizee(buildPackageFragmentMapAsyncRaw, {
 
 let appliedCacheTTL: number | undefined;
 
-function createMemoized(cacheTTL?: number): void {
+function initCache(cacheTTL?: number): void {
+  if (cacheTTL === appliedCacheTTL) return;
+
   const ttlOpt = cacheTTL != null && cacheTTL !== Infinity ? { maxAge: cacheTTL } : undefined;
 
   readPackageJsonDeps = memoizee(readPackageJsonDepsRaw, {
@@ -368,12 +369,6 @@ function createMemoized(cacheTTL?: number): void {
   appliedCacheTTL = cacheTTL;
 }
 
-function initCache(cacheTTL?: number): void {
-  if (cacheTTL !== appliedCacheTTL) {
-    createMemoized(cacheTTL);
-  }
-}
-
 /**
  * Clears all internal caches.
  */
@@ -384,28 +379,12 @@ export function clearCache(): void {
   appliedCacheTTL = undefined;
 }
 
-function getCachedPackageFragmentMap(args: PackageMapArgs): PackageFragmentMap | undefined {
-  if (!buildPackageFragmentMap._has(...args)) {
-    return undefined;
-  }
-  return buildPackageFragmentMap._get(...args);
-}
-
-function getCachedPackageFragmentMapAsync(
-  args: PackageMapArgs,
-): Promise<PackageFragmentMap> | undefined {
-  if (!buildPackageFragmentMapAsync._has(...args)) {
-    return undefined;
-  }
-  return buildPackageFragmentMapAsync._get(...args);
-}
-
 function getPackageFragmentMap(args: PackageMapArgs, cacheResult: boolean): PackageFragmentMap {
   if (cacheResult) {
     return buildPackageFragmentMap(...args);
   }
 
-  return getCachedPackageFragmentMap(args) ?? buildPackageFragmentMapRaw(...args);
+  return buildPackageFragmentMap._get(...args) ?? buildPackageFragmentMapRaw(...args);
 }
 
 function getPackageFragmentMapAsync(
@@ -416,7 +395,7 @@ function getPackageFragmentMapAsync(
     return buildPackageFragmentMapAsync(...args);
   }
 
-  return getCachedPackageFragmentMapAsync(args) ?? buildPackageFragmentMapAsyncRaw(...args);
+  return buildPackageFragmentMapAsync._get(...args) ?? buildPackageFragmentMapAsyncRaw(...args);
 }
 
 // --- Shared helpers ---
