@@ -116,7 +116,7 @@
     },
     "graphql": "17.0.2",
     "miniflare": {
-      "undici": "8.9.0"
+      "undici": "8.10.2"
     },
     "postcss": "8.5.23",
     "react": "19.2.6",
