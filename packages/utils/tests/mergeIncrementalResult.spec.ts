@@ -225,6 +225,22 @@ describe('mergeIncrementalResult', () => {
     delete (Object.prototype as any).polluted;
   });
 
+  it('rejects a plain-string __proto__ final segment', () => {
+    delete (Object.prototype as any).polluted;
+    const executionResult = { data: {} };
+    const incrementalResult = {
+      path: ['__proto__'],
+      data: { polluted: 'yes' },
+    };
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(({} as any).polluted).toBeUndefined();
+    expect(Object.getPrototypeOf(executionResult)).toBe(Object.prototype);
+    expect(executionResult).toEqual({ data: {} });
+    delete (Object.prototype as any).polluted;
+  });
+
   it('rejects object path segments that coerce via toString', () => {
     delete (Object.prototype as any).polluted;
     const executionResult = { data: {} };
