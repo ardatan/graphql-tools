@@ -1,5 +1,12 @@
 # @graphql-tools/executor-envelop
 
+## 4.0.15
+
+### Patch Changes
+
+- Updated dependencies [[`b1fbba2`](https://github.com/ardatan/graphql-tools/commit/b1fbba2c52ce6b6d6f0aa92b927654d3eeaa0a8d), [`20d36a5`](https://github.com/ardatan/graphql-tools/commit/20d36a5c6eb8fd5524420988e01a48618c450d70)]:
+  - @graphql-tools/utils@12.0.2
+
 ## 4.0.14
 
 ### Patch Changes
