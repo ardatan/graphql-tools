@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 12.0.3
+
+### Patch Changes
+
+- [#8482](https://github.com/ardatan/graphql-tools/pull/8482) [`19f5b33`](https://github.com/ardatan/graphql-tools/commit/19f5b3373fd7ace0688d19950fc529ce8347952a) Thanks [@ardatan](https://github.com/ardatan)! - Compare incremental path keys to `__proto__` at the property access in `setObjectKeyPath`, in addition to the existing `isSafeObjectKey` check.
+
 ## 12.0.2
 
 ### Patch Changes
