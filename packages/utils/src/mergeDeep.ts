@@ -1,4 +1,5 @@
 import { isSome } from './helpers.js';
+import { isDangerousObjectKey } from './jsutils.js';
 
 type BoxedTupleTypes<T extends any[]> = { [P in keyof T]: [T[P]] }[Exclude<keyof T, keyof any[]>];
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
@@ -84,7 +85,7 @@ export function mergeDeep<S extends any[]>(
 
       for (const key in source) {
         // never let a source key reach the prototype chain
-        if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+        if (isDangerousObjectKey(key)) {
           continue;
         }
         // An own key present with value `undefined` is an explicit override and must win,

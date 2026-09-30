@@ -35,6 +35,26 @@ export function promiseReduce<T, U>(
   return accumulator;
 }
 
-export function hasOwnProperty(obj: unknown, prop: string): boolean {
+export function hasOwnProperty(obj: unknown, prop: PropertyKey): boolean {
   return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+/**
+ * True for keys that must never be used for object-path writes because they
+ * reach the prototype chain (`__proto__`, `constructor`, `prototype`).
+ */
+export function isDangerousObjectKey(key: unknown): boolean {
+  return key === '__proto__' || key === 'constructor' || key === 'prototype';
+}
+
+/**
+ * True when `key` is a primitive string/number that is safe to use for
+ * own-property access. Rejects non-primitives (which coerce via `ToPropertyKey`)
+ * and {@link isDangerousObjectKey dangerous names}.
+ */
+export function isSafeObjectKey(key: unknown): key is string | number {
+  if (typeof key !== 'string' && typeof key !== 'number') {
+    return false;
+  }
+  return !isDangerousObjectKey(key);
 }
