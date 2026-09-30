@@ -60,14 +60,22 @@ function setObjectKeyPath(obj: Record<string, any>, keyPath: readonly unknown[],
   let current = obj;
   let i: number;
   for (i = 0; i < keyPath.length - 1; i++) {
-    const key = keyPath[i] as string | number;
+    const key = keyPath[i];
+    // Direct comparison, not only isSafeObjectKey(): that helper already rejects
+    // this key, but the check has to sit on the value used as the property name.
+    if (key === '__proto__' || !isSafeObjectKey(key)) {
+      return;
+    }
     if (!hasOwnProperty(current, key) || current[key] == null) {
       // Determine if the next key is a number to create an array, otherwise create an object
       current[key] = typeof keyPath[i + 1] === 'number' ? [] : {};
     }
     current = current[key];
   }
-  const finalKey = keyPath[i] as string | number;
+  const finalKey = keyPath[i];
+  if (finalKey === '__proto__' || !isSafeObjectKey(finalKey)) {
+    return;
+  }
   const existingValue = hasOwnProperty(current, finalKey) ? current[finalKey] : undefined;
   current[finalKey] = existingValue != null ? mergeDeep([existingValue, value]) : value;
 }
