@@ -1,5 +1,6 @@
 import { parse } from 'graphql';
 import { buildWSLegacyExecutor, LEGACY_WS } from '@graphql-tools/executor-legacy-ws';
+import { ExecutionResult } from '@graphql-tools/utils';
 
 const document = parse(/* GraphQL */ `
   subscription PrivateEvents {
@@ -48,12 +49,20 @@ class FakeSocket {
   }
 
   receive(message: unknown) {
-    const raw = JSON.stringify(message);
+    this.receiveRaw(JSON.stringify(message));
+  }
+
+  receiveRaw(raw: string) {
     this.onmessage?.({
       data: {
         toString: () => raw,
       },
     });
+  }
+
+  closeFromPeer() {
+    this.readyState = FakeSocket.CLOSED;
+    this.onclose?.();
   }
 }
 
@@ -70,6 +79,18 @@ function startMessage(socket: FakeSocket) {
   return socket.sent.map(raw => JSON.parse(raw)).find(message => message.type === LEGACY_WS.START);
 }
 
+function asSubscription(result: unknown): AsyncIterableIterator<ExecutionResult> {
+  if (
+    result != null &&
+    typeof result === 'object' &&
+    Symbol.asyncIterator in result &&
+    typeof (result as AsyncIterableIterator<ExecutionResult>).next === 'function'
+  ) {
+    return result as AsyncIterableIterator<ExecutionResult>;
+  }
+  throw new Error('Expected a subscription iterator');
+}
+
 describe('buildWSLegacyExecutor', () => {
   beforeEach(() => {
     sockets = [];
@@ -78,15 +99,17 @@ describe('buildWSLegacyExecutor', () => {
   it('does not replay a previous request connectionParams on the next connection', async () => {
     const exec = buildWSLegacyExecutor('ws://localhost/graphql', FakeSocket as any);
 
-    const victim = exec({
-      document,
-      extensions: {
-        connectionParams: {
-          Authorization: 'Bearer victim-token',
-          tenant: 'alice-tenant',
+    const victim = asSubscription(
+      exec({
+        document,
+        extensions: {
+          connectionParams: {
+            Authorization: 'Bearer victim-token',
+            tenant: 'alice-tenant',
+          },
         },
-      },
-    });
+      }),
+    );
     const victimNext = victim.next();
     sockets[0]!.open();
     sockets[0]!.receive({ type: LEGACY_WS.CONNECTION_ACK });
@@ -100,7 +123,7 @@ describe('buildWSLegacyExecutor', () => {
     sockets[0]!.receive({ type: LEGACY_WS.COMPLETE, id: victimId });
     await victim.return?.();
 
-    const anonymous = exec({ document });
+    const anonymous = asSubscription(exec({ document }));
     const anonymousNext = anonymous.next();
     sockets[1]!.open();
 
@@ -164,14 +187,18 @@ describe('buildWSLegacyExecutor', () => {
   it('delivers DATA only to the operation whose id matches', async () => {
     const exec = buildWSLegacyExecutor('ws://localhost/graphql', FakeSocket as any);
 
-    const victim = exec({
-      document,
-      extensions: { connectionParams: { Authorization: 'Bearer victim-token' } },
-    });
-    const attacker = exec({
-      document,
-      extensions: { connectionParams: { Authorization: 'Bearer attacker-token' } },
-    });
+    const victim = asSubscription(
+      exec({
+        document,
+        extensions: { connectionParams: { Authorization: 'Bearer victim-token' } },
+      }),
+    );
+    const attacker = asSubscription(
+      exec({
+        document,
+        extensions: { connectionParams: { Authorization: 'Bearer attacker-token' } },
+      }),
+    );
 
     const victimPending = victim.next();
     const attackerPending = attacker.next();
@@ -224,7 +251,7 @@ describe('buildWSLegacyExecutor', () => {
 
   it('drops ERROR and COMPLETE frames that belong to another operation', async () => {
     const exec = buildWSLegacyExecutor('ws://localhost/graphql', FakeSocket as any);
-    const iterator = exec({ document });
+    const iterator = asSubscription(exec({ document }));
     const pending = iterator.next();
     sockets[0]!.open();
     sockets[0]!.receive({ type: LEGACY_WS.CONNECTION_ACK });
@@ -256,5 +283,32 @@ describe('buildWSLegacyExecutor', () => {
     });
     insecure({ document });
     expect(sockets[1]!.options).toMatchObject({ rejectUnauthorized: false });
+  });
+
+  it('ends the iterator when a frame cannot be parsed', async () => {
+    const exec = buildWSLegacyExecutor('ws://localhost/graphql', FakeSocket as any);
+    const iterator = asSubscription(exec({ document }));
+    const pending = iterator.next();
+    sockets[0]!.open();
+    sockets[0]!.receiveRaw('not-json');
+
+    await expect(pending).resolves.toEqual({
+      done: false,
+      value: { errors: [expect.any(SyntaxError)] },
+    });
+    await expect(iterator.next()).resolves.toEqual({ done: true, value: undefined });
+    expect(sockets[0]!.terminated).toBe(true);
+  });
+
+  it('completes the iterator when the peer closes the socket', async () => {
+    const exec = buildWSLegacyExecutor('ws://localhost/graphql', FakeSocket as any);
+    const iterator = asSubscription(exec({ document }));
+    const pending = iterator.next();
+    sockets[0]!.open();
+    sockets[0]!.receive({ type: LEGACY_WS.CONNECTION_ACK });
+    sockets[0]!.closeFromPeer();
+
+    await expect(pending).resolves.toEqual({ done: true, value: undefined });
+    expect(sockets[0]!.terminated).toBe(false);
   });
 });

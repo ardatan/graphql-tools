@@ -78,12 +78,6 @@ export function buildWSLegacyExecutor(
           skipUTF8Validation: true,
         });
 
-        function errorHandler(err: Error) {
-          if (!closed) {
-            observer.error(err);
-          }
-        }
-
         function closeSocket(sendStop: boolean) {
           if (closed) {
             return;
@@ -97,25 +91,24 @@ export function buildWSLegacyExecutor(
                   type: LEGACY_WS.STOP,
                   id,
                 }),
-                (error: any) => {
-                  if (error) {
-                    errorHandler(error);
-                  }
-                },
               );
             }
             websocket.send(
               JSON.stringify({
                 type: LEGACY_WS.CONNECTION_TERMINATE,
               }),
-              (error: any) => {
-                if (error) {
-                  errorHandler(error);
-                }
-              },
             );
           }
           websocket.terminate();
+        }
+
+        function endWithError(err: unknown) {
+          if (closed) {
+            return;
+          }
+          closeSocket(false);
+          observer.error(err as Error);
+          observer.complete();
         }
 
         function disposeSocket() {
@@ -135,14 +128,23 @@ export function buildWSLegacyExecutor(
             }),
             (error: any) => {
               if (error) {
-                errorHandler(error);
+                endWithError(error);
               }
             },
           );
         };
 
         websocket.onerror = event => {
-          errorHandler(event.error);
+          endWithError(event.error);
+        };
+
+        websocket.onclose = () => {
+          if (closed) {
+            return;
+          }
+          closed = true;
+          disposers.delete(disposeSocket);
+          observer.complete();
         };
 
         websocket.onmessage = event => {
@@ -153,7 +155,7 @@ export function buildWSLegacyExecutor(
           try {
             data = JSON.parse(event.data.toString('utf-8'));
           } catch (error) {
-            errorHandler(error instanceof Error ? error : new Error(String(error)));
+            endWithError(error);
             return;
           }
           switch (data.type) {
@@ -170,14 +172,14 @@ export function buildWSLegacyExecutor(
                 }),
                 (error: any) => {
                   if (error) {
-                    errorHandler(error);
+                    endWithError(error);
                   }
                 },
               );
               break;
             }
             case LEGACY_WS.CONNECTION_ERROR: {
-              observer.error(data.payload);
+              endWithError(data.payload);
               break;
             }
             case LEGACY_WS.CONNECTION_KEEP_ALIVE: {
@@ -194,7 +196,7 @@ export function buildWSLegacyExecutor(
               if (data.id !== id) {
                 break;
               }
-              observer.error(data.payload);
+              endWithError(data.payload);
               break;
             }
             case LEGACY_WS.COMPLETE: {
