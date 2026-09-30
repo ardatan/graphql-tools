@@ -30,99 +30,134 @@ export interface LegacyWSExecutorOpts {
   rejectUnauthorized?: boolean;
 }
 
+function isConnectionParamsRecord(value: unknown): value is Record<string, unknown> {
+  return value != null && typeof value === 'object' && !Array.isArray(value);
+}
+
 export function buildWSLegacyExecutor(
   subscriptionsEndpoint: string,
   WebSocketImpl: typeof WebSocket,
   options?: LegacyWSExecutorOpts,
 ): DisposableExecutor {
-  let executorConnectionParams = {};
-  let websocket: WebSocket | null = null;
+  const disposers = new Set<() => void>();
+  let operationSeq = 0;
 
-  const ensureWebsocket = (errorHandler: (error: Error) => void = err => console.error(err)) => {
-    if (websocket == null || websocket.readyState !== WebSocket.OPEN) {
-      websocket = new WebSocketImpl(subscriptionsEndpoint, 'graphql-ws', {
-        followRedirects: true,
-        headers: options?.headers,
-        rejectUnauthorized: options?.rejectUnauthorized ?? true,
-        skipUTF8Validation: true,
-      });
-
-      websocket.onopen = () => {
-        let payload: any = {};
-        switch (typeof options?.connectionParams) {
-          case 'function':
-            payload = options?.connectionParams();
-            break;
-          case 'object':
-            payload = options?.connectionParams;
-            break;
-        }
-        payload = Object.assign(payload, executorConnectionParams);
-        websocket!.send(
-          JSON.stringify({
-            type: LEGACY_WS.CONNECTION_INIT,
-            payload,
-          }),
-          (error: any) => {
-            if (error) {
-              errorHandler(error);
-            }
-          },
-        );
-      };
-
-      websocket.onerror = event => {
-        errorHandler(event.error);
-      };
-
-      websocket.onclose = () => {
-        websocket = null;
-      };
+  function baseConnectionParams(): Record<string, unknown> {
+    const connectionParams = options?.connectionParams;
+    if (typeof connectionParams === 'function') {
+      const resolved = connectionParams();
+      return isConnectionParamsRecord(resolved) ? { ...resolved } : {};
     }
-  };
-
-  const cleanupWebsocket = () => {
-    if (websocket != null) {
-      websocket.send(
-        JSON.stringify({
-          type: LEGACY_WS.CONNECTION_TERMINATE,
-        }),
-      );
-      websocket.terminate();
-      websocket = null;
+    if (isConnectionParamsRecord(connectionParams)) {
+      return { ...connectionParams };
     }
-  };
+    return {};
+  }
+
+  function requestConnectionParams(request: ExecutionRequest): Record<string, unknown> {
+    const fromExtensions = request.extensions?.['connectionParams'];
+    return isConnectionParamsRecord(fromExtensions) ? { ...fromExtensions } : {};
+  }
 
   const executor: DisposableExecutor = function legacyExecutor(request: ExecutionRequest) {
-    // additional connection params can be supplied through the "connectionParams" field in extensions.
-    // TODO: connection params only from the FIRST operation in lazy mode will be used (detect connectionParams changes and reconnect, too implicit?)
-    if (
-      request.extensions?.['connectionParams'] &&
-      typeof request.extensions?.['connectionParams'] === 'object'
-    ) {
-      executorConnectionParams = Object.assign(
-        executorConnectionParams,
-        request.extensions['connectionParams'],
-      );
-    }
+    // Bound to this execution only. A later request must not inherit keys it omits.
+    const connectionParams = {
+      ...baseConnectionParams(),
+      ...requestConnectionParams(request),
+    };
+    operationSeq += 1;
+    const id = `${operationSeq.toString(36)}-${Math.random().toString(36).slice(2)}`;
 
-    const id = Date.now().toString();
     return observableToAsyncIterable({
       subscribe(observer) {
+        let closed = false;
+        const websocket = new WebSocketImpl(subscriptionsEndpoint, 'graphql-ws', {
+          followRedirects: true,
+          headers: options?.headers,
+          rejectUnauthorized: options?.rejectUnauthorized ?? true,
+          skipUTF8Validation: true,
+        });
+
         function errorHandler(err: Error) {
-          observer.error(err);
+          if (!closed) {
+            observer.error(err);
+          }
         }
-        ensureWebsocket();
-        if (websocket == null) {
-          throw new Error(`WebSocket connection is not found!`);
+
+        function closeSocket(sendStop: boolean) {
+          if (closed) {
+            return;
+          }
+          closed = true;
+          disposers.delete(disposeSocket);
+          if (websocket.readyState === WebSocket.OPEN) {
+            if (sendStop) {
+              websocket.send(
+                JSON.stringify({
+                  type: LEGACY_WS.STOP,
+                  id,
+                }),
+                (error: any) => {
+                  if (error) {
+                    errorHandler(error);
+                  }
+                },
+              );
+            }
+            websocket.send(
+              JSON.stringify({
+                type: LEGACY_WS.CONNECTION_TERMINATE,
+              }),
+              (error: any) => {
+                if (error) {
+                  errorHandler(error);
+                }
+              },
+            );
+          }
+          websocket.terminate();
         }
+
+        function disposeSocket() {
+          closeSocket(false);
+        }
+
+        disposers.add(disposeSocket);
+
+        websocket.onopen = () => {
+          if (closed) {
+            return;
+          }
+          websocket.send(
+            JSON.stringify({
+              type: LEGACY_WS.CONNECTION_INIT,
+              payload: connectionParams,
+            }),
+            (error: any) => {
+              if (error) {
+                errorHandler(error);
+              }
+            },
+          );
+        };
+
+        websocket.onerror = event => {
+          errorHandler(event.error);
+        };
+
         websocket.onmessage = event => {
-          const data = JSON.parse(event.data.toString('utf-8'));
+          if (closed) {
+            return;
+          }
+          let data: any;
+          try {
+            data = JSON.parse(event.data.toString('utf-8'));
+          } catch (error) {
+            errorHandler(error instanceof Error ? error : new Error(String(error)));
+            return;
+          }
           switch (data.type) {
             case LEGACY_WS.CONNECTION_ACK: {
-              if (websocket == null) {
-                throw new Error(`WebSocket connection is not found!`);
-              }
               websocket.send(
                 JSON.stringify({
                   type: LEGACY_WS.START,
@@ -149,24 +184,25 @@ export function buildWSLegacyExecutor(
               break;
             }
             case LEGACY_WS.DATA: {
+              if (data.id !== id) {
+                break;
+              }
               observer.next(data.payload);
               break;
             }
-            case LEGACY_WS.COMPLETE: {
-              if (websocket != null) {
-                websocket.send(
-                  JSON.stringify({
-                    type: LEGACY_WS.CONNECTION_TERMINATE,
-                  }),
-                  (error: any) => {
-                    if (error) {
-                      errorHandler(error);
-                    }
-                  },
-                );
+            case LEGACY_WS.ERROR: {
+              if (data.id !== id) {
+                break;
               }
+              observer.error(data.payload);
+              break;
+            }
+            case LEGACY_WS.COMPLETE: {
+              if (data.id !== id) {
+                break;
+              }
+              closeSocket(false);
               observer.complete();
-              cleanupWebsocket();
               break;
             }
           }
@@ -174,22 +210,18 @@ export function buildWSLegacyExecutor(
 
         return {
           unsubscribe: () => {
-            if (websocket?.readyState === WebSocket.OPEN) {
-              websocket?.send(
-                JSON.stringify({
-                  type: LEGACY_WS.STOP,
-                  id,
-                }),
-              );
-            }
-            cleanupWebsocket();
+            closeSocket(true);
           },
         };
       },
     });
   };
 
-  executor[Symbol.dispose] = cleanupWebsocket;
+  executor[Symbol.dispose] = () => {
+    for (const disposeSocket of [...disposers]) {
+      disposeSocket();
+    }
+  };
 
   return executor;
 }
