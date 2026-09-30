@@ -112,7 +112,11 @@ export function buildWSLegacyExecutor(
         }
 
         function disposeSocket() {
+          if (closed) {
+            return;
+          }
           closeSocket(false);
+          observer.complete();
         }
 
         disposers.add(disposeSocket);

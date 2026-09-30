@@ -311,4 +311,17 @@ describe('buildWSLegacyExecutor', () => {
     await expect(pending).resolves.toEqual({ done: true, value: undefined });
     expect(sockets[0]!.terminated).toBe(false);
   });
+
+  it('completes a pending iterator when the executor is disposed', async () => {
+    const exec = buildWSLegacyExecutor('ws://localhost/graphql', FakeSocket as any);
+    const iterator = asSubscription(exec({ document }));
+    const pending = iterator.next();
+    sockets[0]!.open();
+    sockets[0]!.receive({ type: LEGACY_WS.CONNECTION_ACK });
+
+    (exec as { [Symbol.dispose](): void })[Symbol.dispose]();
+
+    await expect(pending).resolves.toEqual({ done: true, value: undefined });
+    expect(sockets[0]!.terminated).toBe(true);
+  });
 });
