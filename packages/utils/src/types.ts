@@ -100,7 +100,7 @@ export enum DirectiveLocation {
   INPUT_FIELD_DEFINITION = 'INPUT_FIELD_DEFINITION',
 }
 
-export type ExtensionsObject = Record<string, any>;
+export type ExtensionsObject = Record<string | symbol, any>;
 
 export type ObjectTypeExtensions = {
   type: 'object';

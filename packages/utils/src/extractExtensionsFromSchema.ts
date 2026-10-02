@@ -1,4 +1,4 @@
-import { GraphQLFieldConfig, GraphQLSchema } from 'graphql';
+import { GraphQLFieldConfig, GraphQLSchema, versionInfo } from 'graphql';
 import { asArray } from './helpers.js';
 import { MapperKind } from './Interfaces.js';
 import { mapSchema } from './mapSchema.js';
@@ -15,6 +15,15 @@ function handleDirectiveExtensions(extensions: any, removeDirectives: boolean) {
   const finalExtensions: any = {
     ...rest,
   };
+  // GraphQL.js v17+ may put symbol keys on extensions (toObjMapWithSymbols). Object
+  // rest/spread already copies enumerable own symbols; this loop also picks up
+  // non-enumerable ones (assignment makes them enumerable on the result). Gated to
+  // v17+ to avoid surprising behavior on older runtimes.
+  if (versionInfo?.major >= 17) {
+    for (const sym of Object.getOwnPropertySymbols(extensions)) {
+      finalExtensions[sym] = extensions[sym];
+    }
+  }
   if (!removeDirectives) {
     if (existingDirectives != null) {
       const directives = {};
