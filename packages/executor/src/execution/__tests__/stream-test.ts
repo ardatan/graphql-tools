@@ -126,6 +126,32 @@ function createResolvablePromise<T>(): [Promise<T>, (value?: T) => void] {
 }
 
 describe('Execute: stream directive', () => {
+  it('preserves field order in initial and streamed items', async () => {
+    const result = await complete(parse('{ friendList @stream(initialCount: 1) { id name } }'), {
+      friendList: () => [
+        { id: Promise.resolve(1), name: 'Luke' },
+        { id: Promise.resolve(2), name: 'Han' },
+      ],
+    });
+
+    if (!Array.isArray(result)) {
+      throw new Error('Expected incremental results');
+    }
+
+    const initialData = 'data' in result[0] ? result[0].data : undefined;
+    expect(Object.entries(initialData?.['friendList']?.[0] ?? {})).toEqual([
+      ['id', '1'],
+      ['name', 'Luke'],
+    ]);
+
+    const patch = result[1].incremental?.[0];
+    const streamedItem = patch && 'items' in patch ? patch.items?.[0] : undefined;
+    expect(Object.entries((streamedItem as object | undefined) ?? {})).toEqual([
+      ['id', '2'],
+      ['name', 'Han'],
+    ]);
+  });
+
   it('Can stream a list field', async () => {
     const document = parse('{ scalarList @stream(initialCount: 1) }');
     const result = await complete(document, {

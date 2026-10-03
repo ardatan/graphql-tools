@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { inspect } from 'cross-inspect';
 import {
   GraphQLBoolean,
@@ -973,6 +972,49 @@ describe('Execute: Handles basic execution tasks', () => {
     expect(result).toEqual({
       data: { a: 'a', b: 'b', c: 'c', d: 'd', e: 'e' },
     });
+    const data = 'data' in result ? result.data : undefined;
+    // Jest object equality matcher ignores property order, so compare the ordered entries.
+    expect(Object.entries(data ?? {})).toEqual([
+      ['a', 'a'],
+      ['b', 'b'],
+      ['c', 'c'],
+      ['d', 'd'],
+      ['e', 'e'],
+    ]);
+  });
+
+  it('preserves field order when async resolvers finish in reverse order', async () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Type',
+        fields: {
+          a: { type: GraphQLString },
+          b: { type: GraphQLString },
+        },
+      }),
+    });
+    const document = parse('{ a b }');
+    const resolutionOrder: string[] = [];
+    const rootValue = {
+      a: async () => {
+        await resolveOnNextTick();
+        resolutionOrder.push('a');
+        return 'a';
+      },
+      b: async () => {
+        resolutionOrder.push('b');
+        return 'b';
+      },
+    };
+
+    const result = await execute({ schema, document, rootValue });
+    expect(resolutionOrder).toEqual(['b', 'a']);
+    expect(result).toEqual({ data: { a: 'a', b: 'b' } });
+    const data = 'data' in result ? result.data : undefined;
+    expect(Object.entries(data ?? {})).toEqual([
+      ['a', 'a'],
+      ['b', 'b'],
+    ]);
   });
 
   it('Avoids recursion', () => {
