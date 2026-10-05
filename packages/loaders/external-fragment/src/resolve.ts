@@ -189,10 +189,18 @@ function parseFile(
 ): ExtractedFileInfo | undefined {
   if (fileContentFilter && !fileContentFilter(content, filePath)) return;
 
-  try {
+  if (isGraphQLFile(filePath)) {
+    // Standalone GraphQL files are expected to contain valid GraphQL, so expose
+    // their parse errors instead of hiding them as missing fragments.
     return extractFragmentsAndSpreads(filePath, content, pluckConfig);
-  } catch {
-    return undefined;
+  } else {
+    try {
+      // Code files are scanned opportunistically; an unrelated source syntax
+      // error should not prevent scanning other files for GraphQL documents.
+      return extractFragmentsAndSpreads(filePath, content, pluckConfig);
+    } catch {
+      return undefined;
+    }
   }
 }
 
@@ -628,8 +636,13 @@ function getPackageNameFromDir(packageDir: string): string {
   try {
     const pkg = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8'));
     return pkg.name || basename(packageDir) || 'unknown';
-  } catch {
-    return basename(packageDir) || 'unknown';
+  } catch (err) {
+    // A missing package.json can use the directory name, but malformed JSON,
+    // permission errors, and unexpected failures should remain visible.
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+      return basename(packageDir) || 'unknown';
+    }
+    throw err;
   }
 }
 
