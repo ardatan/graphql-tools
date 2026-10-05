@@ -73,7 +73,7 @@
     "babel-loader": "10.1.1",
     "express": "5.2.1",
     "graphql-sse": "2.6.2",
-    "graphql-upload": "18.0.0",
+    "graphql-upload": "18.0.1",
     "graphql-yoga": "5.24.1",
     "puppeteer": "25.12.0",
     "subscriptions-transport-ws": "0.11.0",
