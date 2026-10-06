@@ -70,14 +70,6 @@ export interface ExternalFragmentResolverOptions {
   excludePatterns?: string[];
   pluckConfig?: GraphQLTagPluckOptions;
   fileContentFilter?: (content: string, filePath: string) => boolean;
-  /**
-   * Time-to-live for cache entries in milliseconds. Cache configuration is
-   * shared by all resolver calls in this module. External package maps include
-   * parsed sources; root package maps are not retained unless they were
-   * already cached as external dependencies. Supplying a different value
-   * recreates all memoized caches and discards their existing entries.
-   * @default Infinity (cache forever)
-   */
   cacheTTL?: number;
   invalidateRootPackageCache?: boolean;
 }
@@ -494,11 +486,11 @@ interface FragmentResolutionOptions {
 
 /**
  * Resolves missing fragments to provider files, following their external spreads.
- * Examples (results abbreviated to file names), 'A' is the fragment name being looked up:
- * - Need A; only file_a.graphql defines A, with no spreads -> [file_a.graphql].
+ * Examples, 'A' is the fragment name being looked up:
+ * - Need A; only `file_a.graphql` defines A, with no spreads -> [file_a.graphql].
  * - Need A; no provider defines A -> throws a missing fragment error.
  * - Need A; two packages define A -> throws a duplicate fragment error.
- * - Need A; A in file_a.graphql spreads B, provided by file_b.graphql -> [file_a.graphql, file_b.graphql].
+ * - Need A; A in `file_a.graphql` spreads B, provided by `file_b.graphql` -> [file_a.graphql, file_b.graphql].
  */
 function findExternalFragments({
   missingFragments,
