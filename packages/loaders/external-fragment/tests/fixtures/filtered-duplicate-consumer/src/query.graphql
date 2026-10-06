@@ -1,0 +1,9 @@
+query GetUser {
+  user {
+    ...UserFields
+  }
+}
+
+fragment UnusedUserFragment on User {
+  id
+}

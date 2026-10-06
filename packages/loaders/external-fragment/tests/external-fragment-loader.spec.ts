@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import * as path from 'path';
 import { loadDocuments, loadDocumentsSync } from '@graphql-tools/load';
 import externalFragmentLoader, {
@@ -134,6 +134,76 @@ describe('ExternalFragmentLoader', () => {
         expect(userFieldsSource?.rawSDL).not.toContain('UnusedUserFragment');
       },
     );
+
+    describe.each([
+      {
+        collision: 'a local fragment',
+        consumer: 'filtered-duplicate-consumer',
+        expectedFiles: ['user-email.graphql', 'user-fields.graphql'],
+        expectedFragments: ['UserEmail', 'UserFields'],
+      },
+      {
+        collision: 'an unused fragment in another provider',
+        consumer: 'filtered-provider-duplicate-consumer',
+        expectedFiles: ['profile-fields.graphql', 'user-email.graphql', 'user-fields.graphql'],
+        expectedFragments: ['ProfileFields', 'UserEmail', 'UserFields'],
+      },
+    ])(
+      'provider fragments duplicated by $collision',
+      ({ consumer, expectedFiles, expectedFragments }) => {
+        const options = {
+          packageDir: path.join(FIXTURES_DIR, consumer),
+          externalPackagesDirs: [FIXTURES_DIR],
+        };
+
+        it.each([
+          ['async', () => loader.load('.', options)],
+          ['sync', () => loader.loadSync('.', options)],
+        ] as const)('should ignore duplicates that are filtered out (%s)', async (_label, load) => {
+          const sources = await load();
+
+          expect(sources.map(source => path.basename(source.location!)).sort()).toEqual(
+            expectedFiles,
+          );
+          expect(
+            sources
+              .flatMap(source => source.document!.definitions)
+              .filter(definition => definition.kind === 'FragmentDefinition')
+              .map(definition => definition.name.value)
+              .sort(),
+          ).toEqual(expectedFragments);
+          for (const source of sources) {
+            expect(source.rawSDL).not.toContain('UnusedUserFragment');
+          }
+        });
+
+        it.each([
+          ['async', () => resolveExternalFragments(options)],
+          ['sync', () => resolveExternalFragmentsSync(options)],
+        ] as const)(
+          'should report duplicates when resolving whole files (%s)',
+          async (_label, resolve) => {
+            await expect(Promise.resolve().then(resolve)).rejects.toThrow(
+              'Duplicate fragment "UnusedUserFragment"',
+            );
+          },
+        );
+      },
+    );
+
+    it.each([
+      ['async', (options: typeof packageAOpts) => loader.load('.', options)],
+      ['sync', (options: typeof packageAOpts) => loader.loadSync('.', options)],
+    ] as const)('should reject duplicate required fragments (%s)', async (_label, load) => {
+      await expect(
+        Promise.resolve().then(() =>
+          load({
+            packageDir: path.join(FIXTURES_DUP_DIR, 'duplicate-fragment-consumer'),
+            externalPackagesDirs: [FIXTURES_DUP_DIR],
+          }),
+        ),
+      ).rejects.toThrow('Duplicate fragment "ItemFields"');
+    });
   });
 
   describe('TypeScript code files', () => {
@@ -157,6 +227,57 @@ describe('ExternalFragmentLoader', () => {
       expect(sources[0].rawSDL).toContain('fragment SharedUserFragment on User');
       expect(sources[0].rawSDL).not.toContain('import { gql }');
       expect(sources[0].document?.definitions).toHaveLength(1);
+    });
+
+    it.each([
+      ['async', () => loader.load('.', tsOpts)],
+      ['sync', () => loader.loadSync('.', tsOpts)],
+    ] as const)(
+      'should surface GraphQL syntax errors inside gql tags (%s)',
+      async (_label, load) => {
+        const providerFile = path.join(FIXTURES_TS_DIR, 'typescript-provider/src/fragments.ts');
+        const originalContent = readFileSync(providerFile, 'utf8');
+        clearCache();
+
+        try {
+          writeFileSync(
+            providerFile,
+            originalContent.replace(
+              'fragment SharedUserFragment on User',
+              'fragment SharedUserFragment User',
+            ),
+          );
+
+          await expect(Promise.resolve().then(load)).rejects.toThrow(
+            'Syntax Error: Expected "on", found Name "User".',
+          );
+        } finally {
+          writeFileSync(providerFile, originalContent);
+          clearCache();
+        }
+      },
+    );
+
+    it.each([
+      ['async', () => loader.load('.', tsOpts)],
+      ['sync', () => loader.loadSync('.', tsOpts)],
+    ] as const)('should skip unrelated TypeScript syntax errors (%s)', async (_label, load) => {
+      const temporaryDir = mkdtempSync(
+        path.join(FIXTURES_TS_DIR, 'typescript-provider/src/unparseable-'),
+      );
+      clearCache();
+
+      try {
+        writeFileSync(path.join(temporaryDir, 'unrelated.ts'), 'export const broken = ;');
+
+        const sources = await load();
+
+        expect(sources).toHaveLength(1);
+        expect(sources[0].rawSDL).toContain('fragment SharedUserFragment on User');
+      } finally {
+        rmSync(temporaryDir, { recursive: true, force: true });
+        clearCache();
+      }
     });
 
     it('should load fragments from .ts files with the function loader', () => {

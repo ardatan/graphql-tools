@@ -97,14 +97,7 @@ function isGraphQLFile(filePath: string): boolean {
   return GQL_EXTENSIONS.some(ext => filePath.endsWith(`.${ext}`));
 }
 
-function extractFragmentsAndSpreads(
-  filePath: string,
-  fileContent: string,
-  pluckConfig?: GraphQLTagPluckOptions,
-): ExtractedFileInfo {
-  const rawSDLs = isGraphQLFile(filePath)
-    ? [fileContent]
-    : gqlPluckFromCodeStringSync(filePath, fileContent, pluckConfig).map(source => source.body);
+function extractFragmentsAndSpreads(rawSDLs: string[]): ExtractedFileInfo {
   const sources = rawSDLs.map(rawSDL => ({
     rawSDL,
     document: parse(rawSDL, { noLocation: true }),
@@ -149,12 +142,17 @@ function createPackageMapBuilder(): PackageMapBuilder {
   };
 }
 
-function registerFile(
-  builder: PackageMapBuilder,
-  packageDir: string,
-  filePath: string,
-  info: ExtractedFileInfo,
-): void {
+function registerFile({
+  builder,
+  packageDir,
+  filePath,
+  info,
+}: {
+  builder: PackageMapBuilder;
+  packageDir: string;
+  filePath: string;
+  info: ExtractedFileInfo;
+}): void {
   builder.sourcesPerFile.set(filePath, info.sources);
   if (info.definitions.length === 0 && info.spreads.size === 0) return;
 
@@ -181,27 +179,33 @@ function registerFile(
   }
 }
 
-function parseFile(
-  filePath: string,
-  content: string,
-  pluckConfig?: GraphQLTagPluckOptions,
-  fileContentFilter?: (content: string, filePath: string) => boolean,
-): ExtractedFileInfo | undefined {
+function parseFile({
+  filePath,
+  content,
+  pluckConfig,
+  fileContentFilter,
+}: {
+  filePath: string;
+  content: string;
+  pluckConfig?: GraphQLTagPluckOptions;
+  fileContentFilter?: (content: string, filePath: string) => boolean;
+}): ExtractedFileInfo | undefined {
   if (fileContentFilter && !fileContentFilter(content, filePath)) return;
 
-  if (isGraphQLFile(filePath)) {
-    // Standalone GraphQL files are expected to contain valid GraphQL, so expose
-    // their parse errors instead of hiding them as missing fragments.
-    return extractFragmentsAndSpreads(filePath, content, pluckConfig);
-  } else {
+  let rawSDLs = [content];
+  if (!isGraphQLFile(filePath)) {
+    let pluckedSources;
     try {
-      // Code files are scanned opportunistically; an unrelated source syntax
-      // error should not prevent scanning other files for GraphQL documents.
-      return extractFragmentsAndSpreads(filePath, content, pluckConfig);
+      // Code files are scanned opportunistically, so skip files that cannot be
+      // plucked. GraphQL parsing below must still surface invalid documents.
+      pluckedSources = gqlPluckFromCodeStringSync(filePath, content, pluckConfig);
     } catch {
       return undefined;
     }
+    rawSDLs = pluckedSources.map(source => source.body);
   }
+
+  return extractFragmentsAndSpreads(rawSDLs);
 }
 
 // --- Memoized functions ---
@@ -279,8 +283,8 @@ function buildPackageFragmentMapRaw(
 
   for (const filePath of allFiles) {
     const content = readFileSync(filePath, 'utf8');
-    const info = parseFile(filePath, content, pluckConfig, fileContentFilter);
-    if (info) registerFile(builder, packageDir, filePath, info);
+    const info = parseFile({ filePath, content, pluckConfig, fileContentFilter });
+    if (info) registerFile({ builder, packageDir, filePath, info });
   }
 
   return createPackageFragmentMap(builder);
@@ -321,8 +325,8 @@ async function buildPackageFragmentMapAsyncRaw(
   await Promise.all(
     allFiles.map(async filePath => {
       const content = await readFile(filePath, 'utf8');
-      const info = parseFile(filePath, content, pluckConfig, fileContentFilter);
-      if (info) registerFile(builder, packageDir, filePath, info);
+      const info = parseFile({ filePath, content, pluckConfig, fileContentFilter });
+      if (info) registerFile({ builder, packageDir, filePath, info });
     }),
   );
 
@@ -418,15 +422,25 @@ function findPackageDir(packageName: string, externalPackagesDirs: string[]): st
   return null;
 }
 
-function collectTransitiveDeps(
-  packageName: string,
-  externalPackagesDirs: string[],
-  filter: (name: string) => boolean,
-  includeDevDependencies: boolean,
-  packageDependencyFilter?: (dependencies: Record<string, string>) => boolean,
-  visited: Set<string> = new Set(),
-  result: Set<string> = new Set(),
-): Set<string> {
+interface CollectTransitiveDepsOptions {
+  packageName: string;
+  externalPackagesDirs: string[];
+  filter: (name: string) => boolean;
+  includeDevDependencies: boolean;
+  packageDependencyFilter?: (dependencies: Record<string, string>) => boolean;
+  visited?: Set<string>;
+  result?: Set<string>;
+}
+
+function collectTransitiveDeps({
+  packageName,
+  externalPackagesDirs,
+  filter,
+  includeDevDependencies,
+  packageDependencyFilter,
+  visited = new Set(),
+  result = new Set(),
+}: CollectTransitiveDepsOptions): Set<string> {
   if (visited.has(packageName)) return result;
   visited.add(packageName);
 
@@ -444,15 +458,15 @@ function collectTransitiveDeps(
   }
 
   for (const dep of deps.filter(filter)) {
-    collectTransitiveDeps(
-      dep,
+    collectTransitiveDeps({
+      packageName: dep,
       externalPackagesDirs,
       filter,
       includeDevDependencies,
       packageDependencyFilter,
       visited,
       result,
-    );
+    });
   }
 
   return result;
@@ -470,13 +484,29 @@ function findMissingFragments(rootMap: PackageFragmentMap): Set<string> {
   return missing;
 }
 
-function findExternalFragments(
-  missingFragments: Set<string>,
-  depMaps: Map<string, PackageFragmentMap>,
-  rootMap: PackageFragmentMap,
-  rootPackageName: string,
-  filterToRequiredFragments: boolean,
-): ResolvedExternalFileWithSources[] {
+interface FragmentResolutionOptions {
+  missingFragments: Set<string>;
+  depMaps: Map<string, PackageFragmentMap>;
+  rootMap: PackageFragmentMap;
+  rootPackageName: string;
+  filterToRequiredFragments: boolean;
+}
+
+/**
+ * Resolves missing fragments to provider files, following their external spreads.
+ * Examples (results abbreviated to file names), 'A' is the fragment name being looked up:
+ * - Need A; only file_a.graphql defines A, with no spreads -> [file_a.graphql].
+ * - Need A; no provider defines A -> throws a missing fragment error.
+ * - Need A; two packages define A -> throws a duplicate fragment error.
+ * - Need A; A in file_a.graphql spreads B, provided by file_b.graphql -> [file_a.graphql, file_b.graphql].
+ */
+function findExternalFragments({
+  missingFragments,
+  depMaps,
+  rootMap,
+  rootPackageName,
+  filterToRequiredFragments,
+}: FragmentResolutionOptions): ResolvedExternalFileWithSources[] {
   const globalIndex = new Map<
     string,
     { packageName: string; filePath: string; typeCondition: string }[]
@@ -565,6 +595,10 @@ function findExternalFragments(
 
     return {
       ...file,
+      // Duplicate checks must use the same fragment names as the filtered sources.
+      definitions: filterToRequiredFragments
+        ? file.definitions.filter(definition => requiredFragmentNames.has(definition.name))
+        : file.definitions,
       sources: filterToRequiredFragments ? filterParsedSources(sources, requiredFragmentNames) : [],
     };
   });
@@ -693,34 +727,22 @@ function getTransitiveDeps(
 
   const transitiveDeps = new Set<string>();
   for (const dep of filteredRootDeps) {
-    collectTransitiveDeps(
-      dep,
+    collectTransitiveDeps({
+      packageName: dep,
       externalPackagesDirs,
       filter,
       includeDevDependencies,
       packageDependencyFilter,
-      new Set(),
-      transitiveDeps,
-    );
+      visited: new Set(),
+      result: transitiveDeps,
+    });
   }
   return transitiveDeps;
 }
 
-function resolveFromMaps(
-  rootMap: PackageFragmentMap,
-  depMaps: Map<string, PackageFragmentMap>,
-  rootPackageName: string,
-  missingFragments: Set<string>,
-  filterToRequiredFragments: boolean,
-): ResolvedExternalFileWithSources[] {
-  const resolvedFiles = findExternalFragments(
-    missingFragments,
-    depMaps,
-    rootMap,
-    rootPackageName,
-    filterToRequiredFragments,
-  );
-  detectDuplicateFragments(rootMap, resolvedFiles, rootPackageName);
+function resolveFromMaps(options: FragmentResolutionOptions): ResolvedExternalFileWithSources[] {
+  const resolvedFiles = findExternalFragments(options);
+  detectDuplicateFragments(options.rootMap, resolvedFiles, options.rootPackageName);
 
   return resolvedFiles;
 }
@@ -843,13 +865,13 @@ export async function resolveExternalFragmentsWithSources(
     }),
   );
 
-  return resolveFromMaps(
-    context.rootMap,
+  return resolveFromMaps({
+    rootMap: context.rootMap,
     depMaps,
-    context.rootPackageName,
-    context.missingFragments,
+    rootPackageName: context.rootPackageName,
+    missingFragments: context.missingFragments,
     filterToRequiredFragments,
-  );
+  });
 }
 
 export async function resolveExternalFragments(
@@ -890,13 +912,13 @@ export function resolveExternalFragmentsSyncWithSources(
     depMaps.set(dependency.name, getPackageFragmentMap(dependency.args, true));
   }
 
-  return resolveFromMaps(
-    context.rootMap,
+  return resolveFromMaps({
+    rootMap: context.rootMap,
     depMaps,
-    context.rootPackageName,
-    context.missingFragments,
+    rootPackageName: context.rootPackageName,
+    missingFragments: context.missingFragments,
     filterToRequiredFragments,
-  );
+  });
 }
 
 export function resolveExternalFragmentsSync(
