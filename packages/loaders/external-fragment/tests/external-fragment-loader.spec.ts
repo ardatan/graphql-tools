@@ -1,4 +1,6 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { randomUUID } from 'crypto';
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
 import * as path from 'path';
 import { loadDocuments, loadDocumentsSync } from '@graphql-tools/load';
 import externalFragmentLoader, {
@@ -8,7 +10,8 @@ import externalFragmentLoader, {
   resolveExternalFragmentsSync,
 } from '../src/index.js';
 
-const FIXTURES_DIR = path.join(__dirname, 'fixtures');
+// Tests edit fixtures, so concurrent unit and leak runs need separate copies.
+const FIXTURES_DIR = path.join(tmpdir(), `external-fragment-loader-${randomUUID()}`);
 const FIXTURES_TS_DIR = FIXTURES_DIR;
 const FIXTURES_DUP_DIR = FIXTURES_DIR;
 
@@ -25,6 +28,15 @@ const tsOpts = {
 
 describe('ExternalFragmentLoader', () => {
   const loader = new ExternalFragmentLoader();
+
+  beforeAll(() => {
+    cpSync(path.join(__dirname, 'fixtures'), FIXTURES_DIR, { recursive: true });
+  });
+
+  afterAll(() => {
+    clearCache();
+    rmSync(FIXTURES_DIR, { recursive: true, force: true });
+  });
 
   describe('resolveExternalFragments', () => {
     it('should resolve direct and transitive fragment dependencies', async () => {
