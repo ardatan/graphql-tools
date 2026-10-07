@@ -69,7 +69,7 @@ export interface ExternalFragmentLoaderOptions extends BaseLoaderOptions {
   /**
    * Optional predicate to filter which files should be scanned for fragments.
    * Receives the file content as a string. Return true to include the file.
-   * Useful to skip files that don't import a GraphQL tag function.
+   * Useful to skip code files that don't use a GraphQL tag or a GraphQL magic comment.
    *
    * @example (content, filePath) =>
    *   /\.(graphql|gql)$/.test(filePath) ||
