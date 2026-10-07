@@ -1,5 +1,26 @@
 # @graphql-tools/mock
 
+## 9.1.16
+
+### Patch Changes
+
+- Updated dependencies [[`19f5b33`](https://github.com/ardatan/graphql-tools/commit/19f5b3373fd7ace0688d19950fc529ce8347952a)]:
+  - @graphql-tools/utils@12.0.3
+  - @graphql-tools/schema@10.1.3
+
+## 9.1.15
+
+### Patch Changes
+
+- [#8467](https://github.com/ardatan/graphql-tools/pull/8467) [`20d36a5`](https://github.com/ardatan/graphql-tools/commit/20d36a5c6eb8fd5524420988e01a48618c450d70) Thanks [@ardatan](https://github.com/ardatan)! - Fix prototype pollution in `mergeIncrementalResult`
+  
+  Path segments are now rejected unless they are primitive strings or numbers, and keys named `__proto__`, `constructor` or `prototype` are still blocked. Previously a non-primitive segment such as `["__proto__"]` bypassed the string equality guard and was coerced into a write on `Object.prototype`.
+  
+  Also exports shared `isSafeObjectKey` / `isDangerousObjectKey` helpers used by this path walker and other package call sites. `@graphql-tools/merge` and `@graphql-tools/mock` are patched so they ship with the new imports; `updateInternalDependencies` raises their utils floor when `12.0.2` is versioned.
+- Updated dependencies [[`b1fbba2`](https://github.com/ardatan/graphql-tools/commit/b1fbba2c52ce6b6d6f0aa92b927654d3eeaa0a8d), [`20d36a5`](https://github.com/ardatan/graphql-tools/commit/20d36a5c6eb8fd5524420988e01a48618c450d70)]:
+  - @graphql-tools/utils@12.0.2
+  - @graphql-tools/schema@10.1.2
+
 ## 9.1.14
 
 ### Patch Changes
