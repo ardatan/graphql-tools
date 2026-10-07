@@ -93,7 +93,7 @@ export interface ExternalFragmentLoaderOptions extends BaseLoaderOptions {
    * Time-to-live for cache entries in milliseconds.
    * Set this for long-running processes (e.g. watch mode) so stale entries
    * are automatically evicted. External package maps include parsed sources
-   * and are shared by resolver calls; a root package map is not retained
+   * and are shared by resolver calls; a `packageDir` package map is not retained
    * unless that package was already cached as an external dependency. Cache
    * configuration is shared by all resolver calls in this module. Calls with
    * a different value recreate all memoized caches, discard their existing
@@ -103,11 +103,11 @@ export interface ExternalFragmentLoaderOptions extends BaseLoaderOptions {
   cacheTTL?: number;
 
   /**
-   * When true, the root package's cached fragment map is invalidated before
-   * each resolution call. This is useful in watch mode where the root package
-   * is the one being edited, so its cache should be refreshed, while dependency
-   * caches can remain valid.
+   * When true, invalidate cached data for the package specified by `packageDir`
+   * before each resolution call, including its fragment map and package.json
+   * dependency metadata. Useful in watch mode to refresh the package being
+   * edited while reusing dependency caches.
    * @default false
    */
-  invalidateRootPackageCache?: boolean;
+  invalidatePackageCache?: boolean;
 }
