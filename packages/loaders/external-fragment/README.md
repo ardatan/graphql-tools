@@ -165,10 +165,10 @@ When running the loader in **watch mode** — for example, to run Codegen in the
 using an IDE so that the package's generated GraphQL types are regenerated automatically whenever a
 file changes — consider setting the following options:
 
-- Set `invalidatePackageCache: true` to invalidate the cached fragment map and `package.json`
-  dependency metadata for the package specified by `packageDir` before each resolution call. This
-  prevents stale data when a package that was previously cached as a provider is later scanned as
-  the consumer.
+- Set `invalidateTargetPackageCache: true` to invalidate the cached fragment map and `package.json`
+  dependency metadata for the target package specified by `packageDir` before each resolution call.
+  This prevents stale data when a package that was previously cached as a provider is later scanned
+  as the consumer.
 
 - Set `cacheTTL` (for example, to `10000` for 10 seconds) so cached provider data eventually
   expires. This helps avoid stale data when a provider package is updated indirectly, for example by

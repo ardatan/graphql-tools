@@ -436,7 +436,7 @@ describe('ExternalFragmentLoader', () => {
           expect(
             await resolve({
               ...packageAOpts,
-              invalidatePackageCache: false,
+              invalidateTargetPackageCache: false,
             }),
           ).toEqual([]);
 
@@ -483,8 +483,8 @@ describe('ExternalFragmentLoader', () => {
       },
     );
 
-    it('should invalidate the package cache when invalidatePackageCache is set', async () => {
-      const opts = { ...packageAOpts, invalidatePackageCache: true };
+    it('should invalidate the target package cache when invalidateTargetPackageCache is set', async () => {
+      const opts = { ...packageAOpts, invalidateTargetPackageCache: true };
 
       const result1 = await resolveExternalFragments(opts);
       const result2 = await resolveExternalFragments(opts);

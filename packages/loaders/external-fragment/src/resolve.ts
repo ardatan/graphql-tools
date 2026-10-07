@@ -71,7 +71,7 @@ export interface ExternalFragmentResolverOptions {
   pluckConfig?: GraphQLTagPluckOptions;
   fileContentFilter?: (content: string, filePath: string) => boolean;
   cacheTTL?: number;
-  invalidatePackageCache?: boolean;
+  invalidateTargetPackageCache?: boolean;
 }
 
 // --- Core logic ---
@@ -680,7 +680,7 @@ interface NormalizedOptions {
   scanInternalDirs: string[];
   extensions: string[];
   excludePatterns: string[];
-  invalidatePackageCache: boolean;
+  invalidateTargetPackageCache: boolean;
 }
 
 function normalizeOptions(options: ExternalFragmentResolverOptions): NormalizedOptions {
@@ -691,7 +691,7 @@ function normalizeOptions(options: ExternalFragmentResolverOptions): NormalizedO
   const scanInternalDirs = options.scanInternalDirs ?? DEFAULT_SCAN_INTERNAL_DIRS;
   const extensions = options.extensions ?? DEFAULT_EXTENSIONS;
   const excludePatterns = options.excludePatterns ?? DEFAULT_EXCLUDE_PATTERNS;
-  const invalidatePackageCache = options.invalidatePackageCache ?? false;
+  const invalidateTargetPackageCache = options.invalidateTargetPackageCache ?? false;
   return {
     externalPackagesDirs,
     filter,
@@ -700,7 +700,7 @@ function normalizeOptions(options: ExternalFragmentResolverOptions): NormalizedO
     scanInternalDirs,
     extensions,
     excludePatterns,
-    invalidatePackageCache,
+    invalidateTargetPackageCache,
   };
 }
 
@@ -764,13 +764,13 @@ function getPackageMapArgs(
   ];
 }
 
-function invalidatePackageCacheIfRequested(
+function invalidateTargetPackageCacheIfRequested(
   options: ExternalFragmentResolverOptions,
-  { includeDevDependencies, invalidatePackageCache }: NormalizedOptions,
+  { includeDevDependencies, invalidateTargetPackageCache }: NormalizedOptions,
   rootPackageMapArgs: PackageMapArgs,
   deleteMap: (...args: PackageMapArgs) => void,
 ): void {
-  if (!invalidatePackageCache) return;
+  if (!invalidateTargetPackageCache) return;
 
   deleteMap(...rootPackageMapArgs);
   readPackageJsonDeps.delete(join(options.packageDir, 'package.json'), includeDevDependencies);
@@ -836,7 +836,7 @@ export async function resolveExternalFragmentsWithSources(
   initCache(options.cacheTTL);
 
   const rootPackageMapArgs = getPackageMapArgs(options.packageDir, options, normalized);
-  invalidatePackageCacheIfRequested(
+  invalidateTargetPackageCacheIfRequested(
     options,
     normalized,
     rootPackageMapArgs,
@@ -886,7 +886,7 @@ export function resolveExternalFragmentsSyncWithSources(
   initCache(options.cacheTTL);
 
   const rootPackageMapArgs = getPackageMapArgs(options.packageDir, options, normalized);
-  invalidatePackageCacheIfRequested(
+  invalidateTargetPackageCacheIfRequested(
     options,
     normalized,
     rootPackageMapArgs,

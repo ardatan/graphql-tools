@@ -103,11 +103,11 @@ export interface ExternalFragmentLoaderOptions extends BaseLoaderOptions {
   cacheTTL?: number;
 
   /**
-   * When true, invalidate cached data for the package specified by `packageDir`
+   * When true, invalidate cached data for the target package specified by `packageDir`
    * before each resolution call, including its fragment map and package.json
    * dependency metadata. Useful in watch mode to refresh the package being
    * edited while reusing dependency caches.
    * @default false
    */
-  invalidatePackageCache?: boolean;
+  invalidateTargetPackageCache?: boolean;
 }
