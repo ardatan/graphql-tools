@@ -1,5 +1,6 @@
 import {
   getNamedType,
+  GraphQLDirective,
   GraphQLFieldMap,
   GraphQLSchema,
   isEnumType,
@@ -116,6 +117,12 @@ function visitSchema(schema: GraphQLSchema): Set<string> {
     queue.push(type.name);
   }
 
+  // Visit the argument types of the defined directives so that their
+  // definitions stay intact even when the directives are not applied anywhere
+  for (const directive of schema.getDirectives()) {
+    queue.push(...getDirectiveArgumentsTypeNames(directive));
+  }
+
   return visitQueue(queue, schema);
 }
 
@@ -210,10 +217,9 @@ function getDirectivesArgumentsTypeNames(
   if (directableObj.astNode?.directives) {
     for (const directiveNode of directableObj.astNode.directives) {
       const directive = schema.getDirective(directiveNode.name.value);
-      if (directive?.args) {
-        for (const arg of directive.args) {
-          const argType = getNamedType(arg.type);
-          argTypeNames.add(argType.name);
+      if (directive) {
+        for (const argTypeName of getDirectiveArgumentsTypeNames(directive)) {
+          argTypeNames.add(argTypeName);
         }
       }
     }
@@ -221,13 +227,16 @@ function getDirectivesArgumentsTypeNames(
   if (directableObj.extensions?.['directives']) {
     for (const directiveName in directableObj.extensions['directives']) {
       const directive = schema.getDirective(directiveName);
-      if (directive?.args) {
-        for (const arg of directive.args) {
-          const argType = getNamedType(arg.type);
-          argTypeNames.add(argType.name);
+      if (directive) {
+        for (const argTypeName of getDirectiveArgumentsTypeNames(directive)) {
+          argTypeNames.add(argTypeName);
         }
       }
     }
   }
   return [...argTypeNames];
+}
+
+function getDirectiveArgumentsTypeNames(directive: GraphQLDirective): string[] {
+  return directive.args.map(arg => getNamedType(arg.type).name);
 }
