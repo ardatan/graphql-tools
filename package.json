@@ -86,7 +86,7 @@
     "globals": "17.13.0",
     "globby": "11.1.0",
     "graphql": "17.0.2",
-    "graphql-yoga": "5.24.1",
+    "graphql-yoga": "5.24.2",
     "husky": "9.1.7",
     "jest": "30.4.2",
     "lint-staged": "17.6.0",
