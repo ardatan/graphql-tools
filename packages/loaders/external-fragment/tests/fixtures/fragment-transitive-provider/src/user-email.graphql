@@ -1,0 +1,4 @@
+fragment UserEmail on User {
+  email
+  emailVerified
+}

@@ -1,0 +1,7 @@
+{
+  "name": "dep-filter-provider",
+  "version": "1.0.0",
+  "dependencies": {
+    "graphql-tag": "2.0.0"
+  }
+}

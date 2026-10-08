@@ -1,0 +1,6 @@
+query GetUser {
+  user {
+    ...UserFields
+    ...ProfileFields
+  }
+}

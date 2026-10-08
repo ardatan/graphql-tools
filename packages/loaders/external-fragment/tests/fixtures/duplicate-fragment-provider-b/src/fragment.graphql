@@ -1,0 +1,4 @@
+fragment ItemFields on Item {
+  id
+  title
+}

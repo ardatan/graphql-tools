@@ -1,0 +1,113 @@
+import type { GraphQLTagPluckOptions } from '@graphql-tools/graphql-tag-pluck';
+import type { BaseLoaderOptions } from '@graphql-tools/utils';
+
+export interface ExternalFragmentLoaderOptions extends BaseLoaderOptions {
+  /**
+   * Absolute path to the target package directory whose fragments we're resolving.
+   * This is the package that has missing fragment spreads referencing other packages.
+   */
+  packageDir: string;
+
+  /**
+   * Directories where dependency packages can be found.
+   * Each entry is an absolute path to a directory containing package folders.
+   *
+   * @example ['/path/to/monorepo/packages', '/path/to/monorepo/libs', '/path/to/node_modules']
+   */
+  externalPackagesDirs: string[];
+
+  /**
+   * Whether the default function export should use the asynchronous resolver.
+   * Use this with asynchronous loading APIs such as Codegen or `loadDocuments`.
+   * The synchronous loading API cannot consume the Promise returned in async mode.
+   * The class loader's `load` and `loadSync` methods select their path explicitly.
+   * @default false
+   */
+  async?: boolean;
+
+  /**
+   * Directories within each package to scan for GraphQL fragments.
+   * @default ['src']
+   */
+  scanInternalDirs?: string[];
+
+  /**
+   * File extensions to scan for GraphQL fragments (without the dot).
+   * @default ['ts', 'tsx', 'js', 'jsx', 'graphql', 'gql']
+   */
+  extensions?: string[];
+
+  /**
+   * Glob patterns to exclude when scanning packages.
+   * @default ['**\/__generated__/**', '**\/node_modules/**']
+   */
+  excludePatterns?: string[];
+
+  /**
+   * Optional filter function to decide which dependencies from `package.json`
+   * should be considered as potential packages with fragments based on their package name.
+   * Return true to include the dependency in the search.
+   * @default () => true (all dependencies are considered)
+   *
+   * @example (name) => name.startsWith('my-org-')
+   */
+  packageNameFilter?: (packageName: string) => boolean;
+
+  /**
+   * Optional filter to decide whether a dependency package should be scanned
+   * for GraphQL fragments based on its package.json dependencies.
+   * Return true to scan the package.
+   *
+   * Unlike `packageNameFilter`, packages rejected by this filter are still
+   * traversed for their own transitive dependencies — they are just not scanned
+   * for fragment definitions.
+   *
+   * @example (deps) => '@apollo/client' in deps
+   */
+  packageDependencyFilter?: (dependencies: Record<string, string>) => boolean;
+
+  /**
+   * Optional predicate to filter which files should be scanned for fragments.
+   * Receives the file content as a string. Return true to include the file.
+   * Useful to skip code files that don't use a GraphQL tag or a GraphQL magic comment.
+   *
+   * @example (content, filePath) =>
+   *   /\.(graphql|gql)$/.test(filePath) ||
+   *   /\b(?:gql|graphql)\s*`/.test(content) ||
+   *   /\/\*\s*graphql\s*\*\//i.test(content)
+   */
+  fileContentFilter?: (content: string, filePath: string) => boolean;
+
+  /**
+   * Whether to include devDependencies when scanning for transitive deps.
+   * @default true
+   */
+  includeDevDependencies?: boolean;
+
+  /**
+   * Options for graphql-tag-pluck when extracting GraphQL from code files.
+   */
+  pluckConfig?: GraphQLTagPluckOptions;
+
+  /**
+   * Time-to-live for cache entries in milliseconds.
+   * Set this for long-running processes (e.g. watch mode) so stale entries
+   * are automatically evicted. External package maps include parsed sources
+   * and are shared by resolver calls; a `packageDir` package map is not retained
+   * unless that package was already cached as an external dependency. Cache
+   * configuration is shared by all resolver calls in this module. Calls with
+   * a different value recreate all memoized caches, discard their existing
+   * entries, and apply the new value to later calls.
+   * @default Infinity (cache forever)
+   */
+  cacheTTL?: number;
+
+  /**
+   * When true, invalidate cached data for the target package specified by `packageDir`
+   * before each resolution call, including its fragment map and package.json
+   * dependency metadata. Useful in watch mode to refresh the package being
+   * edited while reusing dependency caches.
+   * @default false
+   */
+  invalidateTargetPackageCache?: boolean;
+}

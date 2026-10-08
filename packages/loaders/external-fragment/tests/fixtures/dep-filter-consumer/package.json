@@ -1,0 +1,7 @@
+{
+  "name": "dep-filter-consumer",
+  "version": "1.0.0",
+  "dependencies": {
+    "dep-filter-intermediary": "1.0.0"
+  }
+}

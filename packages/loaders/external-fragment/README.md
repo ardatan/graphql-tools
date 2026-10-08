@@ -1,0 +1,256 @@
+# @graphql-tools/external-fragment-loader
+
+Resolves GraphQL fragments referenced by a package from its transitive package dependencies. The
+loader scans the configured dependency packages, parses GraphQL from `.graphql` files and supported
+code files, and returns only the external fragments required by the consumer package.
+
+## Installation
+
+```sh
+npm install @graphql-tools/external-fragment-loader graphql
+```
+
+The resolver requires a package directory and one or more directories containing its dependency
+packages:
+
+```ts
+const options = {
+  packageDir: '/path/to/packages/my-app',
+  externalPackagesDirs: ['/path/to/packages']
+}
+```
+
+`packageDir` and `externalPackagesDirs` should be absolute paths. By default, the loader scans `src`
+for `.ts`, `.tsx`, `.js`, `.jsx`, `.graphql`, and `.gql` files. These defaults can be changed with
+the options described in [`options.ts`](./src/options.ts).
+
+## Three API entry points
+
+| Entry point                | Returns                                                        | Use it when                                                                                    |
+| -------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Default export             | `DocumentNode` (or `Promise<DocumentNode>` with `async: true`) | Configuring a Codegen or GraphQL Tools custom loader; uses the synchronous resolver by default |
+| `ExternalFragmentLoader`   | `Source[]` with `document`, `rawSDL`, and `location`           | Using `@graphql-tools/load` programmatically (can be async)                                    |
+| `resolveExternalFragments` | File metadata, including `filePath` and fragment definitions   | Building a file list or another custom workflow                                                |
+
+Each entry point has a synchronous variant where applicable. The async and sync variants are:
+
+- `ExternalFragmentLoader.load()` / `loadSync()`
+- `resolveExternalFragments()` / `resolveExternalFragmentsSync()`
+
+### 1. Default loader export
+
+The default export returns a single merged `DocumentNode`. This is the simplest option for GraphQL
+Code Generator because Codegen's custom-loader path expects one `DocumentNode` or one `Source`.
+
+For example, in a Codegen configuration:
+
+```js
+const path = require('node:path')
+
+const packageDir = path.resolve(__dirname, '../my-app')
+const externalPackagesDir = path.resolve(__dirname, '..')
+
+module.exports = {
+  schema: './schema.graphql',
+  documents: {
+    './src/**/*.graphql': {},
+    './external-fragments.graphql': {
+      loader: '@graphql-tools/external-fragment-loader',
+      packageDir,
+      externalPackagesDirs: [externalPackagesDir],
+      async: true // codegen can consume Promise<DocumentNode> directly
+    }
+  },
+  generates: {
+    './src/__generated__/types.ts': {
+      plugins: ['typescript', 'typescript-operations']
+    }
+  }
+}
+```
+
+The pointer (`./external-fragments.graphql` in this example) is only used to trigger the loader; the
+resolver uses `packageDir` to identify the consumer package.
+
+Use at most one external-fragment pointer for each `packageDir` in a Codegen configuration. The
+loader returns all required external fragments for that package; repeating the pointer causes those
+fragments to be loaded more than once and can produce duplicate fragment definitions. Normal
+document pointers can still be listed alongside the single external-fragment pointer.
+
+The default export uses the synchronous resolver unless `async: true` is set. With `async: true`, it
+returns a `Promise<DocumentNode>` and uses the asynchronous resolver. Use this option with Codegen
+or another asynchronous loading API; omit it or set it to `false` when using `loadDocumentsSync`.
+
+See the repository's [async Codegen smoke test](./tests/codegen-smoke-async/README.md) and
+[sync Codegen smoke test](./tests/codegen-smoke-sync/README.md) for runnable configurations.
+
+### 2. Class-based loader
+
+Use `ExternalFragmentLoader` when calling `@graphql-tools/load` directly or when you need the
+individual `Source` objects:
+
+```ts
+import { ExternalFragmentLoader } from '@graphql-tools/external-fragment-loader'
+
+const loader = new ExternalFragmentLoader()
+
+const sources = await loader.load('.', {
+  packageDir,
+  externalPackagesDirs: [externalPackagesDir]
+})
+```
+
+To register the class with `@graphql-tools/load`, pass it in the `loaders` option for the pointer
+that represents the external-fragment document:
+
+```ts
+import { loadDocuments } from '@graphql-tools/load'
+
+const sources = await loadDocuments(['./external-fragments.graphql'], {
+  loaders: [loader],
+  packageDir,
+  externalPackagesDirs: [externalPackagesDir]
+})
+```
+
+The loader also exposes a **synchronous** method:
+
+```ts
+const syncSources = loader.loadSync('.', options)
+```
+
+Each returned source contains the parsed `document`, the matching `rawSDL`, and the provider file's
+`location`. When registering the class with `@graphql-tools/load`, use one external-fragment pointer
+for each package being resolved. The loader does not de-duplicate separate invocations for repeated
+pointers.
+
+### 3. Direct resolver API
+
+Use the resolver functions when you need the external file list or fragment metadata rather than a
+GraphQL Tools loader result:
+
+```ts
+import {
+  resolveExternalFragments,
+  resolveExternalFragmentsSync
+} from '@graphql-tools/external-fragment-loader'
+
+const files = await resolveExternalFragments(options)
+const syncFiles = resolveExternalFragmentsSync(options)
+```
+
+The result has this shape:
+
+```text
+[
+  {
+    filePath: '/path/to/packages/shared/src/user-fields.graphql',
+    packageName: '@example/shared',
+    definitions: [{ name: 'UserFields', typeCondition: 'User' }]
+  }
+]
+```
+
+This API returns file metadata, not parsed ASTs. Passing the returned `filePath` values as Codegen
+`documents` works, but Codegen will read and parse those files again. Use the default loader or the
+class-based loader when you want to reuse the parsed documents.
+
+## Caching
+
+Package fragment maps, parsed sources, and `package.json` dependency metadata are cached between
+resolver calls. Consumer package maps are not normally retained unless the consumer package was
+previously loaded as a provider.
+
+When running the loader in **watch mode** — for example, to run Codegen in the background while
+using an IDE so that the package's generated GraphQL types are regenerated automatically whenever a
+file changes — consider setting the following options:
+
+- Set `invalidateTargetPackageCache: true` to invalidate the cached fragment map and `package.json`
+  dependency metadata for the target package specified by `packageDir` before each resolution call.
+  This prevents stale data when a package that was previously cached as a provider is later scanned
+  as the consumer.
+
+- Set `cacheTTL` (for example, to `10000` for 10 seconds) so cached provider data eventually
+  expires. This helps avoid stale data when a provider package is updated indirectly, for example by
+  a `git merge`, while the watch process is still running.
+
+## Using filters
+
+The filters are optional pre-filters: they run before the expensive dependency scanning and GraphQL
+parsing work. Restricting the package names and files early can be faster than parsing every source
+file in every dependency package.
+
+In a benchmark of the large monorepo this loader was written for, the approximate observed time
+reductions were as follows (with total reduction of 68%):
+
+- `fileContentFilter`: 60%
+- `packageNameFilter`: 4%
+- `packageDependencyFilter`: 4%
+
+### Filtering files by content
+
+Use `fileContentFilter` to skip source files that don't contain GraphQL. The file content is read
+once and passed to the predicate, but files returning `false` are not parsed or plucked for GraphQL
+documents:
+
+```ts
+const options = {
+  packageDir,
+  externalPackagesDirs,
+  fileContentFilter: (content, filePath) => {
+    // Keep standalone GraphQL files and match GraphQL tags or magic comments in code files.
+    return (
+      /\.(graphql|gql)$/.test(filePath) ||
+      /\b(?:gql|graphql)\s*`/.test(content) ||
+      /\/\*\s*graphql\s*\*\//i.test(content)
+    )
+  }
+}
+```
+
+This is especially useful when packages contain many TypeScript or JavaScript files but only a small
+number of them contain GraphQL tags. A file-content filter should be broad enough not to exclude
+custom GraphQL tag identifiers that are configured through `pluckConfig`.
+
+### Filtering dependency packages by name
+
+Use `packageNameFilter` to limit which `package.json` dependencies are considered as providers. The
+filter is applied to direct and transitive dependency names before their files are scanned:
+
+```ts
+const options = {
+  packageDir,
+  externalPackagesDirs,
+  packageNameFilter: packageName =>
+    packageName.startsWith('my-company-name-') || packageName === 'shared-graphql'
+}
+```
+
+Packages rejected by this filter are not searched. If a required fragment is defined in a rejected
+package, the resolver reports it as unresolved.
+
+### Filtering by package dependencies
+
+Use `packageDependencyFilter` to skip scanning packages that don't use GraphQL, without affecting
+dependency traversal. The filter receives the merged `dependencies` and `devDependencies` record
+from each package's `package.json` by default, or only `dependencies` when `includeDevDependencies`
+is `false`. It returns `boolean`. Packages that return `false` are still traversed for their own
+transitive dependencies — they are just not scanned for fragment definitions:
+
+```ts
+const options = {
+  packageDir,
+  externalPackagesDirs,
+  packageDependencyFilter: deps => '@apollo/client' in deps
+}
+```
+
+This is useful in large monorepos where many packages don't contain GraphQL but sit in the
+dependency chain between the consumer and the packages that do. Without this filter, every reachable
+package gets its source files globbed and read. With the filter, only packages that pass the
+predicate are scanned, while non-GraphQL intermediaries are still traversed so that GraphQL packages
+behind them are found:
+
+```text
+A (consumer) → B (no GraphQL) → C (has GraphQL)
+```
