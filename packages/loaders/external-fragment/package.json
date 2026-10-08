@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/external-fragment-loader",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "type": "module",
   "description": "A GraphQL loader that resolves cross-package fragment dependencies from external packages",
   "repository": {
