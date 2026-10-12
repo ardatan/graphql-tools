@@ -341,6 +341,36 @@ describe('printSchemaWithDirectives', () => {
     expect(output).not.toContain('Old field');
   });
 
+  it('omits empty and whitespace-only runtime descriptions', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        description: '',
+        fields: {
+          empty: {
+            type: GraphQLString,
+            description: '',
+          },
+          whitespace: {
+            type: GraphQLString,
+            description: '   \n\t  ',
+          },
+          kept: {
+            type: GraphQLString,
+            description: 'Keep me',
+          },
+        },
+      }),
+    });
+
+    const output = printSchemaWithDirectives(schema);
+    expect(output).not.toContain('""""""');
+    expect(output).toContain('Keep me');
+    expect(output).toMatch(/kept:\s*String/);
+    expect(output).toMatch(/empty:\s*String/);
+    expect(output).toMatch(/whitespace:\s*String/);
+  });
+
   it('should print transformed schema correctly', () => {
     const printedSchema = /* GraphQL */ `
       type Foo {
