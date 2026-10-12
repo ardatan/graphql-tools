@@ -11,6 +11,7 @@ import {
   GraphQLObjectType,
   GraphQLSchema,
   GraphQLString,
+  Kind,
   printSchema,
   specifiedDirectives,
   stripIgnoredCharacters,
@@ -339,6 +340,103 @@ describe('printSchemaWithDirectives', () => {
     expect(output).toContain('New field');
     expect(output).not.toContain('Old type');
     expect(output).not.toContain('Old field');
+  });
+
+  it('omits empty and whitespace-only runtime descriptions', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        description: '',
+        fields: {
+          empty: {
+            type: GraphQLString,
+            description: '',
+          },
+          whitespace: {
+            type: GraphQLString,
+            description: '   \n\t  ',
+          },
+          kept: {
+            type: GraphQLString,
+            description: 'Keep me',
+          },
+        },
+      }),
+    });
+
+    const output = printSchemaWithDirectives(schema);
+    expect(output).not.toContain('""""""');
+    expect(output).not.toMatch(/"""\s*"""\s*whitespace:/);
+    expect(output).toContain('Keep me');
+    expect(output).toMatch(/kept:\s*String/);
+    expect(output).toMatch(/empty:\s*String/);
+    expect(output).toMatch(/^\s*whitespace:\s*String/m);
+  });
+
+  it('omits empty and whitespace-only astNode descriptions when runtime description is absent', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          emptyAst: {
+            type: GraphQLString,
+            astNode: {
+              kind: Kind.FIELD_DEFINITION,
+              name: { kind: Kind.NAME, value: 'emptyAst' },
+              type: {
+                kind: Kind.NAMED_TYPE,
+                name: { kind: Kind.NAME, value: 'String' },
+              },
+              description: {
+                kind: Kind.STRING,
+                value: '',
+                block: true,
+              },
+            },
+          },
+          whitespaceAst: {
+            type: GraphQLString,
+            astNode: {
+              kind: Kind.FIELD_DEFINITION,
+              name: { kind: Kind.NAME, value: 'whitespaceAst' },
+              type: {
+                kind: Kind.NAMED_TYPE,
+                name: { kind: Kind.NAME, value: 'String' },
+              },
+              description: {
+                kind: Kind.STRING,
+                value: '   \n\t  ',
+                block: true,
+              },
+            },
+          },
+          keptAst: {
+            type: GraphQLString,
+            astNode: {
+              kind: Kind.FIELD_DEFINITION,
+              name: { kind: Kind.NAME, value: 'keptAst' },
+              type: {
+                kind: Kind.NAMED_TYPE,
+                name: { kind: Kind.NAME, value: 'String' },
+              },
+              description: {
+                kind: Kind.STRING,
+                value: 'Keep AST',
+                block: true,
+              },
+            },
+          },
+        },
+      }),
+    });
+
+    const output = printSchemaWithDirectives(schema);
+    expect(output).not.toContain('""""""');
+    expect(output).not.toMatch(/"""\s*"""\s*emptyAst:/);
+    expect(output).not.toMatch(/"""\s*"""\s*whitespaceAst:/);
+    expect(output).toContain('Keep AST');
+    expect(output).toMatch(/^\s*emptyAst:\s*String/m);
+    expect(output).toMatch(/^\s*whitespaceAst:\s*String/m);
   });
 
   it('should print transformed schema correctly', () => {
