@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 12.0.4
+
+### Patch Changes
+
+- [#8499](https://github.com/ardatan/graphql-tools/pull/8499) [`fd95dc9`](https://github.com/ardatan/graphql-tools/commit/fd95dc9c2211ab91d142d58044a80b5f40835b70) Thanks [@ardatan](https://github.com/ardatan)! - Skip empty and whitespace-only `description` values in `getDescriptionNode` / `printSchemaWithDirectives`, so loaders that set `description: ""` no longer emit `""""""` in printed SDL.
+
 ## 12.0.3
 
 ### Patch Changes
