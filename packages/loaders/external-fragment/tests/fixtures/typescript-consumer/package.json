@@ -1,0 +1,7 @@
+{
+  "name": "typescript-consumer",
+  "version": "1.0.0",
+  "dependencies": {
+    "typescript-provider": "1.0.0"
+  }
+}

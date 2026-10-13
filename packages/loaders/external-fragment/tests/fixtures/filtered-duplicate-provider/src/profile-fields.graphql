@@ -1,0 +1,8 @@
+fragment ProfileFields on User {
+  id
+  name
+}
+
+fragment UnusedUserFragment on User {
+  id
+}

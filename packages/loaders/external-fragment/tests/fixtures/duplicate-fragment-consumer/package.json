@@ -1,0 +1,8 @@
+{
+  "name": "duplicate-fragment-consumer",
+  "version": "1.0.0",
+  "dependencies": {
+    "duplicate-fragment-provider-a": "1.0.0",
+    "duplicate-fragment-provider-b": "1.0.0"
+  }
+}

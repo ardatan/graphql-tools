@@ -1,0 +1,8 @@
+{
+  "name": "filtered-provider-duplicate-consumer",
+  "version": "1.0.0",
+  "dependencies": {
+    "filtered-duplicate-provider": "1.0.0",
+    "fragment-direct-provider": "1.0.0"
+  }
+}

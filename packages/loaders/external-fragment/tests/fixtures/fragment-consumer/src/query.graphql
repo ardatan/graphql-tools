@@ -1,0 +1,13 @@
+query GetUser {
+  user {
+    ...UserFields
+    ...UserAddress
+  }
+}
+
+fragment UserAddress on User {
+  address {
+    street
+    city
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "fragment-direct-provider",
+  "version": "1.0.0",
+  "dependencies": {
+    "fragment-transitive-provider": "1.0.0"
+  }
+}
