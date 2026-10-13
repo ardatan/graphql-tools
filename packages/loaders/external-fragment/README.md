@@ -42,7 +42,8 @@ Each entry point has a synchronous variant where applicable. The async and sync 
 The default export returns a single merged `DocumentNode`. This is the simplest option for GraphQL
 Code Generator because Codegen's custom-loader path expects one `DocumentNode` or one `Source`.
 
-For example, in a TypeScript Codegen configuration (`codegen.ts`), running from the monorepo root:
+This is a sample of code generation for `packages/my-package`. The script runs from the monorepo
+root.
 
 ```ts
 import { resolve } from 'node:path'
@@ -54,7 +55,7 @@ const externalPackagesDir = resolve('packages')
 const config: CodegenConfig = {
   schema: './schema.graphql',
   documents: {
-    './src/**/*.graphql': {},
+    './packages/my-package/src/**/*.graphql': {},
     './external-fragments.graphql': {
       loader: '@graphql-tools/external-fragment-loader',
       packageDir,
@@ -63,7 +64,7 @@ const config: CodegenConfig = {
     }
   },
   generates: {
-    './src/__generated__/types.ts': {
+    './packages/my-package/src/__generated__/types.ts': {
       plugins: ['typescript', 'typescript-operations']
     }
   }
@@ -73,7 +74,7 @@ export default config
 ```
 
 The pointer (`./external-fragments.graphql` in this example) is only used to trigger the loader; the
-resolver uses `packageDir` to identify the consumer package.
+file does not need to exist. The resolver uses `packageDir` to identify the consumer package.
 
 Use at most one external-fragment pointer for each `packageDir` in a Codegen configuration. The
 loader returns all required external fragments for that package; repeating the pointer causes those
