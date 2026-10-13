@@ -54,15 +54,18 @@ const externalPackagesDir = resolve('packages')
 
 const config: CodegenConfig = {
   schema: './schema.graphql',
-  documents: {
-    './packages/my-package/src/**/*.graphql': {},
-    './external-fragments.graphql': {
-      loader: '@graphql-tools/external-fragment-loader',
-      packageDir,
-      externalPackagesDirs: [externalPackagesDir],
-      async: true // codegen can consume Promise<DocumentNode> directly
+  documents: [
+    './packages/my-package/src/**/*.graphql',
+    {
+      [packageDir]: {
+        // a pointer that triggers the custom loader for the consumer package
+        loader: '@graphql-tools/external-fragment-loader',
+        packageDir,
+        externalPackagesDirs: [externalPackagesDir],
+        async: true // codegen can consume Promise<DocumentNode> directly
+      }
     }
-  },
+  ],
   generates: {
     './packages/my-package/src/__generated__/types.ts': {
       plugins: ['typescript', 'typescript-operations']
@@ -72,9 +75,6 @@ const config: CodegenConfig = {
 
 export default config
 ```
-
-The pointer (`./external-fragments.graphql` in this example) is only used to trigger the loader; the
-file does not need to exist. The resolver uses `packageDir` to identify the consumer package.
 
 Use at most one external-fragment pointer for each `packageDir` in a Codegen configuration. The
 loader returns all required external fragments for that package; repeating the pointer causes those
