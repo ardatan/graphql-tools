@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/url-loader",
-  "version": "9.1.12",
+  "version": "9.1.13",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
@@ -53,8 +53,8 @@
   "dependencies": {
     "@graphql-tools/executor-graphql-ws": "^3.2.0",
     "@graphql-tools/executor-http": "^3.4.0",
-    "@graphql-tools/executor-legacy-ws": "^1.1.37",
-    "@graphql-tools/utils": "^12.0.3",
+    "@graphql-tools/executor-legacy-ws": "^1.1.38",
+    "@graphql-tools/utils": "^12.0.4",
     "@graphql-tools/wrap": "^11.1.1",
     "@types/ws": "^8.18.2",
     "@whatwg-node/fetch": "^0.12.0",
@@ -66,16 +66,16 @@
   },
   "devDependencies": {
     "@envelop/core": "5.6.1",
-    "@envelop/live-query": "10.2.1",
-    "@graphql-yoga/plugin-defer-stream": "3.24.1",
+    "@envelop/live-query": "10.2.3",
+    "@graphql-yoga/plugin-defer-stream": "3.24.4",
     "@types/express": "5.0.6",
     "@types/valid-url": "1.0.7",
     "babel-loader": "10.1.1",
-    "express": "5.2.1",
+    "express": "5.3.0",
     "graphql-sse": "2.6.2",
     "graphql-upload": "18.0.1",
-    "graphql-yoga": "5.24.1",
-    "puppeteer": "25.12.0",
+    "graphql-yoga": "5.24.4",
+    "puppeteer": "25.13.0",
     "subscriptions-transport-ws": "0.11.0",
     "webpack": "5.111.1"
   },
