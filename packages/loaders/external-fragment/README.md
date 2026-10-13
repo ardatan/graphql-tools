@@ -42,15 +42,16 @@ Each entry point has a synchronous variant where applicable. The async and sync 
 The default export returns a single merged `DocumentNode`. This is the simplest option for GraphQL
 Code Generator because Codegen's custom-loader path expects one `DocumentNode` or one `Source`.
 
-For example, in a Codegen configuration:
+For example, in a TypeScript Codegen configuration (`codegen.ts`):
 
-```js
-const path = require('node:path')
+```ts
+import { fileURLToPath } from 'node:url'
+import type { CodegenConfig } from '@graphql-codegen/cli'
 
-const packageDir = path.resolve(__dirname, '../my-app')
-const externalPackagesDir = path.resolve(__dirname, '..')
+const packageDir = fileURLToPath(new URL('../my-app', import.meta.url))
+const externalPackagesDir = fileURLToPath(new URL('..', import.meta.url))
 
-module.exports = {
+const config: CodegenConfig = {
   schema: './schema.graphql',
   documents: {
     './src/**/*.graphql': {},
@@ -67,6 +68,8 @@ module.exports = {
     }
   }
 }
+
+export default config
 ```
 
 The pointer (`./external-fragments.graphql` in this example) is only used to trigger the loader; the
@@ -80,9 +83,6 @@ document pointers can still be listed alongside the single external-fragment poi
 The default export uses the synchronous resolver unless `async: true` is set. With `async: true`, it
 returns a `Promise<DocumentNode>` and uses the asynchronous resolver. Use this option with Codegen
 or another asynchronous loading API; omit it or set it to `false` when using `loadDocumentsSync`.
-
-See the repository's [async Codegen smoke test](./tests/codegen-smoke-async/README.md) and
-[sync Codegen smoke test](./tests/codegen-smoke-sync/README.md) for runnable configurations.
 
 ### 2. Class-based loader
 
