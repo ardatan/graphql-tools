@@ -13,14 +13,16 @@ import { defaultNextraOptions } from '@theguild/components/server/next.config';
 import { useMDXComponents } from '../../../mdx-components';
 
 async function getPackages() {
-  const result = await fg(['../packages/**/package.json'], {
-    ignore: ['../**/node_modules/**', '../**/dist/**'],
+  // Discover packages by CHANGELOG.md so unpublished packages and test
+  // fixture package.json files are not turned into changelog routes.
+  const result = await fg(['../packages/**/CHANGELOG.md'], {
+    ignore: ['../**/node_modules/**', '../**/dist/**', '../**/tests/**'],
   });
   return result.map(r =>
     r.split('/').slice(
       // remove ../packages
       2,
-      // remove package.json
+      // remove CHANGELOG.md
       -1,
     ),
   );
