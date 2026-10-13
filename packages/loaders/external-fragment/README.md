@@ -42,14 +42,14 @@ Each entry point has a synchronous variant where applicable. The async and sync 
 The default export returns a single merged `DocumentNode`. This is the simplest option for GraphQL
 Code Generator because Codegen's custom-loader path expects one `DocumentNode` or one `Source`.
 
-For example, in a TypeScript Codegen configuration (`codegen.ts`):
+For example, in a TypeScript Codegen configuration (`codegen.ts`), running from the monorepo root:
 
 ```ts
-import { fileURLToPath } from 'node:url'
+import { resolve } from 'node:path'
 import type { CodegenConfig } from '@graphql-codegen/cli'
 
-const packageDir = fileURLToPath(new URL('../my-app', import.meta.url))
-const externalPackagesDir = fileURLToPath(new URL('..', import.meta.url))
+const packageDir = resolve('packages/my-package')
+const externalPackagesDir = resolve('packages')
 
 const config: CodegenConfig = {
   schema: './schema.graphql',
