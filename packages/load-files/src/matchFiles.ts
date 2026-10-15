@@ -114,11 +114,10 @@ function toPath(entry: string | Dirent): string {
 }
 
 function finalizePaths(paths: string[], cwd: string, absolute: boolean): string[] {
-  const unique = [...new Set(paths)];
-  if (absolute) {
-    return unique.map(m => (isAbsolute(m) ? m : resolve(cwd, m)));
-  }
-  return unique.map(m => (isAbsolute(m) ? relative(cwd, m) : m));
+  const converted = absolute
+    ? paths.map(m => (isAbsolute(m) ? m : resolve(cwd, m)))
+    : paths.map(m => (isAbsolute(m) ? relative(cwd, m) : m));
+  return [...new Set(converted)];
 }
 
 async function expandPattern(pattern: string, cwd: string): Promise<string> {

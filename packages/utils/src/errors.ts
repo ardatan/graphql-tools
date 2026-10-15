@@ -62,6 +62,6 @@ export function relocatedError(
       originalError,
       extensions: originalError.extensions,
     }),
-    info ? `${info.parentType.name}.${info.fieldName}` : undefined,
+    info ? `${info.parentType.name}.${info.fieldName}` : originalError.coordinate,
   );
 }
