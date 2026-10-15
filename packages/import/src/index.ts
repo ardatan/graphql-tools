@@ -12,6 +12,7 @@ import {
   FieldNode,
   FragmentDefinitionNode,
   FragmentSpreadNode,
+  GraphQLError,
   InlineFragmentNode,
   InputObjectTypeDefinitionNode,
   InputObjectTypeExtensionNode,
@@ -40,7 +41,7 @@ import {
   UnionTypeExtensionNode,
 } from 'graphql';
 import resolveFrom from 'resolve-from';
-import { createGraphQLError, getLeadingCommentBlock, parseGraphQLSDL } from '@graphql-tools/utils';
+import { getLeadingCommentBlock, parseGraphQLSDL } from '@graphql-tools/utils';
 import { extractLinkImplementations } from './link/index.js';
 
 const builtinTypes = ['String', 'Float', 'Int', 'Boolean', 'ID', 'Upload'];
@@ -331,7 +332,7 @@ function visitFile(
                   !allImportedDefinitionsMap.has(dependencyName) &&
                   !definitionsByName.has(dependencyName)
                 ) {
-                  throw createGraphQLError(
+                  throw new GraphQLError(
                     `Couldn't find type ${dependencyName} in any of the schemas.`,
                     { nodes: Array.from(dependencyNodes) },
                   );

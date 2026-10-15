@@ -3,6 +3,7 @@ import { inspect } from 'cross-inspect';
 import {
   GraphQLArgumentConfig,
   GraphQLEnumType,
+  GraphQLError,
   GraphQLFieldConfig,
   GraphQLInputObjectType,
   GraphQLList,
@@ -15,7 +16,6 @@ import {
   parse,
   versionInfo,
 } from 'graphql';
-import { createGraphQLError } from '@graphql-tools/utils';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { executeSync } from '../execute.js';
 import { getVariableValues } from '../values.js';
@@ -37,7 +37,7 @@ const TestComplexScalar = new GraphQLScalarType({
 function createFaultyScalarGraphQLError() {
   // Fresh error each time: graphql's getArgumentValues may rewrite `message` on the
   // thrown GraphQLError, so a shared instance would poison later variable tests.
-  return createGraphQLError('FaultyScalarErrorMessage', {
+  return new GraphQLError('FaultyScalarErrorMessage', {
     extensions: {
       code: 'FaultyScalarErrorMessageExtensionCode',
     },

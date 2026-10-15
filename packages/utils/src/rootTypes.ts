@@ -1,6 +1,11 @@
-import { ASTNode, GraphQLObjectType, GraphQLSchema, OperationTypeNode } from 'graphql';
+import {
+  ASTNode,
+  GraphQLError,
+  GraphQLObjectType,
+  GraphQLSchema,
+  OperationTypeNode,
+} from 'graphql';
 import weakMemoizee from 'memoizee/weak.js';
-import { createGraphQLError } from './errors.js';
 
 export function getDefinedRootType(
   schema: GraphQLSchema,
@@ -10,7 +15,7 @@ export function getDefinedRootType(
   const rootTypeMap = getRootTypeMap(schema);
   const rootType = rootTypeMap.get(operation);
   if (rootType == null) {
-    throw createGraphQLError(`Schema is not configured to execute ${operation} operation.`, {
+    throw new GraphQLError(`Schema is not configured to execute ${operation} operation.`, {
       nodes,
     });
   }

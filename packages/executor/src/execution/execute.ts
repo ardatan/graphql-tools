@@ -33,7 +33,6 @@ import {
   collectSubFields as _collectSubfields,
   addPath,
   collectFields,
-  createGraphQLError,
   fakePromise,
   getDefinedRootType,
   getDirectiveValues,
@@ -458,7 +457,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
         if (operationName == null) {
           if (operation !== undefined) {
             return [
-              createGraphQLError(
+              new GraphQLError(
                 'Must provide operation name if query contains multiple operations.',
                 {
                   extensions: {
@@ -481,7 +480,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
   if (operation == null) {
     if (operationName != null) {
       return [
-        createGraphQLError(`Unknown operation named "${operationName}".`, {
+        new GraphQLError(`Unknown operation named "${operationName}".`, {
           extensions: {
             code: 'OPERATION_RESOLUTION_FAILURE',
           },
@@ -489,7 +488,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
       ];
     }
     return [
-      createGraphQLError('Must provide an operation.', {
+      new GraphQLError('Must provide an operation.', {
         extensions: {
           code: 'OPERATION_RESOLUTION_FAILURE',
         },
@@ -579,9 +578,12 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
   const { operation, schema, fragments, variableValues, rootValue } = exeContext;
   const rootType = getDefinedRootType(schema, operation.operation, [operation]);
   if (rootType == null) {
-    createGraphQLError(`Schema is not configured to execute ${operation.operation} operation.`, {
-      nodes: operation,
-    });
+    throw new GraphQLError(
+      `Schema is not configured to execute ${operation.operation} operation.`,
+      {
+        nodes: operation,
+      },
+    );
   }
 
   const { fields: rootFields, patches } = collectFields(
@@ -1179,7 +1181,7 @@ function completeListValue(
   }
 
   if (!isIterableObject(result)) {
-    throw createGraphQLError(
+    throw new GraphQLError(
       `Expected Iterable, but did not find one for field "${info.parentType.name}.${info.fieldName}".`,
     );
   }
@@ -1402,20 +1404,20 @@ function ensureValidRuntimeType(
   result: unknown,
 ): GraphQLObjectType {
   if (runtimeTypeName == null) {
-    throw createGraphQLError(
+    throw new GraphQLError(
       `Abstract type "${returnType.name}" must resolve to an Object type at runtime for field "${info.parentType.name}.${info.fieldName}". Either the "${returnType.name}" type should provide a "resolveType" function or each possible type should provide an "isTypeOf" function.`,
       { nodes: fieldNodes },
     );
   }
 
   if (isObjectType(runtimeTypeName)) {
-    throw createGraphQLError(
+    throw new GraphQLError(
       'Support for returning GraphQLObjectType from resolveType was removed in graphql-js@16.0.0 please return type name instead.',
     );
   }
 
   if (typeof runtimeTypeName !== 'string') {
-    throw createGraphQLError(
+    throw new GraphQLError(
       `Abstract type "${returnType.name}" must resolve to an Object type at runtime for field "${info.parentType.name}.${info.fieldName}" with ` +
         `value ${inspect(result)}, received "${inspect(runtimeTypeName)}".`,
     );
@@ -1423,21 +1425,21 @@ function ensureValidRuntimeType(
 
   const runtimeType = exeContext.schema.getType(runtimeTypeName);
   if (runtimeType == null) {
-    throw createGraphQLError(
+    throw new GraphQLError(
       `Abstract type "${returnType.name}" was resolved to a type "${runtimeTypeName}" that does not exist inside the schema.`,
       { nodes: fieldNodes },
     );
   }
 
   if (!isObjectType(runtimeType)) {
-    throw createGraphQLError(
+    throw new GraphQLError(
       `Abstract type "${returnType.name}" was resolved to a non-object type "${runtimeTypeName}".`,
       { nodes: fieldNodes },
     );
   }
 
   if (!exeContext.schema.isSubType(returnType, runtimeType)) {
-    throw createGraphQLError(
+    throw new GraphQLError(
       `Runtime Object type "${runtimeType.name}" is not a possible type for "${returnType.name}".`,
       { nodes: fieldNodes },
     );
@@ -1500,7 +1502,7 @@ function invalidReturnTypeError(
   result: unknown,
   fieldNodes: Array<FieldNode>,
 ): GraphQLError {
-  return createGraphQLError(
+  return new GraphQLError(
     `Expected value of type "${returnType.name}" but got: ${inspect(result)}.`,
     {
       nodes: fieldNodes,
@@ -1803,7 +1805,7 @@ function mapSourceToResponse(
 }
 
 function wrapError(error: Error, operation: OperationDefinitionNode) {
-  return createGraphQLError(error.message, {
+  return new GraphQLError(error.message, {
     originalError: error,
     nodes: [operation],
   });
@@ -1829,7 +1831,7 @@ function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIt
 
   const rootType = schema.getSubscriptionType();
   if (rootType == null) {
-    throw createGraphQLError('Schema is not configured to execute subscription operation.', {
+    throw new GraphQLError('Schema is not configured to execute subscription operation.', {
       nodes: operation,
     });
   }
@@ -1846,7 +1848,7 @@ function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIt
   const fieldDef = getFieldDef(schema, rootType, fieldNodes[0]);
 
   if (!fieldDef) {
-    throw createGraphQLError(`The subscription field "${fieldName}" is not defined.`, {
+    throw new GraphQLError(`The subscription field "${fieldName}" is not defined.`, {
       nodes: fieldNodes,
     });
   }
@@ -1912,7 +1914,7 @@ function assertEventStream(
 
   // Assert field returned an event stream, otherwise yield an error.
   if (!isAsyncIterable(result)) {
-    throw createGraphQLError(
+    throw new GraphQLError(
       'Subscription field must return Async Iterable. ' + `Received: ${inspect(result)}.`,
     );
   }

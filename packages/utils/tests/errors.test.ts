@@ -1,11 +1,6 @@
 import { ASTNode, GraphQLError, Kind } from 'graphql';
 import { describeIf } from '../../../packages/testing/utils';
-import {
-  createGraphQLError,
-  getSchemaCoordinate,
-  locatedError,
-  relocatedError,
-} from '../src/errors';
+import { getSchemaCoordinate, locatedError, relocatedError } from '../src/errors';
 
 describeIf(
   // Do not leak test this on Windows
@@ -13,9 +8,8 @@ describeIf(
 )('Errors', () => {
   describe('relocatedError', () => {
     it('should adjust the path of a GraphqlError', () => {
-      const originalError = createGraphQLError('test', {
+      const originalError = new GraphQLError('test', {
         path: ['test'],
-        coordinate: 'Query.test',
       });
       const newError = relocatedError(originalError, ['test', 1, 'id'], {
         fieldName: 'id',
@@ -29,7 +23,7 @@ describeIf(
 
   describe('locatedError', () => {
     it('should add path, nodes and coordinate to error', () => {
-      const originalError = createGraphQLError('test');
+      const originalError = new GraphQLError('test');
       const nodes: ASTNode[] = [{ kind: Kind.DOCUMENT, definitions: [] }];
       const error = locatedError(originalError, nodes, ['test'], {
         fieldName: 'test',
@@ -48,45 +42,14 @@ describeIf(
       // @ts-expect-error coordinate doesn't exists in `graphql` yet.
       error.coordinate = 'Query.test';
       expect(getSchemaCoordinate(error)).toBe('Query.test');
-      expect(createGraphQLError('test', { coordinate: 'Query.test' }).coordinate).toBe(
-        'Query.test',
-      );
-    });
-  });
-
-  describe('createGraphQLError', () => {
-    it('should handle non Error originalError', () => {
-      const error = createGraphQLError('message', {
-        originalError: {
-          message: 'originalError',
-          extensions: { code: 'ORIGINAL_ERROR' },
-        } as any,
-      });
-      expect(error.originalError).toBeInstanceOf(GraphQLError);
-      expect(error).toMatchObject({
-        message: 'message',
-        originalError: {
-          message: 'originalError',
-          extensions: { code: 'ORIGINAL_ERROR' },
-        },
-      });
-    });
-
-    it('should handle coordinate', () => {
-      const error = createGraphQLError('message', {
-        coordinate: 'Query.test',
-      });
-      expect(error).toMatchObject({
-        coordinate: 'Query.test',
-      });
-    });
-
-    it('should not have coordinate in JSON representation', () => {
-      // Since this an experiment, we don't want coordinate to leak to the client
-      const error = createGraphQLError('message', {
-        coordinate: 'Query.test',
-      });
-      expect(JSON.stringify(error)).toBe('{"message":"message"}');
+      expect(
+        getSchemaCoordinate(
+          relocatedError(new GraphQLError('test'), undefined, {
+            fieldName: 'test',
+            parentType: { name: 'Query' },
+          }),
+        ),
+      ).toBe('Query.test');
     });
   });
 });

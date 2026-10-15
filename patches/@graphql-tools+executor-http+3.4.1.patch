@@ -1,5 +1,5 @@
 diff --git a/node_modules/@graphql-tools/executor-http/dist/index.cjs b/node_modules/@graphql-tools/executor-http/dist/index.cjs
-index 3127bbc..290c9b1 100644
+index 3127bbc..e147cf4 100644
 --- a/node_modules/@graphql-tools/executor-http/dist/index.cjs
 +++ b/node_modules/@graphql-tools/executor-http/dist/index.cjs
 @@ -3,6 +3,34 @@
@@ -37,6 +37,33 @@ index 3127bbc..290c9b1 100644
  var disposablestack = require('@whatwg-node/disposablestack');
  var fetch = require('@whatwg-node/fetch');
  var promiseHelpers = require('@whatwg-node/promise-helpers');
+@@ -353,7 +381,7 @@ function createGraphQLErrorForAbort(reason, extensions) {
+     return reason;
+   }
+   if (reason?.name === "TimeoutError") {
+-    return utils.createGraphQLError(reason.message, {
++    return new graphql.GraphQLError(reason.message, {
+       extensions: {
+         http: {
+           status: 504,
+@@ -365,7 +393,7 @@ function createGraphQLErrorForAbort(reason, extensions) {
+       originalError: reason
+     });
+   }
+-  return utils.createGraphQLError(reason.message, {
++  return new graphql.GraphQLError(reason.message, {
+     extensions,
+     originalError: reason
+   });
+@@ -437,7 +465,7 @@ function handleEventStreamResponse(response, subscriptionCtrl, signal) {
+         const errErr = err instanceof Error ? err : new Error(String(err));
+         await push({
+           errors: [
+-            utils.createGraphQLError(errErr.message, { originalError: errErr })
++            new graphql.GraphQLError(errErr.message, { originalError: errErr })
+           ]
+         });
+         return stop();
 @@ -510,7 +538,7 @@ async function handleMultipartMixedResponse(response) {
    return resultStream;
  }
@@ -46,15 +73,91 @@ index 3127bbc..290c9b1 100644
    function isLiveQueryOperationDefinitionNode2(node) {
      return node.operation === "query" && node.directives?.some((directive) => directive.name.value === "live");
    }
+@@ -750,7 +778,7 @@ function buildHTTPExecutor(options) {
+                       upstreamErrorExtensions.code = "RESPONSE_VALIDATION_FAILED";
+                       return {
+                         errors: [
+-                          utils.createGraphQLError(message, {
++                          new graphql.GraphQLError(message, {
+                             originalError: new Error(message),
+                             extensions: upstreamErrorExtensions
+                           })
+@@ -764,7 +792,7 @@ function buildHTTPExecutor(options) {
+                           ({
+                             message,
+                             ...options2
+-                          }) => utils.createGraphQLError(message, options2)
++                          }) => new graphql.GraphQLError(message, options2)
+                         )
+                       };
+                     }
+@@ -773,7 +801,7 @@ function buildHTTPExecutor(options) {
+                     upstreamErrorExtensions.code = "RESPONSE_VALIDATION_FAILED";
+                     return {
+                       errors: [
+-                        utils.createGraphQLError(
++                        new graphql.GraphQLError(
+                           `Unexpected response: ${JSON.stringify(result)}`,
+                           {
+                             extensions: upstreamErrorExtensions,
+@@ -788,7 +816,7 @@ function buildHTTPExecutor(options) {
+                   upstreamErrorExtensions.code = "RESPONSE_VALIDATION_FAILED";
+                   return {
+                     errors: [
+-                      utils.createGraphQLError(message, {
++                      new graphql.GraphQLError(message, {
+                         extensions: upstreamErrorExtensions,
+                         originalError: new Error(message)
+                       })
+@@ -950,7 +978,7 @@ function buildHTTPExecutor(options) {
+             return result;
+           }
+           return {
+-            errors: [utils.createGraphQLError("No response returned from fetch")]
++            errors: [new graphql.GraphQLError("No response returned from fetch")]
+           };
+         }
+         return promiseHelpers.handleMaybePromise(
+@@ -993,13 +1021,13 @@ function coerceFetchError(e, {
+   upstreamErrorExtensions
+ }) {
+   if (typeof e === "string") {
+-    return utils.createGraphQLError(e, {
++    return new graphql.GraphQLError(e, {
+       extensions: upstreamErrorExtensions
+     });
+   } else if (e.name === "GraphQLError") {
+     return e;
+   } else if (e.name === "TypeError" && e.message === "fetch failed") {
+-    return utils.createGraphQLError(`fetch failed to ${endpoint}`, {
++    return new graphql.GraphQLError(`fetch failed to ${endpoint}`, {
+       extensions: upstreamErrorExtensions,
+       originalError: e
+     });
+@@ -1009,12 +1037,12 @@ function coerceFetchError(e, {
+       upstreamErrorExtensions
+     );
+   } else if (e.message) {
+-    return utils.createGraphQLError(e.message, {
++    return new graphql.GraphQLError(e.message, {
+       extensions: upstreamErrorExtensions,
+       originalError: e
+     });
+   } else {
+-    return utils.createGraphQLError("Unknown error", {
++    return new graphql.GraphQLError("Unknown error", {
+       extensions: upstreamErrorExtensions,
+       originalError: e
+     });
 diff --git a/node_modules/@graphql-tools/executor-http/dist/index.js b/node_modules/@graphql-tools/executor-http/dist/index.js
-index 0cf6937..0b47c96 100644
+index 0cf6937..162ead5 100644
 --- a/node_modules/@graphql-tools/executor-http/dist/index.js
 +++ b/node_modules/@graphql-tools/executor-http/dist/index.js
 @@ -1,6 +1,33 @@
  import { abortSignalAny } from '@graphql-hive/signal';
  import { defaultPrintFn, serializeExecutionRequest } from '@graphql-tools/executor-common';
 -import { isAsyncIterable, createGraphQLError, inspect, mapAsyncIterator, mergeIncrementalResult, memoize1, getOperationASTFromRequest } from '@graphql-tools/utils';
-+import { isAsyncIterable, createGraphQLError, inspect, mapAsyncIterator, mergeIncrementalResult, getOperationASTFromRequest } from '@graphql-tools/utils';
++import { isAsyncIterable, inspect, mapAsyncIterator, mergeIncrementalResult, getOperationASTFromRequest } from '@graphql-tools/utils';
 +import memoizee from 'memoizee';
 +import weakMemoizee from 'memoizee/weak.js';
 +const __objectIds = new WeakMap();
@@ -85,3 +188,106 @@ index 0cf6937..0b47c96 100644
  import { DisposableSymbols } from '@whatwg-node/disposablestack';
  import { FormData, File as File$1, TextEncoder, crypto, TextDecoder, fetch } from '@whatwg-node/fetch';
  import { isPromise, handleMaybePromise } from '@whatwg-node/promise-helpers';
+@@ -351,7 +378,7 @@ function createGraphQLErrorForAbort(reason, extensions) {
+     return reason;
+   }
+   if (reason?.name === "TimeoutError") {
+-    return createGraphQLError(reason.message, {
++    return new GraphQLError(reason.message, {
+       extensions: {
+         http: {
+           status: 504,
+@@ -363,7 +390,7 @@ function createGraphQLErrorForAbort(reason, extensions) {
+       originalError: reason
+     });
+   }
+-  return createGraphQLError(reason.message, {
++  return new GraphQLError(reason.message, {
+     extensions,
+     originalError: reason
+   });
+@@ -435,7 +462,7 @@ function handleEventStreamResponse(response, subscriptionCtrl, signal) {
+         const errErr = err instanceof Error ? err : new Error(String(err));
+         await push({
+           errors: [
+-            createGraphQLError(errErr.message, { originalError: errErr })
++            new GraphQLError(errErr.message, { originalError: errErr })
+           ]
+         });
+         return stop();
+@@ -748,7 +775,7 @@ function buildHTTPExecutor(options) {
+                       upstreamErrorExtensions.code = "RESPONSE_VALIDATION_FAILED";
+                       return {
+                         errors: [
+-                          createGraphQLError(message, {
++                          new GraphQLError(message, {
+                             originalError: new Error(message),
+                             extensions: upstreamErrorExtensions
+                           })
+@@ -762,7 +789,7 @@ function buildHTTPExecutor(options) {
+                           ({
+                             message,
+                             ...options2
+-                          }) => createGraphQLError(message, options2)
++                          }) => new GraphQLError(message, options2)
+                         )
+                       };
+                     }
+@@ -771,7 +798,7 @@ function buildHTTPExecutor(options) {
+                     upstreamErrorExtensions.code = "RESPONSE_VALIDATION_FAILED";
+                     return {
+                       errors: [
+-                        createGraphQLError(
++                        new GraphQLError(
+                           `Unexpected response: ${JSON.stringify(result)}`,
+                           {
+                             extensions: upstreamErrorExtensions,
+@@ -786,7 +813,7 @@ function buildHTTPExecutor(options) {
+                   upstreamErrorExtensions.code = "RESPONSE_VALIDATION_FAILED";
+                   return {
+                     errors: [
+-                      createGraphQLError(message, {
++                      new GraphQLError(message, {
+                         extensions: upstreamErrorExtensions,
+                         originalError: new Error(message)
+                       })
+@@ -948,7 +975,7 @@ function buildHTTPExecutor(options) {
+             return result;
+           }
+           return {
+-            errors: [createGraphQLError("No response returned from fetch")]
++            errors: [new GraphQLError("No response returned from fetch")]
+           };
+         }
+         return handleMaybePromise(
+@@ -991,13 +1018,13 @@ function coerceFetchError(e, {
+   upstreamErrorExtensions
+ }) {
+   if (typeof e === "string") {
+-    return createGraphQLError(e, {
++    return new GraphQLError(e, {
+       extensions: upstreamErrorExtensions
+     });
+   } else if (e.name === "GraphQLError") {
+     return e;
+   } else if (e.name === "TypeError" && e.message === "fetch failed") {
+-    return createGraphQLError(`fetch failed to ${endpoint}`, {
++    return new GraphQLError(`fetch failed to ${endpoint}`, {
+       extensions: upstreamErrorExtensions,
+       originalError: e
+     });
+@@ -1007,12 +1034,12 @@ function coerceFetchError(e, {
+       upstreamErrorExtensions
+     );
+   } else if (e.message) {
+-    return createGraphQLError(e.message, {
++    return new GraphQLError(e.message, {
+       extensions: upstreamErrorExtensions,
+       originalError: e
+     });
+   } else {
+-    return createGraphQLError("Unknown error", {
++    return new GraphQLError("Unknown error", {
+       extensions: upstreamErrorExtensions,
+       originalError: e
+     });

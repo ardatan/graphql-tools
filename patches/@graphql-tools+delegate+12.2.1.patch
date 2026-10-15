@@ -1,5 +1,5 @@
 diff --git a/node_modules/@graphql-tools/delegate/dist/index.cjs b/node_modules/@graphql-tools/delegate/dist/index.cjs
-index 2688470..2f537e2 100644
+index 2688470..cdd9cea 100644
 --- a/node_modules/@graphql-tools/delegate/dist/index.cjs
 +++ b/node_modules/@graphql-tools/delegate/dist/index.cjs
 @@ -1,13 +1,41 @@
@@ -72,6 +72,15 @@ index 2688470..2f537e2 100644
    function handleOverrideByDelegation2(info, context, overrideHandler) {
      return overrideHandler(context, info);
    }
+@@ -692,7 +720,7 @@ function finalizeGatewayDocument(targetSchema, originalDocument, fragments, oper
+     });
+   }
+   if (!newOperations.length || selectionCnt === 0) {
+-    throw utils.createGraphQLError(
++    throw new graphql.GraphQLError(
+       "Failed to create a gateway request. The request must contain at least one operation.",
+       {
+         extensions: {
 @@ -973,7 +1001,7 @@ function collectFieldSelectionSetsByPathImpl(document) {
    });
    return { selectionSetsByPath, fragments };
@@ -127,13 +136,13 @@ index 2688470..2f537e2 100644
  Object.defineProperty(exports, "createDefaultExecutor", {
    enumerable: true,
 diff --git a/node_modules/@graphql-tools/delegate/dist/index.js b/node_modules/@graphql-tools/delegate/dist/index.js
-index 95a02cb..b37d349 100644
+index 95a02cb..b8267c6 100644
 --- a/node_modules/@graphql-tools/delegate/dist/index.js
 +++ b/node_modules/@graphql-tools/delegate/dist/index.js
 @@ -1,5 +1,32 @@
 -import { memoize2, memoize1, collectFields, relocatedError, mergeDeep, promiseReduce, pathToArray, memoize3, getDefinedRootType, createGraphQLError, implementsAbstractType, getRootTypeNames, astFromArg, astFromValueUntyped, asArray, isAsyncIterable, getOperationASTFromRequest } from '@graphql-tools/utils';
 -export { createDeferred } from '@graphql-tools/utils';
-+import { collectFields, relocatedError, mergeDeep, promiseReduce, pathToArray, getDefinedRootType, createGraphQLError, implementsAbstractType, getRootTypeNames, astFromArg, astFromValueUntyped, asArray, isAsyncIterable, getOperationASTFromRequest } from '@graphql-tools/utils';
++import { collectFields, relocatedError, mergeDeep, promiseReduce, pathToArray, getDefinedRootType, implementsAbstractType, getRootTypeNames, astFromArg, astFromValueUntyped, asArray, isAsyncIterable, getOperationASTFromRequest } from '@graphql-tools/utils';
 +import memoizee from 'memoizee';
 +import weakMemoizee from 'memoizee/weak.js';
 +const __objectIds = new WeakMap();
@@ -165,3 +174,12 @@ index 95a02cb..b37d349 100644
  import { GraphQLError, locatedError, isAbstractType, getNullableType, isLeafType, isCompositeType, isListType, responsePathAsArray, Kind, TypeInfo, versionInfo, visit, visitWithTypeInfo, isNullableType, isUnionType, getNamedType, isObjectType, isInterfaceType, typeFromAST, isTypeSubTypeOf, isNonNullType, isInputObjectType, defaultFieldResolver, isSchema, validate } from 'graphql';
  import { handleMaybePromise, isPromise, createDeferredPromise, mapAsyncIterator } from '@whatwg-node/promise-helpers';
  import { CRITICAL_ERROR, executorFromSchema } from '@graphql-tools/executor';
+@@ -692,7 +719,7 @@ function finalizeGatewayDocument(targetSchema, originalDocument, fragments, oper
+     });
+   }
+   if (!newOperations.length || selectionCnt === 0) {
+-    throw createGraphQLError(
++    throw new GraphQLError(
+       "Failed to create a gateway request. The request must contain at least one operation.",
+       {
+         extensions: {
