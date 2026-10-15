@@ -542,4 +542,49 @@ describe('pruneSchema', () => {
     const result = pruneSchema(schema);
     expect(result.getType('DirectiveArg')).toBeDefined();
   });
+
+  test('does not remove type used in unused directive definition', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      directive @key(fields: _FieldSet!) repeatable on OBJECT | INTERFACE
+
+      scalar _FieldSet
+
+      type Query {
+        foo: Boolean
+      }
+    `);
+
+    const result = pruneSchema(schema);
+    expect(result.getType('_FieldSet')).toBeDefined();
+    const keyDirective = result.getDirective('key');
+    expect(keyDirective).toBeDefined();
+    expect(keyDirective?.args).toHaveLength(1);
+    expect(String(keyDirective?.args[0].type)).toBe('_FieldSet!');
+  });
+
+  test('does not remove input types used in unused directive definition', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      directive @constraint(rules: ConstraintRules!) on FIELD_DEFINITION
+
+      input ConstraintRules {
+        range: IntRange
+      }
+
+      input IntRange {
+        min: Int
+        max: Int
+      }
+
+      type Query {
+        foo: Boolean
+      }
+    `);
+
+    const result = pruneSchema(schema);
+    expect(result.getType('ConstraintRules')).toBeDefined();
+    expect(result.getType('IntRange')).toBeDefined();
+    const constraintDirective = result.getDirective('constraint');
+    expect(constraintDirective?.args).toHaveLength(1);
+    expect(String(constraintDirective?.args[0].type)).toBe('ConstraintRules!');
+  });
 });
