@@ -15,6 +15,24 @@ const GLOB_MAGIC = /[*?[{\\]/;
 const EXTGLOB_PREFIX = new Set(['?', '*', '+', '@', '!']);
 const MAX_SYMLINK_WALK_DEPTH = 32;
 
+/**
+ * `fs.glob` `followSymlinks` landed in Node 26.1 and was backported to 24.16.
+ * On older engines we re-root recursive patterns onto discovered symlink dirs.
+ */
+const SUPPORTS_GLOB_FOLLOW_SYMLINKS = (() => {
+  const [major = 0, minor = 0] = process.versions.node.split('.').map(part => Number(part));
+  if (major > 26) {
+    return true;
+  }
+  if (major === 26) {
+    return minor >= 1;
+  }
+  if (major === 24) {
+    return minor >= 16;
+  }
+  return false;
+})();
+
 /** Whole-pattern negation (`!foo`), not a negative extglob (`!(foo)`). */
 function isWholePatternNegation(pattern: string): boolean {
   return pattern.startsWith('!') && !pattern.startsWith('!(');
@@ -147,12 +165,34 @@ function expandPatternSync(pattern: string, cwd: string): string {
   return normalized;
 }
 
+/** Literal directory prefix before the first glob metacharacter. */
+function literalDirPrefix(pattern: string): string {
+  const match = /^([^?*[{]*)/.exec(pattern);
+  const raw = match?.[1] ?? '';
+  const slash = raw.lastIndexOf('/');
+  return slash >= 0 ? raw.slice(0, slash + 1) : '';
+}
+
 /**
- * Node's `fs.glob` only follows directory symlinks when `followSymlinks` is set
- * (Node >=26.1). Until then, discover symlink directories under `cwd` (without
- * descending into them) so recursive glob patterns can be re-rooted explicitly.
+ * Relative directories to scan for symlink roots. `''` means `cwd` itself.
+ * Empty array means no recursive patterns — skip the walk entirely.
  */
-async function findDirectorySymlinkRoots(cwd: string): Promise<string[]> {
+function symlinkScanRoots(patterns: string[]): string[] {
+  const roots = new Set<string>();
+  for (const pattern of patterns) {
+    if (!pattern.includes('**')) {
+      continue;
+    }
+    roots.add(literalDirPrefix(pattern.replace(/\\/g, '/')).replace(/\/$/, ''));
+  }
+  return [...roots];
+}
+
+/**
+ * Discover directory symlinks under the given scan roots (without descending
+ * into the symlink targets). Used only when native `followSymlinks` is unavailable.
+ */
+async function findDirectorySymlinkRoots(cwd: string, scanRoots: string[]): Promise<string[]> {
   const roots: string[] = [];
 
   async function walk(rel: string, depth: number): Promise<void> {
@@ -184,11 +224,13 @@ async function findDirectorySymlinkRoots(cwd: string): Promise<string[]> {
     }
   }
 
-  await walk('', 0);
+  for (const scanRoot of scanRoots) {
+    await walk(scanRoot, 0);
+  }
   return roots;
 }
 
-function findDirectorySymlinkRootsSync(cwd: string): string[] {
+function findDirectorySymlinkRootsSync(cwd: string, scanRoots: string[]): string[] {
   const roots: string[] = [];
 
   function walk(rel: string, depth: number): void {
@@ -220,19 +262,13 @@ function findDirectorySymlinkRootsSync(cwd: string): string[] {
     }
   }
 
-  walk('', 0);
+  for (const scanRoot of scanRoots) {
+    walk(scanRoot, 0);
+  }
   return roots;
 }
 
-/** Literal directory prefix before the first glob metacharacter. */
-function literalDirPrefix(pattern: string): string {
-  const match = /^([^?*[{]*)/.exec(pattern);
-  const raw = match?.[1] ?? '';
-  const slash = raw.lastIndexOf('/');
-  return slash >= 0 ? raw.slice(0, slash + 1) : '';
-}
-
-/** Extra patterns so recursive globs can enter directory symlinks on Node <26.1. */
+/** Extra patterns so recursive globs can enter directory symlinks on older Node. */
 function patternsWithSymlinkRoots(pattern: string, symlinkRoots: string[]): string[] {
   if (!pattern.includes('**') || symlinkRoots.length === 0) {
     return [pattern];
@@ -257,6 +293,7 @@ type GlobOptions = {
   cwd: string;
   exclude?: string[];
   withFileTypes: boolean;
+  followSymlinks?: boolean;
 };
 
 async function collectGlobMatches(
@@ -291,6 +328,20 @@ function collectGlobMatchesSync(
   return paths;
 }
 
+function buildGlobOptions(
+  cwd: string,
+  exclude: string[],
+  onlyFiles: boolean,
+  followSymlinks: boolean,
+): GlobOptions {
+  return {
+    cwd,
+    exclude: exclude.length > 0 ? exclude : undefined,
+    withFileTypes: onlyFiles,
+    ...(followSymlinks ? { followSymlinks: true } : {}),
+  };
+}
+
 /**
  * File matching helper backed by Node's built-in `fs.glob` (Node >=22.14).
  * Replaces the previous `globby` dependency for loader / load-files use cases.
@@ -304,15 +355,12 @@ export async function matchFiles(
   const onlyFiles = options.onlyFiles !== false;
   const { include, ignore: negated } = splitPatterns(patterns);
   const exclude = [...negated, ...asArray(options.ignore).map(normalizeIgnore)];
-  const globOptions: GlobOptions = {
-    cwd,
-    exclude: exclude.length > 0 ? exclude : undefined,
-    withFileTypes: onlyFiles,
-  };
   const expandedIncludes = await Promise.all(include.map(pattern => expandPattern(pattern, cwd)));
-  const symlinkRoots = expandedIncludes.some(pattern => pattern.includes('**'))
-    ? await findDirectorySymlinkRoots(cwd)
-    : [];
+  const scanRoots = symlinkScanRoots(expandedIncludes);
+  const followSymlinks = SUPPORTS_GLOB_FOLLOW_SYMLINKS && scanRoots.length > 0;
+  const globOptions = buildGlobOptions(cwd, exclude, onlyFiles, followSymlinks);
+  const symlinkRoots =
+    followSymlinks || scanRoots.length === 0 ? [] : await findDirectorySymlinkRoots(cwd, scanRoots);
   const paths: string[] = [];
   for (const expanded of expandedIncludes) {
     for (const globPattern of patternsWithSymlinkRoots(expanded, symlinkRoots)) {
@@ -331,15 +379,12 @@ export function matchFilesSync(
   const onlyFiles = options.onlyFiles !== false;
   const { include, ignore: negated } = splitPatterns(patterns);
   const exclude = [...negated, ...asArray(options.ignore).map(normalizeIgnore)];
-  const globOptions: GlobOptions = {
-    cwd,
-    exclude: exclude.length > 0 ? exclude : undefined,
-    withFileTypes: onlyFiles,
-  };
   const expandedIncludes = include.map(pattern => expandPatternSync(pattern, cwd));
-  const symlinkRoots = expandedIncludes.some(pattern => pattern.includes('**'))
-    ? findDirectorySymlinkRootsSync(cwd)
-    : [];
+  const scanRoots = symlinkScanRoots(expandedIncludes);
+  const followSymlinks = SUPPORTS_GLOB_FOLLOW_SYMLINKS && scanRoots.length > 0;
+  const globOptions = buildGlobOptions(cwd, exclude, onlyFiles, followSymlinks);
+  const symlinkRoots =
+    followSymlinks || scanRoots.length === 0 ? [] : findDirectorySymlinkRootsSync(cwd, scanRoots);
   const paths: string[] = [];
   for (const expanded of expandedIncludes) {
     for (const globPattern of patternsWithSymlinkRoots(expanded, symlinkRoots)) {

@@ -3,8 +3,6 @@ import { cwd } from 'process';
 import { isSchema, Kind } from 'graphql';
 import {
   asArray,
-  debugTimerEnd,
-  debugTimerStart,
   getDocumentNodeFromSchema,
   isDocumentString,
   parseGraphQLSDL,
@@ -30,7 +28,6 @@ export async function collectSources<TOptions>({
   };
   options: LoadTypedefsOptions<Partial<TOptions>>;
 }): Promise<Source[]> {
-  debugTimerStart('@graphql-tools/load: collectSources');
   const sources: Source[] = [];
   const queue = useQueue<void>({ concurrency: CONCURRENCY_LIMIT });
 
@@ -42,7 +39,6 @@ export async function collectSources<TOptions>({
   for (const pointer in pointerOptionMap) {
     const pointerOptions = pointerOptionMap[pointer];
 
-    debugTimerStart(`@graphql-tools/load: collectSources ${pointer}`);
     collect({
       pointer,
       pointerOptions,
@@ -51,12 +47,9 @@ export async function collectSources<TOptions>({
       addSource,
       queue: queue.add as AddToQueue<void>,
     });
-    debugTimerEnd(`@graphql-tools/load: collectSources ${pointer}`);
   }
 
-  debugTimerStart('@graphql-tools/load: collectSources queue');
   await queue.runAll();
-  debugTimerEnd('@graphql-tools/load: collectSources queue');
   return sources;
 }
 
@@ -77,12 +70,9 @@ export function collectSourcesSync<TOptions>({
     stack: [collectDocumentString, collectCustomLoaderSync, collectFallbackSync],
   });
 
-  debugTimerStart('@graphql-tools/load: collectSourcesSync');
-
   for (const pointer in pointerOptionMap) {
     const pointerOptions = pointerOptionMap[pointer];
 
-    debugTimerStart(`@graphql-tools/load: collectSourcesSync ${pointer}`);
     collect({
       pointer,
       pointerOptions,
@@ -91,12 +81,9 @@ export function collectSourcesSync<TOptions>({
       addSource,
       queue: queue.add,
     });
-    debugTimerEnd(`@graphql-tools/load: collectSourcesSync ${pointer}`);
   }
 
-  debugTimerStart('@graphql-tools/load: collectSourcesSync queue');
   queue.runAll();
-  debugTimerEnd('@graphql-tools/load: collectSourcesSync queue');
 
   return sources;
 }
@@ -138,7 +125,6 @@ function addResultOfCustomLoader({
   result: any;
   addSource: AddSource;
 }) {
-  debugTimerStart(`@graphql-tools/load: addResultOfCustomLoader ${pointer}`);
   if (isSchema(result)) {
     addSource({
       source: {
@@ -166,14 +152,12 @@ function addResultOfCustomLoader({
       pointer,
     });
   }
-  debugTimerEnd(`@graphql-tools/load: addResultOfCustomLoader ${pointer}`);
 }
 
 function collectDocumentString<T>(
   { pointer, pointerOptions, options, addSource, queue }: CollectOptions<T>,
   next: StackNext,
 ) {
-  debugTimerStart(`@graphql-tools/load: collectDocumentString ${pointer}`);
   if (isDocumentString(pointer)) {
     return queue(() => {
       const source = parseGraphQLSDL(`${stringToHash(pointer)}.graphql`, pointer, {
@@ -187,7 +171,6 @@ function collectDocumentString<T>(
       });
     });
   }
-  debugTimerEnd(`@graphql-tools/load: collectDocumentString ${pointer}`);
 
   next();
 }
@@ -198,14 +181,12 @@ function collectCustomLoader<T>(
 ) {
   if (pointerOptions.loader) {
     return queue(async () => {
-      debugTimerStart(`@graphql-tools/load: collectCustomLoader ${pointer}`);
       await Promise.all(asArray(pointerOptions.require).map(m => import(m)));
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore TODO options.cwd is possibly undefined, but it seems like no test covers this path
       const loader = await useCustomLoader(pointerOptions.loader, options.cwd);
       const result = await loader(pointer, { ...options, ...pointerOptions }, pointerOptionMap);
 
-      debugTimerEnd(`@graphql-tools/load: collectCustomLoader ${pointer}`);
       if (!result) {
         return;
       }
@@ -223,7 +204,6 @@ function collectCustomLoaderSync<T>(
 ) {
   if (pointerOptions.loader) {
     return queue(() => {
-      debugTimerStart(`@graphql-tools/load: collectCustomLoaderSync ${pointer}`);
       const cwdRequire = createRequire(options.cwd || cwd());
       for (const m of asArray(pointerOptions.require)) {
         cwdRequire(m);
@@ -233,7 +213,6 @@ function collectCustomLoaderSync<T>(
       const loader = useCustomLoaderSync(pointerOptions.loader, options.cwd);
       const result = loader(pointer, { ...options, ...pointerOptions }, pointerOptionMap);
 
-      debugTimerEnd(`@graphql-tools/load: collectCustomLoaderSync ${pointer}`);
       if (result) {
         addResultOfCustomLoader({ pointer, result, addSource });
       }
@@ -251,7 +230,6 @@ function collectFallback<T>({
   addSource,
 }: CollectOptions<T>) {
   return queue(async () => {
-    debugTimerStart(`@graphql-tools/load: collectFallback ${pointer}`);
     const sources = await loadFile(pointer, {
       ...options,
       ...pointerOptions,
@@ -262,7 +240,6 @@ function collectFallback<T>({
         addSource({ source, pointer });
       }
     }
-    debugTimerEnd(`@graphql-tools/load: collectFallback ${pointer}`);
   });
 }
 
@@ -274,7 +251,6 @@ function collectFallbackSync<T>({
   addSource,
 }: CollectOptions<T>) {
   return queue(() => {
-    debugTimerStart(`@graphql-tools/load: collectFallbackSync ${pointer}`);
     const sources = loadFileSync(pointer, {
       ...options,
       ...pointerOptions,
@@ -285,6 +261,5 @@ function collectFallbackSync<T>({
         addSource({ source, pointer });
       }
     }
-    debugTimerEnd(`@graphql-tools/load: collectFallbackSync ${pointer}`);
   });
 }
