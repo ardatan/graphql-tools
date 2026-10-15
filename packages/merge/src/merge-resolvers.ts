@@ -1,4 +1,3 @@
-import { versionInfo } from 'graphql';
 import { IResolvers, isDangerousObjectKey, Maybe, mergeDeep } from '@graphql-tools/utils';
 
 /**
@@ -69,9 +68,7 @@ export function mergeResolvers<TSource, TContext>(
   }
   const result = mergeDeep(resolvers, {
     respectPrototype: true,
-    ...(versionInfo?.major >= 17
-      ? { respectSymbols: { enumerable: true, nonEnumerable: true } }
-      : null),
+    respectSymbols: { enumerable: true, nonEnumerable: true },
   });
 
   if (options?.exclusions) {

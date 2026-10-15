@@ -1,16 +1,12 @@
-import { GraphQLEnumType, GraphQLObjectType, GraphQLSchema, versionInfo } from 'graphql';
+import { GraphQLEnumType, GraphQLObjectType, GraphQLSchema } from 'graphql';
 import { ExtensionsObject, Maybe, mergeDeep, SchemaExtensions } from '@graphql-tools/utils';
 
 export { extractExtensionsFromSchema } from '@graphql-tools/utils';
 
-// versionInfo exists from graphql@14.4.0; older 14.0.x peers omit it (still in ^14.0.0 range).
-const mergeExtensionsOptions =
-  versionInfo?.major >= 17
-    ? ({
-        respectArrays: true,
-        respectSymbols: { enumerable: true, nonEnumerable: true },
-      } as const)
-    : ({ respectArrays: true } as const);
+const mergeExtensionsOptions = {
+  respectArrays: true,
+  respectSymbols: { enumerable: true, nonEnumerable: true },
+} as const;
 
 export function mergeExtensions(extensions: SchemaExtensions[]): SchemaExtensions {
   return mergeDeep(extensions, mergeExtensionsOptions);

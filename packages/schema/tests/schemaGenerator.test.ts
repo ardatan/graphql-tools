@@ -358,6 +358,8 @@ describe('generating schema from shorthand', () => {
     expect(extensions!['verbose']).toBe(true);
   });
 
+  // GraphQL.js only keeps symbol keys on field configs when rebuilding types via
+  // mapSchema/toObjMapWithSymbols (v17+). Our merge path always preserves them.
   testIf(versionInfo.major >= 17)('preserves symbol-keyed field resolver extensions', () => {
     const verbose = Symbol('verbose');
     const resolvers = {
@@ -385,7 +387,7 @@ describe('generating schema from shorthand', () => {
     expect(Reflect.get(extensions ?? {}, verbose)).toBe(true);
   });
 
-  testIf(versionInfo.major >= 17)('preserves symbol-keyed schema extensions', () => {
+  it('preserves symbol-keyed schema extensions', () => {
     const Extension1 = 'Key1';
     const Extension2 = Symbol('Key2');
 

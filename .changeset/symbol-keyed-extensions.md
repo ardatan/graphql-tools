@@ -4,7 +4,7 @@
 "@graphql-tools/schema": patch
 ---
 
-**Fix:** Preserve symbol-keyed GraphQL extensions on GraphQL.js v17+ when building, merging, or extracting schemas.
+**Fix:** Preserve symbol-keyed GraphQL extensions when building, merging, or extracting schemas.
 
 GraphQL.js v17 allows `string | symbol` keys on schema/type/field `extensions` (via `toObjMapWithSymbols`). `@graphql-tools` was dropping those symbol keys in two places:
 
@@ -33,15 +33,15 @@ const schema = makeExecutableSchema({
   },
 })
 
-// Before (v17): only string keys survived
+// Before: only string keys survived
 // schema.extensions === { tagged: true }
 
-// After (v17): symbol keys are preserved
+// After: symbol keys are preserved
 // schema.extensions[META] === { source: 'app' }
 // schema.extensions.tagged === true
 ```
 
-On GraphQL.js below v17, behavior is unchanged (GraphQL itself does not keep symbol extension keys).
+Schema extension merge/extract and resolver merging always enable `{ enumerable: true, nonEnumerable: true }` so symbol keys survive in tools' own merge/extract paths on every supported GraphQL.js major. (GraphQL.js itself may still drop symbol keys from field configs below v17 when rebuilding types.)
 
 ### `mergeDeep` API
 
@@ -67,7 +67,5 @@ mergeDeep([a, b], {
 ```
 
 `respectSymbols` defaults to `{ enumerable: false, nonEnumerable: false }` (symbols dropped), matching the historical default. The legacy 5th positional flag still maps to `{ nonEnumerable: true }` only.
-
-Schema extension merge/extract and resolver merging enable `{ enumerable: true, nonEnumerable: true }` automatically when `graphql` major >= 17.
 
 Resolver map types (`IResolvers` / field resolver `extensions` and type `__extensions`) now use `ExtensionsObject` (`Record<string | symbol, any>`), so symbol-keyed resolver extensions type-check under GraphQL.js v17+.
