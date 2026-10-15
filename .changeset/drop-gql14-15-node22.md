@@ -52,6 +52,7 @@ Drop GraphQL v14/v15 support and require Node.js >= 22.14.
 | `isPromise` / `fakePromise` / `mapAsyncIterator` / `MaybePromise` | `@whatwg-node/promise-helpers` |
 | `registerAbortSignalListener` / `getAbortPromise` | `AbortSignal` APIs (`throwIfAborted`, `addEventListener('abort', …, { once: true })`, `AbortSignal.any`, …) |
 | `withCancel` / `getAsyncIterableWithCancel` / `getAsyncIteratorWithCancel` | Handle cancellation on the async iterator’s `return()` (or your transport abort path) |
+| `debugTimerStart` / `debugTimerEnd` | Your own timing / `console.time` if needed |
 | `PromiseWithResolvers` (type) | Built-in `PromiseWithResolvers<T>` / return type of `Promise.withResolvers()` |
 | `memoize1` / `memoize2` / `memoize3` / `memoize4` / `memoize5` / `memoize2of4` / `memoize2of5` | `memoizee` / `memoizee/weak.js` (see below) |
 
@@ -95,4 +96,3 @@ For primitive-key caches, use `memoizee` with `{ primitive: true }`.
 - Prefer `new GraphQLError(message, options)` from `graphql`. Experimental schema `coordinate` support remains on `locatedError` / `relocatedError` / `getSchemaCoordinate`.
 - Removed GraphQL <16 compatibility branches (error construction, validation rule name suffixes, `URL.canParse` fallback).
 - Promise helpers should be imported from `@whatwg-node/promise-helpers` (`handleMaybePromise`, `isPromise`, `fakePromise`, `mapAsyncIterator`, `MaybePromise`) rather than re-exported from utils.
-- `@graphql-tools/load` no longer calls `debugTimerStart` / `debugTimerEnd` on its hot path (use your own timing if you relied on `DEBUG` + those spans). The `debugTimer*` helpers remain on `@graphql-tools/utils` and cache the `DEBUG` env once.
