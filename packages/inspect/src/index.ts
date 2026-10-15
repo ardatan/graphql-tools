@@ -1,11 +1,57 @@
-// Taken from graphql-js
+// Ponyfill taken from graphql-js
 // https://github.com/graphql/graphql-js/blob/main/src/jsutils/inspect.ts
 const MAX_RECURSIVE_DEPTH = 3;
 
+type NodeUtil = {
+  inspect: (value: unknown, options?: Record<string, unknown>) => string;
+};
+
+function getNodeInspect(): ((value: unknown) => string) | undefined {
+  const getBuiltinModule = (
+    globalThis as { process?: { getBuiltinModule?: (id: string) => unknown } }
+  ).process?.getBuiltinModule;
+  if (typeof getBuiltinModule !== 'function') {
+    return undefined;
+  }
+  try {
+    const util = getBuiltinModule('util') as NodeUtil | undefined;
+    if (typeof util?.inspect !== 'function') {
+      return undefined;
+    }
+    return (value: unknown) => {
+      // GraphQL 17 coerced maps are null-prototype; GraphQL 16's are not.
+      // Strip the Node prefix so error strings stay stable across peers.
+      return util
+        .inspect(value, {
+          depth: MAX_RECURSIVE_DEPTH,
+          colors: false,
+          compact: true,
+          breakLength: Infinity,
+        })
+        .replaceAll('[Object: null prototype] ', '');
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+const nodeInspect = getNodeInspect();
+
 /**
  * Used to print values in error messages.
+ * Prefers Node's `util.inspect` via `process.getBuiltinModule` when available.
+ * Still honors `toJSON()` first (e.g. GraphQL type names), matching graphql-js.
  */
 export function inspect(value: unknown): string {
+  if (nodeInspect) {
+    if (value != null && typeof (value as { toJSON?: unknown }).toJSON === 'function') {
+      const jsonValue = (value as { toJSON: () => unknown }).toJSON();
+      if (jsonValue !== value) {
+        return typeof jsonValue === 'string' ? jsonValue : nodeInspect(jsonValue);
+      }
+    }
+    return nodeInspect(value);
+  }
   return formatValue(value, []);
 }
 
@@ -23,8 +69,7 @@ function formatValue(value: unknown, seenValues: ReadonlyArray<unknown>): string
 }
 
 function formatError(value: Error): string {
-  // eslint-disable-next-line no-constant-condition
-  if ((value.name = 'GraphQLError')) {
+  if (value.name === 'GraphQLError') {
     return value.toString();
   }
   return `${value.name}: ${value.message};\n ${value.stack}`;

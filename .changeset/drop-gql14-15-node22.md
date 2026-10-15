@@ -86,3 +86,4 @@ For primitive-key caches, use `memoizee` with `{ primitive: true }` instead.
 
 - Removed GraphQL <16 branches (error construction, validation rule name suffixes, `URL.canParse` fallback).
 - Root `globby` usage in `scripts/build-api-docs.mts` replaced with `fs.globSync`.
+- `cross-inspect` prefers `process.getBuiltinModule('util').inspect` on Node and keeps the graphql-js ponyfill elsewhere.
