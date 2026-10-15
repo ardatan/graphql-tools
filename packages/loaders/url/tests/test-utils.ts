@@ -1,6 +1,7 @@
+import { inspect } from 'cross-inspect';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { ExecutionResult, inspect, isAsyncIterable } from '@graphql-tools/utils';
+import { ExecutionResult, isAsyncIterable } from '@graphql-tools/utils';
 
 export function assertAsyncIterable(input: unknown): asserts input is AsyncIterable<any> {
   if (!isAsyncIterable(input)) {

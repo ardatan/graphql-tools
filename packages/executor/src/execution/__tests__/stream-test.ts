@@ -8,7 +8,7 @@ import {
   GraphQLString,
   parse,
 } from 'graphql';
-import { MaybePromise } from '@graphql-tools/utils';
+import type { MaybePromise } from '@whatwg-node/promise-helpers';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import type {
   InitialIncrementalExecutionResult,

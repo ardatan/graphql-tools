@@ -49,7 +49,9 @@ Drop GraphQL v14/v15 and require Node.js >= 22.
 | `coerceInputs` / `graphqlJSCompat` | graphql@16+ APIs (`getArgumentValues`, etc.) |
 | `createDeferred` / `createDeferredPromise` | `const { promise, resolve, reject } = Promise.withResolvers()` |
 | `createGraphQLError` | `new GraphQLError(message, options)` from `graphql` |
-| `mapMaybePromise` | `handleMaybePromise` / `mapMaybePromise` from `@whatwg-node/promise-helpers`, or `async`/`await` |
+| `mapMaybePromise` | `handleMaybePromise` from `@whatwg-node/promise-helpers` |
+| `isPromise` / `fakePromise` / `mapAsyncIterator` / `MaybePromise` | `@whatwg-node/promise-helpers` |
+| `inspect` | `cross-inspect` |
 | `registerAbortSignalListener` / `getAbortPromise` | `AbortSignal` / `AbortSignal.any` / `signal.throwIfAborted()`, or a single `signal.addEventListener('abort', …, { once: true })` |
 | `withCancel` / `getAsyncIterableWithCancel` / `getAsyncIteratorWithCancel` | Wire cancellation on the async iterator’s `return()` (or your transport’s abort path) directly |
 | `PromiseWithResolvers` (type) | Built-in `PromiseWithResolvers<T>` / return type of `Promise.withResolvers()` |

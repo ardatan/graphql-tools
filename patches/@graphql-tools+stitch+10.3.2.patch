@@ -1,11 +1,12 @@
 diff --git a/node_modules/@graphql-tools/stitch/dist/index.cjs b/node_modules/@graphql-tools/stitch/dist/index.cjs
-index 888959b..79b5152 100644
+index 888959b..db19ba4 100644
 --- a/node_modules/@graphql-tools/stitch/dist/index.cjs
 +++ b/node_modules/@graphql-tools/stitch/dist/index.cjs
-@@ -4,8 +4,64 @@ var delegate = require('@graphql-tools/delegate');
+@@ -4,8 +4,65 @@ var delegate = require('@graphql-tools/delegate');
  var merge = require('@graphql-tools/merge');
  var schema = require('@graphql-tools/schema');
  var utils = require('@graphql-tools/utils');
++var crossInspect = require('cross-inspect');
 +var weakMemoizee = require('memoizee/weak');
 +function memoize1(fn) { return weakMemoizee(fn); }
 +function memoize2(fn) {
@@ -67,7 +68,7 @@ index 888959b..79b5152 100644
  var batchDelegate = require('@graphql-tools/batch-delegate');
  var wrap = require('@graphql-tools/wrap');
  var executor = require('@graphql-tools/executor');
-@@ -440,7 +496,7 @@ const flattenSelectionsForTypeImpl = (selectionSet, gatewayType, schema) => {
+@@ -440,7 +497,7 @@ const flattenSelectionsForTypeImpl = (selectionSet, gatewayType, schema) => {
      selections: flat
    };
  };
@@ -76,7 +77,7 @@ index 888959b..79b5152 100644
  
  function memoize5of7(fn) {
    const memoize5Cache = /* @__PURE__ */ new WeakMap();
-@@ -697,7 +753,7 @@ function calculateDelegationStage(mergedTypeInfo, sourceSubschemas, targetSubsch
+@@ -697,7 +754,7 @@ function calculateDelegationStage(mergedTypeInfo, sourceSubschemas, targetSubsch
      unproxiableFieldNodes
    };
  }
@@ -85,7 +86,7 @@ index 888959b..79b5152 100644
    function calculateSelectionScore2(selections, fragments) {
      let score = 0;
      for (const selectionNode of selections) {
-@@ -911,13 +967,13 @@ function optimizeDelegationMap(delegationMap, typeName, fragments) {
+@@ -911,13 +968,13 @@ function optimizeDelegationMap(delegationMap, typeName, fragments) {
    }
    return delegationMap;
  }
@@ -102,7 +103,34 @@ index 888959b..79b5152 100644
    function subschemaTypesContainSelectionSet2(mergedTypeInfo, sourceSubchemas, selectionSet) {
      return typesContainSelectionSet(
        sourceSubchemas.map(
-@@ -3660,10 +3716,10 @@ function createStitchingExecutor(stitchedSchema) {
+@@ -3066,7 +3123,7 @@ function buildTypeCandidates({
+     for (const def of extraction.typeDefinitions) {
+       const type = typeFromAST(def);
+       if (!graphql.isNamedType(type)) {
+-        throw new Error(`Expected to get named typed but got ${utils.inspect(def)}`);
++        throw new Error(`Expected to get named typed but got ${crossInspect.inspect(def)}`);
+       }
+       if (type != null) {
+         if (graphql.isInterfaceType(type)) {
+@@ -3085,7 +3142,7 @@ function buildTypeCandidates({
+       const directive = typeFromAST(def);
+       if (!graphql.isDirective(directive)) {
+         throw new Error(
+-          `Expected to get directive type but got ${utils.inspect(def)}`
++          `Expected to get directive type but got ${crossInspect.inspect(def)}`
+         );
+       }
+       let directiveCandidatesForName = directiveCandidates.get(directive.name);
+@@ -3423,7 +3480,7 @@ function applySubschemaConfigTransforms(subschemaConfigTransforms, subschemaOrSu
+     subschemaConfig = { schema: subschemaOrSubschemaConfig };
+   } else {
+     throw new TypeError(
+-      "Received invalid input." + utils.inspect(subschemaOrSubschemaConfig)
++      "Received invalid input." + crossInspect.inspect(subschemaOrSubschemaConfig)
+     );
+   }
+   const transformedSubschemaConfigs = subschemaConfigTransforms.concat(subschemaConfigTransformerPresets).reduce(
+@@ -3660,10 +3717,10 @@ function createStitchingExecutor(stitchedSchema) {
          );
          return rootType2.getFields()[fieldName] != null;
        });
@@ -116,15 +144,16 @@ index 888959b..79b5152 100644
        const info = {
          schema: stitchedSchema,
 diff --git a/node_modules/@graphql-tools/stitch/dist/index.js b/node_modules/@graphql-tools/stitch/dist/index.js
-index 37b8d28..4ce620b 100644
+index 37b8d28..337a73e 100644
 --- a/node_modules/@graphql-tools/stitch/dist/index.js
 +++ b/node_modules/@graphql-tools/stitch/dist/index.js
-@@ -1,13 +1,70 @@
+@@ -1,13 +1,71 @@
  import { isExternalObject, getVariableValues, handleOverrideByDelegation, subtractSelectionSets, extractUnavailableFields, leftOverByDelegationPlan, extractUnavailableFieldsFromSelectionSet, delegateToSchema, cloneSubschemaConfig, isSubschemaConfig, defaultMergedResolver, Subschema } from '@graphql-tools/delegate';
  import { mergeType, mergeInputType, mergeInterface, mergeUnion, mergeEnum, mergeScalar, mergeTypeDefs, mergeResolvers, mergeExtensions, applyExtensions } from '@graphql-tools/merge';
  import { extendResolversFromInterfaces, addResolversToSchema, assertResolversPresent, makeExecutableSchema } from '@graphql-tools/schema';
 -import { mergeDeep, collectSubFields, memoize3, memoize2, memoize1, parseSelectionSet, collectFields, isSome, getImplementingTypes, getRootTypeNames, filterSchema, getDescription, createNamedStub, createStub, getRootTypeMap, getRootTypes, inspect, rewireTypes, getOperationASTFromRequest, getDefinedRootType, getArgumentValues } from '@graphql-tools/utils';
-+import { mergeDeep, collectSubFields, parseSelectionSet, collectFields, isSome, getImplementingTypes, getRootTypeNames, filterSchema, getDescription, createNamedStub, createStub, getRootTypeMap, getRootTypes, inspect, rewireTypes, getOperationASTFromRequest, getDefinedRootType } from '@graphql-tools/utils';
++import { mergeDeep, collectSubFields, parseSelectionSet, collectFields, isSome, getImplementingTypes, getRootTypeNames, filterSchema, getDescription, createNamedStub, createStub, getRootTypeMap, getRootTypes, rewireTypes, getOperationASTFromRequest, getDefinedRootType } from '@graphql-tools/utils';
++import { inspect } from 'cross-inspect';
 +import weakMemoizee from 'memoizee/weak.js';
 +function memoize1(fn) { return weakMemoizee(fn); }
 +function memoize2(fn) {
@@ -192,7 +221,7 @@ index 37b8d28..4ce620b 100644
  function valueSatisfiesSelectionSet(value, selectionSet) {
    if (Array.isArray(value)) {
      return value.every(
-@@ -3661,7 +3718,7 @@ function createStitchingExecutor(stitchedSchema) {
+@@ -3661,7 +3719,7 @@ function createStitchingExecutor(stitchedSchema) {
        const args = getArgumentValues(
          fieldInstance,
          fieldNode,

@@ -5,9 +5,8 @@ import {
   ExecutionResult,
   Executor,
   MaybeAsyncIterable,
-  MaybePromise,
 } from '@graphql-tools/utils';
-import { handleMaybePromise } from '@whatwg-node/promise-helpers';
+import { handleMaybePromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 import {
   execute,
   ExecutionArgs,

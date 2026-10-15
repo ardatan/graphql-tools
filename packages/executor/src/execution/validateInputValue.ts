@@ -1,3 +1,4 @@
+import { inspect } from 'cross-inspect';
 import {
   assertLeafType,
   ASTNode,
@@ -15,7 +16,6 @@ import {
 } from 'graphql';
 import {
   addPath,
-  inspect,
   isIterableObject,
   isObjectLike,
   Maybe,

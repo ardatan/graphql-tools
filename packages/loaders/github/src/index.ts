@@ -8,13 +8,12 @@ import {
 import {
   BaseLoaderOptions,
   Loader,
-  MaybePromise,
   parseGraphQLJSON,
   parseGraphQLSDL,
   Source,
 } from '@graphql-tools/utils';
 import { fetch as asyncFetch } from '@whatwg-node/fetch';
-import { handleMaybePromise } from '@whatwg-node/promise-helpers';
+import { handleMaybePromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 
 // github:owner/name#ref:path/to/file
 function extractData(pointer: string): {

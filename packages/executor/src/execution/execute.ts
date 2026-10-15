@@ -1,3 +1,4 @@
+import { inspect } from 'cross-inspect';
 import {
   assertValidSchema,
   DocumentNode,
@@ -32,20 +33,15 @@ import {
   collectSubFields as _collectSubfields,
   addPath,
   collectFields,
-  fakePromise,
   getDefinedRootType,
   getDirectiveValues,
   GraphQLResolveInfo,
   GraphQLStreamDirective,
-  inspect,
   isAsyncIterable,
   isIterableObject,
   isObjectLike,
-  isPromise,
   locatedError,
-  mapAsyncIterator,
   Maybe,
-  MaybePromise,
   Path,
   pathToArray,
   promiseReduce,
@@ -53,7 +49,13 @@ import {
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
-import { handleMaybePromise } from '@whatwg-node/promise-helpers';
+import {
+  fakePromise,
+  handleMaybePromise,
+  isPromise,
+  mapAsyncIterator,
+  type MaybePromise,
+} from '@whatwg-node/promise-helpers';
 import { coerceError } from './coerceError.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import { invariant } from './invariant.js';

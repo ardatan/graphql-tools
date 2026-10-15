@@ -1,4 +1,4 @@
-import { handleMaybePromise, isPromise, type MaybePromise } from '@whatwg-node/promise-helpers';
+import { handleMaybePromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 
 export function isIterableObject(value: unknown): value is Iterable<unknown> {
   // Match graphql-js: only treat as iterable when the iterator is callable.
@@ -13,8 +13,6 @@ export function isIterableObject(value: unknown): value is Iterable<unknown> {
 export function isObjectLike(value: unknown): value is { [key: string]: unknown } {
   return typeof value === 'object' && value !== null;
 }
-
-export { isPromise };
 
 export function promiseReduce<T, U>(
   values: Iterable<T>,

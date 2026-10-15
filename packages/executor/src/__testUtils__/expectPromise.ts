@@ -1,4 +1,4 @@
-import { isPromise } from '@graphql-tools/utils';
+import { isPromise } from '@whatwg-node/promise-helpers';
 
 export function expectPromise(maybePromise: unknown) {
   expect(isPromise(maybePromise)).toBeTruthy();

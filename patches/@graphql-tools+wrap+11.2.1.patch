@@ -1,11 +1,12 @@
 diff --git a/node_modules/@graphql-tools/wrap/dist/index.cjs b/node_modules/@graphql-tools/wrap/dist/index.cjs
-index 8fcc5d7..84c6820 100644
+index 8fcc5d7..871ec96 100644
 --- a/node_modules/@graphql-tools/wrap/dist/index.cjs
 +++ b/node_modules/@graphql-tools/wrap/dist/index.cjs
-@@ -2,6 +2,36 @@
+@@ -2,6 +2,37 @@
  
  var delegate = require('@graphql-tools/delegate');
  var utils = require('@graphql-tools/utils');
++var crossInspect = require('cross-inspect');
 +var weakMemoizee = require('memoizee/weak');
 +function memoize1(fn) { return weakMemoizee(fn); }
 +function memoize2(fn) {
@@ -39,7 +40,7 @@ index 8fcc5d7..84c6820 100644
  var graphql = require('graphql');
  var promiseHelpers = require('@whatwg-node/promise-helpers');
  
-@@ -78,7 +108,7 @@ function defaultCreateProxyingResolver({
+@@ -78,7 +109,7 @@ function defaultCreateProxyingResolver({
    };
  }
  
@@ -48,7 +49,7 @@ index 8fcc5d7..84c6820 100644
    const targetSchema = subschemaConfig.schema;
    const proxyingResolvers = generateProxyingResolvers(subschemaConfig);
    const schema = createWrappingSchema(targetSchema, proxyingResolvers);
-@@ -1480,7 +1510,7 @@ class FilterObjectFieldDirectives {
+@@ -1480,7 +1511,7 @@ class FilterObjectFieldDirectives {
            const directiveDef = originalWrappingSchema.getDirective(
              dir.name.value
            );
@@ -57,7 +58,7 @@ index 8fcc5d7..84c6820 100644
            return this.filter(dir.name.value, directiveValue);
          }) ?? [];
          if (fieldConfig.astNode?.directives != null && keepDirectives.length !== fieldConfig.astNode.directives.length) {
-@@ -2314,7 +2344,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
+@@ -2314,7 +2345,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
    }
    if (introspectionResult?.errors) {
      const graphqlErrors = introspectionResult.errors.map(
@@ -66,24 +67,28 @@ index 8fcc5d7..84c6820 100644
      );
      if (introspectionResult.errors.length === 1) {
        throw graphqlErrors[0];
-@@ -2325,7 +2355,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
+@@ -2325,9 +2356,9 @@ function getSchemaFromIntrospection(introspectionResult, options) {
        );
      }
    }
 -  throw utils.createGraphQLError(
 +  throw new graphql.GraphQLError(
      `Could not obtain introspection result, received the following as response; 
-  ${utils.inspect(
+- ${utils.inspect(
++ ${crossInspect.inspect(
        introspectionResult
+     )}`
+   );
 diff --git a/node_modules/@graphql-tools/wrap/dist/index.js b/node_modules/@graphql-tools/wrap/dist/index.js
-index 5f98762..20dd427 100644
+index 5f98762..f4d9377 100644
 --- a/node_modules/@graphql-tools/wrap/dist/index.js
 +++ b/node_modules/@graphql-tools/wrap/dist/index.js
-@@ -1,6 +1,36 @@
+@@ -1,6 +1,37 @@
  import { delegateToSchema, isExternalObject, getUnpathedErrors, getSubschema, resolveExternalValue, applySchemaTransforms, defaultMergedResolver, getTypeInfo, isPrototypePollutingKey } from '@graphql-tools/delegate';
 -import { getRootTypeMap, memoize1, mapSchema, MapperKind, renameType, visitData, transformInputValue, visitResult, astFromValueUntyped, getOperationASTFromRequest, relocatedError, getArgumentValues, valueMatchesCriteria, getDirectives, pruneSchema, selectObjectFields, appendObjectFields, modifyObjectFields, removeObjectFields, isAsyncIterable, createGraphQLError, inspect } from '@graphql-tools/utils';
 -import { isSpecifiedScalarType, GraphQLScalarType, GraphQLUnionType, GraphQLInterfaceType, GraphQLObjectType, isScalarType, visit, Kind, visitWithTypeInfo, isObjectType, isInterfaceType, typeFromAST, isInputType, getNamedType, isLeafType, valueFromAST, valueFromASTUntyped, astFromValue, GraphQLNonNull, getNullableType, isListType, GraphQLList, BREAK, parse, getIntrospectionQuery, buildClientSchema } from 'graphql';
-+import { getRootTypeMap, mapSchema, MapperKind, renameType, visitData, transformInputValue, visitResult, astFromValueUntyped, getOperationASTFromRequest, relocatedError, valueMatchesCriteria, getDirectives, pruneSchema, selectObjectFields, appendObjectFields, modifyObjectFields, removeObjectFields, isAsyncIterable, inspect } from '@graphql-tools/utils';
++import { getRootTypeMap, mapSchema, MapperKind, renameType, visitData, transformInputValue, visitResult, astFromValueUntyped, getOperationASTFromRequest, relocatedError, valueMatchesCriteria, getDirectives, pruneSchema, selectObjectFields, appendObjectFields, modifyObjectFields, removeObjectFields, isAsyncIterable } from '@graphql-tools/utils';
++import { inspect } from 'cross-inspect';
 +import weakMemoizee from 'memoizee/weak.js';
 +function memoize1(fn) { return weakMemoizee(fn); }
 +function memoize2(fn) {
@@ -118,7 +123,7 @@ index 5f98762..20dd427 100644
  import { handleMaybePromise } from '@whatwg-node/promise-helpers';
  
  function generateProxyingResolvers(subschemaConfig) {
-@@ -2312,7 +2342,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
+@@ -2312,7 +2343,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
    }
    if (introspectionResult?.errors) {
      const graphqlErrors = introspectionResult.errors.map(
@@ -127,7 +132,7 @@ index 5f98762..20dd427 100644
      );
      if (introspectionResult.errors.length === 1) {
        throw graphqlErrors[0];
-@@ -2323,7 +2353,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
+@@ -2323,7 +2354,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
        );
      }
    }

@@ -8,7 +8,8 @@ import {
   parse,
 } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { ExecutionResult, isAsyncIterable, isPromise, MaybePromise } from '@graphql-tools/utils';
+import { ExecutionResult, isAsyncIterable } from '@graphql-tools/utils';
+import { isPromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
 import { assertAsyncIterable } from '../../../../loaders/url/tests/test-utils.js';
@@ -452,7 +453,7 @@ describe('Subscription Initialization Phase', () => {
     const expectedResult = {
       errors: [
         {
-          message: 'Subscription field must return Async Iterable. Received: "test".',
+          message: "Subscription field must return Async Iterable. Received: 'test'.",
           locations: [{ line: 1, column: 16 }],
           path: ['foo'],
         },
@@ -532,7 +533,7 @@ describe('Subscription Initialization Phase', () => {
       errors: [
         {
           message:
-            'Variable "$arg" got invalid value "meow"; Int cannot represent non-integer value: "meow"',
+            'Variable "$arg" got invalid value \'meow\'; Int cannot represent non-integer value: "meow"',
           locations: [{ line: 2, column: 21 }],
         },
       ],

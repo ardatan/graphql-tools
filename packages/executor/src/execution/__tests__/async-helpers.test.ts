@@ -1,7 +1,8 @@
 import { setTimeout } from 'timers/promises';
 import { createSchema, createYoga } from 'graphql-yoga';
-import { fakePromise, GraphQLResolveInfo } from '@graphql-tools/utils';
+import { GraphQLResolveInfo } from '@graphql-tools/utils';
 import { patchSymbols } from '@whatwg-node/disposablestack';
+import { fakePromise } from '@whatwg-node/promise-helpers';
 
 patchSymbols();
 

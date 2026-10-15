@@ -1,3 +1,4 @@
+import { inspect } from 'cross-inspect';
 import {
   coerceInputValue,
   GraphQLError,
@@ -15,7 +16,6 @@ import {
 } from 'graphql';
 import {
   hasOwnProperty,
-  inspect,
   printPathArray,
   VariableValues,
   VariableValueSource,
