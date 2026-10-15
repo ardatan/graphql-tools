@@ -219,6 +219,31 @@ function fieldNodeFrom(query: string): FieldNode {
     expect(result).toEqual({ data: { occurredAt: when.toJSON() } });
   });
 
+  it('rebuilds synthetic sources when the same variable map is mutated and reused', () => {
+    const JSONScalar = new GraphQLScalarType({
+      name: 'JSON',
+      coerceInputValue: (v: any) => v,
+      coerceInputLiteral: (node: any) => valueFromASTUntyped(node),
+    } as any);
+
+    const field = {
+      name: 'foo',
+      args: [{ name: 'data', type: JSONScalar }],
+    } as unknown as GraphQLField<any, any>;
+
+    const variables: Record<string, any> = { v: 'first' };
+    const fieldNode = fieldNodeFrom('{ foo(data: { key: $v }) }');
+
+    expect(getArgumentValues(field, fieldNode, variables)).toEqual({
+      data: { key: 'first' },
+    });
+
+    variables['v'] = 'second';
+    expect(getArgumentValues(field, fieldNode, variables)).toEqual({
+      data: { key: 'second' },
+    });
+  });
+
   it('preserves large integer-valued floats nested in object literals', () => {
     // Number.isInteger(1e21) is true, but String(1e21) is "1e+21" — must be a
     // FloatValue or valueFromASTUntyped corrupts it to 1.

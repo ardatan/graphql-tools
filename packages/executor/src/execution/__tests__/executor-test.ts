@@ -1397,7 +1397,7 @@ describe('Execute: Handles basic execution tasks', () => {
             foo: {
               type: GraphQLString,
               args: { data: { type: JSONScalar } },
-              resolve: (_: unknown, args: { data: unknown }) => JSON.stringify(args.data),
+              resolve: (_: unknown, args: Record<string, any>) => JSON.stringify(args['data']),
             },
             // Keep Shade reachable so `$s: Shade!` resolves in the schema.
             shade: {

@@ -210,9 +210,7 @@ describe('Execute: Handles inputs', () => {
           },
           errors: [
             {
-              message: isGraphQL17
-                ? 'Argument "TestType.fieldWithObjectInput(input:)" has invalid value: Expected value of type "TestInputObject" to be an object, found: ["foo", "bar", "baz"].'
-                : 'Argument "input" has invalid value ["foo", "bar", "baz"].',
+              message: 'Argument "input" has invalid value ["foo", "bar", "baz"].',
               path: ['fieldWithObjectInput'],
               locations: [{ line: 3, column: 41 }],
             },
@@ -249,10 +247,10 @@ describe('Execute: Handles inputs', () => {
         errors: [
           {
             message: isGraphQL17
-              ? 'Argument "TestType.fieldWithObjectInput(input:)" has invalid value at .e: FaultyScalarErrorMessage'
+              ? 'Argument "input" has invalid value { c: "foo", e: "bar" }.'
               : 'Argument "input" has invalid value {c: "foo", e: "bar"}.',
             path: ['fieldWithObjectInput'],
-            locations: [{ line: 3, column: isGraphQL17 ? 11 : 39 }],
+            locations: [{ line: 3, column: 39 }],
           },
         ],
       });
@@ -404,9 +402,8 @@ describe('Execute: Handles inputs', () => {
         expectJSON(result).toDeepEqual({
           errors: [
             {
-              message: isGraphQL17
-                ? 'Variable "$input" got invalid value "SerializedValue" at "input.e"; Argument "TestType.fieldWithObjectInput(input:)" has invalid value at .e: FaultyScalarErrorMessage'
-                : 'Variable "$input" got invalid value "SerializedValue" at "input.e"; FaultyScalarErrorMessage',
+              message:
+                'Variable "$input" got invalid value "SerializedValue" at "input.e"; FaultyScalarErrorMessage',
               locations: [{ line: 2, column: 16 }],
               extensions: { code: 'FaultyScalarErrorMessageExtensionCode' },
             },
@@ -734,9 +731,7 @@ describe('Execute: Handles inputs', () => {
         },
         errors: [
           {
-            message: isGraphQL17
-              ? 'Argument "TestType.fieldWithNonNullableStringInput(input:)" of required type "String!" was not provided.'
-              : 'Argument "input" of required type "String!" was not provided.',
+            message: 'Argument "input" of required type "String!" was not provided.',
             locations: [{ line: 1, column: 3 }],
             path: ['fieldWithNonNullableStringInput'],
           },
@@ -783,9 +778,8 @@ describe('Execute: Handles inputs', () => {
         },
         errors: [
           {
-            message: isGraphQL17
-              ? 'Argument "TestType.fieldWithNonNullableStringInput(input:)" has invalid value: Expected variable "$foo" provided to type "String!" to provide a runtime value.'
-              : 'Argument "input" of required type "String!" was provided the variable "$foo" which was not provided a runtime value.',
+            message:
+              'Argument "input" of required type "String!" was provided the variable "$foo" which was not provided a runtime value.',
             locations: [{ line: 3, column: 50 }],
             path: ['fieldWithNonNullableStringInput'],
           },
@@ -1036,9 +1030,7 @@ describe('Execute: Handles inputs', () => {
         },
         errors: [
           {
-            message: isGraphQL17
-              ? 'Argument "TestType.fieldWithDefaultArgumentValue(input:)" has invalid value: String cannot represent a non string value: WRONG_TYPE'
-              : 'Argument "input" has invalid value WRONG_TYPE.',
+            message: 'Argument "input" has invalid value WRONG_TYPE.',
             locations: [{ line: 3, column: 48 }],
             path: ['fieldWithDefaultArgumentValue'],
           },

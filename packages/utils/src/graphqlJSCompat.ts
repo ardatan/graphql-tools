@@ -1,7 +1,33 @@
-import { GraphQLScalarType, Kind, versionInfo } from 'graphql';
-import { memoize1 } from './memoize.js';
+import { GraphQLScalarType, Kind } from 'graphql';
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports -- namespace import only used to read optional graphql-js@17+ exports (`coerceInputLiteral` / `coerceInputValue`), not the restricted names
+import * as GraphQLJS from 'graphql';
 
-const isGraphQLJS17OrAbove = versionInfo.major >= 17;
+type CoerceInputLiteral = (
+  valueNode: any,
+  type: any,
+  variableValues?: any,
+  fragmentVariableValues?: any,
+) => unknown;
+
+type CoerceInputValue = (inputValue: unknown, type: any) => unknown;
+
+/**
+ * graphql-js@17+ input-literal coercion. `undefined` on older peers where the
+ * export does not exist.
+ */
+export const coerceInputLiteral: CoerceInputLiteral | undefined =
+  typeof (GraphQLJS as any).coerceInputLiteral === 'function'
+    ? (GraphQLJS as any).coerceInputLiteral
+    : undefined;
+
+/**
+ * graphql-js@17+ input-value coercion (paired with `coerceInputLiteral`).
+ * Left unset on older peers so we do not call the graphql 15/16
+ * `coerceInputValue(value, type, onError)` signature by mistake.
+ */
+export const coerceInputValue: CoerceInputValue | undefined = coerceInputLiteral
+  ? (GraphQLJS as any).coerceInputValue
+  : undefined;
 
 // Converts an arbitrary runtime value to a GraphQL AST literal, used only as
 // `anyValueType`'s `valueToLiteral` below. graphql-js@17's own generic fallback
@@ -72,8 +98,10 @@ function valueToASTLiteral(value: unknown): any {
 // operation's variable definitions through every call site), so this bare
 // scalar supplies a type-agnostic `valueToLiteral` that works for any runtime
 // value regardless of the variable's real declared type.
+// `serialize` is required when constructing scalars on graphql-js@14.
 const anyValueType = new GraphQLScalarType({
   name: '_GraphQLToolsAnyValue',
+  serialize: (value: unknown) => value,
   valueToLiteral: valueToASTLiteral,
 } as any);
 
@@ -85,38 +113,31 @@ function buildVariableSources(variableValues: Record<string, any>): Record<strin
   return sources;
 }
 
-// `variableValues` is the same object reference for the lifetime of a single
-// execution (or, in `getArgumentValues.ts`'s case, a single call), so memoize
-// the wrapper by reference instead of reallocating `{ coerced, sources }` on
-// every call site that needs it.
-const wrapVariableValues = memoize1((variableValues: Record<string, any>) => ({
-  coerced: variableValues,
-  sources: buildVariableSources(variableValues),
-}));
-
 /**
- * graphql-js@17's built-in `getArgumentValues` / `getDirectiveValues` expect
- * `variableValues` as the structured `{ coerced, sources }` shape rather than
- * a flat map of variable name to value. This package deals in flat maps
- * everywhere else, so wrap them right before handing them to graphql-js, only
- * for graphql-js >= 17.
+ * When calling graphql-js@17 `coerceInputLiteral`, `variableValues` must be the
+ * structured `{ coerced, sources }` shape. This package deals in flat maps
+ * everywhere else, so wrap them only when that API is present.
  *
  * When the executor already built real `sources` (with each variable's declared
  * input type and original input value), pass them through so nested variables
- * round-trip via the declared type's `valueToLiteral` instead of the generic
- * fallback. Callers that only have a flat map still get the synthetic sources.
+ * round-trip via the declared type's `valueToLiteral`. Callers that only have a
+ * flat map get synthetic sources rebuilt on every call (not memoized by object
+ * identity), so mutating and reusing the same map stays correct.
  */
 export function toGraphQLJSVariableValues(
   variableValues: any,
   variableSources?: Record<string, unknown>,
 ): any {
-  if (variableValues == null || !isGraphQLJS17OrAbove) {
+  if (variableValues == null || coerceInputLiteral == null) {
     return variableValues;
   }
   if (variableSources) {
     return { coerced: variableValues, sources: variableSources };
   }
-  return wrapVariableValues(variableValues);
+  return {
+    coerced: variableValues,
+    sources: buildVariableSources(variableValues),
+  };
 }
 
 /**
