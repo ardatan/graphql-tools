@@ -205,17 +205,28 @@ function mergeDeepWithOptions<S extends any[]>(
           const descriptor = Object.getOwnPropertyDescriptor(source, sym)!;
           if (!descriptor.enumerable) {
             if (respectNonEnumerableSymbols) {
+              // Keep intermediate non-enumerable symbols replaceable so later sources can
+              // still win. Exact source descriptors (non-writable / non-configurable) would
+              // otherwise freeze the first value for the rest of the merge.
               if (Object.prototype.hasOwnProperty.call(output, sym)) {
                 const existing = Object.getOwnPropertyDescriptor(output, sym)!;
-                // Later sources should win. Non-configurable properties cannot be redefined,
-                // so fall back to value assignment when writable or setter-backed.
                 if (existing.configurable) {
-                  Object.defineProperty(output, sym, descriptor);
+                  Object.defineProperty(output, sym, {
+                    value: source[sym],
+                    writable: true,
+                    enumerable: false,
+                    configurable: true,
+                  });
                 } else if (existing.writable || existing.set) {
                   output[sym] = source[sym];
                 }
               } else {
-                Object.defineProperty(output, sym, descriptor);
+                Object.defineProperty(output, sym, {
+                  value: source[sym],
+                  writable: true,
+                  enumerable: false,
+                  configurable: true,
+                });
               }
             }
             continue;

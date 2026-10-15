@@ -101,6 +101,20 @@ describe('mergeDeep', () => {
     expect(merged[sym]).toEqual('second');
   });
 
+  test('overrides a default non-writable non-enumerable symbol from a later source', () => {
+    const sym = Symbol('annotation');
+    const first: any = { a: 1 };
+    const second: any = { b: 2 };
+    // Object.defineProperty defaults: writable/enumerable/configurable all false.
+    Object.defineProperty(first, sym, { value: 'first' });
+    Object.defineProperty(second, sym, { value: 'second' });
+
+    const merged = mergeDeep([first, second], { respectSymbols: { nonEnumerable: true } });
+    expect(merged.a).toEqual(1);
+    expect(merged.b).toEqual(2);
+    expect(merged[sym]).toEqual('second');
+  });
+
   test('updates a non-configurable setter-backed non-enumerable symbol from a later source', () => {
     const sym = Symbol('annotation');
     let current = 'first';
