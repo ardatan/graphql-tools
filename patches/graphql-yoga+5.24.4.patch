@@ -1,5 +1,5 @@
 diff --git a/node_modules/graphql-yoga/cjs/error.js b/node_modules/graphql-yoga/cjs/error.js
-index 5bcf96f..a0e0109 100644
+index 5bcf96f..18da27c 100644
 --- a/node_modules/graphql-yoga/cjs/error.js
 +++ b/node_modules/graphql-yoga/cjs/error.js
 @@ -1,5 +1,6 @@
@@ -9,18 +9,24 @@ index 5bcf96f..a0e0109 100644
  exports.isGraphQLError = isGraphQLError;
  exports.isOriginalGraphQLError = isOriginalGraphQLError;
  exports.isAbortError = isAbortError;
-@@ -7,7 +8,9 @@ exports.handleError = handleError;
+@@ -7,7 +8,15 @@ exports.handleError = handleError;
  exports.getResponseInitByRespectingErrors = getResponseInitByRespectingErrors;
  exports.areGraphQLErrors = areGraphQLErrors;
  const graphql_1 = require("graphql");
 -const utils_1 = require("@graphql-tools/utils");
 +function createGraphQLError(message, options) {
-+    return new graphql_1.GraphQLError(message, options);
++    const error = new graphql_1.GraphQLError(message, options);
++    if ((options?.coordinate != null) && error.coordinate == null) {
++        Object.defineProperties(error, {
++            coordinate: { value: options.coordinate, enumerable: true, configurable: true },
++        });
++    }
++    return error;
 +}
  function isAggregateError(obj) {
      return obj != null && typeof obj === 'object' && 'errors' in obj;
  }
-@@ -52,7 +55,7 @@ function handleError(error, maskedErrorsOpts, logger) {
+@@ -52,7 +61,7 @@ function handleError(error, maskedErrorsOpts, logger) {
          }
          errors.add(isGraphQLError(maskedError)
              ? maskedError
@@ -29,7 +35,7 @@ index 5bcf96f..a0e0109 100644
                  originalError: maskedError,
              }));
      }
-@@ -60,12 +63,12 @@ function handleError(error, maskedErrorsOpts, logger) {
+@@ -60,12 +69,12 @@ function handleError(error, maskedErrorsOpts, logger) {
          errors.add(error);
      }
      else if (error instanceof Error) {
@@ -44,7 +50,7 @@ index 5bcf96f..a0e0109 100644
              extensions: {
                  code: 'INTERNAL_SERVER_ERROR',
                  unexpected: true,
-@@ -73,7 +76,7 @@ function handleError(error, maskedErrorsOpts, logger) {
+@@ -73,7 +82,7 @@ function handleError(error, maskedErrorsOpts, logger) {
          }));
      }
      else if (hasToString(error)) {
@@ -53,7 +59,7 @@ index 5bcf96f..a0e0109 100644
              extensions: {
                  code: 'INTERNAL_SERVER_ERROR',
                  unexpected: true,
-@@ -82,7 +85,7 @@ function handleError(error, maskedErrorsOpts, logger) {
+@@ -82,7 +91,7 @@ function handleError(error, maskedErrorsOpts, logger) {
      }
      else {
          logger.error(error);
@@ -404,14 +410,20 @@ index 413b6cd..001dd78 100644
  };
  exports.maskError = maskError;
 diff --git a/node_modules/graphql-yoga/esm/error.js b/node_modules/graphql-yoga/esm/error.js
-index 679a34b..defa5f6 100644
+index 679a34b..4be5701 100644
 --- a/node_modules/graphql-yoga/esm/error.js
 +++ b/node_modules/graphql-yoga/esm/error.js
-@@ -1,5 +1,7 @@
+@@ -1,5 +1,13 @@
  import { GraphQLError } from 'graphql';
 -import { createGraphQLError } from '@graphql-tools/utils';
 +export function createGraphQLError(message, options) {
-+    return new GraphQLError(message, options);
++    const error = new GraphQLError(message, options);
++    if ((options?.coordinate != null) && error.coordinate == null) {
++        Object.defineProperties(error, {
++            coordinate: { value: options.coordinate, enumerable: true, configurable: true },
++        });
++    }
++    return error;
 +}
  function isAggregateError(obj) {
      return obj != null && typeof obj === 'object' && 'errors' in obj;
