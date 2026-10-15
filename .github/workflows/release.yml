@@ -54,7 +54,8 @@ jobs:
       node-version-file: .node-version
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
-      npmToken: ${{ secrets.NODE_AUTH_TOKEN }}
+      # Temporary: use NPM_TOKEN for first-publish of unpublished packages on this PR; revert to NODE_AUTH_TOKEN after.
+      npmToken: ${{ secrets.NPM_TOKEN }}
 
   release-candidate:
     permissions:
