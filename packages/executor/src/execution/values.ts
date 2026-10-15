@@ -1,8 +1,11 @@
 import {
   coerceInputValue,
+  GraphQLInputType,
   GraphQLError,
   GraphQLSchema,
   isInputType,
+  isInputObjectType,
+  isListType,
   isNonNullType,
   NamedTypeNode,
   print,
@@ -110,7 +113,8 @@ function coerceVariableValues(
     }
 
     const value = inputs[varName];
-    sources[varName] = { signature, value };
+    const sourceValue = snapshotInputValue(value, varType);
+    sources[varName] = { signature, value: sourceValue };
     if (value === null && isNonNullType(varType)) {
       const varTypeStr = inspect(varType);
       onError(
@@ -143,10 +147,10 @@ function coerceVariableValues(
       );
     };
 
-    coercedValues[varName] = (coerceInputValue as any)(value, varType, callback);
+    coercedValues[varName] = (coerceInputValue as any)(sourceValue, varType, callback);
 
     if (coercedValues[varName] === undefined && !errored) {
-      validateInputValue(value, varType, callback);
+      validateInputValue(sourceValue, varType, callback);
     }
   }
 
@@ -154,4 +158,34 @@ function coerceVariableValues(
     coerced: coercedValues,
     sources,
   };
+}
+
+function snapshotInputValue(value: unknown, type: GraphQLInputType): unknown {
+  if (isNonNullType(type)) {
+    return snapshotInputValue(value, type.ofType);
+  }
+  if (value == null) {
+    return value;
+  }
+  if (isListType(type)) {
+    if (!isIterableInput(value)) {
+      return snapshotInputValue(value, type.ofType);
+    }
+    return Array.from(value, item => snapshotInputValue(item, type.ofType));
+  }
+  if (isInputObjectType(type) && typeof value === 'object') {
+    const snapshot = { ...(value as Record<string, unknown>) };
+    for (const field of Object.values(type.getFields())) {
+      const fieldValue = (value as Record<string, unknown>)[field.name];
+      if (fieldValue !== undefined) {
+        snapshot[field.name] = snapshotInputValue(fieldValue, field.type);
+      }
+    }
+    return snapshot;
+  }
+  return value;
+}
+
+function isIterableInput(value: unknown): value is Iterable<unknown> {
+  return value != null && typeof value === 'object' && Symbol.iterator in value;
 }

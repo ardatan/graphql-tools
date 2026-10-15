@@ -1420,5 +1420,37 @@ describe('Execute: Handles basic execution tasks', () => {
         data: { foo: '{"shade":"LIGHT"}' },
       });
     });
+
+    it('preserves one-shot iterable variables when nested in a JSON literal', async () => {
+      const JSONScalar = new GraphQLScalarType({
+        name: 'JSON',
+        coerceInputValue: (v: any) => v,
+        coerceInputLiteral: (node: any) => valueFromASTUntyped(node),
+      } as any);
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            foo: {
+              type: GraphQLString,
+              args: { data: { type: JSONScalar } },
+              resolve: (_: unknown, args: Record<string, any>) => JSON.stringify(args['data']),
+            },
+          },
+        }),
+      });
+      function* values() {
+        yield 1;
+        yield 2;
+      }
+
+      const result = await execute({
+        schema,
+        document: parse('query ($values: [Int!]!) { foo(data: { values: $values }) }'),
+        variableValues: { values: values() },
+      });
+
+      expect(result).toEqual({ data: { foo: '{"values":[1,2]}' } });
+    });
   },
 );
