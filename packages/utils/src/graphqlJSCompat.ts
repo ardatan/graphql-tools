@@ -1,33 +1,6 @@
-import { GraphQLScalarType, Kind } from 'graphql';
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports -- namespace import only used to read optional graphql-js@17+ exports (`coerceInputLiteral` / `coerceInputValue`), not the restricted names
-import * as GraphQLJS from 'graphql';
+import { GraphQLScalarType, Kind, versionInfo } from 'graphql';
 
-type CoerceInputLiteral = (
-  valueNode: any,
-  type: any,
-  variableValues?: any,
-  fragmentVariableValues?: any,
-) => unknown;
-
-type CoerceInputValue = (inputValue: unknown, type: any) => unknown;
-
-/**
- * graphql-js@17+ input-literal coercion. `undefined` on older peers where the
- * export does not exist.
- */
-export const coerceInputLiteral: CoerceInputLiteral | undefined =
-  typeof (GraphQLJS as any).coerceInputLiteral === 'function'
-    ? (GraphQLJS as any).coerceInputLiteral
-    : undefined;
-
-/**
- * graphql-js@17+ input-value coercion (paired with `coerceInputLiteral`).
- * Left unset on older peers so we do not call the graphql 15/16
- * `coerceInputValue(value, type, onError)` signature by mistake.
- */
-export const coerceInputValue: CoerceInputValue | undefined = coerceInputLiteral
-  ? (GraphQLJS as any).coerceInputValue
-  : undefined;
+const isGraphQLJS17OrAbove = versionInfo.major >= 17;
 
 // Converts an arbitrary runtime value to a GraphQL AST literal, used only as
 // `anyValueType`'s `valueToLiteral` below. graphql-js@17's own generic fallback
@@ -114,21 +87,18 @@ function buildVariableSources(variableValues: Record<string, any>): Record<strin
 }
 
 /**
- * When calling graphql-js@17 `coerceInputLiteral`, `variableValues` must be the
- * structured `{ coerced, sources }` shape. This package deals in flat maps
- * everywhere else, so wrap them only when that API is present.
+ * graphql-js@17's `getArgumentValues` expects `variableValues` as
+ * `{ coerced, sources }`. Flat maps are wrapped only on graphql-js >= 17.
  *
- * When the executor already built real `sources` (with each variable's declared
- * input type and original input value), pass them through so nested variables
- * round-trip via the declared type's `valueToLiteral`. Callers that only have a
- * flat map get synthetic sources rebuilt on every call (not memoized by object
- * identity), so mutating and reusing the same map stays correct.
+ * When the executor already built real `sources`, pass them through. Otherwise
+ * build synthetic sources from the flat map on each call (not memoized by
+ * object identity) so mutating and reusing the same map stays correct.
  */
 export function toGraphQLJSVariableValues(
   variableValues: any,
   variableSources?: Record<string, unknown>,
 ): any {
-  if (variableValues == null || coerceInputLiteral == null) {
+  if (variableValues == null || !isGraphQLJS17OrAbove) {
     return variableValues;
   }
   if (variableSources) {

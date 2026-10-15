@@ -3,4 +3,4 @@
 '@graphql-tools/executor': patch
 ---
 
-Fix GraphQL 17 argument defaults in `getArgumentValues` (`default.literal` / `default.value`, missing variables) and pass executor variable sources through for nested literal coercion.
+On GraphQL 17, use graphql-js `getArgumentValues` when exported (via namespace lookup) and pass executor variable sources through so argument defaults and nested variables match upstream.
