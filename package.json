@@ -92,7 +92,7 @@
     "lint-staged": "17.6.0",
     "lru-cache": "11.5.3",
     "patch-package": "8.0.1",
-    "prettier": "3.9.9",
+    "prettier": "3.9.10",
     "prettier-plugin-tailwindcss": "0.8.1",
     "react": "19.2.6",
     "react-dom": "19.3.0",
