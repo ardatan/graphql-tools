@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { matchFiles, matchFilesSync } from '../src/matchFiles.js';
@@ -67,6 +67,27 @@ describe('matchFiles', () => {
       expect(syncMatches.sort()).toEqual(['linked/schema.graphql']);
     } finally {
       rmSync(outside, { recursive: true, force: true });
+    }
+  });
+
+  it('only re-roots symlinks under the pattern prefix', async () => {
+    const outsideSrc = mkdtempSync(join(tmpdir(), 'match-files-src-'));
+    const outsideVendor = mkdtempSync(join(tmpdir(), 'match-files-vendor-'));
+    try {
+      mkdirSync(join(dir, 'src'));
+      writeFileSync(join(outsideSrc, 'in.graphql'), 'type Query { a: String }');
+      writeFileSync(join(outsideVendor, 'out.graphql'), 'type Query { b: String }');
+      symlinkSync(outsideSrc, join(dir, 'src', 'linked'));
+      symlinkSync(outsideVendor, join(dir, 'vendor'));
+
+      const asyncMatches = await matchFiles('src/**/*.graphql', { cwd: dir, absolute: false });
+      const syncMatches = matchFilesSync('src/**/*.graphql', { cwd: dir, absolute: false });
+
+      expect(asyncMatches.sort()).toEqual(['src/linked/in.graphql']);
+      expect(syncMatches.sort()).toEqual(['src/linked/in.graphql']);
+    } finally {
+      rmSync(outsideSrc, { recursive: true, force: true });
+      rmSync(outsideVendor, { recursive: true, force: true });
     }
   });
 });

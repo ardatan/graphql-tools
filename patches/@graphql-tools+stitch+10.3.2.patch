@@ -1,8 +1,8 @@
 diff --git a/node_modules/@graphql-tools/stitch/dist/index.cjs b/node_modules/@graphql-tools/stitch/dist/index.cjs
-index 888959b..79b5152 100644
+index 888959b..5d03fbd 100644
 --- a/node_modules/@graphql-tools/stitch/dist/index.cjs
 +++ b/node_modules/@graphql-tools/stitch/dist/index.cjs
-@@ -4,8 +4,64 @@ var delegate = require('@graphql-tools/delegate');
+@@ -4,8 +4,89 @@ var delegate = require('@graphql-tools/delegate');
  var merge = require('@graphql-tools/merge');
  var schema = require('@graphql-tools/schema');
  var utils = require('@graphql-tools/utils');
@@ -38,25 +38,50 @@ index 888959b..79b5152 100644
 +}
  var promiseHelpers = require('@whatwg-node/promise-helpers');
  var graphql = require('graphql');
++function __anyValueToLiteral(value) {
++  if (value == null) return { kind: graphql.Kind.NULL };
++  if (typeof value === 'boolean') return { kind: graphql.Kind.BOOLEAN, value: value };
++  if (typeof value === 'string') return { kind: graphql.Kind.STRING, value: value, block: false };
++  if (typeof value === 'number' && Number.isFinite(value)) {
++    var s = String(value);
++    return /^-?(?:0|[1-9][0-9]*)$/.test(s)
++      ? { kind: graphql.Kind.INT, value: s }
++      : { kind: graphql.Kind.FLOAT, value: s };
++  }
++  if (Array.isArray(value)) {
++    return { kind: graphql.Kind.LIST, values: value.map(__anyValueToLiteral) };
++  }
++  if (typeof value === 'object') {
++    return {
++      kind: graphql.Kind.OBJECT,
++      fields: Object.keys(value).map(function (name) {
++        return {
++          kind: graphql.Kind.OBJECT_FIELD,
++          name: { kind: graphql.Kind.NAME, value: name },
++          value: __anyValueToLiteral(value[name]),
++        };
++      }),
++    };
++  }
++  return { kind: graphql.Kind.NULL };
++}
 +var __anyValueType = new graphql.GraphQLScalarType({
 +  name: '_GraphQLToolsAnyValue',
 +  serialize: function (value) { return value; },
-+  valueToLiteral: function (value) {
-+    if (value == null) return { kind: graphql.Kind.NULL };
-+    if (typeof value === 'boolean') return { kind: graphql.Kind.BOOLEAN, value: value };
-+    if (typeof value === 'string') return { kind: graphql.Kind.STRING, value: value, block: false };
-+    if (typeof value === 'number' && Number.isFinite(value)) {
-+      var s = String(value);
-+      return /^-?(?:0|[1-9][0-9]*)$/.test(s)
-+        ? { kind: graphql.Kind.INT, value: s }
-+        : { kind: graphql.Kind.FLOAT, value: s };
-+    }
-+    return { kind: graphql.Kind.NULL };
-+  }
++  valueToLiteral: __anyValueToLiteral,
 +});
++function isGraphqlVariableValues(variableValues) {
++  if (variableValues == null || typeof variableValues !== 'object') return false;
++  if (variableValues.coerced == null || variableValues.sources == null) return false;
++  if (typeof variableValues.sources !== 'object') return false;
++  var sourceKeys = Object.keys(variableValues.sources);
++  if (sourceKeys.length === 0) return false;
++  var sample = variableValues.sources[sourceKeys[0]];
++  return sample != null && typeof sample === 'object' && 'signature' in sample && 'value' in sample;
++}
 +function asGraphqlVariableValues(variableValues) {
 +  if (variableValues == null || graphql.versionInfo.major < 17) return variableValues;
-+  if (variableValues.coerced != null && variableValues.sources != null) return variableValues;
++  if (isGraphqlVariableValues(variableValues)) return variableValues;
 +  var sources = Object.create(null);
 +  for (var key of Object.keys(variableValues)) {
 +    sources[key] = { signature: { type: __anyValueType }, value: variableValues[key] };
@@ -67,7 +92,7 @@ index 888959b..79b5152 100644
  var batchDelegate = require('@graphql-tools/batch-delegate');
  var wrap = require('@graphql-tools/wrap');
  var executor = require('@graphql-tools/executor');
-@@ -440,7 +496,7 @@ const flattenSelectionsForTypeImpl = (selectionSet, gatewayType, schema) => {
+@@ -440,7 +521,7 @@ const flattenSelectionsForTypeImpl = (selectionSet, gatewayType, schema) => {
      selections: flat
    };
  };
@@ -76,7 +101,7 @@ index 888959b..79b5152 100644
  
  function memoize5of7(fn) {
    const memoize5Cache = /* @__PURE__ */ new WeakMap();
-@@ -697,7 +753,7 @@ function calculateDelegationStage(mergedTypeInfo, sourceSubschemas, targetSubsch
+@@ -697,7 +778,7 @@ function calculateDelegationStage(mergedTypeInfo, sourceSubschemas, targetSubsch
      unproxiableFieldNodes
    };
  }
@@ -85,7 +110,7 @@ index 888959b..79b5152 100644
    function calculateSelectionScore2(selections, fragments) {
      let score = 0;
      for (const selectionNode of selections) {
-@@ -911,13 +967,13 @@ function optimizeDelegationMap(delegationMap, typeName, fragments) {
+@@ -911,13 +992,13 @@ function optimizeDelegationMap(delegationMap, typeName, fragments) {
    }
    return delegationMap;
  }
@@ -102,7 +127,7 @@ index 888959b..79b5152 100644
    function subschemaTypesContainSelectionSet2(mergedTypeInfo, sourceSubchemas, selectionSet) {
      return typesContainSelectionSet(
        sourceSubchemas.map(
-@@ -3660,10 +3716,10 @@ function createStitchingExecutor(stitchedSchema) {
+@@ -3660,10 +3741,10 @@ function createStitchingExecutor(stitchedSchema) {
          );
          return rootType2.getFields()[fieldName] != null;
        });
@@ -116,10 +141,10 @@ index 888959b..79b5152 100644
        const info = {
          schema: stitchedSchema,
 diff --git a/node_modules/@graphql-tools/stitch/dist/index.js b/node_modules/@graphql-tools/stitch/dist/index.js
-index 37b8d28..4ce620b 100644
+index 37b8d28..e385466 100644
 --- a/node_modules/@graphql-tools/stitch/dist/index.js
 +++ b/node_modules/@graphql-tools/stitch/dist/index.js
-@@ -1,13 +1,70 @@
+@@ -1,13 +1,93 @@
  import { isExternalObject, getVariableValues, handleOverrideByDelegation, subtractSelectionSets, extractUnavailableFields, leftOverByDelegationPlan, extractUnavailableFieldsFromSelectionSet, delegateToSchema, cloneSubschemaConfig, isSubschemaConfig, defaultMergedResolver, Subschema } from '@graphql-tools/delegate';
  import { mergeType, mergeInputType, mergeInterface, mergeUnion, mergeEnum, mergeScalar, mergeTypeDefs, mergeResolvers, mergeExtensions, applyExtensions } from '@graphql-tools/merge';
  import { extendResolversFromInterfaces, addResolversToSchema, assertResolversPresent, makeExecutableSchema } from '@graphql-tools/schema';
@@ -163,25 +188,48 @@ index 37b8d28..4ce620b 100644
  import { FilterTypes, TransformCompositeFields, wrapSchema } from '@graphql-tools/wrap';
  import { getFragmentsFromDocument } from '@graphql-tools/executor';
  
++function __anyValueToLiteral(value) {
++  if (value == null) return { kind: Kind.NULL };
++  if (typeof value === 'boolean') return { kind: Kind.BOOLEAN, value };
++  if (typeof value === 'string') return { kind: Kind.STRING, value, block: false };
++  if (typeof value === 'number' && Number.isFinite(value)) {
++    const s = String(value);
++    return /^-?(?:0|[1-9][0-9]*)$/.test(s)
++      ? { kind: Kind.INT, value: s }
++      : { kind: Kind.FLOAT, value: s };
++  }
++  if (Array.isArray(value)) {
++    return { kind: Kind.LIST, values: value.map(__anyValueToLiteral) };
++  }
++  if (typeof value === 'object') {
++    return {
++      kind: Kind.OBJECT,
++      fields: Object.keys(value).map((name) => ({
++        kind: Kind.OBJECT_FIELD,
++        name: { kind: Kind.NAME, value: name },
++        value: __anyValueToLiteral(value[name]),
++      })),
++    };
++  }
++  return { kind: Kind.NULL };
++}
 +const __anyValueType = new GraphQLScalarType({
 +  name: '_GraphQLToolsAnyValue',
 +  serialize: (value) => value,
-+  valueToLiteral(value) {
-+    if (value == null) return { kind: Kind.NULL };
-+    if (typeof value === 'boolean') return { kind: Kind.BOOLEAN, value };
-+    if (typeof value === 'string') return { kind: Kind.STRING, value, block: false };
-+    if (typeof value === 'number' && Number.isFinite(value)) {
-+      const s = String(value);
-+      return /^-?(?:0|[1-9][0-9]*)$/.test(s)
-+        ? { kind: Kind.INT, value: s }
-+        : { kind: Kind.FLOAT, value: s };
-+    }
-+    return { kind: Kind.NULL };
-+  },
++  valueToLiteral: __anyValueToLiteral,
 +});
++function isGraphqlVariableValues(variableValues) {
++  if (variableValues == null || typeof variableValues !== 'object') return false;
++  if (variableValues.coerced == null || variableValues.sources == null) return false;
++  if (typeof variableValues.sources !== 'object') return false;
++  const sourceKeys = Object.keys(variableValues.sources);
++  if (sourceKeys.length === 0) return false;
++  const sample = variableValues.sources[sourceKeys[0]];
++  return sample != null && typeof sample === 'object' && 'signature' in sample && 'value' in sample;
++}
 +function asGraphqlVariableValues(variableValues) {
 +  if (variableValues == null || versionInfo.major < 17) return variableValues;
-+  if (variableValues.coerced != null && variableValues.sources != null) return variableValues;
++  if (isGraphqlVariableValues(variableValues)) return variableValues;
 +  const sources = Object.create(null);
 +  for (const key of Object.keys(variableValues)) {
 +    sources[key] = { signature: { type: __anyValueType }, value: variableValues[key] };
@@ -192,7 +240,7 @@ index 37b8d28..4ce620b 100644
  function valueSatisfiesSelectionSet(value, selectionSet) {
    if (Array.isArray(value)) {
      return value.every(
-@@ -3661,7 +3718,7 @@ function createStitchingExecutor(stitchedSchema) {
+@@ -3661,7 +3741,7 @@ function createStitchingExecutor(stitchedSchema) {
        const args = getArgumentValues(
          fieldInstance,
          fieldNode,

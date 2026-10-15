@@ -230,13 +230,32 @@ function findDirectorySymlinkRootsSync(cwd: string): string[] {
   return roots;
 }
 
+/** Literal directory prefix before the first glob metacharacter. */
+function literalDirPrefix(pattern: string): string {
+  const match = /^([^?*[{]*)/.exec(pattern);
+  const raw = match?.[1] ?? '';
+  const slash = raw.lastIndexOf('/');
+  return slash >= 0 ? raw.slice(0, slash + 1) : '';
+}
+
 /** Extra patterns so recursive globs can enter directory symlinks on Node <26.1. */
 function patternsWithSymlinkRoots(pattern: string, symlinkRoots: string[]): string[] {
   if (!pattern.includes('**') || symlinkRoots.length === 0) {
     return [pattern];
   }
   const unixPattern = pattern.replace(/\\/g, '/');
-  const extras = symlinkRoots.map(root => `${root}/${unixPattern}`);
+  const prefix = literalDirPrefix(unixPattern);
+  const rest = unixPattern.slice(prefix.length);
+  const extras = symlinkRoots
+    .filter(root => {
+      if (!prefix) {
+        return true;
+      }
+      // Only re-root symlinks that live under the pattern's static prefix
+      // (e.g. `src/vendor` for `src/**/*.graphql`), not unrelated cwd roots.
+      return root === prefix.slice(0, -1) || root.startsWith(prefix);
+    })
+    .map(root => `${root}/${rest}`);
   return [unixPattern, ...extras];
 }
 
@@ -296,10 +315,12 @@ export async function matchFiles(
     exclude: exclude.length > 0 ? exclude : undefined,
     withFileTypes: onlyFiles,
   };
-  const symlinkRoots = await findDirectorySymlinkRoots(cwd);
+  const expandedIncludes = await Promise.all(include.map(pattern => expandPattern(pattern, cwd)));
+  const symlinkRoots = expandedIncludes.some(pattern => pattern.includes('**'))
+    ? await findDirectorySymlinkRoots(cwd)
+    : [];
   const paths: string[] = [];
-  for (const pattern of include) {
-    const expanded = await expandPattern(pattern, cwd);
+  for (const expanded of expandedIncludes) {
     for (const globPattern of patternsWithSymlinkRoots(expanded, symlinkRoots)) {
       paths.push(...(await collectGlobMatches(globPattern, globOptions, onlyFiles)));
     }
@@ -321,10 +342,12 @@ export function matchFilesSync(
     exclude: exclude.length > 0 ? exclude : undefined,
     withFileTypes: onlyFiles,
   };
-  const symlinkRoots = findDirectorySymlinkRootsSync(cwd);
+  const expandedIncludes = include.map(pattern => expandPatternSync(pattern, cwd));
+  const symlinkRoots = expandedIncludes.some(pattern => pattern.includes('**'))
+    ? findDirectorySymlinkRootsSync(cwd)
+    : [];
   const paths: string[] = [];
-  for (const pattern of include) {
-    const expanded = expandPatternSync(pattern, cwd);
+  for (const expanded of expandedIncludes) {
     for (const globPattern of patternsWithSymlinkRoots(expanded, symlinkRoots)) {
       paths.push(...collectGlobMatchesSync(globPattern, globOptions, onlyFiles));
     }
