@@ -2,6 +2,7 @@
 import { inspect } from 'cross-inspect';
 import {
   GraphQLBoolean,
+  GraphQLEnumType,
   GraphQLInt,
   GraphQLInterfaceType,
   GraphQLList,
@@ -13,6 +14,7 @@ import {
   GraphQLUnionType,
   Kind,
   parse,
+  valueFromASTUntyped,
   versionInfo,
 } from 'graphql';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
@@ -1371,3 +1373,86 @@ describe('Execute: Handles basic execution tasks', () => {
     ).toBe('A.f');
   });
 });
+
+(versionInfo.major >= 17 ? describe : describe.skip)(
+  'Execute: Nested variable sources for custom scalars',
+  () => {
+    it('preserves enum names when an enum variable is nested in a JSON literal', async () => {
+      const Shade = new GraphQLEnumType({
+        name: 'Shade',
+        values: {
+          LIGHT: { value: 'light-shade' },
+          DARK: { value: 'dark-shade' },
+        },
+      });
+      const JSONScalar = new GraphQLScalarType({
+        name: 'JSON',
+        coerceInputValue: (v: any) => v,
+        coerceInputLiteral: (node: any) => valueFromASTUntyped(node),
+      } as any);
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            foo: {
+              type: GraphQLString,
+              args: { data: { type: JSONScalar } },
+              resolve: (_: unknown, args: Record<string, any>) => JSON.stringify(args['data']),
+            },
+            // Keep Shade reachable so `$s: Shade!` resolves in the schema.
+            shade: {
+              type: GraphQLString,
+              args: { s: { type: Shade } },
+              resolve: () => null,
+            },
+          },
+        }),
+      });
+      const document = parse('query ($s: Shade!) { foo(data: { shade: $s }) }');
+      const variableValues = { s: 'LIGHT' };
+
+      // Without passing declared variable sources, the nested literal would
+      // reconstruct from the coerced internal value ("light-shade") instead of
+      // the enum name graphql-js emits ("LIGHT").
+      const result = await execute({ schema, document, variableValues });
+
+      expect(result).toEqual({
+        data: { foo: '{"shade":"LIGHT"}' },
+      });
+    });
+
+    it('preserves one-shot iterable variables when nested in a JSON literal', async () => {
+      const JSONScalar = new GraphQLScalarType({
+        name: 'JSON',
+        coerceInputValue: (v: any) => v,
+        coerceInputLiteral: (node: any) => valueFromASTUntyped(node),
+      } as any);
+      const schema = new GraphQLSchema({
+        // Include Int so `$values: [Int!]!` resolves via typeFromAST.
+        types: [GraphQLInt],
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            foo: {
+              type: GraphQLString,
+              args: { data: { type: JSONScalar } },
+              resolve: (_: unknown, args: Record<string, any>) => JSON.stringify(args['data']),
+            },
+          },
+        }),
+      });
+      function* values() {
+        yield 1;
+        yield 2;
+      }
+
+      const result = await execute({
+        schema,
+        document: parse('query ($values: [Int!]!) { foo(data: { values: $values }) }'),
+        variableValues: { values: values() },
+      });
+
+      expect(result).toEqual({ data: { foo: '{"values":[1,2]}' } });
+    });
+  },
+);

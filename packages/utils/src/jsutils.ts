@@ -1,7 +1,13 @@
 import { handleMaybePromise, isPromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 
 export function isIterableObject(value: unknown): value is Iterable<unknown> {
-  return value != null && typeof value === 'object' && Symbol.iterator in value;
+  // Match graphql-js: only treat as iterable when the iterator is callable.
+  // `Symbol.iterator in value` is true for `{ [Symbol.iterator]: null }`.
+  return (
+    value != null &&
+    typeof value === 'object' &&
+    typeof (value as { [Symbol.iterator]?: unknown })[Symbol.iterator] === 'function'
+  );
 }
 
 export function isObjectLike(value: unknown): value is { [key: string]: unknown } {

@@ -1,8 +1,11 @@
 import {
   coerceInputValue,
   GraphQLError,
+  GraphQLInputType,
   GraphQLSchema,
+  isInputObjectType,
   isInputType,
+  isListType,
   isNonNullType,
   NamedTypeNode,
   print,
@@ -110,7 +113,8 @@ function coerceVariableValues(
     }
 
     const value = inputs[varName];
-    sources[varName] = { signature, value };
+    const sourceValue = snapshotInputValue(value, varType);
+    sources[varName] = { signature, value: sourceValue };
     if (value === null && isNonNullType(varType)) {
       const varTypeStr = inspect(varType);
       onError(
@@ -143,10 +147,10 @@ function coerceVariableValues(
       );
     };
 
-    coercedValues[varName] = (coerceInputValue as any)(value, varType, callback);
+    coercedValues[varName] = (coerceInputValue as any)(sourceValue, varType, callback);
 
     if (coercedValues[varName] === undefined && !errored) {
-      validateInputValue(value, varType, callback);
+      validateInputValue(sourceValue, varType, callback);
     }
   }
 
@@ -154,4 +158,50 @@ function coerceVariableValues(
     coerced: coercedValues,
     sources,
   };
+}
+
+function snapshotInputValue(value: unknown, type: GraphQLInputType): unknown {
+  if (isNonNullType(type)) {
+    return snapshotInputValue(value, type.ofType);
+  }
+  if (value == null) {
+    return value;
+  }
+  if (isListType(type)) {
+    if (!isIterableInput(value)) {
+      return snapshotInputValue(value, type.ofType);
+    }
+    return Array.from(value, item => snapshotInputValue(item, type.ofType));
+  }
+  // Arrays are objects in JS; do not spread them into `{}` or invalid list
+  // inputs (e.g. `[]` for an input object) would be accepted after defaults.
+  // Snapshot into a null-prototype object so Object.prototype keys (e.g.
+  // `toString`) are not treated as own fields, while still reading declared
+  // fields with normal property access (prototype getters stay visible).
+  if (isInputObjectType(type) && typeof value === 'object' && !Array.isArray(value)) {
+    const obj = value as Record<string, unknown>;
+    const snapshot = Object.create(null) as Record<string, unknown>;
+    for (const key of Object.keys(obj)) {
+      snapshot[key] = obj[key];
+    }
+    for (const field of Object.values(type.getFields())) {
+      const fieldValue = obj[field.name];
+      if (fieldValue !== undefined) {
+        snapshot[field.name] = snapshotInputValue(fieldValue, field.type);
+      }
+    }
+    return snapshot;
+  }
+  return value;
+}
+
+function isIterableInput(value: unknown): value is Iterable<unknown> {
+  // Match graphql-js: only call Array.from when the iterator is callable.
+  // `Symbol.iterator in value` is true for `{ [Symbol.iterator]: null }`, which
+  // would otherwise snapshot to `[]` instead of a singleton list item.
+  return (
+    value != null &&
+    typeof value === 'object' &&
+    typeof (value as { [Symbol.iterator]?: unknown })[Symbol.iterator] === 'function'
+  );
 }

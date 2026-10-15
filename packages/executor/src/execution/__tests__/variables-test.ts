@@ -246,6 +246,7 @@ describe('Execute: Handles inputs', () => {
         },
         errors: [
           {
+            // graphql-js@16 `print` omits spaces after `{`; @17 includes them.
             message: isGraphQL17
               ? 'Argument "input" has invalid value { c: "foo", e: "bar" }.'
               : 'Argument "input" has invalid value {c: "foo", e: "bar"}.',
@@ -439,6 +440,87 @@ describe('Execute: Handles inputs', () => {
               locations: [{ line: 2, column: 16 }],
             },
           ],
+        });
+      });
+
+      it('errors on array for input-object variable (does not coerce [] to {})', () => {
+        // Snapshotting must not spread arrays into plain objects, or `[]` becomes
+        // `{}` and may incorrectly pick up input-field defaults.
+        const result = executeQuery(doc, { input: [] });
+
+        // graphql-js@15's coerceInputValue treats arrays as empty objects (missing
+        // required fields); @16+ reject them as non-objects. Either way `[]` must
+        // not be accepted via defaults.
+        const arrayInputObjectMessage =
+          versionInfo.major <= 15
+            ? 'Variable "$input" got invalid value []; Field "c" of required type "String!" was not provided.'
+            : isGraphQL17
+              ? 'Variable "$input" got invalid value []; Expected value of type "TestInputObject" to be an object, found: [].'
+              : 'Variable "$input" got invalid value []; Expected type "TestInputObject" to be an object.';
+
+        expectJSON(result).toDeepEqual({
+          errors: [
+            {
+              message: arrayInputObjectMessage,
+              locations: [{ line: 2, column: 16 }],
+            },
+          ],
+        });
+      });
+
+      it('preserves null-prototype inputs that omit Object.prototype field names', () => {
+        // Snapshotting into `{}` would inherit `toString` from Object.prototype and
+        // fail String coercion for `input I { toString: String }`.
+        const InputWithToString = new GraphQLInputObjectType({
+          name: 'InputWithToString',
+          fields: {
+            toString: { type: GraphQLString },
+            c: { type: new GraphQLNonNull(GraphQLString) },
+          },
+        });
+        const NullProtoSchema = new GraphQLSchema({
+          query: new GraphQLObjectType({
+            name: 'Query',
+            fields: {
+              field: {
+                type: GraphQLString,
+                args: { input: { type: InputWithToString } },
+                resolve: (_, args: { input?: { toString?: string; c: string } }) =>
+                  inspect(args.input),
+              },
+            },
+          }),
+        });
+        const document = parse(`
+          query ($input: InputWithToString) {
+            field(input: $input)
+          }
+        `);
+        const input = Object.create(null) as { c: string };
+        input.c = 'baz';
+        const result = executeSync({
+          schema: NullProtoSchema,
+          document,
+          variableValues: { input },
+        });
+        expect(result).toEqual({
+          data: {
+            field: '{ c: "baz" }',
+          },
+        });
+      });
+
+      it('preserves prototype getters on declared input fields', () => {
+        class InputWithGetter {
+          get c() {
+            return 'baz';
+          }
+        }
+        const result = executeQuery(doc, { input: new InputWithGetter() });
+        expect(result).toEqual({
+          data: {
+            fieldWithObjectInput: '{ c: "baz" }',
+          },
         });
       });
 
@@ -811,6 +893,31 @@ describe('Execute: Handles inputs', () => {
       expect(result).toEqual({ data: { list: '["A"]' } });
     });
 
+    it('treats objects with a non-callable iterator as a singleton list item', () => {
+      // graphql-js only iterates when typeof value[Symbol.iterator] === 'function'.
+      // A null iterator must not snapshot to [] via Array.from.
+      const listDoc = parse(`
+        query ($input: [TestInputObject]) {
+          list(input: $input)
+        }
+      `);
+      const operation = listDoc.definitions[0];
+      expect(operation.kind === Kind.OPERATION_DEFINITION).toBeTruthy();
+      // @ts-expect-error
+      const { variableDefinitions } = operation;
+      const value = Object.assign(Object.create(null), {
+        a: 'foo',
+        b: ['bar'],
+        c: 'baz',
+        [Symbol.iterator]: null,
+      });
+      const coerced = getVariableValues(schema, variableDefinitions, { input: value });
+      expect(coerced.errors).toBeUndefined();
+      expect(coerced.variableValues?.coerced['input']).toEqual([
+        { a: 'foo', b: ['bar'], c: 'baz' },
+      ]);
+    });
+
     it('allows lists to contain null', () => {
       const doc = `
         query ($input: [String]) {
@@ -1024,26 +1131,18 @@ describe('Execute: Handles inputs', () => {
         }
       `);
 
-      if (isGraphQL17) {
-        expectJSON(result).toDeepEqual({
-          data: {
-            fieldWithDefaultArgumentValue: '"WRONG_TYPE"',
+      expectJSON(result).toDeepEqual({
+        data: {
+          fieldWithDefaultArgumentValue: null,
+        },
+        errors: [
+          {
+            message: 'Argument "input" has invalid value WRONG_TYPE.',
+            locations: [{ line: 3, column: 48 }],
+            path: ['fieldWithDefaultArgumentValue'],
           },
-        });
-      } else {
-        expectJSON(result).toDeepEqual({
-          data: {
-            fieldWithDefaultArgumentValue: null,
-          },
-          errors: [
-            {
-              message: 'Argument "input" has invalid value WRONG_TYPE.',
-              locations: [{ line: 3, column: 48 }],
-              path: ['fieldWithDefaultArgumentValue'],
-            },
-          ],
-        });
-      }
+        ],
+      });
     });
 
     it('when no runtime value is provided to a non-null argument', () => {
