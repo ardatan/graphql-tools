@@ -1,0 +1,126 @@
+diff --git a/node_modules/@graphql-tools/stitch/dist/index.cjs b/node_modules/@graphql-tools/stitch/dist/index.cjs
+index 888959b..a16eeb5 100644
+--- a/node_modules/@graphql-tools/stitch/dist/index.cjs
++++ b/node_modules/@graphql-tools/stitch/dist/index.cjs
+@@ -4,6 +4,34 @@ var delegate = require('@graphql-tools/delegate');
+ var merge = require('@graphql-tools/merge');
+ var schema = require('@graphql-tools/schema');
+ var utils = require('@graphql-tools/utils');
++var memoizee = require('memoizee');
++var memoizeeFn = memoizee.default || memoizee;
++var weakMemoizee = require('memoizee/weak');
++var __objectIds = new WeakMap();
++var __objectIdSeq = 0;
++function __objectKey(value) {
++  if (value != null && (typeof value === 'object' || typeof value === 'function')) {
++    var id = __objectIds.get(value);
++    if (id == null) {
++      id = 'o' + (++__objectIdSeq);
++      __objectIds.set(value, id);
++    }
++    return id;
++  }
++  return JSON.stringify(value);
++}
++function __identityNormalizer(length) {
++  return function (args) {
++    var parts = [];
++    for (var i = 0; i < length; i++) parts.push(__objectKey(args[i]));
++    return parts.join('|');
++  };
++}
++function memoize1(fn) { return weakMemoizee(fn); }
++function memoize2(fn) { return memoizeeFn(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
++function memoize3(fn) { return memoizeeFn(fn, { length: 3, normalizer: __identityNormalizer(3) }); }
++function memoize5(fn) { return memoizeeFn(fn, { length: 5, normalizer: __identityNormalizer(5) }); }
++function memoize2of4(fn) { return memoizeeFn(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
+ var promiseHelpers = require('@whatwg-node/promise-helpers');
+ var graphql = require('graphql');
+ var batchDelegate = require('@graphql-tools/batch-delegate');
+@@ -440,7 +468,7 @@ const flattenSelectionsForTypeImpl = (selectionSet, gatewayType, schema) => {
+     selections: flat
+   };
+ };
+-const flattenSelectionsForType = utils.memoize3(flattenSelectionsForTypeImpl);
++const flattenSelectionsForType = memoize3(flattenSelectionsForTypeImpl);
+ 
+ function memoize5of7(fn) {
+   const memoize5Cache = /* @__PURE__ */ new WeakMap();
+@@ -697,7 +725,7 @@ function calculateDelegationStage(mergedTypeInfo, sourceSubschemas, targetSubsch
+     unproxiableFieldNodes
+   };
+ }
+-const calculateSelectionScore = utils.memoize2(
++const calculateSelectionScore = memoize2(
+   function calculateSelectionScore2(selections, fragments) {
+     let score = 0;
+     for (const selectionNode of selections) {
+@@ -911,13 +939,13 @@ function optimizeDelegationMap(delegationMap, typeName, fragments) {
+   }
+   return delegationMap;
+ }
+-const createSubschemas = utils.memoize1(function createSubschemas2(sourceSubschema) {
++const createSubschemas = memoize1(function createSubschemas2(sourceSubschema) {
+   return [sourceSubschema];
+ });
+-const combineSubschemas = utils.memoize2(function combineSubschemas2(sourceSubschemas, additionalSubschemas) {
++const combineSubschemas = memoize2(function combineSubschemas2(sourceSubschemas, additionalSubschemas) {
+   return sourceSubschemas.concat(additionalSubschemas);
+ });
+-const subschemaTypesContainSelectionSet = utils.memoize3(
++const subschemaTypesContainSelectionSet = memoize3(
+   function subschemaTypesContainSelectionSet2(mergedTypeInfo, sourceSubchemas, selectionSet) {
+     return typesContainSelectionSet(
+       sourceSubchemas.map(
+@@ -3660,7 +3688,7 @@ function createStitchingExecutor(stitchedSchema) {
+         );
+         return rootType2.getFields()[fieldName] != null;
+       });
+-      const args = utils.getArgumentValues(
++      const args = graphql.getArgumentValues(
+         fieldInstance,
+         fieldNode,
+         executorRequest.variables
+diff --git a/node_modules/@graphql-tools/stitch/dist/index.js b/node_modules/@graphql-tools/stitch/dist/index.js
+index 37b8d28..a532404 100644
+--- a/node_modules/@graphql-tools/stitch/dist/index.js
++++ b/node_modules/@graphql-tools/stitch/dist/index.js
+@@ -1,9 +1,36 @@
+ import { isExternalObject, getVariableValues, handleOverrideByDelegation, subtractSelectionSets, extractUnavailableFields, leftOverByDelegationPlan, extractUnavailableFieldsFromSelectionSet, delegateToSchema, cloneSubschemaConfig, isSubschemaConfig, defaultMergedResolver, Subschema } from '@graphql-tools/delegate';
+ import { mergeType, mergeInputType, mergeInterface, mergeUnion, mergeEnum, mergeScalar, mergeTypeDefs, mergeResolvers, mergeExtensions, applyExtensions } from '@graphql-tools/merge';
+ import { extendResolversFromInterfaces, addResolversToSchema, assertResolversPresent, makeExecutableSchema } from '@graphql-tools/schema';
+-import { mergeDeep, collectSubFields, memoize3, memoize2, memoize1, parseSelectionSet, collectFields, isSome, getImplementingTypes, getRootTypeNames, filterSchema, getDescription, createNamedStub, createStub, getRootTypeMap, getRootTypes, inspect, rewireTypes, getOperationASTFromRequest, getDefinedRootType, getArgumentValues } from '@graphql-tools/utils';
++import { mergeDeep, collectSubFields, parseSelectionSet, collectFields, isSome, getImplementingTypes, getRootTypeNames, filterSchema, getDescription, createNamedStub, createStub, getRootTypeMap, getRootTypes, inspect, rewireTypes, getOperationASTFromRequest, getDefinedRootType } from '@graphql-tools/utils';
++import memoizee from 'memoizee';
++import weakMemoizee from 'memoizee/weak.js';
++const __objectIds = new WeakMap();
++let __objectIdSeq = 0;
++function __objectKey(value) {
++  if (value != null && (typeof value === 'object' || typeof value === 'function')) {
++    let id = __objectIds.get(value);
++    if (id == null) {
++      id = 'o' + (++__objectIdSeq);
++      __objectIds.set(value, id);
++    }
++    return id;
++  }
++  return JSON.stringify(value);
++}
++function __identityNormalizer(length) {
++  return (args) => {
++    const parts = [];
++    for (let i = 0; i < length; i++) parts.push(__objectKey(args[i]));
++    return parts.join('|');
++  };
++}
++function memoize1(fn) { return weakMemoizee(fn); }
++function memoize2(fn) { return memoizee(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
++function memoize3(fn) { return memoizee(fn, { length: 3, normalizer: __identityNormalizer(3) }); }
++function memoize5(fn) { return memoizee(fn, { length: 5, normalizer: __identityNormalizer(5) }); }
++function memoize2of4(fn) { return memoizee(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
+ import { handleMaybePromise } from '@whatwg-node/promise-helpers';
+-import { getNamedType, Kind, isAbstractType, TypeNameMetaFieldDef, isObjectType, GraphQLList, isLeafType, isInputObjectType, isUnionType, print, isInterfaceType, visit, isScalarType, isCompositeType, isNonNullType, isEnumType, isListType, getNullableType, isNullableType, GraphQLObjectType, GraphQLInputObjectType, GraphQLInterfaceType, GraphQLUnionType, GraphQLEnumType, GraphQLScalarType, GraphQLDirective, valueFromASTUntyped, getDirectiveValues, GraphQLDeprecatedDirective, DirectiveLocation, isNamedType, isIntrospectionType, isDirective, isSpecifiedScalarType, GraphQLSchema, concatAST, extendSchema, specifiedDirectives, isSpecifiedDirective } from 'graphql';
++import { getArgumentValues, getNamedType, Kind, isAbstractType, TypeNameMetaFieldDef, isObjectType, GraphQLList, isLeafType, isInputObjectType, isUnionType, print, isInterfaceType, visit, isScalarType, isCompositeType, isNonNullType, isEnumType, isListType, getNullableType, isNullableType, GraphQLObjectType, GraphQLInputObjectType, GraphQLInterfaceType, GraphQLUnionType, GraphQLEnumType, GraphQLScalarType, GraphQLDirective, valueFromASTUntyped, getDirectiveValues, GraphQLDeprecatedDirective, DirectiveLocation, isNamedType, isIntrospectionType, isDirective, isSpecifiedScalarType, GraphQLSchema, concatAST, extendSchema, specifiedDirectives, isSpecifiedDirective } from 'graphql';
+ import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
+ import { FilterTypes, TransformCompositeFields, wrapSchema } from '@graphql-tools/wrap';
+ import { getFragmentsFromDocument } from '@graphql-tools/executor';

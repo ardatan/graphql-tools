@@ -1,0 +1,87 @@
+diff --git a/node_modules/@graphql-tools/executor-http/dist/index.cjs b/node_modules/@graphql-tools/executor-http/dist/index.cjs
+index 3127bbc..290c9b1 100644
+--- a/node_modules/@graphql-tools/executor-http/dist/index.cjs
++++ b/node_modules/@graphql-tools/executor-http/dist/index.cjs
+@@ -3,6 +3,34 @@
+ var signal = require('@graphql-hive/signal');
+ var executorCommon = require('@graphql-tools/executor-common');
+ var utils = require('@graphql-tools/utils');
++var memoizee = require('memoizee');
++var memoizeeFn = memoizee.default || memoizee;
++var weakMemoizee = require('memoizee/weak');
++var __objectIds = new WeakMap();
++var __objectIdSeq = 0;
++function __objectKey(value) {
++  if (value != null && (typeof value === 'object' || typeof value === 'function')) {
++    var id = __objectIds.get(value);
++    if (id == null) {
++      id = 'o' + (++__objectIdSeq);
++      __objectIds.set(value, id);
++    }
++    return id;
++  }
++  return JSON.stringify(value);
++}
++function __identityNormalizer(length) {
++  return function (args) {
++    var parts = [];
++    for (var i = 0; i < length; i++) parts.push(__objectKey(args[i]));
++    return parts.join('|');
++  };
++}
++function memoize1(fn) { return weakMemoizee(fn); }
++function memoize2(fn) { return memoizeeFn(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
++function memoize3(fn) { return memoizeeFn(fn, { length: 3, normalizer: __identityNormalizer(3) }); }
++function memoize5(fn) { return memoizeeFn(fn, { length: 5, normalizer: __identityNormalizer(5) }); }
++function memoize2of4(fn) { return memoizeeFn(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
+ var disposablestack = require('@whatwg-node/disposablestack');
+ var fetch = require('@whatwg-node/fetch');
+ var promiseHelpers = require('@whatwg-node/promise-helpers');
+@@ -510,7 +538,7 @@ async function handleMultipartMixedResponse(response) {
+   return resultStream;
+ }
+ 
+-const isLiveQueryOperationDefinitionNode = utils.memoize1(
++const isLiveQueryOperationDefinitionNode = memoize1(
+   function isLiveQueryOperationDefinitionNode2(node) {
+     return node.operation === "query" && node.directives?.some((directive) => directive.name.value === "live");
+   }
+diff --git a/node_modules/@graphql-tools/executor-http/dist/index.js b/node_modules/@graphql-tools/executor-http/dist/index.js
+index 0cf6937..0b47c96 100644
+--- a/node_modules/@graphql-tools/executor-http/dist/index.js
++++ b/node_modules/@graphql-tools/executor-http/dist/index.js
+@@ -1,6 +1,33 @@
+ import { abortSignalAny } from '@graphql-hive/signal';
+ import { defaultPrintFn, serializeExecutionRequest } from '@graphql-tools/executor-common';
+-import { isAsyncIterable, createGraphQLError, inspect, mapAsyncIterator, mergeIncrementalResult, memoize1, getOperationASTFromRequest } from '@graphql-tools/utils';
++import { isAsyncIterable, createGraphQLError, inspect, mapAsyncIterator, mergeIncrementalResult, getOperationASTFromRequest } from '@graphql-tools/utils';
++import memoizee from 'memoizee';
++import weakMemoizee from 'memoizee/weak.js';
++const __objectIds = new WeakMap();
++let __objectIdSeq = 0;
++function __objectKey(value) {
++  if (value != null && (typeof value === 'object' || typeof value === 'function')) {
++    let id = __objectIds.get(value);
++    if (id == null) {
++      id = 'o' + (++__objectIdSeq);
++      __objectIds.set(value, id);
++    }
++    return id;
++  }
++  return JSON.stringify(value);
++}
++function __identityNormalizer(length) {
++  return (args) => {
++    const parts = [];
++    for (let i = 0; i < length; i++) parts.push(__objectKey(args[i]));
++    return parts.join('|');
++  };
++}
++function memoize1(fn) { return weakMemoizee(fn); }
++function memoize2(fn) { return memoizee(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
++function memoize3(fn) { return memoizee(fn, { length: 3, normalizer: __identityNormalizer(3) }); }
++function memoize5(fn) { return memoizee(fn, { length: 5, normalizer: __identityNormalizer(5) }); }
++function memoize2of4(fn) { return memoizee(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
+ import { DisposableSymbols } from '@whatwg-node/disposablestack';
+ import { FormData, File as File$1, TextEncoder, crypto, TextDecoder, fetch } from '@whatwg-node/fetch';
+ import { isPromise, handleMaybePromise } from '@whatwg-node/promise-helpers';

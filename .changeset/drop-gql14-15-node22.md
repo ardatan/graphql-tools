@@ -46,39 +46,36 @@ Drop GraphQL v14/v15 and require Node.js >= 22.
 | Removed from `@graphql-tools/utils` | Replacement |
 | --- | --- |
 | `getArgumentValues` | `import { getArgumentValues } from 'graphql'` |
-| `coerceInputs` (internal fork) | `graphql`'s input coercion / `getArgumentValues` |
-| `graphqlJSCompat` helpers | Dropped; use graphql@16+ APIs directly |
+| `coerceInputs` / `graphqlJSCompat` | graphql@16+ APIs (`getArgumentValues`, etc.) |
 | `createDeferred` / `createDeferredPromise` | `const { promise, resolve, reject } = Promise.withResolvers()` |
-| `memoize4` | `memoizee(fn, { length: 4, normalizer })` (or keep using remaining `memoize*` compat exports where applicable) |
-| `memoize2of5` | `memoizee(fn, { length: 2, normalizer })` — cache on the first two args |
+| `memoize1` / `memoize2` / `memoize3` / `memoize4` / `memoize5` / `memoize2of4` / `memoize2of5` | `memoizee` / `memoizee/weak.js` (see below) |
 
-`matchFiles` / `matchFilesSync` were never a stable utils public API in prior releases as a globby replacement; file matching is now:
+File matching (replaces `globby` in loaders):
 
 ```ts
 import { matchFiles, matchFilesSync } from '@graphql-tools/load-files';
 ```
 
-Do not import them from `@graphql-tools/utils`. Loader packages that previously depended on `globby` should use these helpers (or Node's `fs.glob` / `fs.globSync` directly on Node 22+).
-
 ### Memoization
 
-Custom WeakMap `memoize*` implementations are gone. Prefer the `memoizee` package:
+All `memoize*` helpers were removed from `@graphql-tools/utils`. Use the `memoizee` package directly:
 
 ```ts
 import memoizee from 'memoizee';
 import weakMemoizee from 'memoizee/weak.js';
 
-// single object-identity arg
-const memoized = weakMemoizee((schema: GraphQLSchema) => /* ... */);
+// single object-identity argument
+const bySchema = weakMemoizee((schema: GraphQLSchema) => /* ... */);
 
-// multi-arg with identity keys
-const memoized2 = memoizee(fn, {
+// multi-arg with identity keys via normalizer
+const byTwo = memoizee(fn, {
   length: 2,
   normalizer: (args) => objectKey(args[0]) + '|' + objectKey(args[1]),
 });
-```
 
-Compatibility exports still available (thin `memoizee` wrappers, mainly for gateway packages): `memoize1`, `memoize2`, `memoize3`, `memoize5`, `memoize2of4`. New code should import `memoizee` directly.
+// cache on first N args only (former memoize2of4 / memoize2of5)
+const byFirstTwoOfFour = memoizee(fn, { length: 2, normalizer: /* identity of args[0..1] */ });
+```
 
 ### Errors
 

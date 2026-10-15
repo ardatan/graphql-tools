@@ -1,0 +1,167 @@
+diff --git a/node_modules/@graphql-tools/delegate/dist/index.cjs b/node_modules/@graphql-tools/delegate/dist/index.cjs
+index 2688470..2f537e2 100644
+--- a/node_modules/@graphql-tools/delegate/dist/index.cjs
++++ b/node_modules/@graphql-tools/delegate/dist/index.cjs
+@@ -1,13 +1,41 @@
+ 'use strict';
+ 
+ var utils = require('@graphql-tools/utils');
++var memoizee = require('memoizee');
++var memoizeeFn = memoizee.default || memoizee;
++var weakMemoizee = require('memoizee/weak');
++var __objectIds = new WeakMap();
++var __objectIdSeq = 0;
++function __objectKey(value) {
++  if (value != null && (typeof value === 'object' || typeof value === 'function')) {
++    var id = __objectIds.get(value);
++    if (id == null) {
++      id = 'o' + (++__objectIdSeq);
++      __objectIds.set(value, id);
++    }
++    return id;
++  }
++  return JSON.stringify(value);
++}
++function __identityNormalizer(length) {
++  return function (args) {
++    var parts = [];
++    for (var i = 0; i < length; i++) parts.push(__objectKey(args[i]));
++    return parts.join('|');
++  };
++}
++function memoize1(fn) { return weakMemoizee(fn); }
++function memoize2(fn) { return memoizeeFn(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
++function memoize3(fn) { return memoizeeFn(fn, { length: 3, normalizer: __identityNormalizer(3) }); }
++function memoize5(fn) { return memoizeeFn(fn, { length: 5, normalizer: __identityNormalizer(5) }); }
++function memoize2of4(fn) { return memoizeeFn(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
+ var graphql = require('graphql');
+ var promiseHelpers = require('@whatwg-node/promise-helpers');
+ var executor = require('@graphql-tools/executor');
+ var batchExecute = require('@graphql-tools/batch-execute');
+ var repeater = require('@repeaterjs/repeater');
+ 
+-const applySchemaTransforms = utils.memoize2(function applySchemaTransforms2(originalWrappingSchema, subschemaConfig) {
++const applySchemaTransforms = memoize2(function applySchemaTransforms2(originalWrappingSchema, subschemaConfig) {
+   const schemaTransforms = subschemaConfig.transforms;
+   if (schemaTransforms == null) {
+     return originalWrappingSchema;
+@@ -116,7 +144,7 @@ function getUnpathedErrors(object) {
+   return object[UNPATHED_ERRORS_SYMBOL];
+ }
+ const EMPTY_OBJECT = /* @__PURE__ */ Object.create(null);
+-const getActualFieldNodes = utils.memoize1(function(fieldNode) {
++const getActualFieldNodes = memoize1(function(fieldNode) {
+   return [fieldNode];
+ });
+ function mergeFields(mergedTypeInfo, object, sourceSubschema, context, info, fieldNodes = info.fieldNodes) {
+@@ -596,14 +624,14 @@ function getDocumentMetadata(document) {
+   };
+ }
+ 
+-const getTypeInfo = utils.memoize1(function getTypeInfo2(schema) {
++const getTypeInfo = memoize1(function getTypeInfo2(schema) {
+   return new graphql.TypeInfo(schema);
+ });
+-const getTypeInfoWithType = utils.memoize2(function getTypeInfoWithType2(schema, type) {
++const getTypeInfoWithType = memoize2(function getTypeInfoWithType2(schema, type) {
+   return graphql.versionInfo.major < 16 ? new graphql.TypeInfo(schema, void 0, type) : new graphql.TypeInfo(schema, type);
+ });
+ 
+-const handleOverrideByDelegation = utils.memoize3(
++const handleOverrideByDelegation = memoize3(
+   function handleOverrideByDelegation2(info, context, overrideHandler) {
+     return overrideHandler(context, info);
+   }
+@@ -973,7 +1001,7 @@ function collectFieldSelectionSetsByPathImpl(document) {
+   });
+   return { selectionSetsByPath, fragments };
+ }
+-const collectFieldSelectionSetsByPath = utils.memoize1(
++const collectFieldSelectionSetsByPath = memoize1(
+   collectFieldSelectionSetsByPathImpl
+ );
+ function nextInlineFragmentPathSegment(node, counter) {
+@@ -997,7 +1025,7 @@ function subschemaHasProvidedSelectionsImpl(stitchingInfo, subschema) {
+   }
+   return false;
+ }
+-const subschemaHasProvidedSelections = utils.memoize2(
++const subschemaHasProvidedSelections = memoize2(
+   subschemaHasProvidedSelectionsImpl
+ );
+ function lookupOriginalSelectionSet(pathStack, fieldNode, selectionSetsByPath) {
+@@ -1641,7 +1669,7 @@ function prepareGatewayDocument(originalDocument, delegationContext) {
+     visitorKeyMap
+   );
+ }
+-const getExtraPossibleTypesFn = utils.memoize2(function getExtraPossibleTypes(transformedSchema, infoSchema) {
++const getExtraPossibleTypesFn = memoize2(function getExtraPossibleTypes(transformedSchema, infoSchema) {
+   const extraPossiblesTypesMap = /* @__PURE__ */ new Map();
+   return function getExtraPossibleTypes2(typeName) {
+     let extraTypesForSubschema = extraPossiblesTypesMap.get(typeName);
+@@ -2069,7 +2097,7 @@ function generateInlineFragment(typeName, selectionSet) {
+     selectionSet
+   };
+ }
+-const getSchemaMetaData = utils.memoize2(
++const getSchemaMetaData = memoize2(
+   (sourceSchema, targetSchema) => {
+     const typeMap = sourceSchema.getTypeMap();
+     const targetTypeMap = targetSchema.getTypeMap();
+@@ -3041,7 +3069,7 @@ function cloneSubschemaConfig(subschemaConfig) {
+   return newSubschemaConfig;
+ }
+ 
+-const getFragmentDefinitions = utils.memoize1(
++const getFragmentDefinitions = memoize1(
+   (info) => {
+     const fragmentMap = info.fragments;
+     return Object.values(fragmentMap);
+@@ -3550,7 +3578,7 @@ function subtractSelectionSets(selectionSetA, selectionSetB, fragments = {}) {
+ 
+ Object.defineProperty(exports, "createDeferred", {
+   enumerable: true,
+-  get: function () { return utils.createDeferred; }
++  get: function () { return promiseHelpers.createDeferredPromise; }
+ });
+ Object.defineProperty(exports, "createDefaultExecutor", {
+   enumerable: true,
+diff --git a/node_modules/@graphql-tools/delegate/dist/index.js b/node_modules/@graphql-tools/delegate/dist/index.js
+index 95a02cb..b37d349 100644
+--- a/node_modules/@graphql-tools/delegate/dist/index.js
++++ b/node_modules/@graphql-tools/delegate/dist/index.js
+@@ -1,5 +1,32 @@
+-import { memoize2, memoize1, collectFields, relocatedError, mergeDeep, promiseReduce, pathToArray, memoize3, getDefinedRootType, createGraphQLError, implementsAbstractType, getRootTypeNames, astFromArg, astFromValueUntyped, asArray, isAsyncIterable, getOperationASTFromRequest } from '@graphql-tools/utils';
+-export { createDeferred } from '@graphql-tools/utils';
++import { collectFields, relocatedError, mergeDeep, promiseReduce, pathToArray, getDefinedRootType, createGraphQLError, implementsAbstractType, getRootTypeNames, astFromArg, astFromValueUntyped, asArray, isAsyncIterable, getOperationASTFromRequest } from '@graphql-tools/utils';
++import memoizee from 'memoizee';
++import weakMemoizee from 'memoizee/weak.js';
++const __objectIds = new WeakMap();
++let __objectIdSeq = 0;
++function __objectKey(value) {
++  if (value != null && (typeof value === 'object' || typeof value === 'function')) {
++    let id = __objectIds.get(value);
++    if (id == null) {
++      id = 'o' + (++__objectIdSeq);
++      __objectIds.set(value, id);
++    }
++    return id;
++  }
++  return JSON.stringify(value);
++}
++function __identityNormalizer(length) {
++  return (args) => {
++    const parts = [];
++    for (let i = 0; i < length; i++) parts.push(__objectKey(args[i]));
++    return parts.join('|');
++  };
++}
++function memoize1(fn) { return weakMemoizee(fn); }
++function memoize2(fn) { return memoizee(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
++function memoize3(fn) { return memoizee(fn, { length: 3, normalizer: __identityNormalizer(3) }); }
++function memoize5(fn) { return memoizee(fn, { length: 5, normalizer: __identityNormalizer(5) }); }
++function memoize2of4(fn) { return memoizee(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
++export { createDeferredPromise as createDeferred } from '@whatwg-node/promise-helpers';
+ import { GraphQLError, locatedError, isAbstractType, getNullableType, isLeafType, isCompositeType, isListType, responsePathAsArray, Kind, TypeInfo, versionInfo, visit, visitWithTypeInfo, isNullableType, isUnionType, getNamedType, isObjectType, isInterfaceType, typeFromAST, isTypeSubTypeOf, isNonNullType, isInputObjectType, defaultFieldResolver, isSchema, validate } from 'graphql';
+ import { handleMaybePromise, isPromise, createDeferredPromise, mapAsyncIterator } from '@whatwg-node/promise-helpers';
+ import { CRITICAL_ERROR, executorFromSchema } from '@graphql-tools/executor';
