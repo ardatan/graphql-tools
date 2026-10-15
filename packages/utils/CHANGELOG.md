@@ -1,5 +1,81 @@
 # @graphql-tools/utils
 
+## 12.1.0
+
+### Minor Changes
+
+- [#8445](https://github.com/ardatan/graphql-tools/pull/8445) [`82457d1`](https://github.com/ardatan/graphql-tools/commit/82457d1f5ba4b4fa7ec475e9cc3713a0b2b139e8) Thanks [@ardatan](https://github.com/ardatan)! - **Fix:** Preserve symbol-keyed GraphQL extensions when building, merging, or extracting schemas.
+  
+  GraphQL.js v17 allows `string | symbol` keys on schema/type/field `extensions` (via `toObjMapWithSymbols`). `@graphql-tools` was dropping those symbol keys in two places:
+  
+  1. `mergeDeep` only walked enumerable **string** keys (`for...in`), so symbol extensions were lost when applying `schemaExtensions`.
+  2. `extractExtensionsFromSchema` did not copy **non-enumerable** own symbol keys (enumerable symbols already survive object rest/spread; the explicit loop covers the non-enumerable case).
+  
+  ### Example (bug)
+  
+  ```ts
+  import { makeExecutableSchema } from '@graphql-tools/schema'
+  
+  const META = Symbol('META')
+  
+  const schema = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      type Query {
+        hello: String
+      }
+    `,
+    schemaExtensions: {
+      schemaExtensions: {
+        [META]: { source: 'app' },
+        tagged: true,
+      },
+      types: {},
+    },
+  })
+  
+  // Before: only string keys survived
+  // schema.extensions === { tagged: true }
+  
+  // After: symbol keys are preserved
+  // schema.extensions[META] === { source: 'app' }
+  // schema.extensions.tagged === true
+  ```
+  
+  Schema extension merge/extract and resolver merging always enable `{ enumerable: true, nonEnumerable: true }` so symbol keys survive in tools' own merge/extract paths on every supported GraphQL.js major. (GraphQL.js itself may still drop symbol keys from field configs below v17 when rebuilding types.)
+  
+  ### `mergeDeep` API
+  
+  `mergeDeep` now accepts an **options object**. The old positional boolean arguments still work but are **deprecated**.
+  
+  ```ts
+  import { mergeDeep } from '@graphql-tools/utils'
+  
+  // Deprecated (still supported)
+  mergeDeep([a, b], false, true, false, true)
+  //                ^proto ^arrays ^len  ^non-enumerable symbols only
+  
+  // Preferred
+  mergeDeep([a, b], {
+    respectPrototype: false,
+    respectArrays: true,
+    respectArrayLength: false,
+    respectSymbols: {
+      enumerable: true, // merge `obj[sym] = value` keys
+      nonEnumerable: true, // copy defineProperty(..., { enumerable: false }) symbols
+    },
+  })
+  ```
+  
+  `respectSymbols` defaults to `{ enumerable: false, nonEnumerable: false }` (symbols dropped), matching the historical default. The legacy 5th positional flag still maps to `{ nonEnumerable: true }` only.
+  
+  Resolver map types (`IResolvers` / field resolver `extensions` and type `__extensions`) now use `ExtensionsObject` (`Record<string | symbol, any>`), so symbol-keyed resolver extensions type-check under GraphQL.js v17+.
+
+### Patch Changes
+
+- [#8513](https://github.com/ardatan/graphql-tools/pull/8513) [`98673c3`](https://github.com/ardatan/graphql-tools/commit/98673c3531ce0a1b5f5f89e99b3554da5581418d) Thanks [@ardatan](https://github.com/ardatan)! - fix(utils): coerce GraphQL 17 argument defaults in getArgumentValues via local input coercion (defaults, missing variables, nested sources)
+
+- [#8493](https://github.com/ardatan/graphql-tools/pull/8493) [`a75d725`](https://github.com/ardatan/graphql-tools/commit/a75d72530f07f6162b45a5627964188cac4cea8b) Thanks [@cpruijsen](https://github.com/cpruijsen)! - Keep argument types of defined directives when pruning so that unused directives such as `@key(fields: _FieldSet!)` retain their full definitions instead of losing the argument together with its type.
+
 ## 12.0.4
 
 ### Patch Changes

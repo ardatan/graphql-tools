@@ -1,5 +1,16 @@
 # @graphql-tools/load
 
+## 8.1.21
+
+### Patch Changes
+
+- [#8445](https://github.com/ardatan/graphql-tools/pull/8445) [`82457d1`](https://github.com/ardatan/graphql-tools/commit/82457d1f5ba4b4fa7ec475e9cc3713a0b2b139e8) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+    - Updated dependency [`@graphql-tools/schema@^10.1.4` ↗︎](https://www.npmjs.com/package/@graphql-tools/schema/v/10.1.4) (from `^10.1.3`, in `dependencies`)
+    - Updated dependency [`@graphql-tools/utils@^12.0.4` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/12.0.4) (from `^12.0.3`, in `dependencies`)
+- Updated dependencies [[`82457d1`](https://github.com/ardatan/graphql-tools/commit/82457d1f5ba4b4fa7ec475e9cc3713a0b2b139e8), [`98673c3`](https://github.com/ardatan/graphql-tools/commit/98673c3531ce0a1b5f5f89e99b3554da5581418d), [`a75d725`](https://github.com/ardatan/graphql-tools/commit/a75d72530f07f6162b45a5627964188cac4cea8b), [`82457d1`](https://github.com/ardatan/graphql-tools/commit/82457d1f5ba4b4fa7ec475e9cc3713a0b2b139e8)]:
+  - @graphql-tools/schema@10.1.5
+  - @graphql-tools/utils@12.1.0
+
 ## 8.1.20
 
 ### Patch Changes
