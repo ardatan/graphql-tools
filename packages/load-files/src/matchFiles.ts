@@ -1,5 +1,5 @@
-import { Dirent, globSync, statSync } from 'node:fs';
-import { glob as globAsync, stat } from 'node:fs/promises';
+import { Dirent, globSync, readdirSync, statSync } from 'node:fs';
+import { glob as globAsync, readdir, stat } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 
 export interface MatchFilesOptions {
@@ -12,6 +12,7 @@ export interface MatchFilesOptions {
 
 const GLOB_MAGIC = /[*?[{\\]/;
 const EXTGLOB_PREFIX = new Set(['?', '*', '+', '@', '!']);
+const MAX_SYMLINK_WALK_DEPTH = 32;
 
 function asArray<T>(value: T | T[] | undefined): T[] {
   if (value == null) {
@@ -154,6 +155,131 @@ function expandPatternSync(pattern: string, cwd: string): string {
 }
 
 /**
+ * Node's `fs.glob` only follows directory symlinks when `followSymlinks` is set
+ * (Node >=26.1). Until then, discover symlink directories under `cwd` (without
+ * descending into them) so recursive glob patterns can be re-rooted explicitly.
+ */
+async function findDirectorySymlinkRoots(cwd: string): Promise<string[]> {
+  const roots: string[] = [];
+
+  async function walk(rel: string, depth: number): Promise<void> {
+    if (depth > MAX_SYMLINK_WALK_DEPTH) {
+      return;
+    }
+    const abs = rel ? join(cwd, rel) : cwd;
+    let entries: Dirent[];
+    try {
+      entries = (await readdir(abs, { withFileTypes: true })) as Dirent[];
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const childRel = rel ? `${rel}/${entry.name}` : entry.name;
+      if (entry.isSymbolicLink()) {
+        try {
+          if ((await stat(join(cwd, childRel))).isDirectory()) {
+            roots.push(childRel.replace(/\\/g, '/'));
+          }
+        } catch {
+          // dangling link
+        }
+        continue;
+      }
+      if (entry.isDirectory()) {
+        await walk(childRel, depth + 1);
+      }
+    }
+  }
+
+  await walk('', 0);
+  return roots;
+}
+
+function findDirectorySymlinkRootsSync(cwd: string): string[] {
+  const roots: string[] = [];
+
+  function walk(rel: string, depth: number): void {
+    if (depth > MAX_SYMLINK_WALK_DEPTH) {
+      return;
+    }
+    const abs = rel ? join(cwd, rel) : cwd;
+    let entries: Dirent[];
+    try {
+      entries = readdirSync(abs, { withFileTypes: true }) as Dirent[];
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const childRel = rel ? `${rel}/${entry.name}` : entry.name;
+      if (entry.isSymbolicLink()) {
+        try {
+          if (statSync(join(cwd, childRel)).isDirectory()) {
+            roots.push(childRel.replace(/\\/g, '/'));
+          }
+        } catch {
+          // dangling link
+        }
+        continue;
+      }
+      if (entry.isDirectory()) {
+        walk(childRel, depth + 1);
+      }
+    }
+  }
+
+  walk('', 0);
+  return roots;
+}
+
+/** Extra patterns so recursive globs can enter directory symlinks on Node <26.1. */
+function patternsWithSymlinkRoots(pattern: string, symlinkRoots: string[]): string[] {
+  if (!pattern.includes('**') || symlinkRoots.length === 0) {
+    return [pattern];
+  }
+  const unixPattern = pattern.replace(/\\/g, '/');
+  const extras = symlinkRoots.map(root => `${root}/${unixPattern}`);
+  return [unixPattern, ...extras];
+}
+
+type GlobOptions = {
+  cwd: string;
+  exclude?: string[];
+  withFileTypes: boolean;
+};
+
+async function collectGlobMatches(
+  pattern: string,
+  options: GlobOptions,
+  onlyFiles: boolean,
+): Promise<string[]> {
+  const paths: string[] = [];
+  const iterator = globAsync(pattern, options);
+  for await (const file of iterator) {
+    const entry = file as string | Dirent;
+    if (onlyFiles && !(await isFileLike(entry))) {
+      continue;
+    }
+    paths.push(toPath(entry));
+  }
+  return paths;
+}
+
+function collectGlobMatchesSync(
+  pattern: string,
+  options: GlobOptions,
+  onlyFiles: boolean,
+): string[] {
+  const paths: string[] = [];
+  for (const file of globSync(pattern, options) as Array<string | Dirent>) {
+    if (onlyFiles && !isFileLikeSync(file)) {
+      continue;
+    }
+    paths.push(toPath(file));
+  }
+  return paths;
+}
+
+/**
  * File matching helper backed by Node's built-in `fs.glob` (Node >=22.14).
  * Replaces the previous `globby` dependency for loader / load-files use cases.
  */
@@ -166,20 +292,17 @@ export async function matchFiles(
   const onlyFiles = options.onlyFiles !== false;
   const { include, ignore: negated } = splitPatterns(patterns);
   const exclude = [...negated, ...asArray(options.ignore).map(normalizeIgnore)];
+  const globOptions: GlobOptions = {
+    cwd,
+    exclude: exclude.length > 0 ? exclude : undefined,
+    withFileTypes: onlyFiles,
+  };
+  const symlinkRoots = await findDirectorySymlinkRoots(cwd);
   const paths: string[] = [];
   for (const pattern of include) {
     const expanded = await expandPattern(pattern, cwd);
-    const iterator = globAsync(expanded, {
-      cwd,
-      exclude: exclude.length > 0 ? exclude : undefined,
-      withFileTypes: onlyFiles,
-    });
-    for await (const file of iterator) {
-      const entry = file as string | Dirent;
-      if (onlyFiles && !(await isFileLike(entry))) {
-        continue;
-      }
-      paths.push(toPath(entry));
+    for (const globPattern of patternsWithSymlinkRoots(expanded, symlinkRoots)) {
+      paths.push(...(await collectGlobMatches(globPattern, globOptions, onlyFiles)));
     }
   }
   return finalizePaths(paths, cwd, absolute);
@@ -194,18 +317,17 @@ export function matchFilesSync(
   const onlyFiles = options.onlyFiles !== false;
   const { include, ignore: negated } = splitPatterns(patterns);
   const exclude = [...negated, ...asArray(options.ignore).map(normalizeIgnore)];
+  const globOptions: GlobOptions = {
+    cwd,
+    exclude: exclude.length > 0 ? exclude : undefined,
+    withFileTypes: onlyFiles,
+  };
+  const symlinkRoots = findDirectorySymlinkRootsSync(cwd);
   const paths: string[] = [];
   for (const pattern of include) {
     const expanded = expandPatternSync(pattern, cwd);
-    for (const file of globSync(expanded, {
-      cwd,
-      exclude: exclude.length > 0 ? exclude : undefined,
-      withFileTypes: onlyFiles,
-    }) as Array<string | Dirent>) {
-      if (onlyFiles && !isFileLikeSync(file)) {
-        continue;
-      }
-      paths.push(toPath(file));
+    for (const globPattern of patternsWithSymlinkRoots(expanded, symlinkRoots)) {
+      paths.push(...collectGlobMatchesSync(globPattern, globOptions, onlyFiles));
     }
   }
   return finalizePaths(paths, cwd, absolute);

@@ -48,7 +48,7 @@ Drop GraphQL v14/v15 and require Node.js >= 22.
 | `getArgumentValues` | `import { getArgumentValues } from 'graphql'` |
 | `coerceInputs` / `graphqlJSCompat` | graphql@16+ APIs (`getArgumentValues`, etc.) |
 | `createDeferred` / `createDeferredPromise` | `const { promise, resolve, reject } = Promise.withResolvers()` |
-| `createGraphQLError` | `new GraphQLError(message, options)` from `graphql` |
+| `createGraphQLError` (compat alias kept) | Prefer `new GraphQLError(message, options)` from `graphql`; a thin deprecated alias remains for ecosystem packages |
 | `memoize1` / `memoize2` / `memoize3` / `memoize4` / `memoize5` / `memoize2of4` / `memoize2of5` | `memoizee` / `memoizee/weak.js` (see below) |
 
 File matching (replaces `globby` in loaders):
@@ -80,7 +80,7 @@ For primitive-key caches, use `memoizee` with `{ primitive: true }` instead.
 
 ### Errors
 
-`createGraphQLError` was removed. Use `new GraphQLError(message, options)` from `graphql`. Experimental schema `coordinate` support remains on `locatedError` / `relocatedError` / `getSchemaCoordinate`.
+`createGraphQLError` is now a thin deprecated alias of `new GraphQLError(message, options)` (legacy GraphQL &lt;16 constructor branching removed). Prefer `GraphQLError` directly. Experimental schema `coordinate` support remains on `locatedError` / `relocatedError` / `getSchemaCoordinate`.
 
 ### Other cleanup
 

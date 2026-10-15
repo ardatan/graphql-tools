@@ -53,4 +53,20 @@ describe('matchFiles', () => {
     expect(asyncMatches.sort()).toEqual(['link.graphql', 'real.graphql']);
     expect(syncMatches.sort()).toEqual(['link.graphql', 'real.graphql']);
   });
+
+  it('follows directory symlinks while matching', async () => {
+    const outside = mkdtempSync(join(tmpdir(), 'match-files-out-'));
+    try {
+      writeFileSync(join(outside, 'schema.graphql'), 'type Query { a: String }');
+      symlinkSync(outside, join(dir, 'linked'));
+
+      const asyncMatches = await matchFiles('**/*.graphql', { cwd: dir, absolute: false });
+      const syncMatches = matchFilesSync('**/*.graphql', { cwd: dir, absolute: false });
+
+      expect(asyncMatches.sort()).toEqual(['linked/schema.graphql']);
+      expect(syncMatches.sort()).toEqual(['linked/schema.graphql']);
+    } finally {
+      rmSync(outside, { recursive: true, force: true });
+    }
+  });
 });
