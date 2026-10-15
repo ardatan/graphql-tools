@@ -12,19 +12,6 @@ declare module 'graphql' {
 
 type SchemaCoordinateInfo = { fieldName: string; parentType: { name: string } };
 
-/**
- * Thin alias for ecosystem packages that still import this helper.
- * Prefer `new GraphQLError(message, options)` from `graphql` in new code.
- *
- * @deprecated Use `new GraphQLError(message, options)` from `graphql`.
- */
-export function createGraphQLError(
-  message: string,
-  options?: ConstructorParameters<typeof GraphQLError>[1],
-): GraphQLError {
-  return new GraphQLError(message, options);
-}
-
 function withCoordinate(error: GraphQLError, coordinate: string | undefined): GraphQLError {
   if (coordinate != null && error.coordinate == null) {
     Object.defineProperties(error, {
