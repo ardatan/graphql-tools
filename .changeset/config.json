@@ -13,5 +13,5 @@
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "updateInternalDependents": "always"
   },
-  "ignore": ["website", "@graphql-tools/external-fragment-loader"]
+  "ignore": ["website"]
 }
