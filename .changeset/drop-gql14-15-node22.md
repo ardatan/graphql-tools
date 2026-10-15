@@ -38,7 +38,7 @@ Drop GraphQL v14/v15 support and require Node.js >= 22.18.
 
 - `graphql` peer range is now `^16.0.0 || ^17.0.0`.
 - `engines.node` is now `>=22.18.0` (Node `fs.glob` + Babel 8).
-- Dev tooling and `@graphql-tools/graphql-tag-pluck` move to Babel 8 (`@babel/core` / parser / traverse / types).
+- Dev tooling and `@graphql-tools/graphql-tag-pluck` move to Babel 8 (`@babel/core` / parser / traverse / types). CI leak runs keep `--detectOpenHandles` but drop Jest’s experimental `--detectLeaks`, which false-positives against Babel 8’s ESM runtime.
 - The standalone `cross-inspect` package is discontinued. Use `inspect` from `@graphql-tools/utils` instead (Node `util.inspect` via `process.getBuiltinModule`, with a small `JSON.stringify` / `String` fallback).
 
 ### Removed `@graphql-tools/utils` exports

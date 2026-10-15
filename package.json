@@ -41,7 +41,7 @@
     "release": "npx changeset publish",
     "test": "jest --no-watchman",
     "test:bun": "bun test",
-    "test:leaks": "cross-env \"LEAK_TEST=1\" jest --no-watchman --detectOpenHandles --detectLeaks --forceExit",
+    "test:leaks": "cross-env \"LEAK_TEST=1\" jest --no-watchman --detectOpenHandles --forceExit",
     "ts:check": "tsc --noEmit",
     "version": "npx changeset version"
   },
