@@ -4,6 +4,7 @@ import { extname, isAbsolute, join } from 'path';
 import { cwd } from 'process';
 import { DocumentNode, parse } from 'graphql';
 import unixify from 'unixify';
+import { asArray } from '@graphql-tools/utils';
 import { matchFiles, matchFilesSync, type MatchFilesOptions } from './matchFiles.js';
 
 export { matchFiles, matchFilesSync, type MatchFilesOptions } from './matchFiles.js';
@@ -38,14 +39,6 @@ const DEFAULT_EXTRACT_EXPORTS_FACTORY =
 
     return fileExport;
   };
-
-function asArray<T>(obj: T | T[]): T[] {
-  if (obj instanceof Array) {
-    return obj;
-  } else {
-    return [obj];
-  }
-}
 
 function resolveAgainstCwd(path: string, baseCwd?: string) {
   if (isAbsolute(path)) {

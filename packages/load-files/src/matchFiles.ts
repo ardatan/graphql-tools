@@ -1,6 +1,7 @@
 import { Dirent, globSync, readdirSync, statSync } from 'node:fs';
 import { glob as globAsync, readdir, stat } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve } from 'node:path';
+import { asArray } from '@graphql-tools/utils';
 
 export interface MatchFilesOptions {
   cwd?: string;
@@ -13,13 +14,6 @@ export interface MatchFilesOptions {
 const GLOB_MAGIC = /[*?[{\\]/;
 const EXTGLOB_PREFIX = new Set(['?', '*', '+', '@', '!']);
 const MAX_SYMLINK_WALK_DEPTH = 32;
-
-function asArray<T>(value: T | T[] | undefined): T[] {
-  if (value == null) {
-    return [];
-  }
-  return Array.isArray(value) ? value : [value];
-}
 
 /** Whole-pattern negation (`!foo`), not a negative extglob (`!(foo)`). */
 function isWholePatternNegation(pattern: string): boolean {
