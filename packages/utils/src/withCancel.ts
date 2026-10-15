@@ -1,36 +1,20 @@
-import memoizee from 'memoizee';
+import weakMemoizee from 'memoizee/weak.js';
 
 async function defaultAsyncIteratorReturn(value?: any) {
   return { value, done: true } as const;
 }
 
-const objectIds = new WeakMap<object, string>();
-let objectIdSeq = 0;
-function objectKey(value: unknown): string {
-  if (value != null && (typeof value === 'object' || typeof value === 'function')) {
-    let id = objectIds.get(value as object);
-    if (id == null) {
-      id = `o${++objectIdSeq}`;
-      objectIds.set(value as object, id);
-    }
-    return id;
-  }
-  return JSON.stringify(value);
-}
-
-const proxyMethodFactory = memoizee(
-  function proxyMethodFactory(target: object, targetMethod: (...args: any[]) => any) {
+const proxyMethodFactoryMemo = weakMemoizee((target: object) =>
+  weakMemoizee((targetMethod: (...args: any[]) => any) => {
     return function proxyMethod(...args: any[]) {
       return Reflect.apply(targetMethod, target, args);
     };
-  },
-  {
-    length: 2,
-    normalizer(args: any) {
-      return objectKey(args[0]) + '|' + objectKey(args[1]);
-    },
-  },
+  }),
 );
+
+function proxyMethodFactory(target: object, targetMethod: (...args: any[]) => any) {
+  return proxyMethodFactoryMemo(target)(targetMethod);
+}
 
 export function getAsyncIteratorWithCancel<T, TReturn = any>(
   asyncIterator: AsyncIterator<T>,

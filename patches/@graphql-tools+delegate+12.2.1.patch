@@ -1,39 +1,29 @@
 diff --git a/node_modules/@graphql-tools/delegate/dist/index.cjs b/node_modules/@graphql-tools/delegate/dist/index.cjs
-index 2688470..cdd9cea 100644
+index 2688470..428a43d 100644
 --- a/node_modules/@graphql-tools/delegate/dist/index.cjs
 +++ b/node_modules/@graphql-tools/delegate/dist/index.cjs
-@@ -1,13 +1,41 @@
+@@ -1,13 +1,31 @@
  'use strict';
  
  var utils = require('@graphql-tools/utils');
-+var memoizee = require('memoizee');
-+var memoizeeFn = memoizee.default || memoizee;
 +var weakMemoizee = require('memoizee/weak');
-+var __objectIds = new WeakMap();
-+var __objectIdSeq = 0;
-+function __objectKey(value) {
-+  if (value != null && (typeof value === 'object' || typeof value === 'function')) {
-+    var id = __objectIds.get(value);
-+    if (id == null) {
-+      id = 'o' + (++__objectIdSeq);
-+      __objectIds.set(value, id);
-+    }
-+    return id;
-+  }
-+  return JSON.stringify(value);
-+}
-+function __identityNormalizer(length) {
-+  return function (args) {
-+    var parts = [];
-+    for (var i = 0; i < length; i++) parts.push(__objectKey(args[i]));
-+    return parts.join('|');
-+  };
-+}
 +function memoize1(fn) { return weakMemoizee(fn); }
-+function memoize2(fn) { return memoizeeFn(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
-+function memoize3(fn) { return memoizeeFn(fn, { length: 3, normalizer: __identityNormalizer(3) }); }
-+function memoize5(fn) { return memoizeeFn(fn, { length: 5, normalizer: __identityNormalizer(5) }); }
-+function memoize2of4(fn) { return memoizeeFn(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
++function memoize2(fn) {
++  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return fn(a1, a2); }); });
++  return function (a1, a2) { return m(a1)(a2); };
++}
++function memoize3(fn) {
++  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return weakMemoizee(function (a3) { return fn(a1, a2, a3); }); }); });
++  return function (a1, a2, a3) { return m(a1)(a2)(a3); };
++}
++function memoize5(fn) {
++  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return weakMemoizee(function (a3) { return weakMemoizee(function (a4) { return weakMemoizee(function (a5) { return fn(a1, a2, a3, a4, a5); }); }); }); }); });
++  return function (a1, a2, a3, a4, a5) { return m(a1)(a2)(a3)(a4)(a5); };
++}
++function memoize2of4(fn) {
++  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return fn(a1, a2); }); });
++  return function (a1, a2, a3, a4) { return m(a1)(a2); };
++}
  var graphql = require('graphql');
  var promiseHelpers = require('@whatwg-node/promise-helpers');
  var executor = require('@graphql-tools/executor');
@@ -45,7 +35,7 @@ index 2688470..cdd9cea 100644
    const schemaTransforms = subschemaConfig.transforms;
    if (schemaTransforms == null) {
      return originalWrappingSchema;
-@@ -116,7 +144,7 @@ function getUnpathedErrors(object) {
+@@ -116,7 +134,7 @@ function getUnpathedErrors(object) {
    return object[UNPATHED_ERRORS_SYMBOL];
  }
  const EMPTY_OBJECT = /* @__PURE__ */ Object.create(null);
@@ -54,7 +44,7 @@ index 2688470..cdd9cea 100644
    return [fieldNode];
  });
  function mergeFields(mergedTypeInfo, object, sourceSubschema, context, info, fieldNodes = info.fieldNodes) {
-@@ -596,14 +624,14 @@ function getDocumentMetadata(document) {
+@@ -596,14 +614,14 @@ function getDocumentMetadata(document) {
    };
  }
  
@@ -72,7 +62,7 @@ index 2688470..cdd9cea 100644
    function handleOverrideByDelegation2(info, context, overrideHandler) {
      return overrideHandler(context, info);
    }
-@@ -692,7 +720,7 @@ function finalizeGatewayDocument(targetSchema, originalDocument, fragments, oper
+@@ -692,7 +710,7 @@ function finalizeGatewayDocument(targetSchema, originalDocument, fragments, oper
      });
    }
    if (!newOperations.length || selectionCnt === 0) {
@@ -81,7 +71,7 @@ index 2688470..cdd9cea 100644
        "Failed to create a gateway request. The request must contain at least one operation.",
        {
          extensions: {
-@@ -973,7 +1001,7 @@ function collectFieldSelectionSetsByPathImpl(document) {
+@@ -973,7 +991,7 @@ function collectFieldSelectionSetsByPathImpl(document) {
    });
    return { selectionSetsByPath, fragments };
  }
@@ -90,7 +80,7 @@ index 2688470..cdd9cea 100644
    collectFieldSelectionSetsByPathImpl
  );
  function nextInlineFragmentPathSegment(node, counter) {
-@@ -997,7 +1025,7 @@ function subschemaHasProvidedSelectionsImpl(stitchingInfo, subschema) {
+@@ -997,7 +1015,7 @@ function subschemaHasProvidedSelectionsImpl(stitchingInfo, subschema) {
    }
    return false;
  }
@@ -99,7 +89,7 @@ index 2688470..cdd9cea 100644
    subschemaHasProvidedSelectionsImpl
  );
  function lookupOriginalSelectionSet(pathStack, fieldNode, selectionSetsByPath) {
-@@ -1641,7 +1669,7 @@ function prepareGatewayDocument(originalDocument, delegationContext) {
+@@ -1641,7 +1659,7 @@ function prepareGatewayDocument(originalDocument, delegationContext) {
      visitorKeyMap
    );
  }
@@ -108,7 +98,7 @@ index 2688470..cdd9cea 100644
    const extraPossiblesTypesMap = /* @__PURE__ */ new Map();
    return function getExtraPossibleTypes2(typeName) {
      let extraTypesForSubschema = extraPossiblesTypesMap.get(typeName);
-@@ -2069,7 +2097,7 @@ function generateInlineFragment(typeName, selectionSet) {
+@@ -2069,7 +2087,7 @@ function generateInlineFragment(typeName, selectionSet) {
      selectionSet
    };
  }
@@ -117,7 +107,7 @@ index 2688470..cdd9cea 100644
    (sourceSchema, targetSchema) => {
      const typeMap = sourceSchema.getTypeMap();
      const targetTypeMap = targetSchema.getTypeMap();
-@@ -3041,7 +3069,7 @@ function cloneSubschemaConfig(subschemaConfig) {
+@@ -3041,7 +3059,7 @@ function cloneSubschemaConfig(subschemaConfig) {
    return newSubschemaConfig;
  }
  
@@ -126,7 +116,7 @@ index 2688470..cdd9cea 100644
    (info) => {
      const fragmentMap = info.fragments;
      return Object.values(fragmentMap);
-@@ -3550,7 +3578,7 @@ function subtractSelectionSets(selectionSetA, selectionSetB, fragments = {}) {
+@@ -3550,7 +3568,7 @@ function subtractSelectionSets(selectionSetA, selectionSetB, fragments = {}) {
  
  Object.defineProperty(exports, "createDeferred", {
    enumerable: true,
@@ -136,45 +126,36 @@ index 2688470..cdd9cea 100644
  Object.defineProperty(exports, "createDefaultExecutor", {
    enumerable: true,
 diff --git a/node_modules/@graphql-tools/delegate/dist/index.js b/node_modules/@graphql-tools/delegate/dist/index.js
-index 95a02cb..b8267c6 100644
+index 95a02cb..53bd1d8 100644
 --- a/node_modules/@graphql-tools/delegate/dist/index.js
 +++ b/node_modules/@graphql-tools/delegate/dist/index.js
-@@ -1,5 +1,32 @@
+@@ -1,5 +1,23 @@
 -import { memoize2, memoize1, collectFields, relocatedError, mergeDeep, promiseReduce, pathToArray, memoize3, getDefinedRootType, createGraphQLError, implementsAbstractType, getRootTypeNames, astFromArg, astFromValueUntyped, asArray, isAsyncIterable, getOperationASTFromRequest } from '@graphql-tools/utils';
 -export { createDeferred } from '@graphql-tools/utils';
 +import { collectFields, relocatedError, mergeDeep, promiseReduce, pathToArray, getDefinedRootType, implementsAbstractType, getRootTypeNames, astFromArg, astFromValueUntyped, asArray, isAsyncIterable, getOperationASTFromRequest } from '@graphql-tools/utils';
-+import memoizee from 'memoizee';
 +import weakMemoizee from 'memoizee/weak.js';
-+const __objectIds = new WeakMap();
-+let __objectIdSeq = 0;
-+function __objectKey(value) {
-+  if (value != null && (typeof value === 'object' || typeof value === 'function')) {
-+    let id = __objectIds.get(value);
-+    if (id == null) {
-+      id = 'o' + (++__objectIdSeq);
-+      __objectIds.set(value, id);
-+    }
-+    return id;
-+  }
-+  return JSON.stringify(value);
-+}
-+function __identityNormalizer(length) {
-+  return (args) => {
-+    const parts = [];
-+    for (let i = 0; i < length; i++) parts.push(__objectKey(args[i]));
-+    return parts.join('|');
-+  };
-+}
 +function memoize1(fn) { return weakMemoizee(fn); }
-+function memoize2(fn) { return memoizee(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
-+function memoize3(fn) { return memoizee(fn, { length: 3, normalizer: __identityNormalizer(3) }); }
-+function memoize5(fn) { return memoizee(fn, { length: 5, normalizer: __identityNormalizer(5) }); }
-+function memoize2of4(fn) { return memoizee(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
++function memoize2(fn) {
++  const m = weakMemoizee((a1) => weakMemoizee((a2) => fn(a1, a2)));
++  return (a1, a2) => m(a1)(a2);
++}
++function memoize3(fn) {
++  const m = weakMemoizee((a1) => weakMemoizee((a2) => weakMemoizee((a3) => fn(a1, a2, a3))));
++  return (a1, a2, a3) => m(a1)(a2)(a3);
++}
++function memoize5(fn) {
++  const m = weakMemoizee((a1) => weakMemoizee((a2) => weakMemoizee((a3) => weakMemoizee((a4) => weakMemoizee((a5) => fn(a1, a2, a3, a4, a5))))));
++  return (a1, a2, a3, a4, a5) => m(a1)(a2)(a3)(a4)(a5);
++}
++function memoize2of4(fn) {
++  const m = weakMemoizee((a1) => weakMemoizee((a2) => fn(a1, a2)));
++  return (a1, a2, a3, a4) => m(a1)(a2);
++}
 +export { createDeferredPromise as createDeferred } from '@whatwg-node/promise-helpers';
  import { GraphQLError, locatedError, isAbstractType, getNullableType, isLeafType, isCompositeType, isListType, responsePathAsArray, Kind, TypeInfo, versionInfo, visit, visitWithTypeInfo, isNullableType, isUnionType, getNamedType, isObjectType, isInterfaceType, typeFromAST, isTypeSubTypeOf, isNonNullType, isInputObjectType, defaultFieldResolver, isSchema, validate } from 'graphql';
  import { handleMaybePromise, isPromise, createDeferredPromise, mapAsyncIterator } from '@whatwg-node/promise-helpers';
  import { CRITICAL_ERROR, executorFromSchema } from '@graphql-tools/executor';
-@@ -692,7 +719,7 @@ function finalizeGatewayDocument(targetSchema, originalDocument, fragments, oper
+@@ -692,7 +710,7 @@ function finalizeGatewayDocument(targetSchema, originalDocument, fragments, oper
      });
    }
    if (!newOperations.length || selectionCnt === 0) {

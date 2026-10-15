@@ -1,43 +1,33 @@
 diff --git a/node_modules/@graphql-tools/wrap/dist/index.cjs b/node_modules/@graphql-tools/wrap/dist/index.cjs
-index 8fcc5d7..c16f515 100644
+index 8fcc5d7..c171e43 100644
 --- a/node_modules/@graphql-tools/wrap/dist/index.cjs
 +++ b/node_modules/@graphql-tools/wrap/dist/index.cjs
-@@ -2,6 +2,34 @@
+@@ -2,6 +2,24 @@
  
  var delegate = require('@graphql-tools/delegate');
  var utils = require('@graphql-tools/utils');
-+var memoizee = require('memoizee');
-+var memoizeeFn = memoizee.default || memoizee;
 +var weakMemoizee = require('memoizee/weak');
-+var __objectIds = new WeakMap();
-+var __objectIdSeq = 0;
-+function __objectKey(value) {
-+  if (value != null && (typeof value === 'object' || typeof value === 'function')) {
-+    var id = __objectIds.get(value);
-+    if (id == null) {
-+      id = 'o' + (++__objectIdSeq);
-+      __objectIds.set(value, id);
-+    }
-+    return id;
-+  }
-+  return JSON.stringify(value);
-+}
-+function __identityNormalizer(length) {
-+  return function (args) {
-+    var parts = [];
-+    for (var i = 0; i < length; i++) parts.push(__objectKey(args[i]));
-+    return parts.join('|');
-+  };
-+}
 +function memoize1(fn) { return weakMemoizee(fn); }
-+function memoize2(fn) { return memoizeeFn(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
-+function memoize3(fn) { return memoizeeFn(fn, { length: 3, normalizer: __identityNormalizer(3) }); }
-+function memoize5(fn) { return memoizeeFn(fn, { length: 5, normalizer: __identityNormalizer(5) }); }
-+function memoize2of4(fn) { return memoizeeFn(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
++function memoize2(fn) {
++  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return fn(a1, a2); }); });
++  return function (a1, a2) { return m(a1)(a2); };
++}
++function memoize3(fn) {
++  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return weakMemoizee(function (a3) { return fn(a1, a2, a3); }); }); });
++  return function (a1, a2, a3) { return m(a1)(a2)(a3); };
++}
++function memoize5(fn) {
++  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return weakMemoizee(function (a3) { return weakMemoizee(function (a4) { return weakMemoizee(function (a5) { return fn(a1, a2, a3, a4, a5); }); }); }); }); });
++  return function (a1, a2, a3, a4, a5) { return m(a1)(a2)(a3)(a4)(a5); };
++}
++function memoize2of4(fn) {
++  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return fn(a1, a2); }); });
++  return function (a1, a2, a3, a4) { return m(a1)(a2); };
++}
  var graphql = require('graphql');
  var promiseHelpers = require('@whatwg-node/promise-helpers');
  
-@@ -78,7 +106,7 @@ function defaultCreateProxyingResolver({
+@@ -78,7 +96,7 @@ function defaultCreateProxyingResolver({
    };
  }
  
@@ -46,7 +36,7 @@ index 8fcc5d7..c16f515 100644
    const targetSchema = subschemaConfig.schema;
    const proxyingResolvers = generateProxyingResolvers(subschemaConfig);
    const schema = createWrappingSchema(targetSchema, proxyingResolvers);
-@@ -1480,7 +1508,7 @@ class FilterObjectFieldDirectives {
+@@ -1480,7 +1498,7 @@ class FilterObjectFieldDirectives {
            const directiveDef = originalWrappingSchema.getDirective(
              dir.name.value
            );
@@ -55,7 +45,7 @@ index 8fcc5d7..c16f515 100644
            return this.filter(dir.name.value, directiveValue);
          }) ?? [];
          if (fieldConfig.astNode?.directives != null && keepDirectives.length !== fieldConfig.astNode.directives.length) {
-@@ -2314,7 +2342,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
+@@ -2314,7 +2332,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
    }
    if (introspectionResult?.errors) {
      const graphqlErrors = introspectionResult.errors.map(
@@ -64,7 +54,7 @@ index 8fcc5d7..c16f515 100644
      );
      if (introspectionResult.errors.length === 1) {
        throw graphqlErrors[0];
-@@ -2325,7 +2353,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
+@@ -2325,7 +2343,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
        );
      }
    }
@@ -74,46 +64,37 @@ index 8fcc5d7..c16f515 100644
   ${utils.inspect(
        introspectionResult
 diff --git a/node_modules/@graphql-tools/wrap/dist/index.js b/node_modules/@graphql-tools/wrap/dist/index.js
-index 5f98762..af06621 100644
+index 5f98762..f30adaa 100644
 --- a/node_modules/@graphql-tools/wrap/dist/index.js
 +++ b/node_modules/@graphql-tools/wrap/dist/index.js
-@@ -1,6 +1,33 @@
+@@ -1,6 +1,24 @@
  import { delegateToSchema, isExternalObject, getUnpathedErrors, getSubschema, resolveExternalValue, applySchemaTransforms, defaultMergedResolver, getTypeInfo, isPrototypePollutingKey } from '@graphql-tools/delegate';
 -import { getRootTypeMap, memoize1, mapSchema, MapperKind, renameType, visitData, transformInputValue, visitResult, astFromValueUntyped, getOperationASTFromRequest, relocatedError, getArgumentValues, valueMatchesCriteria, getDirectives, pruneSchema, selectObjectFields, appendObjectFields, modifyObjectFields, removeObjectFields, isAsyncIterable, createGraphQLError, inspect } from '@graphql-tools/utils';
 -import { isSpecifiedScalarType, GraphQLScalarType, GraphQLUnionType, GraphQLInterfaceType, GraphQLObjectType, isScalarType, visit, Kind, visitWithTypeInfo, isObjectType, isInterfaceType, typeFromAST, isInputType, getNamedType, isLeafType, valueFromAST, valueFromASTUntyped, astFromValue, GraphQLNonNull, getNullableType, isListType, GraphQLList, BREAK, parse, getIntrospectionQuery, buildClientSchema } from 'graphql';
 +import { getRootTypeMap, mapSchema, MapperKind, renameType, visitData, transformInputValue, visitResult, astFromValueUntyped, getOperationASTFromRequest, relocatedError, valueMatchesCriteria, getDirectives, pruneSchema, selectObjectFields, appendObjectFields, modifyObjectFields, removeObjectFields, isAsyncIterable, inspect } from '@graphql-tools/utils';
-+import memoizee from 'memoizee';
 +import weakMemoizee from 'memoizee/weak.js';
-+const __objectIds = new WeakMap();
-+let __objectIdSeq = 0;
-+function __objectKey(value) {
-+  if (value != null && (typeof value === 'object' || typeof value === 'function')) {
-+    let id = __objectIds.get(value);
-+    if (id == null) {
-+      id = 'o' + (++__objectIdSeq);
-+      __objectIds.set(value, id);
-+    }
-+    return id;
-+  }
-+  return JSON.stringify(value);
-+}
-+function __identityNormalizer(length) {
-+  return (args) => {
-+    const parts = [];
-+    for (let i = 0; i < length; i++) parts.push(__objectKey(args[i]));
-+    return parts.join('|');
-+  };
-+}
 +function memoize1(fn) { return weakMemoizee(fn); }
-+function memoize2(fn) { return memoizee(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
-+function memoize3(fn) { return memoizee(fn, { length: 3, normalizer: __identityNormalizer(3) }); }
-+function memoize5(fn) { return memoizee(fn, { length: 5, normalizer: __identityNormalizer(5) }); }
-+function memoize2of4(fn) { return memoizee(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
++function memoize2(fn) {
++  const m = weakMemoizee((a1) => weakMemoizee((a2) => fn(a1, a2)));
++  return (a1, a2) => m(a1)(a2);
++}
++function memoize3(fn) {
++  const m = weakMemoizee((a1) => weakMemoizee((a2) => weakMemoizee((a3) => fn(a1, a2, a3))));
++  return (a1, a2, a3) => m(a1)(a2)(a3);
++}
++function memoize5(fn) {
++  const m = weakMemoizee((a1) => weakMemoizee((a2) => weakMemoizee((a3) => weakMemoizee((a4) => weakMemoizee((a5) => fn(a1, a2, a3, a4, a5))))));
++  return (a1, a2, a3, a4, a5) => m(a1)(a2)(a3)(a4)(a5);
++}
++function memoize2of4(fn) {
++  const m = weakMemoizee((a1) => weakMemoizee((a2) => fn(a1, a2)));
++  return (a1, a2, a3, a4) => m(a1)(a2);
++}
 +import { GraphQLError, getArgumentValues, isSpecifiedScalarType, GraphQLScalarType, GraphQLUnionType, GraphQLInterfaceType, GraphQLObjectType, isScalarType, visit, Kind, visitWithTypeInfo, isObjectType, isInterfaceType, typeFromAST, isInputType, getNamedType, isLeafType, valueFromAST, valueFromASTUntyped, astFromValue, GraphQLNonNull, getNullableType, isListType, GraphQLList, BREAK, parse, getIntrospectionQuery, buildClientSchema } from 'graphql';
  import { handleMaybePromise } from '@whatwg-node/promise-helpers';
  
  function generateProxyingResolvers(subschemaConfig) {
-@@ -2312,7 +2339,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
+@@ -2312,7 +2330,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
    }
    if (introspectionResult?.errors) {
      const graphqlErrors = introspectionResult.errors.map(
@@ -122,7 +103,7 @@ index 5f98762..af06621 100644
      );
      if (introspectionResult.errors.length === 1) {
        throw graphqlErrors[0];
-@@ -2323,7 +2350,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
+@@ -2323,7 +2341,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
        );
      }
    }

@@ -27,7 +27,6 @@ import {
   TypeNameMetaFieldDef,
   versionInfo,
 } from 'graphql';
-import memoizee from 'memoizee';
 import weakMemoizee from 'memoizee/weak.js';
 import {
   collectSubFields as _collectSubfields,
@@ -67,41 +66,34 @@ export interface SingularExecutionResult<TData = any, TExtensions = any> {
   extensions?: TExtensions;
 }
 
-const objectIds = new WeakMap<object, string>();
-let objectIdSeq = 0;
-function objectKey(value: unknown): string {
-  if (value != null && (typeof value === 'object' || typeof value === 'function')) {
-    let id = objectIds.get(value as object);
-    if (id == null) {
-      id = `o${++objectIdSeq}`;
-      objectIds.set(value as object, id);
-    }
-    return id;
-  }
-  return JSON.stringify(value);
-}
-
 /**
  * A memoized collection of relevant subfields with regard to the return
  * type. Memoizing ensures the subfields are not repeatedly calculated, which
  * saves overhead when resolving lists of values.
  */
-const collectSubfields = memoizee(
-  (exeContext: ExecutionContext, returnType: GraphQLObjectType, fieldNodes: Array<FieldNode>) =>
-    _collectSubfields(
-      exeContext.schema,
-      exeContext.fragments,
-      exeContext.variableValues,
-      returnType,
-      fieldNodes,
-    ),
-  {
-    length: 3,
-    normalizer(args: any) {
-      return objectKey(args[0]) + '|' + objectKey(args[1]) + '|' + objectKey(args[2]);
-    },
-  },
-);
+const collectSubfieldsMemo = weakMemoizee(function collectSubfieldsExeContext(
+  exeContext: ExecutionContext,
+) {
+  return weakMemoizee(function collectSubfieldsReturnType(returnType: GraphQLObjectType) {
+    return weakMemoizee(function collectSubfieldsFieldNodes(fieldNodes: Array<FieldNode>) {
+      return _collectSubfields(
+        exeContext.schema,
+        exeContext.fragments,
+        exeContext.variableValues,
+        returnType,
+        fieldNodes,
+      );
+    });
+  });
+});
+
+function collectSubfields(
+  exeContext: ExecutionContext,
+  returnType: GraphQLObjectType,
+  fieldNodes: Array<FieldNode>,
+) {
+  return collectSubfieldsMemo(exeContext)(returnType)(fieldNodes);
+}
 // This file contains a lot of such errors but we plan to refactor it anyway
 // so just disable it for entire file.
 

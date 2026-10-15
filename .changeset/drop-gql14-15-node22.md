@@ -59,24 +59,24 @@ import { matchFiles, matchFilesSync } from '@graphql-tools/load-files';
 
 ### Memoization
 
-All `memoize*` helpers were removed from `@graphql-tools/utils`. Use the `memoizee` package directly:
+All `memoize*` helpers were removed from `@graphql-tools/utils`. Use `memoizee/weak.js` for object-identity caching (and nest for multiple object args):
 
 ```ts
-import memoizee from 'memoizee';
 import weakMemoizee from 'memoizee/weak.js';
 
 // single object-identity argument
 const bySchema = weakMemoizee((schema: GraphQLSchema) => /* ... */);
 
-// multi-arg with identity keys via normalizer
-const byTwo = memoizee(fn, {
-  length: 2,
-  normalizer: (args) => objectKey(args[0]) + '|' + objectKey(args[1]),
-});
+// multi-arg: nest weakMemoizee (true WeakMap GC; no custom key normalizer)
+const byTwoMemo = weakMemoizee((a: A) => weakMemoizee((b: B) => fn(a, b)));
+const byTwo = (a: A, b: B) => byTwoMemo(a)(b);
 
-// cache on first N args only (former memoize2of4 / memoize2of5)
-const byFirstTwoOfFour = memoizee(fn, { length: 2, normalizer: /* identity of args[0..1] */ });
+// cache on first two args only (former memoize2of4 / memoize2of5)
+const byFirstTwoMemo = weakMemoizee((a: A) => weakMemoizee((b: B) => fn(a, b, c, d)));
+const byFirstTwoOfFour = (a: A, b: B, _c: C, _d: D) => byFirstTwoMemo(a)(b);
 ```
+
+For primitive-key caches, use `memoizee` with `{ primitive: true }` instead.
 
 ### Errors
 

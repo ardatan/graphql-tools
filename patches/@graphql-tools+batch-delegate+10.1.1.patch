@@ -1,43 +1,33 @@
 diff --git a/node_modules/@graphql-tools/batch-delegate/dist/index.cjs b/node_modules/@graphql-tools/batch-delegate/dist/index.cjs
-index 2caeac0..635089a 100644
+index 2caeac0..26ab117 100644
 --- a/node_modules/@graphql-tools/batch-delegate/dist/index.cjs
 +++ b/node_modules/@graphql-tools/batch-delegate/dist/index.cjs
-@@ -1,6 +1,34 @@
+@@ -1,6 +1,24 @@
  'use strict';
  
  var utils = require('@graphql-tools/utils');
-+var memoizee = require('memoizee');
-+var memoizeeFn = memoizee.default || memoizee;
 +var weakMemoizee = require('memoizee/weak');
-+var __objectIds = new WeakMap();
-+var __objectIdSeq = 0;
-+function __objectKey(value) {
-+  if (value != null && (typeof value === 'object' || typeof value === 'function')) {
-+    var id = __objectIds.get(value);
-+    if (id == null) {
-+      id = 'o' + (++__objectIdSeq);
-+      __objectIds.set(value, id);
-+    }
-+    return id;
-+  }
-+  return JSON.stringify(value);
-+}
-+function __identityNormalizer(length) {
-+  return function (args) {
-+    var parts = [];
-+    for (var i = 0; i < length; i++) parts.push(__objectKey(args[i]));
-+    return parts.join('|');
-+  };
-+}
 +function memoize1(fn) { return weakMemoizee(fn); }
-+function memoize2(fn) { return memoizeeFn(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
-+function memoize3(fn) { return memoizeeFn(fn, { length: 3, normalizer: __identityNormalizer(3) }); }
-+function memoize5(fn) { return memoizeeFn(fn, { length: 5, normalizer: __identityNormalizer(5) }); }
-+function memoize2of4(fn) { return memoizeeFn(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
++function memoize2(fn) {
++  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return fn(a1, a2); }); });
++  return function (a1, a2) { return m(a1)(a2); };
++}
++function memoize3(fn) {
++  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return weakMemoizee(function (a3) { return fn(a1, a2, a3); }); }); });
++  return function (a1, a2, a3) { return m(a1)(a2)(a3); };
++}
++function memoize5(fn) {
++  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return weakMemoizee(function (a3) { return weakMemoizee(function (a4) { return weakMemoizee(function (a5) { return fn(a1, a2, a3, a4, a5); }); }); }); }); });
++  return function (a1, a2, a3, a4, a5) { return m(a1)(a2)(a3)(a4)(a5); };
++}
++function memoize2of4(fn) {
++  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return fn(a1, a2); }); });
++  return function (a1, a2, a3, a4) { return m(a1)(a2); };
++}
  var graphql = require('graphql');
  var delegate = require('@graphql-tools/delegate');
  var promiseHelpers = require('@whatwg-node/promise-helpers');
-@@ -51,14 +79,14 @@ function createBatchFn(options) {
+@@ -51,14 +69,14 @@ function createBatchFn(options) {
      }).catch((error) => keys.map(() => error));
    };
  }
@@ -56,39 +46,30 @@ index 2caeac0..635089a 100644
    if (typeof key === "object") {
      return memoizedJsonStringify(key);
 diff --git a/node_modules/@graphql-tools/batch-delegate/dist/index.js b/node_modules/@graphql-tools/batch-delegate/dist/index.js
-index 4dacf5d..77c8bdd 100644
+index 4dacf5d..9a86a68 100644
 --- a/node_modules/@graphql-tools/batch-delegate/dist/index.js
 +++ b/node_modules/@graphql-tools/batch-delegate/dist/index.js
-@@ -1,4 +1,31 @@
+@@ -1,4 +1,22 @@
 -import { memoize2, memoize1, relocatedError, pathToArray } from '@graphql-tools/utils';
 +import { relocatedError, pathToArray } from '@graphql-tools/utils';
-+import memoizee from 'memoizee';
 +import weakMemoizee from 'memoizee/weak.js';
-+const __objectIds = new WeakMap();
-+let __objectIdSeq = 0;
-+function __objectKey(value) {
-+  if (value != null && (typeof value === 'object' || typeof value === 'function')) {
-+    let id = __objectIds.get(value);
-+    if (id == null) {
-+      id = 'o' + (++__objectIdSeq);
-+      __objectIds.set(value, id);
-+    }
-+    return id;
-+  }
-+  return JSON.stringify(value);
-+}
-+function __identityNormalizer(length) {
-+  return (args) => {
-+    const parts = [];
-+    for (let i = 0; i < length; i++) parts.push(__objectKey(args[i]));
-+    return parts.join('|');
-+  };
-+}
 +function memoize1(fn) { return weakMemoizee(fn); }
-+function memoize2(fn) { return memoizee(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
-+function memoize3(fn) { return memoizee(fn, { length: 3, normalizer: __identityNormalizer(3) }); }
-+function memoize5(fn) { return memoizee(fn, { length: 5, normalizer: __identityNormalizer(5) }); }
-+function memoize2of4(fn) { return memoizee(fn, { length: 2, normalizer: __identityNormalizer(2) }); }
++function memoize2(fn) {
++  const m = weakMemoizee((a1) => weakMemoizee((a2) => fn(a1, a2)));
++  return (a1, a2) => m(a1)(a2);
++}
++function memoize3(fn) {
++  const m = weakMemoizee((a1) => weakMemoizee((a2) => weakMemoizee((a3) => fn(a1, a2, a3))));
++  return (a1, a2, a3) => m(a1)(a2)(a3);
++}
++function memoize5(fn) {
++  const m = weakMemoizee((a1) => weakMemoizee((a2) => weakMemoizee((a3) => weakMemoizee((a4) => weakMemoizee((a5) => fn(a1, a2, a3, a4, a5))))));
++  return (a1, a2, a3, a4, a5) => m(a1)(a2)(a3)(a4)(a5);
++}
++function memoize2of4(fn) {
++  const m = weakMemoizee((a1) => weakMemoizee((a2) => fn(a1, a2)));
++  return (a1, a2, a3, a4) => m(a1)(a2);
++}
  import { getNamedType, print, GraphQLList, GraphQLError } from 'graphql';
  import { getActualFieldNodes, delegateToSchema } from '@graphql-tools/delegate';
  import { fakePromise } from '@whatwg-node/promise-helpers';
