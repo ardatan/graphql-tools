@@ -441,7 +441,7 @@ describe('Execute: Handles inputs', () => {
             {
               message: isGraphQL17
                 ? 'Variable "$input" got invalid value \'foo bar\'; Expected value of type "TestInputObject" to be an object, found: \'foo bar\'.'
-                : 'Variable "$input" got invalid value "foo bar"; Expected type "TestInputObject" to be an object.',
+                : 'Variable "$input" got invalid value \'foo bar\'; Expected type "TestInputObject" to be an object.',
               locations: [{ line: 2, column: 16 }],
             },
           ],
@@ -532,7 +532,7 @@ describe('Execute: Handles inputs', () => {
             {
               message: isGraphQL17
                 ? "Variable \"$input\" got invalid value { a: 'foo', b: 'bar' }; Expected value of type \"TestInputObject\" to include required field \"c\", found: { a: 'foo', b: 'bar' }."
-                : 'Variable "$input" got invalid value { a: "foo", b: "bar" }; Field "c" of required type "String!" was not provided.',
+                : 'Variable "$input" got invalid value { a: \'foo\', b: \'bar\' }; Field "c" of required type "String!" was not provided.',
               locations: [{ line: 2, column: 16 }],
             },
           ],
@@ -552,13 +552,13 @@ describe('Execute: Handles inputs', () => {
             {
               message: isGraphQL17
                 ? 'Variable "$input" got invalid value { a: \'foo\' } at "input.na"; Expected value of type "TestInputObject" to include required field "c", found: { a: \'foo\' }.'
-                : 'Variable "$input" got invalid value { a: "foo" } at "input.na"; Field "c" of required type "String!" was not provided.',
+                : 'Variable "$input" got invalid value { a: \'foo\' } at "input.na"; Field "c" of required type "String!" was not provided.',
               locations: [{ line: 2, column: 18 }],
             },
             {
               message: isGraphQL17
                 ? 'Variable "$input" got invalid value { na: { a: \'foo\' } }; Expected value of type "TestNestedInputObject" to include required field "nb", found: { na: { a: \'foo\' } }.'
-                : 'Variable "$input" got invalid value { na: { a: "foo" } }; Field "nb" of required type "String!" was not provided.',
+                : 'Variable "$input" got invalid value { na: { a: \'foo\' } }; Field "nb" of required type "String!" was not provided.',
               locations: [{ line: 2, column: 18 }],
             },
           ],
@@ -576,7 +576,7 @@ describe('Execute: Handles inputs', () => {
             {
               message: isGraphQL17
                 ? "Variable \"$input\" got invalid value { a: 'foo', b: 'bar', c: 'baz', extra: 'dog' }; Expected value of type \"TestInputObject\" not to include unknown field \"extra\", found: { a: 'foo', b: 'bar', c: 'baz', extra: 'dog' }."
-                : 'Variable "$input" got invalid value { a: "foo", b: "bar", c: "baz", extra: "dog" }; Field "extra" is not defined by type "TestInputObject".',
+                : "Variable \"$input\" got invalid value { a: 'foo', b: 'bar', c: 'baz', extra: 'dog' }; Field \"extra\" is not defined by type \"TestInputObject\".",
               locations: [{ line: 2, column: 16 }],
             },
           ],

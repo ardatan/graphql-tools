@@ -158,7 +158,7 @@ if (versionInfo.major !== 16) {
             {
               locations: [{ column: 16, line: 2 }],
               message:
-                'Variable "$input" got invalid value { a: "abc", b: 123 }; Exactly one key must be specified for OneOf type "TestInputObject".',
+                'Variable "$input" got invalid value { a: \'abc\', b: 123 }; Exactly one key must be specified for OneOf type "TestInputObject".',
             },
           ],
         });
@@ -182,7 +182,7 @@ if (versionInfo.major !== 16) {
             {
               locations: [{ column: 16, line: 2 }],
               message:
-                'Variable "$input" got invalid value { a: "abc", b: null }; Exactly one key must be specified for OneOf type "TestInputObject".',
+                'Variable "$input" got invalid value { a: \'abc\', b: null }; Exactly one key must be specified for OneOf type "TestInputObject".',
             },
           ],
         });

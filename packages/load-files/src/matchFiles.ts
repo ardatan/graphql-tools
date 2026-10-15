@@ -125,10 +125,16 @@ function toPath(entry: string | Dirent): string {
   return typeof entry === 'string' ? entry : pathFromDirent(entry);
 }
 
+function toUnixPath(path: string): string {
+  return path.replace(/\\/g, '/');
+}
+
 function finalizePaths(paths: string[], cwd: string, absolute: boolean): string[] {
+  // Always emit POSIX separators so Windows matches globby-era loaders/tests
+  // and Source.name stays stable across platforms.
   const converted = absolute
-    ? paths.map(m => (isAbsolute(m) ? m : resolve(cwd, m)))
-    : paths.map(m => (isAbsolute(m) ? relative(cwd, m) : m));
+    ? paths.map(m => toUnixPath(isAbsolute(m) ? m : resolve(cwd, m)))
+    : paths.map(m => toUnixPath(isAbsolute(m) ? relative(cwd, m) : m));
   return [...new Set(converted)];
 }
 
