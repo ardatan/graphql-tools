@@ -50,6 +50,9 @@ Drop GraphQL v14/v15 and require Node.js >= 22.
 | `createDeferred` / `createDeferredPromise` | `const { promise, resolve, reject } = Promise.withResolvers()` |
 | `createGraphQLError` | `new GraphQLError(message, options)` from `graphql` |
 | `mapMaybePromise` | `handleMaybePromise` / `mapMaybePromise` from `@whatwg-node/promise-helpers`, or `async`/`await` |
+| `registerAbortSignalListener` / `getAbortPromise` | `AbortSignal` / `AbortSignal.any` / `signal.throwIfAborted()`, or a single `signal.addEventListener('abort', …, { once: true })` |
+| `withCancel` / `getAsyncIterableWithCancel` / `getAsyncIteratorWithCancel` | Wire cancellation on the async iterator’s `return()` (or your transport’s abort path) directly |
+| `PromiseWithResolvers` (type) | Built-in `PromiseWithResolvers<T>` / return type of `Promise.withResolvers()` |
 | `memoize1` / `memoize2` / `memoize3` / `memoize4` / `memoize5` / `memoize2of4` / `memoize2of5` | `memoizee` / `memoizee/weak.js` (see below) |
 
 File matching (replaces `globby` in loaders):

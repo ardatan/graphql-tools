@@ -71,7 +71,6 @@ export type InputObjectValueTransformer = (
   originalValue: Record<string, any>,
 ) => Record<string, any>;
 
-// GraphQL v14 doesn't have it. Remove this once we drop support for v14
 export type ASTVisitorKeyMap = Partial<Parameters<typeof visit>[2]>;
 
 export type DirectiveLocationEnum = typeof DirectiveLocation;
@@ -151,12 +150,6 @@ export type SchemaExtensions = {
 
 export type DirectiveArgs = { [name: string]: any };
 export type DirectiveUsage = { name: string; args: DirectiveArgs };
-
-export interface PromiseWithResolvers<T> {
-  promise: Promise<T>;
-  resolve: (value: T | PromiseLike<T>) => void;
-  reject: (reason?: any) => void;
-}
 
 export interface VariableValues<TVariables = Record<string, unknown>> {
   /** Coerced runtime variable values keyed by variable name. */
