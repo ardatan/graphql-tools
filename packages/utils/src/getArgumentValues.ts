@@ -1,6 +1,5 @@
 import { inspect } from 'cross-inspect';
 import {
-  ArgumentNode,
   DirectiveNode,
   FieldNode,
   GraphQLDirective,
@@ -122,18 +121,11 @@ function getArgumentValuesLegacy(
   variableValues: Record<string, any>,
 ): Record<string, any> {
   const coercedValues: Record<string, any> = {};
-
   const argumentNodes = node.arguments ?? [];
-  const argNodeMap: Record<string, ArgumentNode> = argumentNodes.reduce(
-    (prev, arg) => ({
-      ...prev,
-      [arg.name.value]: arg,
-    }),
-    {},
-  );
+  const argNodeMap = new Map(argumentNodes.map(arg => [arg.name.value, arg]));
 
   for (const arg of def.args) {
-    const argumentNode = argNodeMap[arg.name];
+    const argumentNode = argNodeMap.get(arg.name);
 
     if (!argumentNode) {
       if (arg.defaultValue !== undefined) {

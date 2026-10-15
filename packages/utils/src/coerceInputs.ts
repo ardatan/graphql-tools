@@ -111,9 +111,7 @@ export function coerceInputValue(inputValue: unknown, type: GraphQLInputType): u
     return typeof leafType.coerceInputValue === 'function'
       ? leafType.coerceInputValue(inputValue)
       : leafType.parseValue(inputValue);
-  } catch {
-    
-  }
+  } catch {}
 }
 
 export function coerceInputLiteral(
@@ -238,9 +236,7 @@ export function coerceInputLiteral(
           replaceVariables(valueNode, variableValues, fragmentVariableValues),
         )
       : leafType.parseLiteral(valueNode, variableValues?.coerced);
-  } catch {
-    
-  }
+  } catch {}
 }
 
 function getCoercedVariableValue(
@@ -347,21 +343,25 @@ export function replaceVariables(
           }
         }
         newFields.push({
-          ...field,
+          kind: Kind.OBJECT_FIELD,
+          name: field.name,
           value: replaceVariables(field.value, variableValues, fragmentVariableValues),
+          loc: field.loc,
         });
       }
       return {
-        ...valueNode,
+        kind: Kind.OBJECT,
         fields: newFields,
+        loc: valueNode.loc,
       };
     }
     case Kind.LIST: {
       return {
-        ...valueNode,
+        kind: Kind.LIST,
         values: valueNode.values.map(value =>
           replaceVariables(value, variableValues, fragmentVariableValues),
         ),
+        loc: valueNode.loc,
       };
     }
     default:
