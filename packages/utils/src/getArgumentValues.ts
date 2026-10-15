@@ -5,68 +5,16 @@ import {
   FieldNode,
   GraphQLDirective,
   GraphQLField,
+  getArgumentValues as graphqlGetArgumentValues,
   isNonNullType,
   Kind,
   print,
   valueFromAST,
-  valueFromASTUntyped,
+  versionInfo,
 } from 'graphql';
 import { createGraphQLError } from './errors.js';
-import { getOptionalGraphQLJSExport, toGraphQLJSVariableValues } from './graphqlJSCompat.js';
+import { toGraphQLJSVariableValues } from './graphqlJSCompat.js';
 import { hasOwnProperty } from './jsutils.js';
-
-const coerceInputLiteral = getOptionalGraphQLJSExport('coerceInputLiteral');
-const coerceInputValue = getOptionalGraphQLJSExport('coerceInputValue');
-
-// Sentinel distinguishing "no default" from a legitimate `undefined` default.
-const NO_DEFAULT = Symbol('NO_DEFAULT');
-
-/**
- * Resolves an argument's default to its coerced value, checking graphql-js@17's
- * `default` (populated when a schema is built from SDL, e.g. via `buildSchema`/
- * `extendSchema`, which never sets the legacy `defaultValue`) before falling
- * back to the legacy `defaultValue` used on graphql-js < 17. Returns
- * `NO_DEFAULT` when the argument has neither.
- *
- * Mirrors graphql-js's `coerceDefaultValue`: `default.literal` is coerced with
- * `coerceInputLiteral`, and `default.value` with `coerceInputValue`.
- */
-function coerceArgumentDefault(arg: any): unknown {
-  if ('default' in arg && arg.default) {
-    // graphql v17
-    const defaultInput = arg.default;
-    if ('value' in defaultInput) {
-      const coercedDefaultValue = coerceInputValue
-        ? coerceInputValue(defaultInput.value, arg.type)
-        : defaultInput.value;
-      if (coercedDefaultValue === undefined) {
-        throw createGraphQLError(
-          `Argument "${arg.name}" has invalid default value ${inspect(defaultInput.value)}.`,
-        );
-      }
-      return coercedDefaultValue;
-    }
-    const coercedDefaultValue = coerceInputLiteral
-      ? coerceInputLiteral(defaultInput.literal, arg.type)
-      : valueFromASTUntyped(defaultInput.literal);
-    if (coercedDefaultValue === undefined) {
-      // Schema validation should catch an invalid default value before
-      // execution; this mirrors graphql-js's own `coerceDefaultValue`,
-      // which treats this case as an invariant failure rather than
-      // silently producing `undefined`.
-      throw createGraphQLError(
-        `Argument "${arg.name}" has invalid default value ${print(defaultInput.literal)}.`,
-        { nodes: [defaultInput.literal] },
-      );
-    }
-    return coercedDefaultValue;
-  }
-  if (arg.defaultValue !== undefined) {
-    // graphql < v17
-    return arg.defaultValue;
-  }
-  return NO_DEFAULT;
-}
 
 /**
  * Prepares an object map of argument values given a list of argument
@@ -75,6 +23,11 @@ function coerceArgumentDefault(arg: any): unknown {
  * Note: The returned value is a plain Object with a prototype, since it is
  * exposed to user code. Care should be taken to not pull values from the
  * Object prototype.
+ *
+ * On graphql-js@17+, delegates to graphql-js's own `getArgumentValues` so
+ * GraphQL 17 `default` coercion and `coerceInputLiteral` stay in sync with
+ * upstream. On older versions, uses the legacy `defaultValue` + `valueFromAST`
+ * path below.
  */
 export function getArgumentValues(
   def: GraphQLField<any, any> | GraphQLDirective,
@@ -87,6 +40,25 @@ export function getArgumentValues(
    */
   variableSources?: Record<string, unknown>,
 ): Record<string, any> {
+  if (versionInfo.major >= 17) {
+    return graphqlGetArgumentValues(
+      def,
+      node,
+      toGraphQLJSVariableValues(variableValues, variableSources),
+    ) as Record<string, any>;
+  }
+
+  return getArgumentValuesLegacy(def, node, variableValues);
+}
+
+/**
+ * Pre-graphql-js@17 argument coercion: `defaultValue` + `valueFromAST`.
+ */
+function getArgumentValuesLegacy(
+  def: GraphQLField<any, any> | GraphQLDirective,
+  node: FieldNode | DirectiveNode,
+  variableValues: Record<string, any>,
+): Record<string, any> {
   const coercedValues = {};
 
   const argumentNodes = node.arguments ?? [];
@@ -98,18 +70,12 @@ export function getArgumentValues(
     {},
   );
 
-  // `variableValues` is loop-invariant; wrap (and memoize) it once instead of
-  // once per argument, reusing the same graphql-js@17 `{ coerced, sources }`
-  // shape used for directive-argument coercion elsewhere in this package.
-  const wrappedVariableValues = toGraphQLJSVariableValues(variableValues, variableSources);
-
   for (const arg of def.args) {
     const argumentNode = argNodeMap[arg.name];
 
     if (!argumentNode) {
-      const defaultValue = coerceArgumentDefault(arg);
-      if (defaultValue !== NO_DEFAULT) {
-        coercedValues[arg.name] = defaultValue;
+      if (arg.defaultValue !== undefined) {
+        coercedValues[arg.name] = arg.defaultValue;
       } else if (isNonNullType(arg.type)) {
         throw createGraphQLError(
           `Argument "${arg.name}" of required type "${inspect(arg.type)}" ` + 'was not provided.',
@@ -127,9 +93,8 @@ export function getArgumentValues(
     if (valueNode.kind === Kind.VARIABLE) {
       const variableName = valueNode.name.value;
       if (variableValues == null || !hasOwnProperty(variableValues, variableName)) {
-        const defaultValue = coerceArgumentDefault(arg);
-        if (defaultValue !== NO_DEFAULT) {
-          coercedValues[arg.name] = defaultValue;
+        if (arg.defaultValue !== undefined) {
+          coercedValues[arg.name] = arg.defaultValue;
         } else if (isNonNullType(arg.type)) {
           throw createGraphQLError(
             `Argument "${arg.name}" of required type "${inspect(arg.type)}" ` +
@@ -153,9 +118,7 @@ export function getArgumentValues(
       );
     }
 
-    const coercedValue = coerceInputLiteral
-      ? coerceInputLiteral(valueNode, arg.type, wrappedVariableValues)
-      : valueFromAST(valueNode, arg.type, variableValues);
+    const coercedValue = valueFromAST(valueNode, arg.type, variableValues);
     if (coercedValue === undefined) {
       // Note: ValuesOfCorrectTypeRule validation should catch this before
       // execution. This is a runtime check to ensure execution does not

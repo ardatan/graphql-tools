@@ -1,29 +1,5 @@
 import { GraphQLScalarType, Kind, versionInfo } from 'graphql';
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports -- namespace import only used for optional access to exports introduced in newer graphql-js versions than this package's supported range, not the restricted names
-import * as GraphQLJS from 'graphql';
 import { memoize1 } from './memoize.js';
-
-type GraphQLJSModule = typeof import('graphql');
-
-// Safe stand-in for graphql-js versions where a given export isn't declared at
-// all, so calling the looked-up value as a function still type-checks; the
-// runtime feature-detection below is what actually guards whether the export
-// exists, not this type.
-type UnknownFunction = (...args: any[]) => any;
-
-/**
- * Looks up an export that only exists on newer graphql-js versions than the
- * range this package supports (e.g. `coerceInputLiteral`/`coerceInputValue`,
- * both introduced or reshaped in graphql-js@17), returning `undefined` on older
- * versions where the export doesn't exist yet. The type is read directly off
- * graphql-js's own declarations for whichever version is currently installed,
- * instead of a hand-written signature that could drift out of sync.
- */
-export function getOptionalGraphQLJSExport<Name extends string>(
-  name: Name,
-): (Name extends keyof GraphQLJSModule ? GraphQLJSModule[Name] : UnknownFunction) | undefined {
-  return (GraphQLJS as Record<string, unknown>)[name] as any;
-}
 
 const isGraphQLJS17OrAbove = versionInfo.major >= 17;
 
@@ -112,19 +88,18 @@ function buildVariableSources(variableValues: Record<string, any>): Record<strin
 // `variableValues` is the same object reference for the lifetime of a single
 // execution (or, in `getArgumentValues.ts`'s case, a single call), so memoize
 // the wrapper by reference instead of reallocating `{ coerced, sources }` on
-// every call site that needs it (once per AST node during selection-set
-// collection, once per resolved field during execution).
+// every call site that needs it.
 const wrapVariableValues = memoize1((variableValues: Record<string, any>) => ({
   coerced: variableValues,
   sources: buildVariableSources(variableValues),
 }));
 
 /**
- * graphql-js@17's built-in `getDirectiveValues`/`getArgumentValues` expect
+ * graphql-js@17's built-in `getArgumentValues` / `getDirectiveValues` expect
  * `variableValues` as the structured `{ coerced, sources }` shape rather than
  * a flat map of variable name to value. This package deals in flat maps
- * everywhere else, so wrap them right before handing them to graphql-js's own
- * (unforked) directive-argument coercion, only for graphql-js >= 17.
+ * everywhere else, so wrap them right before handing them to graphql-js, only
+ * for graphql-js >= 17.
  *
  * When the executor already built real `sources` (with each variable's declared
  * input type and original input value), pass them through so nested variables
