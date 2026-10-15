@@ -175,12 +175,17 @@ function snapshotInputValue(value: unknown, type: GraphQLInputType): unknown {
   }
   // Arrays are objects in JS; do not spread them into `{}` or invalid list
   // inputs (e.g. `[]` for an input object) would be accepted after defaults.
+  // Use a null-prototype snapshot so inherited Object.prototype keys (e.g.
+  // `toString`) are not treated as own input fields during coercion.
   if (isInputObjectType(type) && typeof value === 'object' && !Array.isArray(value)) {
-    const snapshot = { ...(value as Record<string, unknown>) };
+    const obj = value as Record<string, unknown>;
+    const snapshot = Object.create(null) as Record<string, unknown>;
+    for (const key of Object.keys(obj)) {
+      snapshot[key] = obj[key];
+    }
     for (const field of Object.values(type.getFields())) {
-      const fieldValue = (value as Record<string, unknown>)[field.name];
-      if (fieldValue !== undefined) {
-        snapshot[field.name] = snapshotInputValue(fieldValue, field.type);
+      if (hasOwnProperty(obj, field.name)) {
+        snapshot[field.name] = snapshotInputValue(obj[field.name], field.type);
       }
     }
     return snapshot;
@@ -189,5 +194,12 @@ function snapshotInputValue(value: unknown, type: GraphQLInputType): unknown {
 }
 
 function isIterableInput(value: unknown): value is Iterable<unknown> {
-  return value != null && typeof value === 'object' && Symbol.iterator in value;
+  // Match graphql-js: only call Array.from when the iterator is callable.
+  // `Symbol.iterator in value` is true for `{ [Symbol.iterator]: null }`, which
+  // would otherwise snapshot to `[]` instead of a singleton list item.
+  return (
+    value != null &&
+    typeof value === 'object' &&
+    typeof (value as { [Symbol.iterator]?: unknown })[Symbol.iterator] === 'function'
+  );
 }
