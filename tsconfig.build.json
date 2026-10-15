@@ -9,8 +9,11 @@
     "**/scripts",
     "**/test/*.ts",
     "**/tests/*.ts",
+    "**/__benchmarks__/**",
     "**/test-files",
     "*.spec.ts",
-    "*.test.ts"
+    "*.test.ts",
+    "*.bench.ts",
+    "*.benchmark.ts"
   ]
 }

@@ -1,0 +1,54 @@
+name: Benchmarks
+
+env:
+  NODE_NO_WARNINGS: true
+  NODE_OPTIONS: '--max-old-space-size=8192'
+  CI: true
+
+concurrency:
+  group: benchmarks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  bench:
+    name: Vitest benches vs ${{ github.base_ref || 'master' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup env
+        uses: the-guild-org/shared-config/setup@v1
+        with:
+          node-version-file: .node-version
+
+      - name: Run benches and compare to base
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          # Warn-only by default; set to 1 to hard-fail later if desired.
+          BENCH_FAIL_ON_REGRESSION: '0'
+          BENCH_REGRESSION_THRESHOLD: '0.10'
+        run: node scripts/bench-ci.mjs
+
+      - name: Run benches on master
+        if: github.event_name == 'push'
+        run: |
+          npm run build
+          BENCH_WRITE=1 npm run test:bench
+
+      - name: Upload bench results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: bench-results-${{ github.event.pull_request.number || github.sha }}
+          path: benchmarks/results
+          if-no-files-found: ignore

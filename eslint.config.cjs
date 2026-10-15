@@ -179,6 +179,8 @@ module.exports = defineConfig([
     '**/website',
     '**/scripts',
     'vitest.config.ts',
+    '**/__benchmarks__/**',
+    '**/*.{bench,benchmark}.ts',
     'packages/loaders/code-file/tests/test-files',
     'packages/loaders/git/tests/test-files',
   ]),

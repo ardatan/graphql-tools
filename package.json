@@ -41,6 +41,7 @@
     "release": "npx changeset publish",
     "test": "jest --no-watchman",
     "test:bench": "vitest bench --run --reporter=verbose",
+    "test:bench:ci": "node scripts/bench-ci.mjs",
     "test:bun": "bun test",
     "test:leaks": "cross-env \"LEAK_TEST=1\" jest --no-watchman --detectOpenHandles --detectLeaks --runInBand --forceExit",
     "ts:check": "tsc --noEmit",
