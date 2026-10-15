@@ -17,13 +17,21 @@ import { createGraphQLError } from './errors.js';
 import { toGraphQLJSVariableValues } from './graphqlJSCompat.js';
 import { hasOwnProperty } from './jsutils.js';
 
+type GraphqlGetArgumentValues = (
+  def: GraphQLField<any, any> | GraphQLDirective,
+  node: FieldNode | DirectiveNode,
+  variableValues?: any,
+) => Record<string, any>;
+
+// Dynamic key so bundlers (webpack on graphql@15) do not require a static
+// `getArgumentValues` export that only exists on newer graphql-js releases.
+const graphqlGetArgumentValuesExport = ['get', 'Argument', 'Values'].join('');
+const graphqlGetArgumentValuesCandidate = (GraphQLJS as Record<string, unknown>)[
+  graphqlGetArgumentValuesExport
+];
 const graphqlGetArgumentValues =
-  typeof (GraphQLJS as any).getArgumentValues === 'function'
-    ? ((GraphQLJS as any).getArgumentValues as (
-        def: GraphQLField<any, any> | GraphQLDirective,
-        node: FieldNode | DirectiveNode,
-        variableValues?: any,
-      ) => Record<string, any>)
+  typeof graphqlGetArgumentValuesCandidate === 'function'
+    ? (graphqlGetArgumentValuesCandidate as GraphqlGetArgumentValues)
     : undefined;
 
 /**
