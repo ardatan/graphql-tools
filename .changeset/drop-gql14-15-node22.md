@@ -65,7 +65,11 @@ Loaders and `@graphql-tools/load-files` now use Node’s `fs.glob` through:
 import { matchFiles, matchFilesSync } from '@graphql-tools/load-files';
 ```
 
-Directory symlinks are followed for recursive (`**`) patterns by re-rooting only under the pattern’s literal prefix. Non-recursive / literal patterns skip the symlink walk.
+Directory symlinks are followed for recursive (`**`) patterns:
+
+- On Node.js ≥26.1 (and ≥24.16 where backported), `fs.glob` `followSymlinks` is used.
+- On older engines, symlink directories are discovered only under each pattern’s literal prefix (not the whole `cwd`) and patterns are re-rooted.
+- Non-recursive / literal patterns skip the symlink walk entirely.
 
 ### Memoization
 
@@ -91,3 +95,4 @@ For primitive-key caches, use `memoizee` with `{ primitive: true }`.
 - Prefer `new GraphQLError(message, options)` from `graphql`. Experimental schema `coordinate` support remains on `locatedError` / `relocatedError` / `getSchemaCoordinate`.
 - Removed GraphQL <16 compatibility branches (error construction, validation rule name suffixes, `URL.canParse` fallback).
 - Promise helpers should be imported from `@whatwg-node/promise-helpers` (`handleMaybePromise`, `isPromise`, `fakePromise`, `mapAsyncIterator`, `MaybePromise`) rather than re-exported from utils.
+- `@graphql-tools/load` no longer calls `debugTimerStart` / `debugTimerEnd` on its hot path (use your own timing if you relied on `DEBUG` + those spans). The `debugTimer*` helpers remain on `@graphql-tools/utils` and cache the `DEBUG` env once.
