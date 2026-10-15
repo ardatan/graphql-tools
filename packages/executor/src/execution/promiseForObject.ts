@@ -20,8 +20,6 @@ export function promiseForObject<TData>(
   const resolvedObject = Object.create(null);
   const promises: Promise<void>[] = [];
   for (const key in object) {
-    // Reserve the key in input order before its value resolves.
-    resolvedObject[key] = undefined;
     const valueSet$ = handleMaybePromise(
       () => object[key],
       resolvedValue => {
@@ -29,6 +27,9 @@ export function promiseForObject<TData>(
       },
     );
     if (isPromise(valueSet$)) {
+      // Reserve the key in input order before its value resolves.
+      // Sync values are already written by the callback above.
+      resolvedObject[key] = undefined;
       promises.push(valueSet$);
     }
   }
