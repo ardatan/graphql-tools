@@ -363,6 +363,28 @@ index ddb612c..9c9274a 100644
              nodes: err.nodes,
              source: err.source,
              positions: err.positions,
+diff --git a/node_modules/graphql-yoga/cjs/plugins/use-unhandled-route.js b/node_modules/graphql-yoga/cjs/plugins/use-unhandled-route.js
+index b4b464c..e4d4bcd 100644
+--- a/node_modules/graphql-yoga/cjs/plugins/use-unhandled-route.js
++++ b/node_modules/graphql-yoga/cjs/plugins/use-unhandled-route.js
+@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.defaultRenderLandingPage = void 0;
+ exports.useUnhandledRoute = useUnhandledRoute;
+ const tslib_1 = require("tslib");
+-const utils_1 = require("@graphql-tools/utils");
++const promise_helpers_1 = require("@whatwg-node/promise-helpers");
+ const landing_page_html_js_1 = tslib_1.__importDefault(require("../landing-page-html.js"));
+ const defaultRenderLandingPage = function defaultRenderLandingPage(opts) {
+     return new opts.fetchAPI.Response(landing_page_html_js_1.default
+@@ -39,7 +39,7 @@ function useUnhandledRoute(args) {
+                             return args.getGraphQLEndpointURLPattern();
+                         },
+                     });
+-                    if ((0, utils_1.isPromise)(landingPage$)) {
++                    if ((0, promise_helpers_1.isPromise)(landingPage$)) {
+                         return landingPage$.then(endResponse);
+                     }
+                     endResponse(landingPage$);
 diff --git a/node_modules/graphql-yoga/cjs/utils/mask-error.js b/node_modules/graphql-yoga/cjs/utils/mask-error.js
 index 413b6cd..001dd78 100644
 --- a/node_modules/graphql-yoga/cjs/utils/mask-error.js
@@ -491,6 +513,16 @@ index 7a5c794..5d6a2a6 100644
  import { isGraphQLError } from '../../error.js';
  // JSON stringifier that adjusts the result error extensions while serialising
  export function jsonStringifyResultWithoutInternals(result) {
+diff --git a/node_modules/graphql-yoga/esm/plugins/use-unhandled-route.js b/node_modules/graphql-yoga/esm/plugins/use-unhandled-route.js
+index 8afffcb..5ed372f 100644
+--- a/node_modules/graphql-yoga/esm/plugins/use-unhandled-route.js
++++ b/node_modules/graphql-yoga/esm/plugins/use-unhandled-route.js
+@@ -1,4 +1,4 @@
+-import { isPromise } from '@graphql-tools/utils';
++import { isPromise } from '@whatwg-node/promise-helpers';
+ import landingPageBody from '../landing-page-html.js';
+ export const defaultRenderLandingPage = function defaultRenderLandingPage(opts) {
+     return new opts.fetchAPI.Response(landingPageBody
 diff --git a/node_modules/graphql-yoga/esm/utils/mask-error.js b/node_modules/graphql-yoga/esm/utils/mask-error.js
 index 5519e94..2144b46 100644
 --- a/node_modules/graphql-yoga/esm/utils/mask-error.js
