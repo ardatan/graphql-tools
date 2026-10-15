@@ -354,7 +354,7 @@ export async function matchFiles(
   const absolute = options.absolute !== false;
   const onlyFiles = options.onlyFiles !== false;
   const { include, ignore: negated } = splitPatterns(patterns);
-  const exclude = [...negated, ...asArray(options.ignore).map(normalizeIgnore)];
+  const exclude = [...negated, ...asArray(options.ignore ?? []).map(normalizeIgnore)];
   const expandedIncludes = await Promise.all(include.map(pattern => expandPattern(pattern, cwd)));
   const scanRoots = symlinkScanRoots(expandedIncludes);
   const followSymlinks = SUPPORTS_GLOB_FOLLOW_SYMLINKS && scanRoots.length > 0;
@@ -378,7 +378,7 @@ export function matchFilesSync(
   const absolute = options.absolute !== false;
   const onlyFiles = options.onlyFiles !== false;
   const { include, ignore: negated } = splitPatterns(patterns);
-  const exclude = [...negated, ...asArray(options.ignore).map(normalizeIgnore)];
+  const exclude = [...negated, ...asArray(options.ignore ?? []).map(normalizeIgnore)];
   const expandedIncludes = include.map(pattern => expandPatternSync(pattern, cwd));
   const scanRoots = symlinkScanRoots(expandedIncludes);
   const followSymlinks = SUPPORTS_GLOB_FOLLOW_SYMLINKS && scanRoots.length > 0;
