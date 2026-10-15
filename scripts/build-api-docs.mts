@@ -1,4 +1,4 @@
-import fs, { globSync, promises as fsPromises, readFileSync } from 'node:fs';
+import fs, { promises as fsPromises, globSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { styleText } from 'node:util';
 import { Application, TSConfigReader } from 'typedoc';
