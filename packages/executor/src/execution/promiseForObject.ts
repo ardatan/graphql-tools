@@ -27,6 +27,9 @@ export function promiseForObject<TData>(
       },
     );
     if (isPromise(valueSet$)) {
+      // Reserve the key in input order before its value resolves.
+      // Sync values are already written by the callback above.
+      resolvedObject[key] = undefined;
       promises.push(valueSet$);
     }
   }

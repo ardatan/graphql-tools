@@ -106,6 +106,27 @@ async function complete(document: DocumentNode) {
 }
 
 describe('Execute: defer directive', () => {
+  it('preserves field order in initial and deferred data', async () => {
+    const result = await complete(parse('{ hero { slowField id ... @defer { slowField name } } }'));
+
+    if (!Array.isArray(result)) {
+      throw new Error('Expected incremental results');
+    }
+
+    const initialData = 'data' in result[0] ? result[0].data : undefined;
+    expect(Object.entries(initialData?.['hero'] ?? {})).toEqual([
+      ['slowField', 'slow'],
+      ['id', '1'],
+    ]);
+
+    const patch = result[1].incremental?.[0];
+    const deferredData = patch && 'data' in patch ? patch.data : undefined;
+    expect(Object.entries(deferredData ?? {})).toEqual([
+      ['slowField', 'slow'],
+      ['name', 'Luke'],
+    ]);
+  });
+
   it('Can defer fragments containing scalar types', async () => {
     const document = parse(/* GraphQL */ `
       query HeroNameQuery {
