@@ -1,4 +1,5 @@
 import { GraphQLScalarType, Kind, versionInfo } from 'graphql';
+import { isIterableObject } from './jsutils.js';
 
 const isGraphQLJS17OrAbove = versionInfo.major >= 17;
 
@@ -33,10 +34,10 @@ function valueToASTLiteral(value: unknown): any {
     if (typeof (value as { toJSON?: unknown }).toJSON === 'function') {
       return valueToASTLiteral((value as { toJSON(): unknown }).toJSON());
     }
-    if (Symbol.iterator in (value as object)) {
+    if (isIterableObject(value)) {
       return {
         kind: Kind.LIST,
-        values: Array.from(value as Iterable<unknown>, valueToASTLiteral),
+        values: Array.from(value, valueToASTLiteral),
       };
     }
     const fields: Array<Record<string, unknown>> = [];

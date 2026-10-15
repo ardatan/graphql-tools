@@ -199,6 +199,26 @@ function fieldNodeFrom(query: string): FieldNode {
     expect(result).toEqual({ data: { key: 'hello' } });
   });
 
+  it('does not treat a null Symbol.iterator as a list when rebuilding nested variables', () => {
+    const JSONScalar = new GraphQLScalarType({
+      name: 'JSON',
+      coerceInputValue: (v: any) => v,
+      coerceInputLiteral: (node: any) => valueFromASTUntyped(node),
+    } as any);
+
+    const field = {
+      name: 'foo',
+      args: [{ name: 'data', type: JSONScalar }],
+    } as unknown as GraphQLField<any, any>;
+
+    const value = Object.assign(Object.create(null), { a: 1, [Symbol.iterator]: null });
+    const result = getArgumentValues(field, fieldNodeFrom('{ foo(data: { key: $v }) }'), {
+      v: value,
+    });
+
+    expect(result).toEqual({ data: { key: { a: 1 } } });
+  });
+
   it('preserves a Date-valued variable nested inside an object literal argument', () => {
     const JSONScalar = new GraphQLScalarType({
       name: 'JSON',

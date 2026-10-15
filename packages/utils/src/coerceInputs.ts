@@ -474,10 +474,10 @@ function defaultScalarValueToLiteral(value: unknown): ValueNode {
     if (typeof (value as { toJSON?: unknown }).toJSON === 'function') {
       return defaultScalarValueToLiteral((value as { toJSON(): unknown }).toJSON());
     }
-    if (Symbol.iterator in (value as object)) {
+    if (isIterableObject(value)) {
       return {
         kind: Kind.LIST,
-        values: Array.from(value as Iterable<unknown>, defaultScalarValueToLiteral),
+        values: Array.from(value, defaultScalarValueToLiteral),
       };
     }
     const fields: Array<{
