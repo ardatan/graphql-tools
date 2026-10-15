@@ -175,8 +175,9 @@ function snapshotInputValue(value: unknown, type: GraphQLInputType): unknown {
   }
   // Arrays are objects in JS; do not spread them into `{}` or invalid list
   // inputs (e.g. `[]` for an input object) would be accepted after defaults.
-  // Use a null-prototype snapshot so inherited Object.prototype keys (e.g.
-  // `toString`) are not treated as own input fields during coercion.
+  // Snapshot into a null-prototype object so Object.prototype keys (e.g.
+  // `toString`) are not treated as own fields, while still reading declared
+  // fields with normal property access (prototype getters stay visible).
   if (isInputObjectType(type) && typeof value === 'object' && !Array.isArray(value)) {
     const obj = value as Record<string, unknown>;
     const snapshot = Object.create(null) as Record<string, unknown>;
@@ -184,8 +185,9 @@ function snapshotInputValue(value: unknown, type: GraphQLInputType): unknown {
       snapshot[key] = obj[key];
     }
     for (const field of Object.values(type.getFields())) {
-      if (hasOwnProperty(obj, field.name)) {
-        snapshot[field.name] = snapshotInputValue(obj[field.name], field.type);
+      const fieldValue = obj[field.name];
+      if (fieldValue !== undefined) {
+        snapshot[field.name] = snapshotInputValue(fieldValue, field.type);
       }
     }
     return snapshot;

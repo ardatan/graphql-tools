@@ -499,6 +499,20 @@ describe('Execute: Handles inputs', () => {
         });
       });
 
+      it('preserves prototype getters on declared input fields', () => {
+        class InputWithGetter {
+          get c() {
+            return 'baz';
+          }
+        }
+        const result = executeQuery(doc, { input: new InputWithGetter() });
+        expect(result).toEqual({
+          data: {
+            fieldWithObjectInput: '{ c: "baz" }',
+          },
+        });
+      });
+
       it('errors on omission of nested non-null', () => {
         const result = executeQuery(doc, { input: { a: 'foo', b: 'bar' } });
 
@@ -888,13 +902,9 @@ describe('Execute: Handles inputs', () => {
       });
       const coerced = getVariableValues(schema, variableDefinitions, { input: value });
       expect(coerced.errors).toBeUndefined();
-      const variableValues = coerced.variableValues as unknown as
-        { input: unknown } | { coerced: { input: unknown } } | undefined;
-      const inputValue =
-        variableValues && 'coerced' in variableValues
-          ? variableValues.coerced.input
-          : variableValues?.input;
-      expect(inputValue).toEqual([{ a: 'foo', b: ['bar'], c: 'baz' }]);
+      expect(coerced.variableValues?.coerced['input']).toEqual([
+        { a: 'foo', b: ['bar'], c: 'baz' },
+      ]);
     });
 
     it('allows lists to contain null', () => {
