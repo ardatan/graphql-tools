@@ -231,11 +231,14 @@ export function coerceInputLiteral(
   }
   const leafType = assertLeafType(type) as any;
   try {
-    return typeof leafType.coerceInputLiteral === 'function'
-      ? leafType.coerceInputLiteral(
-          replaceVariables(valueNode, variableValues, fragmentVariableValues),
-        )
-      : leafType.parseLiteral(valueNode, variableValues?.coerced);
+    if (typeof leafType.coerceInputLiteral === 'function') {
+      const replaced = replaceVariables(valueNode, variableValues, fragmentVariableValues);
+      if (replaced == null) {
+        return;
+      }
+      return leafType.coerceInputLiteral(replaced);
+    }
+    return leafType.parseLiteral(valueNode, variableValues?.coerced);
   } catch {}
 }
 
@@ -296,7 +299,7 @@ export function replaceVariables(
   valueNode: ValueNode,
   variableValues?: VariableValues,
   fragmentVariableValues?: VariableValues,
-): ValueNode {
+): ValueNode | undefined {
   switch (valueNode.kind) {
     case Kind.VARIABLE: {
       const varName = valueNode.name.value;
@@ -342,10 +345,14 @@ export function replaceVariables(
             continue;
           }
         }
+        const replaced = replaceVariables(field.value, variableValues, fragmentVariableValues);
+        if (replaced == null) {
+          return undefined;
+        }
         newFields.push({
           kind: Kind.OBJECT_FIELD,
           name: field.name,
-          value: replaceVariables(field.value, variableValues, fragmentVariableValues),
+          value: replaced,
           loc: field.loc,
         });
       }
@@ -356,11 +363,17 @@ export function replaceVariables(
       };
     }
     case Kind.LIST: {
+      const values: ValueNode[] = [];
+      for (const value of valueNode.values) {
+        const replaced = replaceVariables(value, variableValues, fragmentVariableValues);
+        if (replaced == null) {
+          return undefined;
+        }
+        values.push(replaced);
+      }
       return {
         kind: Kind.LIST,
-        values: valueNode.values.map(value =>
-          replaceVariables(value, variableValues, fragmentVariableValues),
-        ),
+        values,
         loc: valueNode.loc,
       };
     }
@@ -372,12 +385,13 @@ export function replaceVariables(
 /**
  * Convert a runtime value to an AST literal for `replaceVariables`. Prefers the
  * type's `valueToLiteral` when present; otherwise uses a JSON-like fallback that
- * honors `.toJSON()` (so `Date` round-trips).
+ * honors `.toJSON()` (so `Date` round-trips). Returns `undefined` when a present
+ * `valueToLiteral` hook rejects the value (graphql-js parity).
  */
-function valueToLiteral(value: unknown, type: GraphQLInputType): ValueNode {
+function valueToLiteral(value: unknown, type: GraphQLInputType): ValueNode | undefined {
   if (isNonNullType(type)) {
     if (value == null) {
-      return { kind: Kind.NULL };
+      return undefined;
     }
     return valueToLiteral(value, type.ofType);
   }
@@ -388,42 +402,47 @@ function valueToLiteral(value: unknown, type: GraphQLInputType): ValueNode {
     if (!isIterableObject(value)) {
       return valueToLiteral(value, type.ofType);
     }
-    return {
-      kind: Kind.LIST,
-      values: Array.from(value, item => valueToLiteral(item, type.ofType)),
-    };
+    const values: ValueNode[] = [];
+    for (const item of value) {
+      const itemNode = valueToLiteral(item, type.ofType);
+      if (itemNode == null) {
+        return undefined;
+      }
+      values.push(itemNode);
+    }
+    return { kind: Kind.LIST, values };
   }
   if (isInputObjectType(type)) {
     if (!isObjectLike(value)) {
-      return { kind: Kind.NULL };
+      return undefined;
     }
-    const fields: Array<{
-      kind: typeof Kind.OBJECT_FIELD;
-      name: { kind: typeof Kind.NAME; value: string };
-      value: ValueNode;
-    }> = [];
+    const fields: ObjectFieldNode[] = [];
     for (const field of Object.values(type.getFields())) {
       const fieldValue = value[field.name];
       if (fieldValue === undefined) {
         continue;
       }
+      const fieldNode = valueToLiteral(fieldValue, field.type);
+      if (fieldNode == null) {
+        return undefined;
+      }
       fields.push({
         kind: Kind.OBJECT_FIELD,
         name: { kind: Kind.NAME, value: field.name },
-        value: valueToLiteral(fieldValue, field.type),
+        value: fieldNode,
       });
     }
     return { kind: Kind.OBJECT, fields };
   }
   const leafType = assertLeafType(type) as any;
+  // Match graphql-js: only use the generic fallback when the type has no
+  // `valueToLiteral`. If the hook exists but returns nullish or throws, treat
+  // that as conversion failure (do not fall back).
   if (typeof leafType.valueToLiteral === 'function') {
     try {
-      const literal = leafType.valueToLiteral(value);
-      if (literal != null) {
-        return literal;
-      }
+      return leafType.valueToLiteral(value) ?? undefined;
     } catch {
-      // fall through
+      return undefined;
     }
   }
   return defaultScalarValueToLiteral(value);

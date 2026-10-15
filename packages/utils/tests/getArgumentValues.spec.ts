@@ -302,6 +302,38 @@ function fieldNodeFrom(query: string): FieldNode {
     expect(result).toEqual({ data: { shade: 'LIGHT' } });
   });
 
+  it('rejects nested variables when the declared type valueToLiteral fails', () => {
+    const RejectingScalar = new GraphQLScalarType({
+      name: 'Rejecting',
+      coerceInputValue: (v: any) => v,
+      valueToLiteral: () => undefined,
+    } as any);
+    const JSONScalar = new GraphQLScalarType({
+      name: 'JSON',
+      coerceInputValue: (v: any) => v,
+      coerceInputLiteral: (node: any) => valueFromASTUntyped(node),
+    } as any);
+
+    const field = {
+      name: 'foo',
+      args: [{ name: 'data', type: JSONScalar }],
+    } as unknown as GraphQLField<any, any>;
+
+    expect(() =>
+      getArgumentValues(
+        field,
+        fieldNodeFrom('{ foo(data: { key: $v }) }'),
+        { v: 'hello' },
+        {
+          v: {
+            signature: { name: 'v', type: RejectingScalar, default: undefined },
+            value: 'hello',
+          },
+        },
+      ),
+    ).toThrow(/Argument "data" has invalid value/);
+  });
+
   it('coerces default.value through coerceInputValue', () => {
     const Shade = new GraphQLEnumType({
       name: 'Shade',
