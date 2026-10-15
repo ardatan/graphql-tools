@@ -246,7 +246,10 @@ describe('Execute: Handles inputs', () => {
         },
         errors: [
           {
-            message: 'Argument "input" has invalid value { c: "foo", e: "bar" }.',
+            // graphql-js@16 `print` omits spaces after `{`; @17 includes them.
+            message: isGraphQL17
+              ? 'Argument "input" has invalid value { c: "foo", e: "bar" }.'
+              : 'Argument "input" has invalid value {c: "foo", e: "bar"}.',
             path: ['fieldWithObjectInput'],
             locations: [{ line: 3, column: 39 }],
           },
