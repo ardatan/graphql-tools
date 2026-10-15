@@ -1,41 +1,9 @@
 diff --git a/node_modules/@graphql-tools/stitch/dist/index.cjs b/node_modules/@graphql-tools/stitch/dist/index.cjs
-index 888959b..5d03fbd 100644
+index 888959b..b5cdad5 100644
 --- a/node_modules/@graphql-tools/stitch/dist/index.cjs
 +++ b/node_modules/@graphql-tools/stitch/dist/index.cjs
-@@ -4,8 +4,89 @@ var delegate = require('@graphql-tools/delegate');
- var merge = require('@graphql-tools/merge');
- var schema = require('@graphql-tools/schema');
+@@ -6,6 +6,57 @@ var schema = require('@graphql-tools/schema');
  var utils = require('@graphql-tools/utils');
-+var weakMemoizee = require('memoizee/weak');
-+function memoize1(fn) { return weakMemoizee(fn); }
-+function memoize2(fn) {
-+  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return fn(a1, a2); }); });
-+  return function (a1, a2) { return m(a1)(a2); };
-+}
-+function memoize3(fn) {
-+  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return weakMemoizee(function (a3) { return fn(a1, a2, a3); }); }); });
-+  return function (a1, a2, a3) { return m(a1)(a2)(a3); };
-+}
-+function memoize5(fn) {
-+  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return weakMemoizee(function (a3) { return weakMemoizee(function (a4) { return weakMemoizee(function (a5) { return fn(a1, a2, a3, a4, a5); }); }); }); }); });
-+  return function (a1, a2, a3, a4, a5) { return m(a1)(a2)(a3)(a4)(a5); };
-+}
-+function memoize2of4(fn) {
-+  var cache = new WeakMap();
-+  return function (a1, a2, a3, a4) {
-+    var byA2 = cache.get(a1);
-+    if (byA2 == null) {
-+      byA2 = new WeakMap();
-+      cache.set(a1, byA2);
-+    }
-+    if (byA2.has(a2)) {
-+      return byA2.get(a2);
-+    }
-+    var value = fn(a1, a2, a3, a4);
-+    byA2.set(a2, value);
-+    return value;
-+  };
-+}
  var promiseHelpers = require('@whatwg-node/promise-helpers');
  var graphql = require('graphql');
 +function __anyValueToLiteral(value) {
@@ -92,42 +60,7 @@ index 888959b..5d03fbd 100644
  var batchDelegate = require('@graphql-tools/batch-delegate');
  var wrap = require('@graphql-tools/wrap');
  var executor = require('@graphql-tools/executor');
-@@ -440,7 +521,7 @@ const flattenSelectionsForTypeImpl = (selectionSet, gatewayType, schema) => {
-     selections: flat
-   };
- };
--const flattenSelectionsForType = utils.memoize3(flattenSelectionsForTypeImpl);
-+const flattenSelectionsForType = memoize3(flattenSelectionsForTypeImpl);
- 
- function memoize5of7(fn) {
-   const memoize5Cache = /* @__PURE__ */ new WeakMap();
-@@ -697,7 +778,7 @@ function calculateDelegationStage(mergedTypeInfo, sourceSubschemas, targetSubsch
-     unproxiableFieldNodes
-   };
- }
--const calculateSelectionScore = utils.memoize2(
-+const calculateSelectionScore = memoize2(
-   function calculateSelectionScore2(selections, fragments) {
-     let score = 0;
-     for (const selectionNode of selections) {
-@@ -911,13 +992,13 @@ function optimizeDelegationMap(delegationMap, typeName, fragments) {
-   }
-   return delegationMap;
- }
--const createSubschemas = utils.memoize1(function createSubschemas2(sourceSubschema) {
-+const createSubschemas = memoize1(function createSubschemas2(sourceSubschema) {
-   return [sourceSubschema];
- });
--const combineSubschemas = utils.memoize2(function combineSubschemas2(sourceSubschemas, additionalSubschemas) {
-+const combineSubschemas = memoize2(function combineSubschemas2(sourceSubschemas, additionalSubschemas) {
-   return sourceSubschemas.concat(additionalSubschemas);
- });
--const subschemaTypesContainSelectionSet = utils.memoize3(
-+const subschemaTypesContainSelectionSet = memoize3(
-   function subschemaTypesContainSelectionSet2(mergedTypeInfo, sourceSubchemas, selectionSet) {
-     return typesContainSelectionSet(
-       sourceSubchemas.map(
-@@ -3660,10 +3741,10 @@ function createStitchingExecutor(stitchedSchema) {
+@@ -3660,10 +3711,10 @@ function createStitchingExecutor(stitchedSchema) {
          );
          return rootType2.getFields()[fieldName] != null;
        });
@@ -141,46 +74,15 @@ index 888959b..5d03fbd 100644
        const info = {
          schema: stitchedSchema,
 diff --git a/node_modules/@graphql-tools/stitch/dist/index.js b/node_modules/@graphql-tools/stitch/dist/index.js
-index 37b8d28..e385466 100644
+index 37b8d28..e111860 100644
 --- a/node_modules/@graphql-tools/stitch/dist/index.js
 +++ b/node_modules/@graphql-tools/stitch/dist/index.js
-@@ -1,13 +1,93 @@
+@@ -1,13 +1,62 @@
  import { isExternalObject, getVariableValues, handleOverrideByDelegation, subtractSelectionSets, extractUnavailableFields, leftOverByDelegationPlan, extractUnavailableFieldsFromSelectionSet, delegateToSchema, cloneSubschemaConfig, isSubschemaConfig, defaultMergedResolver, Subschema } from '@graphql-tools/delegate';
  import { mergeType, mergeInputType, mergeInterface, mergeUnion, mergeEnum, mergeScalar, mergeTypeDefs, mergeResolvers, mergeExtensions, applyExtensions } from '@graphql-tools/merge';
  import { extendResolversFromInterfaces, addResolversToSchema, assertResolversPresent, makeExecutableSchema } from '@graphql-tools/schema';
 -import { mergeDeep, collectSubFields, memoize3, memoize2, memoize1, parseSelectionSet, collectFields, isSome, getImplementingTypes, getRootTypeNames, filterSchema, getDescription, createNamedStub, createStub, getRootTypeMap, getRootTypes, inspect, rewireTypes, getOperationASTFromRequest, getDefinedRootType, getArgumentValues } from '@graphql-tools/utils';
-+import { mergeDeep, collectSubFields, parseSelectionSet, collectFields, isSome, getImplementingTypes, getRootTypeNames, filterSchema, getDescription, createNamedStub, createStub, getRootTypeMap, getRootTypes, inspect, rewireTypes, getOperationASTFromRequest, getDefinedRootType } from '@graphql-tools/utils';
-+import weakMemoizee from 'memoizee/weak.js';
-+function memoize1(fn) { return weakMemoizee(fn); }
-+function memoize2(fn) {
-+  const m = weakMemoizee((a1) => weakMemoizee((a2) => fn(a1, a2)));
-+  return (a1, a2) => m(a1)(a2);
-+}
-+function memoize3(fn) {
-+  const m = weakMemoizee((a1) => weakMemoizee((a2) => weakMemoizee((a3) => fn(a1, a2, a3))));
-+  return (a1, a2, a3) => m(a1)(a2)(a3);
-+}
-+function memoize5(fn) {
-+  const m = weakMemoizee((a1) => weakMemoizee((a2) => weakMemoizee((a3) => weakMemoizee((a4) => weakMemoizee((a5) => fn(a1, a2, a3, a4, a5))))));
-+  return (a1, a2, a3, a4, a5) => m(a1)(a2)(a3)(a4)(a5);
-+}
-+function memoize2of4(fn) {
-+  const cache = new WeakMap();
-+  return function (a1, a2, a3, a4) {
-+    let byA2 = cache.get(a1);
-+    if (byA2 == null) {
-+      byA2 = new WeakMap();
-+      cache.set(a1, byA2);
-+    }
-+    if (byA2.has(a2)) {
-+      return byA2.get(a2);
-+    }
-+    const value = fn(a1, a2, a3, a4);
-+    byA2.set(a2, value);
-+    return value;
-+  };
-+}
-+
++import { mergeDeep, collectSubFields, memoize3, memoize2, memoize1, parseSelectionSet, collectFields, isSome, getImplementingTypes, getRootTypeNames, filterSchema, getDescription, createNamedStub, createStub, getRootTypeMap, getRootTypes, inspect, rewireTypes, getOperationASTFromRequest, getDefinedRootType } from '@graphql-tools/utils';
  import { handleMaybePromise } from '@whatwg-node/promise-helpers';
 -import { getNamedType, Kind, isAbstractType, TypeNameMetaFieldDef, isObjectType, GraphQLList, isLeafType, isInputObjectType, isUnionType, print, isInterfaceType, visit, isScalarType, isCompositeType, isNonNullType, isEnumType, isListType, getNullableType, isNullableType, GraphQLObjectType, GraphQLInputObjectType, GraphQLInterfaceType, GraphQLUnionType, GraphQLEnumType, GraphQLScalarType, GraphQLDirective, valueFromASTUntyped, getDirectiveValues, GraphQLDeprecatedDirective, DirectiveLocation, isNamedType, isIntrospectionType, isDirective, isSpecifiedScalarType, GraphQLSchema, concatAST, extendSchema, specifiedDirectives, isSpecifiedDirective } from 'graphql';
 +import { getArgumentValues, getNamedType, Kind, GraphQLScalarType, versionInfo, isAbstractType, TypeNameMetaFieldDef, isObjectType, GraphQLList, isLeafType, isInputObjectType, isUnionType, print, isInterfaceType, visit, isScalarType, isCompositeType, isNonNullType, isEnumType, isListType, getNullableType, isNullableType, GraphQLObjectType, GraphQLInputObjectType, GraphQLInterfaceType, GraphQLUnionType, GraphQLEnumType, GraphQLDirective, valueFromASTUntyped, getDirectiveValues, GraphQLDeprecatedDirective, DirectiveLocation, isNamedType, isIntrospectionType, isDirective, isSpecifiedScalarType, GraphQLSchema, concatAST, extendSchema, specifiedDirectives, isSpecifiedDirective } from 'graphql';
@@ -240,7 +142,7 @@ index 37b8d28..e385466 100644
  function valueSatisfiesSelectionSet(value, selectionSet) {
    if (Array.isArray(value)) {
      return value.every(
-@@ -3661,7 +3741,7 @@ function createStitchingExecutor(stitchedSchema) {
+@@ -3661,7 +3710,7 @@ function createStitchingExecutor(stitchedSchema) {
        const args = getArgumentValues(
          fieldInstance,
          fieldNode,

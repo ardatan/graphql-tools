@@ -1,6 +1,6 @@
 import type { ASTNode, DirectiveNode, GraphQLSchema } from 'graphql';
 import { getArgumentValues, valueFromAST, valueFromASTUntyped } from 'graphql';
-import weakMemoizee from 'memoizee/weak.js';
+import { memoize1 } from './memoize.js';
 
 export type DirectableASTNode = ASTNode & {
   directives?: readonly DirectiveNode[] | undefined;
@@ -59,7 +59,7 @@ export function getDirectiveExtensions<
     }
   }
 
-  const memoizedStringify = weakMemoizee((obj: object) => JSON.stringify(obj));
+  const memoizedStringify = memoize1((obj: object) => JSON.stringify(obj));
 
   const astNodes: DirectableASTNode[] = [];
   if (directableObj.astNode) {

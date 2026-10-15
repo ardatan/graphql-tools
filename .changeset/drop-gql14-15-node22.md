@@ -55,9 +55,8 @@ Drop GraphQL v14/v15 support and require Node.js >= 22.18.
 | `withCancel` / `getAsyncIterableWithCancel` / `getAsyncIteratorWithCancel` | Handle cancellation on the async iterator’s `return()` (or your transport abort path) |
 | `debugTimerStart` / `debugTimerEnd` | Your own timing / `console.time` if needed |
 | `PromiseWithResolvers` (type) | Built-in `PromiseWithResolvers<T>` / return type of `Promise.withResolvers()` |
-| `memoize1` / `memoize2` / `memoize3` / `memoize4` / `memoize5` / `memoize2of4` / `memoize2of5` | `memoizee` / `memoizee/weak.js` (see below) |
 
-`inspect` remains on `@graphql-tools/utils` (no longer re-exported from `cross-inspect`).
+`inspect` and the WeakMap `memoize1`…`memoize2of5` helpers remain on `@graphql-tools/utils` (inspect is no longer re-exported from `cross-inspect`).
 
 ### File matching (`globby` → `fs.glob`)
 
@@ -75,24 +74,18 @@ Directory symlinks are followed for recursive (`**`) patterns:
 
 ### Memoization
 
+Keep using the WeakMap helpers from `@graphql-tools/utils` for object-identity caches (cheaper hits than nested `memoizee/weak`):
+
 ```ts
-import weakMemoizee from 'memoizee/weak.js';
+import { memoize1, memoize2, memoize3 } from '@graphql-tools/utils';
 
-// single object-identity argument
-const bySchema = weakMemoizee((schema: GraphQLSchema) => /* ... */);
-
-// multi-arg: nest weakMemoizee (true WeakMap GC; no custom key normalizer)
-const byTwoMemo = weakMemoizee((a: A) => weakMemoizee((b: B) => fn(a, b)));
-const byTwo = (a: A, b: B) => byTwoMemo(a)(b);
-
-// cache on first two args only (former memoize2of4 / memoize2of5)
-const byFirstTwoMemo = weakMemoizee((a: A) => weakMemoizee((b: B) => fn(a, b, c, d)));
-const byFirstTwoOfFour = (a: A, b: B, _c: C, _d: D) => byFirstTwoMemo(a)(b);
+const bySchema = memoize1((schema: GraphQLSchema) => /* ... */);
+const byTwo = memoize2((a: A, b: B) => /* ... */);
 ```
 
-For primitive-key caches, use `memoizee` with `{ primitive: true }`.
+For primitive-key caches (e.g. string paths), use `memoizee` with `{ primitive: true }` in the package that needs it — utils does not depend on `memoizee`.
 
-`@graphql-tools/executor` no longer depends on `memoizee`; hot-path caches use lightweight WeakMap helpers (`collectSubfields`, argument coercion, `@stream` detection). `collectSubFields` in utils is unmemoized so the executor can own a single memoize3 layer.
+`@graphql-tools/executor` hot-path caches (`collectSubfields`, argument coercion, `@stream` detection) use `memoize2` / `memoize3` from utils. `collectSubFields` in utils stays unmemoized so the executor can own a single memoize3 layer.
 
 ### Errors and other cleanup
 

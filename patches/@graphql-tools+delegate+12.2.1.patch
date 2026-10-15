@@ -1,80 +1,8 @@
 diff --git a/node_modules/@graphql-tools/delegate/dist/index.cjs b/node_modules/@graphql-tools/delegate/dist/index.cjs
-index 2688470..f5d92a1 100644
+index 2688470..3eca319 100644
 --- a/node_modules/@graphql-tools/delegate/dist/index.cjs
 +++ b/node_modules/@graphql-tools/delegate/dist/index.cjs
-@@ -1,13 +1,43 @@
- 'use strict';
- 
- var utils = require('@graphql-tools/utils');
-+var weakMemoizee = require('memoizee/weak');
-+function memoize1(fn) { return weakMemoizee(fn); }
-+function memoize2(fn) {
-+  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return fn(a1, a2); }); });
-+  return function (a1, a2) { return m(a1)(a2); };
-+}
-+function memoize3(fn) {
-+  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return weakMemoizee(function (a3) { return fn(a1, a2, a3); }); }); });
-+  return function (a1, a2, a3) { return m(a1)(a2)(a3); };
-+}
-+function memoize5(fn) {
-+  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return weakMemoizee(function (a3) { return weakMemoizee(function (a4) { return weakMemoizee(function (a5) { return fn(a1, a2, a3, a4, a5); }); }); }); }); });
-+  return function (a1, a2, a3, a4, a5) { return m(a1)(a2)(a3)(a4)(a5); };
-+}
-+function memoize2of4(fn) {
-+  var cache = new WeakMap();
-+  return function (a1, a2, a3, a4) {
-+    var byA2 = cache.get(a1);
-+    if (byA2 == null) {
-+      byA2 = new WeakMap();
-+      cache.set(a1, byA2);
-+    }
-+    if (byA2.has(a2)) {
-+      return byA2.get(a2);
-+    }
-+    var value = fn(a1, a2, a3, a4);
-+    byA2.set(a2, value);
-+    return value;
-+  };
-+}
- var graphql = require('graphql');
- var promiseHelpers = require('@whatwg-node/promise-helpers');
- var executor = require('@graphql-tools/executor');
- var batchExecute = require('@graphql-tools/batch-execute');
- var repeater = require('@repeaterjs/repeater');
- 
--const applySchemaTransforms = utils.memoize2(function applySchemaTransforms2(originalWrappingSchema, subschemaConfig) {
-+const applySchemaTransforms = memoize2(function applySchemaTransforms2(originalWrappingSchema, subschemaConfig) {
-   const schemaTransforms = subschemaConfig.transforms;
-   if (schemaTransforms == null) {
-     return originalWrappingSchema;
-@@ -116,7 +146,7 @@ function getUnpathedErrors(object) {
-   return object[UNPATHED_ERRORS_SYMBOL];
- }
- const EMPTY_OBJECT = /* @__PURE__ */ Object.create(null);
--const getActualFieldNodes = utils.memoize1(function(fieldNode) {
-+const getActualFieldNodes = memoize1(function(fieldNode) {
-   return [fieldNode];
- });
- function mergeFields(mergedTypeInfo, object, sourceSubschema, context, info, fieldNodes = info.fieldNodes) {
-@@ -596,14 +626,14 @@ function getDocumentMetadata(document) {
-   };
- }
- 
--const getTypeInfo = utils.memoize1(function getTypeInfo2(schema) {
-+const getTypeInfo = memoize1(function getTypeInfo2(schema) {
-   return new graphql.TypeInfo(schema);
- });
--const getTypeInfoWithType = utils.memoize2(function getTypeInfoWithType2(schema, type) {
-+const getTypeInfoWithType = memoize2(function getTypeInfoWithType2(schema, type) {
-   return graphql.versionInfo.major < 16 ? new graphql.TypeInfo(schema, void 0, type) : new graphql.TypeInfo(schema, type);
- });
- 
--const handleOverrideByDelegation = utils.memoize3(
-+const handleOverrideByDelegation = memoize3(
-   function handleOverrideByDelegation2(info, context, overrideHandler) {
-     return overrideHandler(context, info);
-   }
-@@ -692,7 +722,7 @@ function finalizeGatewayDocument(targetSchema, originalDocument, fragments, oper
+@@ -692,7 +692,7 @@ function finalizeGatewayDocument(targetSchema, originalDocument, fragments, oper
      });
    }
    if (!newOperations.length || selectionCnt === 0) {
@@ -83,52 +11,7 @@ index 2688470..f5d92a1 100644
        "Failed to create a gateway request. The request must contain at least one operation.",
        {
          extensions: {
-@@ -973,7 +1003,7 @@ function collectFieldSelectionSetsByPathImpl(document) {
-   });
-   return { selectionSetsByPath, fragments };
- }
--const collectFieldSelectionSetsByPath = utils.memoize1(
-+const collectFieldSelectionSetsByPath = memoize1(
-   collectFieldSelectionSetsByPathImpl
- );
- function nextInlineFragmentPathSegment(node, counter) {
-@@ -997,7 +1027,7 @@ function subschemaHasProvidedSelectionsImpl(stitchingInfo, subschema) {
-   }
-   return false;
- }
--const subschemaHasProvidedSelections = utils.memoize2(
-+const subschemaHasProvidedSelections = memoize2(
-   subschemaHasProvidedSelectionsImpl
- );
- function lookupOriginalSelectionSet(pathStack, fieldNode, selectionSetsByPath) {
-@@ -1641,7 +1671,7 @@ function prepareGatewayDocument(originalDocument, delegationContext) {
-     visitorKeyMap
-   );
- }
--const getExtraPossibleTypesFn = utils.memoize2(function getExtraPossibleTypes(transformedSchema, infoSchema) {
-+const getExtraPossibleTypesFn = memoize2(function getExtraPossibleTypes(transformedSchema, infoSchema) {
-   const extraPossiblesTypesMap = /* @__PURE__ */ new Map();
-   return function getExtraPossibleTypes2(typeName) {
-     let extraTypesForSubschema = extraPossiblesTypesMap.get(typeName);
-@@ -2069,7 +2099,7 @@ function generateInlineFragment(typeName, selectionSet) {
-     selectionSet
-   };
- }
--const getSchemaMetaData = utils.memoize2(
-+const getSchemaMetaData = memoize2(
-   (sourceSchema, targetSchema) => {
-     const typeMap = sourceSchema.getTypeMap();
-     const targetTypeMap = targetSchema.getTypeMap();
-@@ -3041,7 +3071,7 @@ function cloneSubschemaConfig(subschemaConfig) {
-   return newSubschemaConfig;
- }
- 
--const getFragmentDefinitions = utils.memoize1(
-+const getFragmentDefinitions = memoize1(
-   (info) => {
-     const fragmentMap = info.fragments;
-     return Object.values(fragmentMap);
-@@ -3550,7 +3580,7 @@ function subtractSelectionSets(selectionSetA, selectionSetB, fragments = {}) {
+@@ -3550,7 +3550,7 @@ function subtractSelectionSets(selectionSetA, selectionSetB, fragments = {}) {
  
  Object.defineProperty(exports, "createDeferred", {
    enumerable: true,
@@ -138,48 +21,18 @@ index 2688470..f5d92a1 100644
  Object.defineProperty(exports, "createDefaultExecutor", {
    enumerable: true,
 diff --git a/node_modules/@graphql-tools/delegate/dist/index.js b/node_modules/@graphql-tools/delegate/dist/index.js
-index 95a02cb..07f0d22 100644
+index 95a02cb..e7bc178 100644
 --- a/node_modules/@graphql-tools/delegate/dist/index.js
 +++ b/node_modules/@graphql-tools/delegate/dist/index.js
-@@ -1,5 +1,35 @@
+@@ -1,5 +1,5 @@
 -import { memoize2, memoize1, collectFields, relocatedError, mergeDeep, promiseReduce, pathToArray, memoize3, getDefinedRootType, createGraphQLError, implementsAbstractType, getRootTypeNames, astFromArg, astFromValueUntyped, asArray, isAsyncIterable, getOperationASTFromRequest } from '@graphql-tools/utils';
 -export { createDeferred } from '@graphql-tools/utils';
-+import { collectFields, relocatedError, mergeDeep, promiseReduce, pathToArray, getDefinedRootType, implementsAbstractType, getRootTypeNames, astFromArg, astFromValueUntyped, asArray, isAsyncIterable, getOperationASTFromRequest } from '@graphql-tools/utils';
-+import weakMemoizee from 'memoizee/weak.js';
-+function memoize1(fn) { return weakMemoizee(fn); }
-+function memoize2(fn) {
-+  const m = weakMemoizee((a1) => weakMemoizee((a2) => fn(a1, a2)));
-+  return (a1, a2) => m(a1)(a2);
-+}
-+function memoize3(fn) {
-+  const m = weakMemoizee((a1) => weakMemoizee((a2) => weakMemoizee((a3) => fn(a1, a2, a3))));
-+  return (a1, a2, a3) => m(a1)(a2)(a3);
-+}
-+function memoize5(fn) {
-+  const m = weakMemoizee((a1) => weakMemoizee((a2) => weakMemoizee((a3) => weakMemoizee((a4) => weakMemoizee((a5) => fn(a1, a2, a3, a4, a5))))));
-+  return (a1, a2, a3, a4, a5) => m(a1)(a2)(a3)(a4)(a5);
-+}
-+function memoize2of4(fn) {
-+  const cache = new WeakMap();
-+  return function (a1, a2, a3, a4) {
-+    let byA2 = cache.get(a1);
-+    if (byA2 == null) {
-+      byA2 = new WeakMap();
-+      cache.set(a1, byA2);
-+    }
-+    if (byA2.has(a2)) {
-+      return byA2.get(a2);
-+    }
-+    const value = fn(a1, a2, a3, a4);
-+    byA2.set(a2, value);
-+    return value;
-+  };
-+}
++import { memoize2, memoize1, collectFields, relocatedError, mergeDeep, promiseReduce, pathToArray, memoize3, getDefinedRootType, implementsAbstractType, getRootTypeNames, astFromArg, astFromValueUntyped, asArray, isAsyncIterable, getOperationASTFromRequest } from '@graphql-tools/utils';
 +export { createDeferredPromise as createDeferred } from '@whatwg-node/promise-helpers';
  import { GraphQLError, locatedError, isAbstractType, getNullableType, isLeafType, isCompositeType, isListType, responsePathAsArray, Kind, TypeInfo, versionInfo, visit, visitWithTypeInfo, isNullableType, isUnionType, getNamedType, isObjectType, isInterfaceType, typeFromAST, isTypeSubTypeOf, isNonNullType, isInputObjectType, defaultFieldResolver, isSchema, validate } from 'graphql';
  import { handleMaybePromise, isPromise, createDeferredPromise, mapAsyncIterator } from '@whatwg-node/promise-helpers';
  import { CRITICAL_ERROR, executorFromSchema } from '@graphql-tools/executor';
-@@ -692,7 +722,7 @@ function finalizeGatewayDocument(targetSchema, originalDocument, fragments, oper
+@@ -692,7 +692,7 @@ function finalizeGatewayDocument(targetSchema, originalDocument, fragments, oper
      });
    }
    if (!newOperations.length || selectionCnt === 0) {

@@ -1,45 +1,8 @@
 diff --git a/node_modules/@graphql-tools/executor-http/dist/index.cjs b/node_modules/@graphql-tools/executor-http/dist/index.cjs
-index 3127bbc..0772ea3 100644
+index 3127bbc..ca4c9d5 100644
 --- a/node_modules/@graphql-tools/executor-http/dist/index.cjs
 +++ b/node_modules/@graphql-tools/executor-http/dist/index.cjs
-@@ -3,6 +3,36 @@
- var signal = require('@graphql-hive/signal');
- var executorCommon = require('@graphql-tools/executor-common');
- var utils = require('@graphql-tools/utils');
-+var weakMemoizee = require('memoizee/weak');
-+function memoize1(fn) { return weakMemoizee(fn); }
-+function memoize2(fn) {
-+  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return fn(a1, a2); }); });
-+  return function (a1, a2) { return m(a1)(a2); };
-+}
-+function memoize3(fn) {
-+  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return weakMemoizee(function (a3) { return fn(a1, a2, a3); }); }); });
-+  return function (a1, a2, a3) { return m(a1)(a2)(a3); };
-+}
-+function memoize5(fn) {
-+  var m = weakMemoizee(function (a1) { return weakMemoizee(function (a2) { return weakMemoizee(function (a3) { return weakMemoizee(function (a4) { return weakMemoizee(function (a5) { return fn(a1, a2, a3, a4, a5); }); }); }); }); });
-+  return function (a1, a2, a3, a4, a5) { return m(a1)(a2)(a3)(a4)(a5); };
-+}
-+function memoize2of4(fn) {
-+  var cache = new WeakMap();
-+  return function (a1, a2, a3, a4) {
-+    var byA2 = cache.get(a1);
-+    if (byA2 == null) {
-+      byA2 = new WeakMap();
-+      cache.set(a1, byA2);
-+    }
-+    if (byA2.has(a2)) {
-+      return byA2.get(a2);
-+    }
-+    var value = fn(a1, a2, a3, a4);
-+    byA2.set(a2, value);
-+    return value;
-+  };
-+}
- var disposablestack = require('@whatwg-node/disposablestack');
- var fetch = require('@whatwg-node/fetch');
- var promiseHelpers = require('@whatwg-node/promise-helpers');
-@@ -353,7 +383,7 @@ function createGraphQLErrorForAbort(reason, extensions) {
+@@ -353,7 +353,7 @@ function createGraphQLErrorForAbort(reason, extensions) {
      return reason;
    }
    if (reason?.name === "TimeoutError") {
@@ -48,7 +11,7 @@ index 3127bbc..0772ea3 100644
        extensions: {
          http: {
            status: 504,
-@@ -365,7 +395,7 @@ function createGraphQLErrorForAbort(reason, extensions) {
+@@ -365,7 +365,7 @@ function createGraphQLErrorForAbort(reason, extensions) {
        originalError: reason
      });
    }
@@ -57,7 +20,7 @@ index 3127bbc..0772ea3 100644
      extensions,
      originalError: reason
    });
-@@ -437,7 +467,7 @@ function handleEventStreamResponse(response, subscriptionCtrl, signal) {
+@@ -437,7 +437,7 @@ function handleEventStreamResponse(response, subscriptionCtrl, signal) {
          const errErr = err instanceof Error ? err : new Error(String(err));
          await push({
            errors: [
@@ -66,7 +29,7 @@ index 3127bbc..0772ea3 100644
            ]
          });
          return stop();
-@@ -497,7 +527,7 @@ async function handleMultipartMixedResponse(response) {
+@@ -497,7 +497,7 @@ async function handleMultipartMixedResponse(response) {
    if (asyncIterator == null) {
      return executionResult;
    }
@@ -75,16 +38,7 @@ index 3127bbc..0772ea3 100644
      if (part.json) {
        const incrementalResult = part.body;
        utils.mergeIncrementalResult({
-@@ -510,7 +540,7 @@ async function handleMultipartMixedResponse(response) {
-   return resultStream;
- }
- 
--const isLiveQueryOperationDefinitionNode = utils.memoize1(
-+const isLiveQueryOperationDefinitionNode = memoize1(
-   function isLiveQueryOperationDefinitionNode2(node) {
-     return node.operation === "query" && node.directives?.some((directive) => directive.name.value === "live");
-   }
-@@ -750,7 +780,7 @@ function buildHTTPExecutor(options) {
+@@ -750,7 +750,7 @@ function buildHTTPExecutor(options) {
                        upstreamErrorExtensions.code = "RESPONSE_VALIDATION_FAILED";
                        return {
                          errors: [
@@ -93,7 +47,7 @@ index 3127bbc..0772ea3 100644
                              originalError: new Error(message),
                              extensions: upstreamErrorExtensions
                            })
-@@ -764,7 +794,7 @@ function buildHTTPExecutor(options) {
+@@ -764,7 +764,7 @@ function buildHTTPExecutor(options) {
                            ({
                              message,
                              ...options2
@@ -102,7 +56,7 @@ index 3127bbc..0772ea3 100644
                          )
                        };
                      }
-@@ -773,7 +803,7 @@ function buildHTTPExecutor(options) {
+@@ -773,7 +773,7 @@ function buildHTTPExecutor(options) {
                      upstreamErrorExtensions.code = "RESPONSE_VALIDATION_FAILED";
                      return {
                        errors: [
@@ -111,7 +65,7 @@ index 3127bbc..0772ea3 100644
                            `Unexpected response: ${JSON.stringify(result)}`,
                            {
                              extensions: upstreamErrorExtensions,
-@@ -788,7 +818,7 @@ function buildHTTPExecutor(options) {
+@@ -788,7 +788,7 @@ function buildHTTPExecutor(options) {
                    upstreamErrorExtensions.code = "RESPONSE_VALIDATION_FAILED";
                    return {
                      errors: [
@@ -120,7 +74,7 @@ index 3127bbc..0772ea3 100644
                          extensions: upstreamErrorExtensions,
                          originalError: new Error(message)
                        })
-@@ -950,7 +980,7 @@ function buildHTTPExecutor(options) {
+@@ -950,7 +950,7 @@ function buildHTTPExecutor(options) {
              return result;
            }
            return {
@@ -129,7 +83,7 @@ index 3127bbc..0772ea3 100644
            };
          }
          return promiseHelpers.handleMaybePromise(
-@@ -993,13 +1023,13 @@ function coerceFetchError(e, {
+@@ -993,13 +993,13 @@ function coerceFetchError(e, {
    upstreamErrorExtensions
  }) {
    if (typeof e === "string") {
@@ -145,7 +99,7 @@ index 3127bbc..0772ea3 100644
        extensions: upstreamErrorExtensions,
        originalError: e
      });
-@@ -1009,12 +1039,12 @@ function coerceFetchError(e, {
+@@ -1009,12 +1009,12 @@ function coerceFetchError(e, {
        upstreamErrorExtensions
      );
    } else if (e.message) {
@@ -161,44 +115,14 @@ index 3127bbc..0772ea3 100644
        originalError: e
      });
 diff --git a/node_modules/@graphql-tools/executor-http/dist/index.js b/node_modules/@graphql-tools/executor-http/dist/index.js
-index 0cf6937..b81eac3 100644
+index 0cf6937..8fb527c 100644
 --- a/node_modules/@graphql-tools/executor-http/dist/index.js
 +++ b/node_modules/@graphql-tools/executor-http/dist/index.js
-@@ -1,9 +1,39 @@
+@@ -1,9 +1,9 @@
  import { abortSignalAny } from '@graphql-hive/signal';
  import { defaultPrintFn, serializeExecutionRequest } from '@graphql-tools/executor-common';
 -import { isAsyncIterable, createGraphQLError, inspect, mapAsyncIterator, mergeIncrementalResult, memoize1, getOperationASTFromRequest } from '@graphql-tools/utils';
-+import { isAsyncIterable, inspect, mergeIncrementalResult, getOperationASTFromRequest } from '@graphql-tools/utils';
-+import weakMemoizee from 'memoizee/weak.js';
-+function memoize1(fn) { return weakMemoizee(fn); }
-+function memoize2(fn) {
-+  const m = weakMemoizee((a1) => weakMemoizee((a2) => fn(a1, a2)));
-+  return (a1, a2) => m(a1)(a2);
-+}
-+function memoize3(fn) {
-+  const m = weakMemoizee((a1) => weakMemoizee((a2) => weakMemoizee((a3) => fn(a1, a2, a3))));
-+  return (a1, a2, a3) => m(a1)(a2)(a3);
-+}
-+function memoize5(fn) {
-+  const m = weakMemoizee((a1) => weakMemoizee((a2) => weakMemoizee((a3) => weakMemoizee((a4) => weakMemoizee((a5) => fn(a1, a2, a3, a4, a5))))));
-+  return (a1, a2, a3, a4, a5) => m(a1)(a2)(a3)(a4)(a5);
-+}
-+function memoize2of4(fn) {
-+  const cache = new WeakMap();
-+  return function (a1, a2, a3, a4) {
-+    let byA2 = cache.get(a1);
-+    if (byA2 == null) {
-+      byA2 = new WeakMap();
-+      cache.set(a1, byA2);
-+    }
-+    if (byA2.has(a2)) {
-+      return byA2.get(a2);
-+    }
-+    const value = fn(a1, a2, a3, a4);
-+    byA2.set(a2, value);
-+    return value;
-+  };
-+}
++import { isAsyncIterable, inspect, mergeIncrementalResult, memoize1, getOperationASTFromRequest } from '@graphql-tools/utils';
  import { DisposableSymbols } from '@whatwg-node/disposablestack';
  import { FormData, File as File$1, TextEncoder, crypto, TextDecoder, fetch } from '@whatwg-node/fetch';
 -import { isPromise, handleMaybePromise } from '@whatwg-node/promise-helpers';
@@ -206,7 +130,7 @@ index 0cf6937..b81eac3 100644
  import { Repeater } from '@repeaterjs/repeater';
  import { GraphQLError } from 'graphql';
  import { meros as meros$1 } from 'meros/browser';
-@@ -351,7 +381,7 @@ function createGraphQLErrorForAbort(reason, extensions) {
+@@ -351,7 +351,7 @@ function createGraphQLErrorForAbort(reason, extensions) {
      return reason;
    }
    if (reason?.name === "TimeoutError") {
@@ -215,7 +139,7 @@ index 0cf6937..b81eac3 100644
        extensions: {
          http: {
            status: 504,
-@@ -363,7 +393,7 @@ function createGraphQLErrorForAbort(reason, extensions) {
+@@ -363,7 +363,7 @@ function createGraphQLErrorForAbort(reason, extensions) {
        originalError: reason
      });
    }
@@ -224,7 +148,7 @@ index 0cf6937..b81eac3 100644
      extensions,
      originalError: reason
    });
-@@ -435,7 +465,7 @@ function handleEventStreamResponse(response, subscriptionCtrl, signal) {
+@@ -435,7 +435,7 @@ function handleEventStreamResponse(response, subscriptionCtrl, signal) {
          const errErr = err instanceof Error ? err : new Error(String(err));
          await push({
            errors: [
@@ -233,7 +157,7 @@ index 0cf6937..b81eac3 100644
            ]
          });
          return stop();
-@@ -748,7 +778,7 @@ function buildHTTPExecutor(options) {
+@@ -748,7 +748,7 @@ function buildHTTPExecutor(options) {
                        upstreamErrorExtensions.code = "RESPONSE_VALIDATION_FAILED";
                        return {
                          errors: [
@@ -242,7 +166,7 @@ index 0cf6937..b81eac3 100644
                              originalError: new Error(message),
                              extensions: upstreamErrorExtensions
                            })
-@@ -762,7 +792,7 @@ function buildHTTPExecutor(options) {
+@@ -762,7 +762,7 @@ function buildHTTPExecutor(options) {
                            ({
                              message,
                              ...options2
@@ -251,7 +175,7 @@ index 0cf6937..b81eac3 100644
                          )
                        };
                      }
-@@ -771,7 +801,7 @@ function buildHTTPExecutor(options) {
+@@ -771,7 +771,7 @@ function buildHTTPExecutor(options) {
                      upstreamErrorExtensions.code = "RESPONSE_VALIDATION_FAILED";
                      return {
                        errors: [
@@ -260,7 +184,7 @@ index 0cf6937..b81eac3 100644
                            `Unexpected response: ${JSON.stringify(result)}`,
                            {
                              extensions: upstreamErrorExtensions,
-@@ -786,7 +816,7 @@ function buildHTTPExecutor(options) {
+@@ -786,7 +786,7 @@ function buildHTTPExecutor(options) {
                    upstreamErrorExtensions.code = "RESPONSE_VALIDATION_FAILED";
                    return {
                      errors: [
@@ -269,7 +193,7 @@ index 0cf6937..b81eac3 100644
                          extensions: upstreamErrorExtensions,
                          originalError: new Error(message)
                        })
-@@ -948,7 +978,7 @@ function buildHTTPExecutor(options) {
+@@ -948,7 +948,7 @@ function buildHTTPExecutor(options) {
              return result;
            }
            return {
@@ -278,7 +202,7 @@ index 0cf6937..b81eac3 100644
            };
          }
          return handleMaybePromise(
-@@ -991,13 +1021,13 @@ function coerceFetchError(e, {
+@@ -991,13 +991,13 @@ function coerceFetchError(e, {
    upstreamErrorExtensions
  }) {
    if (typeof e === "string") {
@@ -294,7 +218,7 @@ index 0cf6937..b81eac3 100644
        extensions: upstreamErrorExtensions,
        originalError: e
      });
-@@ -1007,12 +1037,12 @@ function coerceFetchError(e, {
+@@ -1007,12 +1007,12 @@ function coerceFetchError(e, {
        upstreamErrorExtensions
      );
    } else if (e.message) {

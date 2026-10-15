@@ -41,6 +41,8 @@ import {
   isObjectLike,
   locatedError,
   Maybe,
+  memoize2,
+  memoize3,
   Path,
   pathToArray,
   promiseReduce,
@@ -58,7 +60,6 @@ import {
 import { coerceError } from './coerceError.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import { invariant } from './invariant.js';
-import { memoize2, memoize3 } from './memoize.js';
 import { promiseForObject } from './promiseForObject.js';
 import { getVariableValues } from './values.js';
 
@@ -76,7 +77,7 @@ export interface SingularExecutionResult<TData = any, TExtensions = any> {
  * type. Memoizing ensures the subfields are not repeatedly calculated, which
  * saves overhead when resolving lists of values.
  *
- * Single WeakMap stack (graphql-js style) — avoids nested memoizee lookups.
+ * Single WeakMap stack (graphql-js style) via utils `memoize3`.
  */
 const collectSubfields = memoize3(function collectSubfields(
   exeContext: ExecutionContext,
