@@ -10,7 +10,7 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.14.0"
   },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",

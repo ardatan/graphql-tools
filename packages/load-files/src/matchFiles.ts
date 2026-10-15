@@ -1,6 +1,6 @@
 import { Dirent, globSync, statSync } from 'node:fs';
 import { glob as globAsync, stat } from 'node:fs/promises';
-import { isAbsolute, join, resolve } from 'node:path';
+import { isAbsolute, join, relative, resolve } from 'node:path';
 
 export interface MatchFilesOptions {
   cwd?: string;
@@ -11,6 +11,7 @@ export interface MatchFilesOptions {
 }
 
 const GLOB_MAGIC = /[*?[{\\]/;
+const EXTGLOB_PREFIX = new Set(['?', '*', '+', '@', '!']);
 
 function asArray<T>(value: T | T[] | undefined): T[] {
   if (value == null) {
@@ -19,8 +20,13 @@ function asArray<T>(value: T | T[] | undefined): T[] {
   return Array.isArray(value) ? value : [value];
 }
 
+/** Whole-pattern negation (`!foo`), not a negative extglob (`!(foo)`). */
+function isWholePatternNegation(pattern: string): boolean {
+  return pattern.startsWith('!') && !pattern.startsWith('!(');
+}
+
 function normalizeIgnore(ignore: string): string {
-  return ignore.startsWith('!') ? ignore.slice(1) : ignore;
+  return isWholePatternNegation(ignore) ? ignore.slice(1) : ignore;
 }
 
 function splitPatterns(patterns: string | string[]): {
@@ -30,8 +36,8 @@ function splitPatterns(patterns: string | string[]): {
   const include: string[] = [];
   const ignore: string[] = [];
   for (const pattern of asArray(patterns)) {
-    if (pattern.startsWith('!')) {
-      ignore.push(normalizeIgnore(pattern));
+    if (isWholePatternNegation(pattern)) {
+      ignore.push(pattern.slice(1));
     } else {
       include.push(pattern);
     }
@@ -42,14 +48,25 @@ function splitPatterns(patterns: string | string[]): {
 /**
  * Convert a few globby/minimatch shorthands that Node's fs.glob does not accept
  * (e.g. `(a|b)` → `{a,b}`) while leaving extglobs like `+(...)` / `!(...)` alone.
+ *
+ * Implemented without nested regex quantifiers to avoid ReDoS on adversarial input.
  */
 function normalizeIncludePattern(pattern: string): string {
-  // Rewrite a trailing bare `(a|b|c)` alternation only when it is not an extglob
-  // (`*(...)`, `?(...)`, `+(...)`, `@(...)`, `!(...)`).
-  return pattern.replace(
-    /(?<![?*+@!])\(([^()/]+(?:\|[^()/]+)+)\)$/g,
-    (_match, group: string) => `{${group.replace(/\|/g, ',')}}`,
-  );
+  if (!pattern.endsWith(')')) {
+    return pattern;
+  }
+  const open = pattern.lastIndexOf('(');
+  if (open < 0) {
+    return pattern;
+  }
+  if (open > 0 && EXTGLOB_PREFIX.has(pattern.charAt(open - 1))) {
+    return pattern;
+  }
+  const inner = pattern.slice(open + 1, -1);
+  if (!inner.includes('|') || /[()/]/.test(inner)) {
+    return pattern;
+  }
+  return `${pattern.slice(0, open)}{${inner.replace(/\|/g, ',')}}`;
 }
 
 function pathFromDirent(entry: Dirent): string {
@@ -57,32 +74,50 @@ function pathFromDirent(entry: Dirent): string {
   return join(parent, entry.name);
 }
 
-function finalize(
-  entries: Array<string | Dirent>,
-  cwd: string,
-  absolute: boolean,
-  onlyFiles: boolean,
-): string[] {
-  const paths: string[] = [];
-  for (const entry of entries) {
-    if (typeof entry !== 'string') {
-      if (onlyFiles && !entry.isFile()) {
-        continue;
-      }
-      paths.push(pathFromDirent(entry));
-      continue;
-    }
-    if (onlyFiles && entry.replace(/\\/g, '/').endsWith('/')) {
-      continue;
-    }
-    paths.push(entry);
+async function isFileLike(entry: string | Dirent): Promise<boolean> {
+  if (typeof entry === 'string') {
+    return !entry.replace(/\\/g, '/').endsWith('/');
   }
+  if (entry.isFile()) {
+    return true;
+  }
+  if (!entry.isSymbolicLink()) {
+    return false;
+  }
+  try {
+    return (await stat(pathFromDirent(entry))).isFile();
+  } catch {
+    return false;
+  }
+}
 
-  const unique = [...new Set(paths)];
-  if (!absolute) {
-    return unique;
+function isFileLikeSync(entry: string | Dirent): boolean {
+  if (typeof entry === 'string') {
+    return !entry.replace(/\\/g, '/').endsWith('/');
   }
-  return unique.map(m => (isAbsolute(m) ? m : resolve(cwd, m)));
+  if (entry.isFile()) {
+    return true;
+  }
+  if (!entry.isSymbolicLink()) {
+    return false;
+  }
+  try {
+    return statSync(pathFromDirent(entry)).isFile();
+  } catch {
+    return false;
+  }
+}
+
+function toPath(entry: string | Dirent): string {
+  return typeof entry === 'string' ? entry : pathFromDirent(entry);
+}
+
+function finalizePaths(paths: string[], cwd: string, absolute: boolean): string[] {
+  const unique = [...new Set(paths)];
+  if (absolute) {
+    return unique.map(m => (isAbsolute(m) ? m : resolve(cwd, m)));
+  }
+  return unique.map(m => (isAbsolute(m) ? relative(cwd, m) : m));
 }
 
 async function expandPattern(pattern: string, cwd: string): Promise<string> {
@@ -119,7 +154,7 @@ function expandPatternSync(pattern: string, cwd: string): string {
 }
 
 /**
- * File matching helper backed by Node's built-in `fs.glob` (Node 22+).
+ * File matching helper backed by Node's built-in `fs.glob` (Node >=22.14).
  * Replaces the previous `globby` dependency for loader / load-files use cases.
  */
 export async function matchFiles(
@@ -131,7 +166,7 @@ export async function matchFiles(
   const onlyFiles = options.onlyFiles !== false;
   const { include, ignore: negated } = splitPatterns(patterns);
   const exclude = [...negated, ...asArray(options.ignore).map(normalizeIgnore)];
-  const matches: Array<string | Dirent> = [];
+  const paths: string[] = [];
   for (const pattern of include) {
     const expanded = await expandPattern(pattern, cwd);
     const iterator = globAsync(expanded, {
@@ -140,10 +175,14 @@ export async function matchFiles(
       withFileTypes: onlyFiles,
     });
     for await (const file of iterator) {
-      matches.push(file as string | Dirent);
+      const entry = file as string | Dirent;
+      if (onlyFiles && !(await isFileLike(entry))) {
+        continue;
+      }
+      paths.push(toPath(entry));
     }
   }
-  return finalize(matches, cwd, absolute, onlyFiles);
+  return finalizePaths(paths, cwd, absolute);
 }
 
 export function matchFilesSync(
@@ -155,16 +194,19 @@ export function matchFilesSync(
   const onlyFiles = options.onlyFiles !== false;
   const { include, ignore: negated } = splitPatterns(patterns);
   const exclude = [...negated, ...asArray(options.ignore).map(normalizeIgnore)];
-  const matches: Array<string | Dirent> = [];
+  const paths: string[] = [];
   for (const pattern of include) {
     const expanded = expandPatternSync(pattern, cwd);
-    matches.push(
-      ...(globSync(expanded, {
-        cwd,
-        exclude: exclude.length > 0 ? exclude : undefined,
-        withFileTypes: onlyFiles,
-      }) as Array<string | Dirent>),
-    );
+    for (const file of globSync(expanded, {
+      cwd,
+      exclude: exclude.length > 0 ? exclude : undefined,
+      withFileTypes: onlyFiles,
+    }) as Array<string | Dirent>) {
+      if (onlyFiles && !isFileLikeSync(file)) {
+        continue;
+      }
+      paths.push(toPath(file));
+    }
   }
-  return finalize(matches, cwd, absolute, onlyFiles);
+  return finalizePaths(paths, cwd, absolute);
 }

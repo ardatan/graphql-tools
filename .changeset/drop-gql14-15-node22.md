@@ -38,8 +38,8 @@
 Drop GraphQL v14/v15 and require Node.js >= 22.
 
 - Peer dependency on `graphql` is now `^16.0.0 || ^17.0.0`.
-- Engines require `node: >=22.0.0`.
-- CI test matrix: Node 22/24 × GraphQL 16/17.
+- Engines require `node: >=22.14.0` (needed for `fs.glob` string-array `exclude` / `withFileTypes`).
+- CI test matrix: Node 22.14.0/24 × GraphQL 16/17.
 
 ### Removed exports and replacements
 
