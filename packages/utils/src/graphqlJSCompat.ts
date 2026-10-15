@@ -52,9 +52,13 @@ function valueToASTLiteral(value: unknown): any {
     if (!Number.isFinite(value)) {
       return { kind: Kind.NULL };
     }
-    return Number.isInteger(value)
-      ? { kind: Kind.INT, value: String(value) }
-      : { kind: Kind.FLOAT, value: String(value) };
+    // `Number.isInteger(1e21)` is true, but `String(1e21)` is `"1e+21"`, which
+    // is not a valid IntValue. Choose the AST kind from the serialized form,
+    // matching `astFromValueUntyped`.
+    const stringNum = String(value);
+    return integerStringRegExp.test(stringNum)
+      ? { kind: Kind.INT, value: stringNum }
+      : { kind: Kind.FLOAT, value: stringNum };
   }
   if (typeof value === 'object') {
     if (typeof (value as { toJSON?: unknown }).toJSON === 'function') {
@@ -121,10 +125,28 @@ const wrapVariableValues = memoize1((variableValues: Record<string, any>) => ({
  * a flat map of variable name to value. This package deals in flat maps
  * everywhere else, so wrap them right before handing them to graphql-js's own
  * (unforked) directive-argument coercion, only for graphql-js >= 17.
+ *
+ * When the executor already built real `sources` (with each variable's declared
+ * input type and original input value), pass them through so nested variables
+ * round-trip via the declared type's `valueToLiteral` instead of the generic
+ * fallback. Callers that only have a flat map still get the synthetic sources.
  */
-export function toGraphQLJSVariableValues(variableValues: any): any {
+export function toGraphQLJSVariableValues(
+  variableValues: any,
+  variableSources?: Record<string, unknown>,
+): any {
   if (variableValues == null || !isGraphQLJS17OrAbove) {
     return variableValues;
   }
+  if (variableSources) {
+    return { coerced: variableValues, sources: variableSources };
+  }
   return wrapVariableValues(variableValues);
 }
+
+/**
+ * IntValue:
+ *   - NegativeSign? 0
+ *   - NegativeSign? NonZeroDigit ( Digit+ )?
+ */
+const integerStringRegExp = /^-?(?:0|[1-9][0-9]*)$/;

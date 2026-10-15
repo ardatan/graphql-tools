@@ -219,6 +219,64 @@ function fieldNodeFrom(query: string): FieldNode {
     expect(result).toEqual({ data: { occurredAt: when.toJSON() } });
   });
 
+  it('preserves large integer-valued floats nested in object literals', () => {
+    // Number.isInteger(1e21) is true, but String(1e21) is "1e+21" — must be a
+    // FloatValue or valueFromASTUntyped corrupts it to 1.
+    const JSONScalar = new GraphQLScalarType({
+      name: 'JSON',
+      coerceInputValue: (v: any) => v,
+      coerceInputLiteral: (node: any) => valueFromASTUntyped(node),
+    } as any);
+
+    const field = {
+      name: 'foo',
+      args: [{ name: 'data', type: JSONScalar }],
+    } as unknown as GraphQLField<any, any>;
+
+    const result = getArgumentValues(field, fieldNodeFrom('{ foo(data: { n: $v }) }'), {
+      v: 1e21,
+    });
+
+    expect(result).toEqual({ data: { n: 1e21 } });
+  });
+
+  it('preserves enum names when declared variable sources are provided', () => {
+    const Shade = new GraphQLEnumType({
+      name: 'Shade',
+      values: {
+        LIGHT: { value: 'light-shade' },
+        DARK: { value: 'dark-shade' },
+      },
+    });
+    const JSONScalar = new GraphQLScalarType({
+      name: 'JSON',
+      coerceInputValue: (v: any) => v,
+      coerceInputLiteral: (node: any) => valueFromASTUntyped(node),
+    } as any);
+
+    const field = {
+      name: 'foo',
+      args: [{ name: 'data', type: JSONScalar }],
+    } as unknown as GraphQLField<any, any>;
+
+    // Coerced runtime value is the internal enum value; the source still has
+    // the original input name and declared enum type, which graphql-js uses
+    // when reconstructing a nested literal.
+    const result = getArgumentValues(
+      field,
+      fieldNodeFrom('{ foo(data: { shade: $s }) }'),
+      { s: 'light-shade' },
+      {
+        s: {
+          signature: { name: 's', type: Shade, default: undefined },
+          value: 'LIGHT',
+        },
+      },
+    );
+
+    expect(result).toEqual({ data: { shade: 'LIGHT' } });
+  });
+
   it('coerces default.value through coerceInputValue', () => {
     const Shade = new GraphQLEnumType({
       name: 'Shade',

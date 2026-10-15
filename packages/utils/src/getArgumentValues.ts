@@ -80,6 +80,12 @@ export function getArgumentValues(
   def: GraphQLField<any, any> | GraphQLDirective,
   node: FieldNode | DirectiveNode,
   variableValues: Record<string, any> = {},
+  /**
+   * Optional GraphQL 17 variable sources (declared type + original input) from
+   * the executor. When omitted, synthetic sources are built from the flat
+   * coerced map for callers that only have runtime values.
+   */
+  variableSources?: Record<string, unknown>,
 ): Record<string, any> {
   const coercedValues = {};
 
@@ -95,7 +101,7 @@ export function getArgumentValues(
   // `variableValues` is loop-invariant; wrap (and memoize) it once instead of
   // once per argument, reusing the same graphql-js@17 `{ coerced, sources }`
   // shape used for directive-argument coercion elsewhere in this package.
-  const wrappedVariableValues = toGraphQLJSVariableValues(variableValues);
+  const wrappedVariableValues = toGraphQLJSVariableValues(variableValues, variableSources);
 
   for (const arg of def.args) {
     const argumentNode = argNodeMap[arg.name];
