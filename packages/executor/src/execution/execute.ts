@@ -624,21 +624,31 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
       listeners = new Set();
       const signalDeferred = Promise.withResolvers<never>();
       signalPromise = signalDeferred.promise;
-      const sharedListener = () => {
-        signalDeferred.reject(signal.reason);
-        signal.removeEventListener('abort', sharedListener);
-      };
-      signal.addEventListener('abort', sharedListener, { once: true });
+      // Attach cleanup before any possible immediate reject so already-aborted
+      // signals still drain registered handlers.
       signalPromise.catch(() => {
         for (const listener of listeners!) {
           listener();
         }
         listeners!.clear();
       });
+      if (signal.aborted) {
+        signalDeferred.reject(signal.reason);
+        return;
+      }
+      const sharedListener = () => {
+        signalDeferred.reject(signal.reason);
+        signal.removeEventListener('abort', sharedListener);
+      };
+      signal.addEventListener('abort', sharedListener, { once: true });
     };
     onSignalAbort = handler => {
       ensureSignalPlumbing!();
-      listeners!.add(handler);
+      if (signal.aborted) {
+        handler();
+      } else {
+        listeners!.add(handler);
+      }
     };
   }
 
@@ -1174,12 +1184,14 @@ async function completeAsyncIteratorValue(
   iterator: AsyncIterator<unknown>,
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): Promise<ReadonlyArray<unknown>> {
-  exeContext.signal?.throwIfAborted();
+  // Register cleanup before throwIfAborted so an already-aborted signal still
+  // closes the iterator instead of skipping registration.
   if (iterator.return) {
     exeContext.onSignalAbort?.(() => {
       iterator.return?.();
     });
   }
+  exeContext.signal?.throwIfAborted();
 
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
   const stream = getStreamValues(exeContext, fieldNodes, path);

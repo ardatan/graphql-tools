@@ -504,4 +504,46 @@ describe('Abort Signal', () => {
     ).toThrow(/operation was aborted/);
     expect(resolverGotInvoked).toBe(false);
   });
+  it('closes async iterables when the signal is already aborted', async () => {
+    let returnCalled = false;
+    const listReady = Promise.withResolvers<AsyncIterable<number>>();
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          items: [Int]
+        }
+      `,
+      resolvers: {
+        Query: {
+          items: () => listReady.promise,
+        },
+      },
+    });
+
+    const result$ = normalizedExecutor({
+      schema,
+      document: parse(/* GraphQL */ `
+        query {
+          items
+        }
+      `),
+      signal: controller.signal,
+    });
+
+    controller.abort();
+    listReady.resolve({
+      [Symbol.asyncIterator]() {
+        return {
+          next: async () => ({ done: false, value: 1 }),
+          return: async () => {
+            returnCalled = true;
+            return { done: true, value: undefined };
+          },
+        };
+      },
+    });
+
+    await expect(result$).rejects.toThrow(/operation was aborted/);
+    expect(returnCalled).toBe(true);
+  });
 });

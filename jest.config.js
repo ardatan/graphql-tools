@@ -63,6 +63,7 @@ module.exports = {
   modulePathIgnorePatterns,
   testPathIgnorePatterns: [
     '/node_modules/',
+    '\\.bench\\.ts$',
     ...(!process.env.LEAK_TEST ? ['<rootDir>/scripts/leak-warmup\\.spec\\.ts$'] : []),
   ],
   moduleNameMapper: {

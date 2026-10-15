@@ -126,7 +126,8 @@ function toPath(entry: string | Dirent): string {
 }
 
 function toUnixPath(path: string): string {
-  return path.replace(/\\/g, '/');
+  // Backslash is a valid filename character on POSIX; only normalize separators on Windows.
+  return process.platform === 'win32' ? path.replace(/\\/g, '/') : path;
 }
 
 function finalizePaths(paths: string[], cwd: string, absolute: boolean): string[] {

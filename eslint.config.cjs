@@ -104,7 +104,10 @@ module.exports = defineConfig([
     },
   },
   {
-    files: ['**/{test,tests,testing}/**/*.{ts,js}', '**/*.{spec,test}.{ts,js}'],
+    files: [
+      '**/{test,tests,testing,__benchmarks__}/**/*.{ts,js}',
+      '**/*.{spec,test,bench,benchmark}.{ts,js}',
+    ],
 
     languageOptions: {
       globals: {
@@ -159,7 +162,10 @@ module.exports = defineConfig([
   },
   {
     files: ['**/*.ts'],
-    ignores: ['**/{test,tests,testing}/**/*.{ts,js}', '**/*.{spec,test}.{ts,js}'],
+    ignores: [
+      '**/{test,tests,testing,__benchmarks__}/**/*.{ts,js}',
+      '**/*.{spec,test,bench,benchmark}.{ts,js}',
+    ],
 
     rules: {
       'import/extensions': ['error', 'ignorePackages'],
@@ -172,6 +178,7 @@ module.exports = defineConfig([
     'packages/load/tests/loaders/schema',
     '**/website',
     '**/scripts',
+    'vitest.config.ts',
     'packages/loaders/code-file/tests/test-files',
     'packages/loaders/git/tests/test-files',
   ]),

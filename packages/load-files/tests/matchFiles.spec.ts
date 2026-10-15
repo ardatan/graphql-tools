@@ -90,4 +90,19 @@ describe('matchFiles', () => {
       rmSync(outsideVendor, { recursive: true, force: true });
     }
   });
+
+  it('preserves backslashes in filenames on POSIX', async () => {
+    if (process.platform === 'win32') {
+      return;
+    }
+
+    const weirdName = 'schema\\fragment.graphql';
+    writeFileSync(join(dir, weirdName), 'type Query { a: String }');
+
+    const asyncMatches = await matchFiles('*.graphql', { cwd: dir, absolute: false });
+    const syncMatches = matchFilesSync('*.graphql', { cwd: dir, absolute: false });
+
+    expect(asyncMatches).toEqual([weirdName]);
+    expect(syncMatches).toEqual([weirdName]);
+  });
 });

@@ -38,12 +38,16 @@ const nodeInspect = getNodeInspect();
  * Prefers Node's `util.inspect` via `process.getBuiltinModule`; otherwise a
  * small `JSON.stringify` / `String` fallback (non-Node runtimes).
  */
-export function inspect(value: unknown): string {
-  if (value != null && typeof (value as { toJSON?: unknown }).toJSON === 'function') {
+export function inspect(value: unknown, toJSONDepth = MAX_RECURSIVE_DEPTH): string {
+  if (
+    toJSONDepth > 0 &&
+    value != null &&
+    typeof (value as { toJSON?: unknown }).toJSON === 'function'
+  ) {
     try {
       const jsonValue = (value as { toJSON: () => unknown }).toJSON();
       if (jsonValue !== value) {
-        return typeof jsonValue === 'string' ? jsonValue : inspect(jsonValue);
+        return typeof jsonValue === 'string' ? jsonValue : inspect(jsonValue, toJSONDepth - 1);
       }
     } catch {
       // fall through

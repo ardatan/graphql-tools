@@ -40,6 +40,7 @@
     "prettier:check": "prettier --cache --ignore-path .gitignore --ignore-path .prettierignore --check .",
     "release": "npx changeset publish",
     "test": "jest --no-watchman",
+    "test:bench": "vitest bench --run --reporter=verbose",
     "test:bun": "bun test",
     "test:leaks": "cross-env \"LEAK_TEST=1\" jest --no-watchman --detectOpenHandles --detectLeaks --runInBand --forceExit",
     "ts:check": "tsc --noEmit",
@@ -106,6 +107,8 @@
     "typedoc-plugin-markdown": "^4.11.0",
     "typedoc-plugin-rename-defaults": "0.7.3",
     "typescript": "7.0.2",
+    "vite": "7.3.1",
+    "vitest": "5.0.5",
     "wonka": "6.3.6"
   },
   "overrides": {
