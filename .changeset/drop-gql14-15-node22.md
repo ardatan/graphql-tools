@@ -91,6 +91,8 @@ const byFirstTwoOfFour = (a: A, b: B, _c: C, _d: D) => byFirstTwoMemo(a)(b);
 
 For primitive-key caches, use `memoizee` with `{ primitive: true }`.
 
+`@graphql-tools/executor` no longer depends on `memoizee`; hot-path caches use lightweight WeakMap helpers (`collectSubfields`, argument coercion, `@stream` detection). `collectSubFields` in utils is unmemoized so the executor can own a single memoize3 layer.
+
 ### Errors and other cleanup
 
 - Prefer `new GraphQLError(message, options)` from `graphql`. Experimental schema `coordinate` support remains on `locatedError` / `relocatedError` / `getSchemaCoordinate`.

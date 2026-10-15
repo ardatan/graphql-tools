@@ -1,5 +1,4 @@
 import { getOperationAST, GraphQLSchema } from 'graphql';
-import weakMemoizee from 'memoizee/weak.js';
 import {
   ExecutionRequest,
   ExecutionResult,
@@ -36,19 +35,24 @@ export function normalizedExecutor<TData = any, TVariables = any, TContext = any
   );
 }
 
-export const executorFromSchema = weakMemoizee(function executorFromSchema(
-  schema: GraphQLSchema,
-): Executor {
-  return function schemaExecutor(request: ExecutionRequest) {
-    return normalizedExecutor({
-      schema,
-      document: request.document,
-      variableValues: request.variables,
-      operationName: request.operationName,
-      rootValue: request.rootValue,
-      contextValue: request.context,
-      signal: request.signal || request.info?.signal,
-      schemaCoordinateInErrors: request.schemaCoordinateInErrors,
-    });
-  };
-});
+const executorFromSchemaCache = new WeakMap<GraphQLSchema, Executor>();
+
+export function executorFromSchema(schema: GraphQLSchema): Executor {
+  let schemaExecutor = executorFromSchemaCache.get(schema);
+  if (schemaExecutor === undefined) {
+    schemaExecutor = function schemaExecutor(request: ExecutionRequest) {
+      return normalizedExecutor({
+        schema,
+        document: request.document,
+        variableValues: request.variables,
+        operationName: request.operationName,
+        rootValue: request.rootValue,
+        contextValue: request.context,
+        signal: request.signal || request.info?.signal,
+        schemaCoordinateInErrors: request.schemaCoordinateInErrors,
+      });
+    };
+    executorFromSchemaCache.set(schema, schemaExecutor);
+  }
+  return schemaExecutor;
+}

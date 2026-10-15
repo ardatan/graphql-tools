@@ -4,7 +4,7 @@ module.exports = {
     '@babel/preset-typescript',
   ],
   plugins: [
-    '@babel/plugin-proposal-class-properties',
+    '@babel/plugin-transform-class-properties',
     '@babel/plugin-proposal-explicit-resource-management',
     '@babel/plugin-transform-class-static-block',
     '@babel/plugin-transform-private-methods',

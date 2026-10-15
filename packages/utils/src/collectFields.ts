@@ -12,7 +12,6 @@ import {
   SelectionSetNode,
   typeFromAST,
 } from 'graphql';
-import weakMemoizee from 'memoizee/weak.js';
 import { AccumulatorMap } from './AccumulatorMap.js';
 import { GraphQLDeferDirective } from './directives.js';
 import { getDirectiveValues } from './getDirectiveValues.js';
@@ -254,46 +253,9 @@ export function getDeferValues<TVariables = any>(
  * returns an Interface or Union type, the "return type" will be the actual
  * object type returned by that field.
  *
+ * Unmemoized on purpose: callers that hit this on a hot path (e.g. executor)
+ * should wrap with a single lightweight memoize3 keyed by execution context.
  */
-const collectSubFieldsMemo = weakMemoizee(function collectSubFieldsSchema(schema: GraphQLSchema) {
-  return weakMemoizee(function collectSubFieldsFragments(
-    fragments: Record<string, FragmentDefinitionNode>,
-  ) {
-    return weakMemoizee(function collectSubFieldsVariables(variableValues: VariableValues) {
-      return weakMemoizee(function collectSubFieldsReturnType(returnType: GraphQLObjectType) {
-        return weakMemoizee(function collectSubFieldsFieldNodes(
-          fieldNodes: Array<FieldNode>,
-        ): FieldsAndPatches {
-          const subFieldNodes = new AccumulatorMap<string, FieldNode>();
-          const visitedFragmentNames = new Set<string>();
-
-          const subPatches: Array<PatchFields> = [];
-          const subFieldsAndPatches = {
-            fields: subFieldNodes,
-            patches: subPatches,
-          };
-
-          for (const node of fieldNodes) {
-            if (node.selectionSet) {
-              collectFieldsImpl(
-                schema,
-                fragments,
-                variableValues,
-                returnType,
-                node.selectionSet,
-                subFieldNodes,
-                subPatches,
-                visitedFragmentNames,
-              );
-            }
-          }
-          return subFieldsAndPatches;
-        });
-      });
-    });
-  });
-});
-
 export function collectSubFields(
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
@@ -301,5 +263,27 @@ export function collectSubFields(
   returnType: GraphQLObjectType,
   fieldNodes: Array<FieldNode>,
 ): FieldsAndPatches {
-  return collectSubFieldsMemo(schema)(fragments)(variableValues)(returnType)(fieldNodes);
+  const subFieldNodes = new AccumulatorMap<string, FieldNode>();
+  const visitedFragmentNames = new Set<string>();
+  const subPatches: Array<PatchFields> = [];
+
+  for (const node of fieldNodes) {
+    if (node.selectionSet) {
+      collectFieldsImpl(
+        schema,
+        fragments,
+        variableValues,
+        returnType,
+        node.selectionSet,
+        subFieldNodes,
+        subPatches,
+        visitedFragmentNames,
+      );
+    }
+  }
+
+  return {
+    fields: subFieldNodes,
+    patches: subPatches,
+  };
 }
