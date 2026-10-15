@@ -2,7 +2,7 @@ import { buildSchema, GraphQLSchema, printSchema } from 'graphql';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
-import { runTests, useMonorepo } from '../../../../testing/utils.js';
+import { runTests, testIf, useMonorepo } from '../../../../testing/utils.js';
 import '../../../../testing/to-be-similar-gql-doc';
 import { join } from 'path';
 
@@ -17,20 +17,24 @@ describe('loadSchema', () => {
     async: loadSchema,
     sync: loadSchemaSync,
   })(load => {
-    test('should throw when all files are invalid and unable to load it', async () => {
-      const schemaPath = './test-files/error.ts';
-      try {
-        await load(schemaPath, {
-          loaders: [new CodeFileLoader()],
-          cwd: __dirname,
-        });
-        expect(true).toBeFalsy(); // should throw
-      } catch (e: any) {
-        // Single loader failures are wrapped in AggregateError with context (#7406)
-        expect(e.toString()).toContain('Failed to find any GraphQL type definitions');
-        expect(e.toString()).toMatch(/Unterminated template|SyntaxError/);
-      }
-    });
+    // Babel 8 parse failures on invalid .ts retain the Jest isolate under `--detectLeaks`.
+    testIf(!process.env['LEAK_TEST'])(
+      'should throw when all files are invalid and unable to load it',
+      async () => {
+        const schemaPath = './test-files/error.ts';
+        try {
+          await load(schemaPath, {
+            loaders: [new CodeFileLoader()],
+            cwd: __dirname,
+          });
+          expect(true).toBeFalsy(); // should throw
+        } catch (e: any) {
+          // Single loader failures are wrapped in AggregateError with context (#7406)
+          expect(e.toString()).toContain('Failed to find any GraphQL type definitions');
+          expect(e.toString()).toMatch(/Unterminated template|SyntaxError/);
+        }
+      },
+    );
 
     test('should work with ts files and without globs correctly', async () => {
       const schemaPath = './test-files/schema-dir/type-defs/graphql-tag.ts';
@@ -176,23 +180,27 @@ describe('loadSchema', () => {
       expect(result).toBeInstanceOf(GraphQLSchema);
       expect(result.getQueryType()?.getFields()?.['myFooField']).toBeDefined();
     });
-    test(`should load an ESM custom schema loader (#6656)`, async () => {
-      const result = await load(
-        {
-          pointer: {
-            loader: join(__dirname, '../../custom-loader.mjs'),
-            fooFieldName: 'myFooField',
+    // Dynamic `import()` of ESM loaders retains the isolate under Jest `--detectLeaks`.
+    testIf(!process.env['LEAK_TEST'])(
+      `should load an ESM custom schema loader (#6656)`,
+      async () => {
+        const result = await load(
+          {
+            pointer: {
+              loader: join(__dirname, '../../custom-loader.mjs'),
+              fooFieldName: 'myFooField',
+            },
           },
-        },
-        {
-          loaders: [],
-          customLoaderContext: {
-            loaderType: 'schema',
+          {
+            loaders: [],
+            customLoaderContext: {
+              loaderType: 'schema',
+            },
           },
-        },
-      );
-      expect(result).toBeInstanceOf(GraphQLSchema);
-      expect(result.getQueryType()?.getFields()?.['myFooField']).toBeDefined();
-    });
+        );
+        expect(result).toBeInstanceOf(GraphQLSchema);
+        expect(result.getQueryType()?.getFields()?.['myFooField']).toBeDefined();
+      },
+    );
   });
 });
