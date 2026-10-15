@@ -1428,6 +1428,8 @@ describe('Execute: Handles basic execution tasks', () => {
         coerceInputLiteral: (node: any) => valueFromASTUntyped(node),
       } as any);
       const schema = new GraphQLSchema({
+        // Include Int so `$values: [Int!]!` resolves via typeFromAST.
+        types: [GraphQLInt],
         query: new GraphQLObjectType({
           name: 'Query',
           fields: {

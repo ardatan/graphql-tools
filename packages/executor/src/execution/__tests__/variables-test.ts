@@ -448,12 +448,20 @@ describe('Execute: Handles inputs', () => {
         // `{}` and may incorrectly pick up input-field defaults.
         const result = executeQuery(doc, { input: [] });
 
+        // graphql-js@15's coerceInputValue treats arrays as empty objects (missing
+        // required fields); @16+ reject them as non-objects. Either way `[]` must
+        // not be accepted via defaults.
+        const arrayInputObjectMessage =
+          versionInfo.major <= 15
+            ? 'Variable "$input" got invalid value []; Field "c" of required type "String!" was not provided.'
+            : isGraphQL17
+              ? 'Variable "$input" got invalid value []; Expected value of type "TestInputObject" to be an object, found: [].'
+              : 'Variable "$input" got invalid value []; Expected type "TestInputObject" to be an object.';
+
         expectJSON(result).toDeepEqual({
           errors: [
             {
-              message: isGraphQL17
-                ? 'Variable "$input" got invalid value []; Expected value of type "TestInputObject" to be an object, found: [].'
-                : 'Variable "$input" got invalid value []; Expected type "TestInputObject" to be an object.',
+              message: arrayInputObjectMessage,
               locations: [{ line: 2, column: 16 }],
             },
           ],
