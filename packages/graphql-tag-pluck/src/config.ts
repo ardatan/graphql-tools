@@ -28,7 +28,9 @@ export default function generateConfig(
     'objectRestSpread',
     'optionalCatchBinding',
     'optionalChaining',
-    ['pipelineOperator', { proposal: 'smart' }],
+    // Babel 8 dropped the "smart" pipeline proposal; "fsharp" is the closest
+    // remaining option for permissive parse-only usage in tag pluck.
+    ['pipelineOperator', { proposal: 'fsharp' }],
     'throwExpressions',
   ];
 
@@ -45,12 +47,10 @@ export default function generateConfig(
     case '.cts':
     case '.mts':
       plugins.push('typescript');
-      // importAttributes replaces importAssertions; keep deprecatedAssertSyntax for `assert { … }`
-      plugins.push(['importAttributes', { deprecatedAssertSyntax: true }]);
+      // Babel 8 parses import attributes (`with`) by default; `assert` was removed.
       break;
     case '.tsx':
       plugins.push('typescript', 'jsx');
-      plugins.push(['importAttributes', { deprecatedAssertSyntax: true }]);
       break;
     // Adding .jsx extension by default because it doesn't affect other syntax features
     // (unlike .tsx) and because people are seem to use it with regular file extensions

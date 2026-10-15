@@ -349,7 +349,7 @@ function buildGlobOptions(
 }
 
 /**
- * File matching helper backed by Node's built-in `fs.glob` (Node >=22.14).
+ * File matching helper backed by Node's built-in `fs.glob` (Node >=22.18).
  * Replaces the previous `globby` dependency for loader / load-files use cases.
  */
 export async function matchFiles(

@@ -19,6 +19,10 @@ const ESM_PACKAGES = [
   '@puppeteer/browsers',
   // cookie@2 is ESM-only; express may resolve the hoisted copy under Node 24
   'cookie',
+  // Babel 8 packages ship as native ESM (`"type": "module"`)
+  '@babel/[^/]+',
+  'obug',
+  'js-tokens',
 ];
 
 const modulePathIgnorePatterns = ['dist', 'test-assets', 'test-files', 'fixtures', '.bob'];
