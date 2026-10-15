@@ -2,14 +2,9 @@ import { GraphQLScalarType, Kind, versionInfo } from 'graphql';
 
 const isGraphQLJS17OrAbove = versionInfo.major >= 17;
 
-// Converts an arbitrary runtime value to a GraphQL AST literal, used only as
-// `anyValueType`'s `valueToLiteral` below. graphql-js@17's own generic fallback
-// (`defaultScalarValueToLiteral`, not part of its public API so it can't be
-// reused directly) only serializes an object's own enumerable properties,
-// which silently drops data for values like `Date` (whose contents live in
-// methods, not own properties) instead of erroring — so this mirrors it but
-// special-cases `.toJSON()` first, the same convention `JSON.stringify` uses,
-// so such values round-trip instead of flattening to `{}`.
+// Converts an arbitrary runtime value to a GraphQL AST literal for the
+// synthetic `anyValueType` below. Prefer `.toJSON()` (same as JSON.stringify)
+// so values like `Date` round-trip instead of flattening to `{}`.
 function valueToASTLiteral(value: unknown): any {
   if (value == null) {
     return { kind: Kind.NULL };
@@ -28,8 +23,7 @@ function valueToASTLiteral(value: unknown): any {
       return { kind: Kind.NULL };
     }
     // `Number.isInteger(1e21)` is true, but `String(1e21)` is `"1e+21"`, which
-    // is not a valid IntValue. Choose the AST kind from the serialized form,
-    // matching `astFromValueUntyped`.
+    // is not a valid IntValue. Choose the AST kind from the serialized form.
     const stringNum = String(value);
     return integerStringRegExp.test(stringNum)
       ? { kind: Kind.INT, value: stringNum }
@@ -57,20 +51,13 @@ function valueToASTLiteral(value: unknown): any {
     }
     return { kind: Kind.OBJECT, fields };
   }
-  // Functions, symbols, etc. have no literal representation.
   return { kind: Kind.NULL };
 }
 
-// A throwaway scalar type used only as `sources[varName].signature.type` below.
-// graphql-js@17's `valueToLiteral` (invoked internally to resolve a variable
-// nested inside an object/list literal argument, e.g. when a custom scalar
-// implements its own `coerceInputLiteral`) special-cases NonNull/List/InputObject
-// types but otherwise defers entirely to the leaf type's own `valueToLiteral`.
-// This package only has each variable's already-coerced runtime value at this
-// point, not its declared `GraphQLInputType` (that would require threading the
-// operation's variable definitions through every call site), so this bare
-// scalar supplies a type-agnostic `valueToLiteral` that works for any runtime
-// value regardless of the variable's real declared type.
+// Throwaway scalar used only as `sources[varName].signature.type` when the
+// caller has a flat coerced map and no declared variable types. Local
+// `replaceVariables` uses this type's `valueToLiteral` to rebuild nested
+// variable literals inside custom-scalar arguments.
 // `serialize` is required when constructing scalars on graphql-js@14.
 const anyValueType = new GraphQLScalarType({
   name: '_GraphQLToolsAnyValue',
@@ -87,12 +74,12 @@ function buildVariableSources(variableValues: Record<string, any>): Record<strin
 }
 
 /**
- * graphql-js@17's `getArgumentValues` expects `variableValues` as
- * `{ coerced, sources }`. Flat maps are wrapped only on graphql-js >= 17.
+ * Local GraphQL 17 coercion expects `variableValues` as `{ coerced, sources }`.
+ * Flat maps are wrapped only on graphql-js >= 17.
  *
  * When the executor already built real `sources`, pass them through. Otherwise
- * build synthetic sources from the flat map on each call (not memoized by
- * object identity) so mutating and reusing the same map stays correct.
+ * build synthetic sources from the flat map on each call so mutating and
+ * reusing the same map stays correct.
  */
 export function toGraphQLJSVariableValues(
   variableValues: any,
@@ -110,9 +97,4 @@ export function toGraphQLJSVariableValues(
   };
 }
 
-/**
- * IntValue:
- *   - NegativeSign? 0
- *   - NegativeSign? NonZeroDigit ( Digit+ )?
- */
 const integerStringRegExp = /^-?(?:0|[1-9][0-9]*)$/;

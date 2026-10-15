@@ -5,13 +5,10 @@ import {
   GraphQLSchema,
   GraphQLString,
   parse,
-  versionInfo,
 } from 'graphql';
 import { ExecutionResult } from '@graphql-tools/utils';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { execute, executeSync } from '../execute.js';
-
-const isGraphQL17 = versionInfo.major >= 17;
 
 const syncError = new Error('sync');
 const syncNonNullError = new Error('syncNonNull');
@@ -605,9 +602,7 @@ describe('Execute: handles non-nullable types', () => {
         },
         errors: [
           {
-            message: isGraphQL17
-              ? 'Argument "Query.withNonNullArg(cannotBeNull:)" of required type "String!" was not provided.'
-              : 'Argument "cannotBeNull" of required type "String!" was not provided.',
+            message: 'Argument "cannotBeNull" of required type "String!" was not provided.',
             locations: [{ line: 3, column: 13 }],
             path: ['withNonNullArg'],
           },
@@ -633,9 +628,7 @@ describe('Execute: handles non-nullable types', () => {
         },
         errors: [
           {
-            message: isGraphQL17
-              ? 'Argument "Query.withNonNullArg(cannotBeNull:)" has invalid value: Expected value of non-null type "String!" not to be null.'
-              : 'Argument "cannotBeNull" of non-null type "String!" must not be null.',
+            message: 'Argument "cannotBeNull" of non-null type "String!" must not be null.',
             locations: [{ line: 3, column: 42 }],
             path: ['withNonNullArg'],
           },
@@ -664,9 +657,8 @@ describe('Execute: handles non-nullable types', () => {
         },
         errors: [
           {
-            message: isGraphQL17
-              ? 'Argument "Query.withNonNullArg(cannotBeNull:)" has invalid value: Expected variable "$testVar" provided to type "String!" to provide a runtime value.'
-              : 'Argument "cannotBeNull" of required type "String!" was provided the variable "$testVar" which was not provided a runtime value.',
+            message:
+              'Argument "cannotBeNull" of required type "String!" was provided the variable "$testVar" which was not provided a runtime value.',
             locations: [{ line: 3, column: 42 }],
             path: ['withNonNullArg'],
           },
@@ -693,9 +685,7 @@ describe('Execute: handles non-nullable types', () => {
         },
         errors: [
           {
-            message: isGraphQL17
-              ? 'Argument "Query.withNonNullArg(cannotBeNull:)" has invalid value: Expected variable "$testVar" provided to non-null type "String!" not to be null.'
-              : 'Argument "cannotBeNull" of non-null type "String!" must not be null.',
+            message: 'Argument "cannotBeNull" of non-null type "String!" must not be null.',
             locations: [{ line: 3, column: 43 }],
             path: ['withNonNullArg'],
           },
