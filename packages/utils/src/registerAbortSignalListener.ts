@@ -1,9 +1,11 @@
+import weakMemoizee from 'memoizee/weak.js';
 import { fakeRejectPromise } from '@whatwg-node/promise-helpers';
-import { memoize1 } from './memoize.js';
 
 // AbortSignal handler cache to avoid the "possible EventEmitter memory leak detected"
 // on Node.js
-const getListenersOfAbortSignal = memoize1(function getListenersOfAbortSignal(signal: AbortSignal) {
+const getListenersOfAbortSignal = weakMemoizee(function getListenersOfAbortSignal(
+  signal: AbortSignal,
+) {
   const listeners = new Set<EventListener>();
   signal.addEventListener(
     'abort',
@@ -32,7 +34,7 @@ export function registerAbortSignalListener(signal: AbortSignal, listener: () =>
   getListenersOfAbortSignal(signal).add(listener);
 }
 
-export const getAbortPromise = memoize1(function getAbortPromise(signal: AbortSignal) {
+export const getAbortPromise = weakMemoizee(function getAbortPromise(signal: AbortSignal) {
   // If the signal is already aborted, return a rejected promise
   if (signal.aborted) {
     return fakeRejectPromise(signal.reason);

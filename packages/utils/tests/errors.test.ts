@@ -1,5 +1,5 @@
-import { ASTNode, GraphQLError, Kind, versionInfo } from 'graphql';
-import { describeIf, testIf } from '../../../packages/testing/utils';
+import { ASTNode, GraphQLError, Kind } from 'graphql';
+import { describeIf } from '../../../packages/testing/utils';
 import {
   createGraphQLError,
   getSchemaCoordinate,
@@ -23,10 +23,7 @@ describeIf(
       });
 
       expect(newError.path).toEqual(['test', 1, 'id']);
-
-      if (versionInfo.major >= 16) {
-        expect(getSchemaCoordinate(newError)).toEqual('Test.id');
-      }
+      expect(getSchemaCoordinate(newError)).toEqual('Test.id');
     });
   });
 
@@ -40,13 +37,11 @@ describeIf(
       });
       expect(error.nodes).toBe(nodes);
       expect(error.path).toEqual(['test']);
-      if (versionInfo.major >= 16) {
-        expect(error.coordinate).toEqual('Query.test');
-      }
+      expect(error.coordinate).toEqual('Query.test');
     });
   });
 
-  describeIf(versionInfo.major >= 16)('getSchemaCoordinate', () => {
+  describe('getSchemaCoordinate', () => {
     it('should always return the schema coordinate, even when typed as original graphql error', () => {
       const error = new GraphQLError('test');
       expect(getSchemaCoordinate(error)).toBe(undefined);
@@ -77,7 +72,7 @@ describeIf(
       });
     });
 
-    testIf(versionInfo.major >= 16)('should handle coordinate', () => {
+    it('should handle coordinate', () => {
       const error = createGraphQLError('message', {
         coordinate: 'Query.test',
       });

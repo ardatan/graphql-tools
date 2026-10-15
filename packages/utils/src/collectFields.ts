@@ -12,11 +12,25 @@ import {
   SelectionSetNode,
   typeFromAST,
 } from 'graphql';
+import memoizee from 'memoizee';
 import { AccumulatorMap } from './AccumulatorMap.js';
 import { GraphQLDeferDirective } from './directives.js';
 import { getDirectiveValues } from './getDirectiveValues.js';
-import { memoize5 } from './memoize.js';
 import { VariableValues } from './types.js';
+
+const objectIds = new WeakMap<object, string>();
+let objectIdSeq = 0;
+function objectKey(value: unknown): string {
+  if (value != null && (typeof value === 'object' || typeof value === 'function')) {
+    let id = objectIds.get(value as object);
+    if (id == null) {
+      id = `o${++objectIdSeq}`;
+      objectIds.set(value as object, id);
+    }
+    return id;
+  }
+  return JSON.stringify(value);
+}
 
 export interface PatchFields {
   label: string | undefined;
@@ -255,35 +269,49 @@ export function getDeferValues<TVariables = any>(
  * object type returned by that field.
  *
  */
-export const collectSubFields = memoize5(function collectSubfields(
-  schema: GraphQLSchema,
-  fragments: Record<string, FragmentDefinitionNode>,
-  variableValues: VariableValues,
-  returnType: GraphQLObjectType,
-  fieldNodes: Array<FieldNode>,
-): FieldsAndPatches {
-  const subFieldNodes = new AccumulatorMap<string, FieldNode>();
-  const visitedFragmentNames = new Set<string>();
+export const collectSubFields = memoizee(
+  function collectSubfields(
+    schema: GraphQLSchema,
+    fragments: Record<string, FragmentDefinitionNode>,
+    variableValues: VariableValues,
+    returnType: GraphQLObjectType,
+    fieldNodes: Array<FieldNode>,
+  ): FieldsAndPatches {
+    const subFieldNodes = new AccumulatorMap<string, FieldNode>();
+    const visitedFragmentNames = new Set<string>();
 
-  const subPatches: Array<PatchFields> = [];
-  const subFieldsAndPatches = {
-    fields: subFieldNodes,
-    patches: subPatches,
-  };
+    const subPatches: Array<PatchFields> = [];
+    const subFieldsAndPatches = {
+      fields: subFieldNodes,
+      patches: subPatches,
+    };
 
-  for (const node of fieldNodes) {
-    if (node.selectionSet) {
-      collectFieldsImpl(
-        schema,
-        fragments,
-        variableValues,
-        returnType,
-        node.selectionSet,
-        subFieldNodes,
-        subPatches,
-        visitedFragmentNames,
-      );
+    for (const node of fieldNodes) {
+      if (node.selectionSet) {
+        collectFieldsImpl(
+          schema,
+          fragments,
+          variableValues,
+          returnType,
+          node.selectionSet,
+          subFieldNodes,
+          subPatches,
+          visitedFragmentNames,
+        );
+      }
     }
-  }
-  return subFieldsAndPatches;
-});
+    return subFieldsAndPatches;
+  },
+  {
+    length: 5,
+    normalizer(args: any) {
+      return [
+        objectKey(args[0]),
+        objectKey(args[1]),
+        objectKey(args[2]),
+        objectKey(args[3]),
+        objectKey(args[4]),
+      ].join('|');
+    },
+  },
+);

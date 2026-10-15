@@ -1,11 +1,11 @@
 import { getOperationAST, GraphQLSchema } from 'graphql';
+import weakMemoizee from 'memoizee/weak.js';
 import {
   ExecutionRequest,
   ExecutionResult,
   Executor,
   MaybeAsyncIterable,
   MaybePromise,
-  memoize1,
 } from '@graphql-tools/utils';
 import { handleMaybePromise } from '@whatwg-node/promise-helpers';
 import {
@@ -37,7 +37,7 @@ export function normalizedExecutor<TData = any, TVariables = any, TContext = any
   );
 }
 
-export const executorFromSchema = memoize1(function executorFromSchema(
+export const executorFromSchema = weakMemoizee(function executorFromSchema(
   schema: GraphQLSchema,
 ): Executor {
   return function schemaExecutor(request: ExecutionRequest) {

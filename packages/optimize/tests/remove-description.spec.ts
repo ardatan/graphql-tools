@@ -108,8 +108,7 @@ scalar TestScalar
   });
 
   it('should remove descriptions from operations, variables, and fragments', () => {
-    // Attach description nodes manually so the fixture works on GraphQL versions
-    // that cannot parse executable descriptions in SDL (e.g. graphql@15).
+    // Attach description nodes manually for a stable fixture shape.
     const doc = parse(/* GraphQL */ `
       query user($id: ID!) {
         user(id: $id) {

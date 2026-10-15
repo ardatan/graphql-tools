@@ -1,6 +1,5 @@
 import { existsSync, promises as fsPromises, readFileSync } from 'fs';
 import { basename, join, resolve } from 'path';
-import globby from 'globby';
 import { Kind, parse, print, visit, type DocumentNode } from 'graphql';
 import memoizee from 'memoizee';
 import unixify from 'unixify';
@@ -8,6 +7,7 @@ import {
   gqlPluckFromCodeStringSync,
   type GraphQLTagPluckOptions,
 } from '@graphql-tools/graphql-tag-pluck';
+import { matchFiles, matchFilesSync } from '@graphql-tools/load-files';
 
 const { readFile } = fsPromises;
 
@@ -267,7 +267,7 @@ function buildPackageFragmentMapRaw(
   const ignorePatterns = excludePatterns.map(p => `!${p}`);
 
   const allFiles = dirs.flatMap(dir =>
-    globby.sync([unixify(sourceGlob), ...ignorePatterns.map(unixify)], {
+    matchFilesSync([unixify(sourceGlob), ...ignorePatterns.map(unixify)], {
       cwd: dir,
       absolute: true,
     }),
@@ -306,7 +306,7 @@ async function buildPackageFragmentMapAsyncRaw(
   const allFiles = (
     await Promise.all(
       dirs.map(dir =>
-        globby([unixify(sourceGlob), ...ignorePatterns.map(unixify)], {
+        matchFiles([unixify(sourceGlob), ...ignorePatterns.map(unixify)], {
           cwd: dir,
           absolute: true,
         }),

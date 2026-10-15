@@ -8,11 +8,9 @@ import { astFromValue } from './astFromValue.js';
 import { astFromValueUntyped } from './astFromValueUntyped.js';
 
 /**
- * `defaultValueAstFromType` extracts default value from `GraphQLArgument` or `GraphQLInputField`, if available
- * This is compatible with all `graphql` versions
+ * `defaultValueAstFromType` extracts default value from `GraphQLArgument` or `GraphQLInputField`, if available.
  *
- * The return type is `ConstValueNode` in graphql@16+,
- * but it is not available in graphql@15 so `ValueNode` is used as return type here and `as any` is often required at callsites for backwards compatibility,
+ * Handles both graphql@16 (`defaultValue`) and graphql@17 (`default`) shapes.
  */
 export const defaultValueAstFromType = (
   arg: GraphQLArgument | GraphQLInputField,

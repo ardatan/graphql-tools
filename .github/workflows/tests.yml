@@ -16,27 +16,6 @@ on:
   pull_request:
 
 jobs:
-  typecheck-15:
-    name: Type Check on GraphQL v15
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Master
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Setup env
-        uses: the-guild-org/shared-config/setup@v1
-        with:
-          node-version-file: .node-version
-
-      - name: Use GraphQL v15
-        run: |
-          node ./scripts/match-graphql.js 15
-          npm install
-          git checkout package-lock.json
-          npx rimraf packages/**/*/node_modules/graphql
-          npx rimraf packages/executor/node_modules/graphql
-      - name: Type Check
-        run: npm run ts:check
   typecheck-16:
     name: Type Check on GraphQL v16
     runs-on: ubuntu-latest
@@ -86,15 +65,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest] # remove windows to speed up the tests
-        node-version: [18, 22, 24]
+        node-version: [22, 24]
         graphql_version:
-          - 15
           - 16
           - 17
-        exclude:
-          # graphql@17 requires Node 22+
-          - node-version: 18
-            graphql_version: 17
     steps:
       - name: Checkout Master
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

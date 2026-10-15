@@ -38,57 +38,20 @@ describe('helpers', () => {
 });
 
 describe('isUrl', () => {
-  function testCases() {
-    it.each([
-      'https://example.com',
-      'http://localhost:3000',
-      'file:///path/to/file',
-      'http://user:pass@host.com:8080/path?query=string#hash',
-    ])('should validate valid URL: %s', url => {
-      expect(isUrl(url)).toBe(true);
-    });
-
-    it.each(['not-a-url', 'invalid://host', 'http://[invalid]', 1, false, {}])(
-      'should reject invalid URL: %s',
-      url => {
-        // @ts-expect-error - Testing
-        expect(isUrl(url)).toBe(false);
-      },
-    );
-  }
-  describe('when URL.canParse is available', () => {
-    const originalCanParse = URL.canParse;
-
-    beforeAll(() => {
-      // Mock URL.canParse
-      URL.canParse = jest.fn((url: string) => {
-        try {
-          return !!new URL(url);
-        } catch {
-          return false;
-        }
-      });
-    });
-
-    afterAll(() => {
-      // Restore original URL.canParse
-      URL.canParse = originalCanParse;
-    });
-    testCases();
+  it.each([
+    'https://example.com',
+    'http://localhost:3000',
+    'file:///path/to/file',
+    'http://user:pass@host.com:8080/path?query=string#hash',
+  ])('should validate valid URL: %s', url => {
+    expect(isUrl(url)).toBe(true);
   });
 
-  describe('when URL.canParse is not available', () => {
-    const originalCanParse = URL.canParse;
-
-    beforeAll(() => {
-      // @ts-expect-error - Remove URL.canParse
-      URL.canParse = undefined;
-    });
-
-    afterAll(() => {
-      // Restore URL.canParse
-      URL.canParse = originalCanParse;
-    });
-    testCases();
-  });
+  it.each(['not-a-url', 'invalid://host', 'http://[invalid]', 1, false, {}])(
+    'should reject invalid URL: %s',
+    url => {
+      // @ts-expect-error - Testing
+      expect(isUrl(url)).toBe(false);
+    },
+  );
 });

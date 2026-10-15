@@ -1,17 +1,36 @@
-import { memoize2 } from './memoize.js';
+import memoizee from 'memoizee';
 
 async function defaultAsyncIteratorReturn(value?: any) {
   return { value, done: true } as const;
 }
 
-const proxyMethodFactory = memoize2(function proxyMethodFactory<
-  T,
-  TMethod extends T[keyof T] & ((...args: any[]) => any),
->(target: T, targetMethod: TMethod) {
-  return function proxyMethod(...args: Parameters<TMethod>) {
-    return Reflect.apply(targetMethod, target, args);
-  };
-});
+const objectIds = new WeakMap<object, string>();
+let objectIdSeq = 0;
+function objectKey(value: unknown): string {
+  if (value != null && (typeof value === 'object' || typeof value === 'function')) {
+    let id = objectIds.get(value as object);
+    if (id == null) {
+      id = `o${++objectIdSeq}`;
+      objectIds.set(value as object, id);
+    }
+    return id;
+  }
+  return JSON.stringify(value);
+}
+
+const proxyMethodFactory = memoizee(
+  function proxyMethodFactory(target: object, targetMethod: (...args: any[]) => any) {
+    return function proxyMethod(...args: any[]) {
+      return Reflect.apply(targetMethod, target, args);
+    };
+  },
+  {
+    length: 2,
+    normalizer(args: any) {
+      return objectKey(args[0]) + '|' + objectKey(args[1]);
+    },
+  },
+);
 
 export function getAsyncIteratorWithCancel<T, TReturn = any>(
   asyncIterator: AsyncIterator<T>,
@@ -33,7 +52,7 @@ export function getAsyncIteratorWithCancel<T, TReturn = any>(
           return Reflect.apply(existingReturn, asyncIterator, [returnValue]);
         };
       } else if (typeof existingPropValue === 'function') {
-        return proxyMethodFactory(asyncIterator, existingPropValue);
+        return proxyMethodFactory(asyncIterator, existingPropValue as (...args: any[]) => any);
       }
       return existingPropValue;
     },
@@ -61,7 +80,7 @@ export function getAsyncIterableWithCancel<
           return getAsyncIteratorWithCancel(asyncIterator, onCancel);
         };
       } else if (typeof existingPropValue === 'function') {
-        return proxyMethodFactory<any, any>(asyncIterable, existingPropValue);
+        return proxyMethodFactory(asyncIterable, existingPropValue as (...args: any[]) => any);
       }
       return existingPropValue;
     },

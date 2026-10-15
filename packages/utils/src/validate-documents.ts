@@ -7,7 +7,6 @@ import {
   specifiedRules,
   validate,
   ValidationContext,
-  versionInfo,
 } from 'graphql';
 
 export type ValidationRule = (context: ValidationContext) => ASTVisitor;
@@ -45,10 +44,6 @@ export function validateGraphQlDocuments(
 }
 
 export function createDefaultRules() {
-  let ignored = ['NoUnusedFragmentsRule', 'NoUnusedVariablesRule', 'KnownDirectivesRule'];
-  if (versionInfo.major < 15) {
-    ignored = ignored.map(rule => rule.replace(/Rule$/, ''));
-  }
-
+  const ignored = ['NoUnusedFragmentsRule', 'NoUnusedVariablesRule', 'KnownDirectivesRule'];
   return specifiedRules.filter((f: (...args: any[]) => any) => !ignored.includes(f.name));
 }

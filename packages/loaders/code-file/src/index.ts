@@ -2,8 +2,6 @@ import { existsSync, promises as fsPromises, readFileSync } from 'fs';
 import { createRequire } from 'module';
 import { isAbsolute, resolve } from 'path';
 import { cwd, env } from 'process';
-import type { GlobbyOptions } from 'globby';
-import globby from 'globby';
 import { DocumentNode, GraphQLSchema, isSchema, parse } from 'graphql';
 import unixify from 'unixify';
 import {
@@ -11,6 +9,7 @@ import {
   gqlPluckFromCodeStringSync,
   GraphQLTagPluckOptions,
 } from '@graphql-tools/graphql-tag-pluck';
+import { matchFiles, matchFilesSync } from '@graphql-tools/load-files';
 import {
   asArray,
   BaseLoaderOptions,
@@ -59,10 +58,6 @@ const FILE_EXTENSIONS = [
   '.gts',
   '.gjs',
 ];
-
-function createGlobbyOptions(options: CodeFileLoaderOptions): GlobbyOptions {
-  return { absolute: true, ...options, ignore: [] };
-}
 
 const buildIgnoreGlob = (path: string) => `!${path}`;
 
@@ -139,13 +134,13 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
   async resolveGlobs(glob: string, options: CodeFileLoaderOptions) {
     options = this.getMergedOptions(options);
     const globs = this._buildGlobs(glob, options);
-    return globby(globs, createGlobbyOptions(options));
+    return matchFiles(globs, { absolute: true, cwd: options.cwd });
   }
 
   resolveGlobsSync(glob: string, options: CodeFileLoaderOptions) {
     options = this.getMergedOptions(options);
     const globs = this._buildGlobs(glob, options);
-    return globby.sync(globs, createGlobbyOptions(options));
+    return matchFilesSync(globs, { absolute: true, cwd: options.cwd });
   }
 
   async load(pointer: string, options: CodeFileLoaderOptions): Promise<Source[]> {

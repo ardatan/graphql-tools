@@ -1,6 +1,6 @@
 import { DocumentNode, getOperationAST, OperationDefinitionNode } from 'graphql';
+import weakMemoizee from 'memoizee/weak.js';
 import { ExecutionRequest } from './Interfaces.js';
-import { memoize1 } from './memoize.js';
 
 export function getOperationASTFromDocument(
   documentNode: DocumentNode,
@@ -13,7 +13,7 @@ export function getOperationASTFromDocument(
   return doc;
 }
 
-export const getOperationASTFromRequest = memoize1(function getOperationASTFromRequest(
+export const getOperationASTFromRequest = weakMemoizee(function getOperationASTFromRequest(
   request: ExecutionRequest,
 ) {
   return getOperationASTFromDocument(request.document, request.operationName);

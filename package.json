@@ -45,6 +45,9 @@
     "ts:check": "tsc --noEmit",
     "version": "npx changeset version"
   },
+  "dependencies": {
+    "@graphql-tools/batch-execute": "^10.2.0"
+  },
   "optionalDependencies": {
     "bun": "1.4.3"
   },
@@ -84,7 +87,6 @@
     "eslint-plugin-n": "18.4.1",
     "eslint-plugin-promise": "7.3.0",
     "globals": "17.13.0",
-    "globby": "11.1.0",
     "graphql": "17.0.2",
     "graphql-yoga": "5.24.4",
     "husky": "9.1.7",

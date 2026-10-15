@@ -1,4 +1,4 @@
-import { locatedError as _locatedError, ASTNode, GraphQLError, Source, versionInfo } from 'graphql';
+import { locatedError as _locatedError, ASTNode, GraphQLError, Source } from 'graphql';
 import { Maybe } from './types.js';
 
 interface GraphQLErrorOptions {
@@ -46,6 +46,11 @@ export function isGraphQLErrorLike(error: any) {
   );
 }
 
+/**
+ * Thin helper around `new GraphQLError(message, options)`.
+ * Prefer `new GraphQLError` for ordinary errors; this remains for the experimental
+ * `coordinate` field and for coercing GraphQLError-like plain objects used as `originalError`.
+ */
 export function createGraphQLError(message: string, options?: GraphQLErrorOptions): GraphQLError {
   if (
     options?.originalError &&
@@ -58,20 +63,7 @@ export function createGraphQLError(message: string, options?: GraphQLErrorOption
     );
   }
 
-  // To avoid type error on graphql <16, we have to use an any type here
-  const Constructor = GraphQLError as any;
-  const error: GraphQLError =
-    versionInfo.major >= 16
-      ? new Constructor(message, options)
-      : new Constructor(
-          message,
-          options?.nodes,
-          options?.source,
-          options?.positions,
-          options?.path,
-          options?.originalError,
-          options?.extensions,
-        );
+  const error: GraphQLError = new GraphQLError(message, options);
 
   if (options?.coordinate && error.coordinate == null) {
     Object.defineProperties(error, {

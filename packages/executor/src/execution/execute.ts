@@ -3,6 +3,7 @@ import {
   DocumentNode,
   FieldNode,
   FragmentDefinitionNode,
+  getArgumentValues,
   GraphQLAbstractType,
   GraphQLError,
   GraphQLField,
@@ -26,13 +27,14 @@ import {
   TypeNameMetaFieldDef,
   versionInfo,
 } from 'graphql';
+import memoizee from 'memoizee';
+import weakMemoizee from 'memoizee/weak.js';
 import {
   collectSubFields as _collectSubfields,
   addPath,
   collectFields,
   createGraphQLError,
   fakePromise,
-  getArgumentValues,
   getDefinedRootType,
   getDirectiveValues,
   GraphQLResolveInfo,
@@ -46,8 +48,6 @@ import {
   mapAsyncIterator,
   Maybe,
   MaybePromise,
-  memoize1,
-  memoize3,
   Path,
   pathToArray,
   promiseReduce,
@@ -55,7 +55,7 @@ import {
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
-import { createDeferredPromise, handleMaybePromise } from '@whatwg-node/promise-helpers';
+import { handleMaybePromise } from '@whatwg-node/promise-helpers';
 import { coerceError } from './coerceError.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import { invariant } from './invariant.js';
@@ -68,12 +68,26 @@ export interface SingularExecutionResult<TData = any, TExtensions = any> {
   extensions?: TExtensions;
 }
 
+const objectIds = new WeakMap<object, string>();
+let objectIdSeq = 0;
+function objectKey(value: unknown): string {
+  if (value != null && (typeof value === 'object' || typeof value === 'function')) {
+    let id = objectIds.get(value as object);
+    if (id == null) {
+      id = `o${++objectIdSeq}`;
+      objectIds.set(value as object, id);
+    }
+    return id;
+  }
+  return JSON.stringify(value);
+}
+
 /**
  * A memoized collection of relevant subfields with regard to the return
  * type. Memoizing ensures the subfields are not repeatedly calculated, which
  * saves overhead when resolving lists of values.
  */
-const collectSubfields = memoize3(
+const collectSubfields = memoizee(
   (exeContext: ExecutionContext, returnType: GraphQLObjectType, fieldNodes: Array<FieldNode>) =>
     _collectSubfields(
       exeContext.schema,
@@ -82,8 +96,13 @@ const collectSubfields = memoize3(
       returnType,
       fieldNodes,
     ),
+  {
+    length: 3,
+    normalizer(args: any) {
+      return objectKey(args[0]) + '|' + objectKey(args[1]) + '|' + objectKey(args[2]);
+    },
+  },
 );
-
 // This file contains a lot of such errors but we plan to refactor it anyway
 // so just disable it for entire file.
 
@@ -387,7 +406,7 @@ export function assertValidExecutionArguments<TVariables>(
   );
 }
 
-export const getFragmentsFromDocument = memoize1(function getFragmentsFromDocument(
+export const getFragmentsFromDocument = weakMemoizee(function getFragmentsFromDocument(
   document: DocumentNode,
 ): Record<string, FragmentDefinitionNode> {
   const fragments: Record<string, FragmentDefinitionNode> = Object.create(null);
@@ -502,7 +521,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
 
   if (signal) {
     const listeners = new Set<() => void>();
-    const signalDeferred = createDeferredPromise<never>();
+    const signalDeferred = Promise.withResolvers<never>();
     signalPromise = signalDeferred.promise;
     const sharedListener = () => {
       signalDeferred.reject(signal.reason);
@@ -720,8 +739,10 @@ function executeField(
     const args = getArgumentValues(
       fieldDef,
       fieldNodes[0],
-      exeContext.variableValues.coerced,
-      exeContext.variableValues.sources,
+      // graphql@17 expects VariableValues; graphql@16 expects the flat coerced map.
+      (versionInfo.major >= 17
+        ? exeContext.variableValues
+        : exeContext.variableValues.coerced) as any,
     );
 
     // The resolve function's optional third argument is a context value that
@@ -1387,15 +1408,10 @@ function ensureValidRuntimeType(
     );
   }
 
-  // releases before 16.0.0 supported returning `GraphQLObjectType` from `resolveType`
-  // TODO: remove in 17.0.0 release
   if (isObjectType(runtimeTypeName)) {
-    if (versionInfo.major >= 16) {
-      throw createGraphQLError(
-        'Support for returning GraphQLObjectType from resolveType was removed in graphql-js@16.0.0 please return type name instead.',
-      );
-    }
-    runtimeTypeName = runtimeTypeName.name;
+    throw createGraphQLError(
+      'Support for returning GraphQLObjectType from resolveType was removed in graphql-js@16.0.0 please return type name instead.',
+    );
   }
 
   if (typeof runtimeTypeName !== 'string') {
@@ -1847,8 +1863,7 @@ function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIt
     const args = getArgumentValues(
       fieldDef,
       fieldNodes[0],
-      variableValues.coerced,
-      variableValues.sources,
+      (versionInfo.major >= 17 ? variableValues : variableValues.coerced) as any,
     );
 
     // The resolve function's optional third argument is a context value that

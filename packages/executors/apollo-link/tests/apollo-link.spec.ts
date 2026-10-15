@@ -1,15 +1,13 @@
 import { setTimeout } from 'timers/promises';
-import { parse, versionInfo } from 'graphql';
+import { parse } from 'graphql';
 import { createSchema, createYoga, DisposableSymbols, Repeater } from 'graphql-yoga';
 import { ApolloClient, InMemoryCache } from '@apollo/client/core';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
-import { createDeferred } from '@graphql-tools/utils';
 import { testIf } from '../../../testing/utils.js';
 import { ExecutorLink } from '../src/index.js';
 
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip);
-describeIf(versionInfo.major >= 16)('Apollo Link', () => {
-  const { promise: waitForPingStop, resolve: pingStop } = createDeferred<void>();
+describe('Apollo Link', () => {
+  const { promise: waitForPingStop, resolve: pingStop } = Promise.withResolvers<void>();
   const yoga = createYoga({
     logging: false,
     maskedErrors: false,

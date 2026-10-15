@@ -5,7 +5,6 @@ export * from './get-fields-with-directives.js';
 export * from './get-arguments-with-directives.js';
 export * from './get-implementing-types.js';
 export * from './print-schema-with-directives.js';
-export * from './get-fields-with-directives.js';
 export * from './validate-documents.js';
 export * from './parse-graphql-json.js';
 export * from './parse-graphql-sdl.js';
@@ -34,7 +33,6 @@ export * from './implementsAbstractType.js';
 export * from './errors.js';
 export * from './observableToAsyncIterable.js';
 export * from './visitResult.js';
-export * from './getArgumentValues.js';
 export * from './valueMatchesCriteria.js';
 export * from './isAsyncIterable.js';
 export * from './isDocumentNode.js';
@@ -56,10 +54,6 @@ export * from './mergeIncrementalResult.js';
 export * from './debugTimer.js';
 export * from './getDirectiveExtensions.js';
 export { mapMaybePromise } from './jsutils.js';
-export {
-  mapAsyncIterator,
-  fakePromise,
-  createDeferredPromise as createDeferred,
-} from '@whatwg-node/promise-helpers';
+export { mapAsyncIterator, fakePromise } from '@whatwg-node/promise-helpers';
 export * from './registerAbortSignalListener.js';
 export * from './getDirectiveValues.js';

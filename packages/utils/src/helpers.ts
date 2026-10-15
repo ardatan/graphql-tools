@@ -7,10 +7,6 @@ const URL_REGEXP = /^(https?|wss?|file):\/\//;
  *
  * @param str - The string to validate as a URL
  * @returns A boolean indicating whether the string is a valid URL
- *
- * @remarks
- * This function first attempts to use the `URL.canParse` method if available.
- * If not, it falls back to creating a new `URL` object to validate the string.
  */
 export function isUrl(str: string): boolean {
   if (typeof str !== 'string') {
@@ -19,15 +15,7 @@ export function isUrl(str: string): boolean {
   if (!URL_REGEXP.test(str)) {
     return false;
   }
-  if (URL.canParse) {
-    return URL.canParse(str);
-  }
-  try {
-    const url = new URL(str);
-    return !!url;
-  } catch (e) {
-    return false;
-  }
+  return URL.canParse(str);
 }
 
 export const asArray = <T>(fns: T | T[]) => (Array.isArray(fns) ? fns : fns ? [fns] : []);

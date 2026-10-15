@@ -1,13 +1,13 @@
 import { setTimeout } from 'timers/promises';
 import { createSchema, createYoga } from 'graphql-yoga';
-import { createDeferred, fakePromise, GraphQLResolveInfo } from '@graphql-tools/utils';
+import { fakePromise, GraphQLResolveInfo } from '@graphql-tools/utils';
 import { patchSymbols } from '@whatwg-node/disposablestack';
 
 patchSymbols();
 
 describe('getAsyncHelpers().track with Yoga', () => {
   it('registers tracked work with Yoga waitUntil so dispose waits for it', async () => {
-    const deferred = createDeferred<void>();
+    const deferred = Promise.withResolvers<void>();
 
     const yoga = createYoga({
       logging: false,
