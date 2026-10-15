@@ -440,6 +440,23 @@ describe('Execute: Handles inputs', () => {
         });
       });
 
+      it('errors on array for input-object variable (does not coerce [] to {})', () => {
+        // Snapshotting must not spread arrays into plain objects, or `[]` becomes
+        // `{}` and may incorrectly pick up input-field defaults.
+        const result = executeQuery(doc, { input: [] });
+
+        expectJSON(result).toDeepEqual({
+          errors: [
+            {
+              message: isGraphQL17
+                ? 'Variable "$input" got invalid value []; Expected value of type "TestInputObject" to be an object, found: [].'
+                : 'Variable "$input" got invalid value []; Expected type "TestInputObject" to be an object.',
+              locations: [{ line: 2, column: 16 }],
+            },
+          ],
+        });
+      });
+
       it('errors on omission of nested non-null', () => {
         const result = executeQuery(doc, { input: { a: 'foo', b: 'bar' } });
 

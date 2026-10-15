@@ -1,10 +1,10 @@
 import {
   coerceInputValue,
-  GraphQLInputType,
   GraphQLError,
+  GraphQLInputType,
   GraphQLSchema,
-  isInputType,
   isInputObjectType,
+  isInputType,
   isListType,
   isNonNullType,
   NamedTypeNode,
@@ -173,7 +173,9 @@ function snapshotInputValue(value: unknown, type: GraphQLInputType): unknown {
     }
     return Array.from(value, item => snapshotInputValue(item, type.ofType));
   }
-  if (isInputObjectType(type) && typeof value === 'object') {
+  // Arrays are objects in JS; do not spread them into `{}` or invalid list
+  // inputs (e.g. `[]` for an input object) would be accepted after defaults.
+  if (isInputObjectType(type) && typeof value === 'object' && !Array.isArray(value)) {
     const snapshot = { ...(value as Record<string, unknown>) };
     for (const field of Object.values(type.getFields())) {
       const fieldValue = (value as Record<string, unknown>)[field.name];
