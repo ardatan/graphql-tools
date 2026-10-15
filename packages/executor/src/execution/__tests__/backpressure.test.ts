@@ -1,7 +1,6 @@
-import { inspect } from 'cross-inspect';
 import { parse } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { isAsyncIterable } from '@graphql-tools/utils';
+import { inspect, isAsyncIterable } from '@graphql-tools/utils';
 import { Repeater } from '@repeaterjs/repeater';
 import { normalizedExecutor } from '../normalizedExecutor';
 

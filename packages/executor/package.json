@@ -60,7 +60,6 @@
     "@repeaterjs/repeater": "^3.1.0",
     "@whatwg-node/disposablestack": "^0.1.0",
     "@whatwg-node/promise-helpers": "^2.0.0",
-    "cross-inspect": "1.0.1",
     "memoizee": "^0.4.17",
     "tslib": "^2.4.0"
   },

@@ -1,4 +1,3 @@
-import { inspect } from 'cross-inspect';
 import {
   assertValidSchema,
   DocumentNode,
@@ -37,6 +36,7 @@ import {
   getDirectiveValues,
   GraphQLResolveInfo,
   GraphQLStreamDirective,
+  inspect,
   isAsyncIterable,
   isIterableObject,
   isObjectLike,

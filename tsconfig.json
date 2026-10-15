@@ -28,7 +28,6 @@
     "types": ["node", "jest"],
 
     "paths": {
-      "cross-inspect": ["./packages/inspect/src/index.ts"],
       "@graphql-tools/*-loader": [
         "./packages/loaders/*/src/index.ts",
         "./packages/*-loader/src/index.ts"

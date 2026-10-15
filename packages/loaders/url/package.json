@@ -71,7 +71,6 @@
     "@types/express": "5.0.6",
     "@types/valid-url": "1.0.7",
     "babel-loader": "10.1.1",
-    "cross-inspect": "1.0.1",
     "express": "5.3.0",
     "graphql-sse": "2.6.2",
     "graphql-upload": "18.0.1",

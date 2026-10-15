@@ -1,5 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { inspect } from 'cross-inspect';
 import {
   GraphQLBoolean,
   GraphQLEnumType,
@@ -17,6 +15,7 @@ import {
   valueFromASTUntyped,
   versionInfo,
 } from 'graphql';
+import { inspect } from '@graphql-tools/utils';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
 import { execute, executeSync } from '../execute.js';

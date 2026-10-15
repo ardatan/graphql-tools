@@ -1,5 +1,4 @@
 ---
-'cross-inspect': major
 'graphql-tools': major
 '@graphql-tools/apollo-engine-loader': major
 '@graphql-tools/code-file-loader': major
@@ -40,6 +39,7 @@ Drop GraphQL v14/v15 and require Node.js >= 22.
 - Peer dependency on `graphql` is now `^16.0.0 || ^17.0.0`.
 - Engines require `node: >=22.14.0` (needed for `fs.glob` string-array `exclude` / `withFileTypes`).
 - CI test matrix: Node 22/24 × GraphQL 16/17.
+- The `cross-inspect` package is discontinued. Use `inspect` from `@graphql-tools/utils` (Node `util.inspect` via `process.getBuiltinModule`, with a small `JSON.stringify` fallback).
 
 ### Removed exports and replacements
 
@@ -51,7 +51,6 @@ Drop GraphQL v14/v15 and require Node.js >= 22.
 | `createGraphQLError` | `new GraphQLError(message, options)` from `graphql` |
 | `mapMaybePromise` | `handleMaybePromise` from `@whatwg-node/promise-helpers` |
 | `isPromise` / `fakePromise` / `mapAsyncIterator` / `MaybePromise` | `@whatwg-node/promise-helpers` |
-| `inspect` | `cross-inspect` |
 | `registerAbortSignalListener` / `getAbortPromise` | `AbortSignal` / `AbortSignal.any` / `signal.throwIfAborted()`, or a single `signal.addEventListener('abort', …, { once: true })` |
 | `withCancel` / `getAsyncIterableWithCancel` / `getAsyncIteratorWithCancel` | Wire cancellation on the async iterator’s `return()` (or your transport’s abort path) directly |
 | `PromiseWithResolvers` (type) | Built-in `PromiseWithResolvers<T>` / return type of `Promise.withResolvers()` |
@@ -92,4 +91,4 @@ For primitive-key caches, use `memoizee` with `{ primitive: true }` instead.
 
 - Removed GraphQL <16 branches (error construction, validation rule name suffixes, `URL.canParse` fallback).
 - Root `globby` usage in `scripts/build-api-docs.mts` replaced with `fs.globSync`.
-- `cross-inspect` prefers `process.getBuiltinModule('util').inspect` on Node and keeps the graphql-js ponyfill elsewhere.
+- `inspect` in `@graphql-tools/utils` uses Node `util.inspect` when available and falls back to `JSON.stringify` / `String`.
