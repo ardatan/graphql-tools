@@ -1,5 +1,18 @@
 # @graphql-tools/executor
 
+## 2.0.5
+
+### Patch Changes
+
+- [#8445](https://github.com/ardatan/graphql-tools/pull/8445) [`82457d1`](https://github.com/ardatan/graphql-tools/commit/82457d1f5ba4b4fa7ec475e9cc3713a0b2b139e8) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+    - Updated dependency [`@graphql-tools/utils@^12.0.4` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/12.0.4) (from `^12.0.3`, in `dependencies`)
+
+- [#8471](https://github.com/ardatan/graphql-tools/pull/8471) [`7c71575`](https://github.com/ardatan/graphql-tools/commit/7c7157556fa4f7d2f1471b09584af631f5289154) Thanks [@kruckenberg](https://github.com/kruckenberg)! - Preserve response field order when asynchronous resolvers complete, including in deferred data and streamed items.
+
+- [#8513](https://github.com/ardatan/graphql-tools/pull/8513) [`98673c3`](https://github.com/ardatan/graphql-tools/commit/98673c3531ce0a1b5f5f89e99b3554da5581418d) Thanks [@ardatan](https://github.com/ardatan)! - fix(utils): coerce GraphQL 17 argument defaults in getArgumentValues via local input coercion (defaults, missing variables, nested sources)
+- Updated dependencies [[`98673c3`](https://github.com/ardatan/graphql-tools/commit/98673c3531ce0a1b5f5f89e99b3554da5581418d), [`a75d725`](https://github.com/ardatan/graphql-tools/commit/a75d72530f07f6162b45a5627964188cac4cea8b), [`82457d1`](https://github.com/ardatan/graphql-tools/commit/82457d1f5ba4b4fa7ec475e9cc3713a0b2b139e8)]:
+  - @graphql-tools/utils@12.1.0
+
 ## 2.0.4
 
 ### Patch Changes
