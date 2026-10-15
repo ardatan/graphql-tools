@@ -888,8 +888,8 @@ describe('Execute: Handles inputs', () => {
       });
       const coerced = getVariableValues(schema, variableDefinitions, { input: value });
       expect(coerced.errors).toBeUndefined();
-      const variableValues = coerced.variableValues as
-        { input: unknown } | { coerced: { input: unknown } };
+      const variableValues = coerced.variableValues as unknown as
+        { input: unknown } | { coerced: { input: unknown } } | undefined;
       const inputValue =
         variableValues && 'coerced' in variableValues
           ? variableValues.coerced.input
