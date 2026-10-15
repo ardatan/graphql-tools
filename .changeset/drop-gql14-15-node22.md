@@ -38,7 +38,7 @@ Drop GraphQL v14/v15 support and require Node.js >= 22.18.
 
 - `graphql` peer range is now `^16.0.0 || ^17.0.0`.
 - `engines.node` is now `>=22.18.0` (Node `fs.glob` + Babel 8).
-- Dev tooling and `@graphql-tools/graphql-tag-pluck` move to Babel 8 (`@babel/core` / parser / traverse / types). Jest stays on 30.4.x (same as whatwg-node); CI `--detectLeaks` uses a disposable warmup isolate + custom runner/sequencer so Babel 8’s first-isolate retention is not reported as an app leak.
+- Dev tooling and `@graphql-tools/graphql-tag-pluck` move to Babel 8 (`@babel/core` / parser / traverse / types).
 - The standalone `cross-inspect` package is discontinued. Use `inspect` from `@graphql-tools/utils` instead (Node `util.inspect` via `process.getBuiltinModule`, with a small `JSON.stringify` / `String` fallback).
 
 ### Removed `@graphql-tools/utils` exports
@@ -71,19 +71,6 @@ Directory symlinks are followed for recursive (`**`) patterns:
 - On Node.js ≥26.1 (and ≥24.16 where backported), `fs.glob` `followSymlinks` is used.
 - On older engines, symlink directories are discovered only under each pattern’s literal prefix (not the whole `cwd`) and patterns are re-rooted.
 - Non-recursive / literal patterns skip the symlink walk entirely.
-
-### Memoization
-
-Keep using the WeakMap helpers from `@graphql-tools/utils` for object-identity caches (cheaper hits than nested `memoizee/weak`):
-
-```ts
-import { memoize1, memoize2, memoize3 } from '@graphql-tools/utils';
-
-const bySchema = memoize1((schema: GraphQLSchema) => /* ... */);
-const byTwo = memoize2((a: A, b: B) => /* ... */);
-```
-
-For primitive-key caches (e.g. string paths), use `memoizee` with `{ primitive: true }` in the package that needs it — utils does not depend on `memoizee`.
 
 `@graphql-tools/executor` hot-path caches (`collectSubfields`, argument coercion, `@stream` detection) use `memoize2` / `memoize3` from utils. `collectSubFields` in utils stays unmemoized so the executor can own a single memoize3 layer.
 
