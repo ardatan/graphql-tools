@@ -1,0 +1,254 @@
+import {
+  buildSchema,
+  FieldNode,
+  GraphQLEnumType,
+  GraphQLField,
+  GraphQLInputObjectType,
+  GraphQLInt,
+  GraphQLObjectType,
+  GraphQLScalarType,
+  GraphQLSchema,
+  GraphQLString,
+  Kind,
+  OperationDefinitionNode,
+  parse,
+  valueFromASTUntyped,
+  versionInfo,
+} from 'graphql';
+import { getArgumentValues } from '../src/getArgumentValues.js';
+
+function fieldNodeFrom(query: string): FieldNode {
+  const doc = parse(query);
+  const op = doc.definitions[0] as OperationDefinitionNode;
+  return op.selectionSet.selections[0] as FieldNode;
+}
+
+// These tests exercise graphql-js@17's `default` / `coerceInputLiteral`
+// mechanism. On older versions, schemas use legacy `defaultValue` and
+// argument coercion takes `valueFromAST`, so skip rather than assert on
+// that unrelated path.
+(versionInfo.major >= 17 ? describe : describe.skip)('getArgumentValues (graphql-js@17)', () => {
+  it('coerces an enum default.literal to the enum internal value', () => {
+    const Shade = new GraphQLEnumType({
+      name: 'Shade',
+      values: {
+        LIGHT: { value: 'light-shade' },
+        DARK: { value: 'dark-shade' },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          shade: {
+            type: GraphQLString,
+            args: {
+              s: {
+                type: Shade,
+                default: { literal: { kind: Kind.ENUM, value: 'LIGHT' } },
+              } as any,
+            },
+          },
+        },
+      }),
+    });
+    const field = schema.getQueryType()!.getFields()['shade'];
+
+    expect(getArgumentValues(field, fieldNodeFrom('{ shade }'), {})).toEqual({
+      s: 'light-shade',
+    });
+  });
+
+  it('applies a coerced enum default when a variable has no runtime value', () => {
+    const Shade = new GraphQLEnumType({
+      name: 'Shade',
+      values: {
+        LIGHT: { value: 'light-shade' },
+        DARK: { value: 'dark-shade' },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          shade: {
+            type: GraphQLString,
+            args: {
+              s: {
+                type: Shade,
+                default: { literal: { kind: Kind.ENUM, value: 'LIGHT' } },
+              } as any,
+            },
+          },
+        },
+      }),
+    });
+    const field = schema.getQueryType()!.getFields()['shade'];
+
+    expect(
+      getArgumentValues(field, fieldNodeFrom('query ($s: Shade) { shade(s: $s) }'), {}),
+    ).toEqual({ s: 'light-shade' });
+  });
+
+  it('applies an Int default when a variable has no runtime value', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          page: {
+            type: GraphQLString,
+            args: {
+              first: {
+                type: GraphQLInt,
+                default: { literal: { kind: Kind.INT, value: '50' } },
+              } as any,
+            },
+          },
+        },
+      }),
+    });
+    const field = schema.getQueryType()!.getFields()['page'];
+
+    expect(
+      getArgumentValues(field, fieldNodeFrom('query ($n: Int) { page(first: $n) }'), {}),
+    ).toEqual({ first: 50 });
+  });
+
+  it('applies a schema-defined SDL default when a non-null argument references a variable with no runtime value', () => {
+    // Schemas built from SDL (buildSchema -> extendSchemaImpl) only populate
+    // graphql-js@17's `arg.default`, never the legacy `arg.defaultValue`.
+    const schema = buildSchema(`
+      type Query {
+        foo(bar: String! = "fallback"): String
+      }
+    `);
+    const field = schema.getQueryType()!.getFields()['foo'];
+
+    expect(
+      getArgumentValues(field, fieldNodeFrom('query ($bar: String) { foo(bar: $bar) }'), {}),
+    ).toEqual({ bar: 'fallback' });
+  });
+
+  it('coerces an SDL enum default to the enum internal value', () => {
+    const schema = buildSchema(`
+      enum Color {
+        RED
+      }
+      type Query {
+        anEnum(arg: Color = RED): String
+      }
+    `);
+    // Override the enum value the same way makeExecutableSchema / resolvers do.
+    const colorType = schema.getType('Color') as GraphQLEnumType;
+    (colorType.getValues()[0] as any).value = '#f00';
+
+    const field = schema.getQueryType()!.getFields()['anEnum'];
+    expect(getArgumentValues(field, fieldNodeFrom('{ anEnum }'), {})).toEqual({
+      arg: '#f00',
+    });
+  });
+
+  it('applies an input-object field default when a literal omits that field', () => {
+    const Input = new GraphQLInputObjectType({
+      name: 'Input',
+      fields: {
+        n: {
+          type: GraphQLInt,
+          default: { literal: { kind: Kind.INT, value: '7' } },
+        } as any,
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          foo: {
+            type: GraphQLString,
+            args: {
+              input: { type: Input },
+            },
+          },
+        },
+      }),
+    });
+    const field = schema.getQueryType()!.getFields()['foo'];
+
+    expect(getArgumentValues(field, fieldNodeFrom('{ foo(input: {}) }'), {})).toEqual({
+      input: { n: 7 },
+    });
+  });
+
+  it('resolves a variable nested inside an object literal argument for a custom scalar with coerceInputLiteral', () => {
+    const JSONScalar = new GraphQLScalarType({
+      name: 'JSON',
+      coerceInputValue: (v: any) => v,
+      // A real `coerceInputLiteral` parses the AST node itself, same as the
+      // legacy `parseLiteral` it supersedes.
+      coerceInputLiteral: (node: any) => valueFromASTUntyped(node),
+    } as any);
+
+    const field = {
+      name: 'foo',
+      args: [{ name: 'data', type: JSONScalar }],
+    } as unknown as GraphQLField<any, any>;
+
+    const result = getArgumentValues(field, fieldNodeFrom('{ foo(data: { key: $v }) }'), {
+      v: 'hello',
+    });
+
+    expect(result).toEqual({ data: { key: 'hello' } });
+  });
+
+  it('preserves a Date-valued variable nested inside an object literal argument', () => {
+    const JSONScalar = new GraphQLScalarType({
+      name: 'JSON',
+      coerceInputValue: (v: any) => v,
+      coerceInputLiteral: (node: any) => valueFromASTUntyped(node),
+    } as any);
+
+    const field = {
+      name: 'foo',
+      args: [{ name: 'data', type: JSONScalar }],
+    } as unknown as GraphQLField<any, any>;
+
+    const when = new Date('2024-01-01T00:00:00.000Z');
+    const result = getArgumentValues(field, fieldNodeFrom('{ foo(data: { occurredAt: $when }) }'), {
+      when,
+    });
+
+    expect(result).toEqual({ data: { occurredAt: when.toJSON() } });
+  });
+
+  it('coerces default.value through coerceInputValue', () => {
+    const Shade = new GraphQLEnumType({
+      name: 'Shade',
+      values: {
+        LIGHT: { value: 'light-shade' },
+        DARK: { value: 'dark-shade' },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          shade: {
+            type: GraphQLString,
+            args: {
+              s: {
+                type: Shade,
+                // Programmatic default.value still needs type coercion when the
+                // provided value is the enum name rather than the internal value.
+                default: { value: 'LIGHT' },
+              } as any,
+            },
+          },
+        },
+      }),
+    });
+    const field = schema.getQueryType()!.getFields()['shade'];
+
+    expect(getArgumentValues(field, fieldNodeFrom('{ shade }'), {})).toEqual({
+      s: 'light-shade',
+    });
+  });
+});

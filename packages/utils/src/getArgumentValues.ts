@@ -12,7 +12,61 @@ import {
   valueFromASTUntyped,
 } from 'graphql';
 import { createGraphQLError } from './errors.js';
+import { getOptionalGraphQLJSExport, toGraphQLJSVariableValues } from './graphqlJSCompat.js';
 import { hasOwnProperty } from './jsutils.js';
+
+const coerceInputLiteral = getOptionalGraphQLJSExport('coerceInputLiteral');
+const coerceInputValue = getOptionalGraphQLJSExport('coerceInputValue');
+
+// Sentinel distinguishing "no default" from a legitimate `undefined` default.
+const NO_DEFAULT = Symbol('NO_DEFAULT');
+
+/**
+ * Resolves an argument's default to its coerced value, checking graphql-js@17's
+ * `default` (populated when a schema is built from SDL, e.g. via `buildSchema`/
+ * `extendSchema`, which never sets the legacy `defaultValue`) before falling
+ * back to the legacy `defaultValue` used on graphql-js < 17. Returns
+ * `NO_DEFAULT` when the argument has neither.
+ *
+ * Mirrors graphql-js's `coerceDefaultValue`: `default.literal` is coerced with
+ * `coerceInputLiteral`, and `default.value` with `coerceInputValue`.
+ */
+function coerceArgumentDefault(arg: any): unknown {
+  if ('default' in arg && arg.default) {
+    // graphql v17
+    const defaultInput = arg.default;
+    if ('value' in defaultInput) {
+      const coercedDefaultValue = coerceInputValue
+        ? coerceInputValue(defaultInput.value, arg.type)
+        : defaultInput.value;
+      if (coercedDefaultValue === undefined) {
+        throw createGraphQLError(
+          `Argument "${arg.name}" has invalid default value ${inspect(defaultInput.value)}.`,
+        );
+      }
+      return coercedDefaultValue;
+    }
+    const coercedDefaultValue = coerceInputLiteral
+      ? coerceInputLiteral(defaultInput.literal, arg.type)
+      : valueFromASTUntyped(defaultInput.literal);
+    if (coercedDefaultValue === undefined) {
+      // Schema validation should catch an invalid default value before
+      // execution; this mirrors graphql-js's own `coerceDefaultValue`,
+      // which treats this case as an invariant failure rather than
+      // silently producing `undefined`.
+      throw createGraphQLError(
+        `Argument "${arg.name}" has invalid default value ${print(defaultInput.literal)}.`,
+        { nodes: [defaultInput.literal] },
+      );
+    }
+    return coercedDefaultValue;
+  }
+  if (arg.defaultValue !== undefined) {
+    // graphql < v17
+    return arg.defaultValue;
+  }
+  return NO_DEFAULT;
+}
 
 /**
  * Prepares an object map of argument values given a list of argument
@@ -38,19 +92,18 @@ export function getArgumentValues(
     {},
   );
 
+  // `variableValues` is loop-invariant; wrap (and memoize) it once instead of
+  // once per argument, reusing the same graphql-js@17 `{ coerced, sources }`
+  // shape used for directive-argument coercion elsewhere in this package.
+  const wrappedVariableValues = toGraphQLJSVariableValues(variableValues);
+
   for (const arg of def.args) {
     const argumentNode = argNodeMap[arg.name];
 
     if (!argumentNode) {
-      if ('default' in (arg as any) && (arg as any).default) {
-        // graphql v17
-        coercedValues[arg.name] =
-          'value' in (arg as any).default
-            ? (arg as any).default.value
-            : valueFromASTUntyped((arg as any).default.literal);
-      } else if (arg.defaultValue !== undefined) {
-        // graphql < v17
-        coercedValues[arg.name] = arg.defaultValue;
+      const defaultValue = coerceArgumentDefault(arg);
+      if (defaultValue !== NO_DEFAULT) {
+        coercedValues[arg.name] = defaultValue;
       } else if (isNonNullType(arg.type)) {
         throw createGraphQLError(
           `Argument "${arg.name}" of required type "${inspect(arg.type)}" ` + 'was not provided.',
@@ -68,8 +121,9 @@ export function getArgumentValues(
     if (valueNode.kind === Kind.VARIABLE) {
       const variableName = valueNode.name.value;
       if (variableValues == null || !hasOwnProperty(variableValues, variableName)) {
-        if (arg.defaultValue !== undefined) {
-          coercedValues[arg.name] = arg.defaultValue;
+        const defaultValue = coerceArgumentDefault(arg);
+        if (defaultValue !== NO_DEFAULT) {
+          coercedValues[arg.name] = defaultValue;
         } else if (isNonNullType(arg.type)) {
           throw createGraphQLError(
             `Argument "${arg.name}" of required type "${inspect(arg.type)}" ` +
@@ -93,7 +147,9 @@ export function getArgumentValues(
       );
     }
 
-    const coercedValue = valueFromAST(valueNode, arg.type, variableValues);
+    const coercedValue = coerceInputLiteral
+      ? coerceInputLiteral(valueNode, arg.type, wrappedVariableValues)
+      : valueFromAST(valueNode, arg.type, variableValues);
     if (coercedValue === undefined) {
       // Note: ValuesOfCorrectTypeRule validation should catch this before
       // execution. This is a runtime check to ensure execution does not

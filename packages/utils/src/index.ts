@@ -1,3 +1,4 @@
+export * from './graphqlJSCompat.js';
 export * from './loaders.js';
 export * from './helpers.js';
 export * from './get-directives.js';

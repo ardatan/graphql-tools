@@ -1024,26 +1024,21 @@ describe('Execute: Handles inputs', () => {
         }
       `);
 
-      if (isGraphQL17) {
-        expectJSON(result).toDeepEqual({
-          data: {
-            fieldWithDefaultArgumentValue: '"WRONG_TYPE"',
+      // graphql-js@17's coerceInputLiteral rejects non-string literals for
+      // String the same way legacy valueFromAST does — previously
+      // valueFromAST on v17 incorrectly accepted the enum name as a string.
+      expectJSON(result).toDeepEqual({
+        data: {
+          fieldWithDefaultArgumentValue: null,
+        },
+        errors: [
+          {
+            message: 'Argument "input" has invalid value WRONG_TYPE.',
+            locations: [{ line: 3, column: 48 }],
+            path: ['fieldWithDefaultArgumentValue'],
           },
-        });
-      } else {
-        expectJSON(result).toDeepEqual({
-          data: {
-            fieldWithDefaultArgumentValue: null,
-          },
-          errors: [
-            {
-              message: 'Argument "input" has invalid value WRONG_TYPE.',
-              locations: [{ line: 3, column: 48 }],
-              path: ['fieldWithDefaultArgumentValue'],
-            },
-          ],
-        });
-      }
+        ],
+      });
     });
 
     it('when no runtime value is provided to a non-null argument', () => {
