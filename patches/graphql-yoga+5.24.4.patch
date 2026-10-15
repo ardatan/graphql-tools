@@ -63,10 +63,10 @@ index 5bcf96f..a0e0109 100644
                  unexpected: true,
              },
 diff --git a/node_modules/graphql-yoga/cjs/index.js b/node_modules/graphql-yoga/cjs/index.js
-index d34b8e2..46c1998 100644
+index d34b8e2..318b6c2 100644
 --- a/node_modules/graphql-yoga/cjs/index.js
 +++ b/node_modules/graphql-yoga/cjs/index.js
-@@ -45,7 +45,8 @@ Object.defineProperty(exports, "getInstrumentationAndPlugin", { enumerable: true
+@@ -45,9 +45,11 @@ Object.defineProperty(exports, "getInstrumentationAndPlugin", { enumerable: true
  Object.defineProperty(exports, "chain", { enumerable: true, get: function () { return instrumentation_1.chain; } });
  Object.defineProperty(exports, "composeInstrumentation", { enumerable: true, get: function () { return instrumentation_1.composeInstrumentation; } });
  var utils_1 = require("@graphql-tools/utils");
@@ -74,8 +74,12 @@ index d34b8e2..46c1998 100644
 +var error_1 = require("./error.js");
 +Object.defineProperty(exports, "createGraphQLError", { enumerable: true, get: function () { return error_1.createGraphQLError; } });
  Object.defineProperty(exports, "isPromise", { enumerable: true, get: function () { return utils_1.isPromise; } });
- Object.defineProperty(exports, "mapMaybePromise", { enumerable: true, get: function () { return utils_1.mapMaybePromise; } });
+-Object.defineProperty(exports, "mapMaybePromise", { enumerable: true, get: function () { return utils_1.mapMaybePromise; } });
++var promise_helpers_1 = require("@whatwg-node/promise-helpers");
++Object.defineProperty(exports, "mapMaybePromise", { enumerable: true, get: function () { return promise_helpers_1.mapMaybePromise; } });
  var sse_js_1 = require("./plugins/result-processor/sse.js");
+ Object.defineProperty(exports, "getSSEProcessor", { enumerable: true, get: function () { return sse_js_1.getSSEProcessor; } });
+ var regular_js_1 = require("./plugins/result-processor/regular.js");
 diff --git a/node_modules/graphql-yoga/cjs/plugins/request-parser/post-json.js b/node_modules/graphql-yoga/cjs/plugins/request-parser/post-json.js
 index c9dc61a..c463b65 100644
 --- a/node_modules/graphql-yoga/cjs/plugins/request-parser/post-json.js
@@ -389,16 +393,17 @@ index 679a34b..defa5f6 100644
      return obj != null && typeof obj === 'object' && 'errors' in obj;
  }
 diff --git a/node_modules/graphql-yoga/esm/index.js b/node_modules/graphql-yoga/esm/index.js
-index 284ba57..9bf71b3 100644
+index 284ba57..19a66d5 100644
 --- a/node_modules/graphql-yoga/esm/index.js
 +++ b/node_modules/graphql-yoga/esm/index.js
-@@ -17,7 +17,8 @@ isIntrospectionOperationString, makeExecute, makeSubscribe, mapAsyncIterator,
+@@ -17,7 +17,9 @@ isIntrospectionOperationString, makeExecute, makeSubscribe, mapAsyncIterator,
  // Default plugins
  useEnvelop, useErrorHandler, useExtendContext, useLogger, usePayloadFormatter, withState, } from '@envelop/core';
  export { getInstrumentationAndPlugin, chain, composeInstrumentation, } from '@envelop/instrumentation';
 -export { createGraphQLError, isPromise, mapMaybePromise } from '@graphql-tools/utils';
 +export { createGraphQLError } from './error.js';
-+export { isPromise, mapMaybePromise } from '@graphql-tools/utils';
++export { isPromise } from '@graphql-tools/utils';
++export { mapMaybePromise } from '@whatwg-node/promise-helpers';
  export { getSSEProcessor } from './plugins/result-processor/sse.js';
  export { processRegularResult } from './plugins/result-processor/regular.js';
  export { useExecutionCancellation } from './plugins/use-execution-cancellation.js';
@@ -496,3 +501,69 @@ index 5519e94..2144b46 100644
  import { isGraphQLError, isOriginalGraphQLError } from '../error.js';
  function serializeError(error) {
      if (isGraphQLError(error)) {
+diff --git a/node_modules/graphql-yoga/typings/error.d.cts b/node_modules/graphql-yoga/typings/error.d.cts
+index f1642c0..28f29cd 100644
+--- a/node_modules/graphql-yoga/typings/error.d.cts
++++ b/node_modules/graphql-yoga/typings/error.d.cts
+@@ -1,4 +1,4 @@
+-import { GraphQLError } from 'graphql';
++import { GraphQLError, type GraphQLErrorOptions } from 'graphql';
+ import type { YogaLogger } from '@graphql-yoga/logger';
+ import type { ResultProcessorInput } from './plugins/types.cjs';
+ import type { GraphQLHTTPExtensions, YogaMaskedErrorOpts } from './types.cjs';
+@@ -8,6 +8,7 @@ declare module 'graphql' {
+         unexpected?: boolean;
+     }
+ }
++export declare function createGraphQLError(message: string, options?: GraphQLErrorOptions): GraphQLError;
+ export declare function isGraphQLError(val: unknown): val is GraphQLError;
+ export declare function isOriginalGraphQLError(val: unknown): val is GraphQLError & {
+     originalError: GraphQLError;
+diff --git a/node_modules/graphql-yoga/typings/error.d.ts b/node_modules/graphql-yoga/typings/error.d.ts
+index 56b3144..f56e8db 100644
+--- a/node_modules/graphql-yoga/typings/error.d.ts
++++ b/node_modules/graphql-yoga/typings/error.d.ts
+@@ -1,4 +1,4 @@
+-import { GraphQLError } from 'graphql';
++import { GraphQLError, type GraphQLErrorOptions } from 'graphql';
+ import type { YogaLogger } from '@graphql-yoga/logger';
+ import type { ResultProcessorInput } from './plugins/types.js';
+ import type { GraphQLHTTPExtensions, YogaMaskedErrorOpts } from './types.js';
+@@ -8,6 +8,7 @@ declare module 'graphql' {
+         unexpected?: boolean;
+     }
+ }
++export declare function createGraphQLError(message: string, options?: GraphQLErrorOptions): GraphQLError;
+ export declare function isGraphQLError(val: unknown): val is GraphQLError;
+ export declare function isOriginalGraphQLError(val: unknown): val is GraphQLError & {
+     originalError: GraphQLError;
+diff --git a/node_modules/graphql-yoga/typings/index.d.cts b/node_modules/graphql-yoga/typings/index.d.cts
+index f32710f..6329081 100644
+--- a/node_modules/graphql-yoga/typings/index.d.cts
++++ b/node_modules/graphql-yoga/typings/index.d.cts
+@@ -13,7 +13,9 @@ export { _createLRUCache, createLRUCache } from './utils/create-lru-cache.cjs';
+ export { mergeSchemas } from '@graphql-tools/schema';
+ export { type Maybe, type Optional, type PromiseOrValue, type Spread, type AsyncIterableIteratorOrValue, envelop, errorAsyncIterator, finalAsyncIterator, handleStreamOrSingleExecutionResult, isAsyncIterable, isIntrospectionOperationString, makeExecute, makeSubscribe, mapAsyncIterator, useEnvelop, useErrorHandler, useExtendContext, useLogger, usePayloadFormatter, withState, } from '@envelop/core';
+ export { getInstrumentationAndPlugin, chain, composeInstrumentation, } from '@envelop/instrumentation';
+-export { createGraphQLError, isPromise, mapMaybePromise } from '@graphql-tools/utils';
++export { createGraphQLError } from './error.cjs';
++export { isPromise } from '@graphql-tools/utils';
++export { mapMaybePromise } from '@whatwg-node/promise-helpers';
+ export { getSSEProcessor } from './plugins/result-processor/sse.cjs';
+ export { processRegularResult } from './plugins/result-processor/regular.cjs';
+ export { useExecutionCancellation } from './plugins/use-execution-cancellation.cjs';
+diff --git a/node_modules/graphql-yoga/typings/index.d.ts b/node_modules/graphql-yoga/typings/index.d.ts
+index e7b8a28..f3fd761 100644
+--- a/node_modules/graphql-yoga/typings/index.d.ts
++++ b/node_modules/graphql-yoga/typings/index.d.ts
+@@ -13,7 +13,9 @@ export { _createLRUCache, createLRUCache } from './utils/create-lru-cache.js';
+ export { mergeSchemas } from '@graphql-tools/schema';
+ export { type Maybe, type Optional, type PromiseOrValue, type Spread, type AsyncIterableIteratorOrValue, envelop, errorAsyncIterator, finalAsyncIterator, handleStreamOrSingleExecutionResult, isAsyncIterable, isIntrospectionOperationString, makeExecute, makeSubscribe, mapAsyncIterator, useEnvelop, useErrorHandler, useExtendContext, useLogger, usePayloadFormatter, withState, } from '@envelop/core';
+ export { getInstrumentationAndPlugin, chain, composeInstrumentation, } from '@envelop/instrumentation';
+-export { createGraphQLError, isPromise, mapMaybePromise } from '@graphql-tools/utils';
++export { createGraphQLError } from './error.js';
++export { isPromise } from '@graphql-tools/utils';
++export { mapMaybePromise } from '@whatwg-node/promise-helpers';
+ export { getSSEProcessor } from './plugins/result-processor/sse.js';
+ export { processRegularResult } from './plugins/result-processor/regular.js';
+ export { useExecutionCancellation } from './plugins/use-execution-cancellation.js';

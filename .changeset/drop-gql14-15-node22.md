@@ -49,6 +49,7 @@ Drop GraphQL v14/v15 and require Node.js >= 22.
 | `coerceInputs` / `graphqlJSCompat` | graphql@16+ APIs (`getArgumentValues`, etc.) |
 | `createDeferred` / `createDeferredPromise` | `const { promise, resolve, reject } = Promise.withResolvers()` |
 | `createGraphQLError` | `new GraphQLError(message, options)` from `graphql` |
+| `mapMaybePromise` | `handleMaybePromise` / `mapMaybePromise` from `@whatwg-node/promise-helpers`, or `async`/`await` |
 | `memoize1` / `memoize2` / `memoize3` / `memoize4` / `memoize5` / `memoize2of4` / `memoize2of5` | `memoizee` / `memoizee/weak.js` (see below) |
 
 File matching (replaces `globby` in loaders):
