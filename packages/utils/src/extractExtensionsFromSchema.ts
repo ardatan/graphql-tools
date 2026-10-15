@@ -15,6 +15,11 @@ function handleDirectiveExtensions(extensions: any, removeDirectives: boolean) {
   const finalExtensions: any = {
     ...rest,
   };
+  // Object rest/spread already copies enumerable own symbols; this loop also picks
+  // up non-enumerable ones (assignment makes them enumerable on the result).
+  for (const sym of Object.getOwnPropertySymbols(extensions)) {
+    finalExtensions[sym] = extensions[sym];
+  }
   if (!removeDirectives) {
     if (existingDirectives != null) {
       const directives = {};

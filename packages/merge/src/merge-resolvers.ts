@@ -66,7 +66,10 @@ export function mergeResolvers<TSource, TContext>(
       resolvers.push(resolversDefinition);
     }
   }
-  const result = mergeDeep(resolvers, true);
+  const result = mergeDeep(resolvers, {
+    respectPrototype: true,
+    respectSymbols: { enumerable: true, nonEnumerable: true },
+  });
 
   if (options?.exclusions) {
     for (const exclusion of options.exclusions) {

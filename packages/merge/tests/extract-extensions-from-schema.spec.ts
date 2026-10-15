@@ -56,6 +56,35 @@ describe('extensions', () => {
       expect(result.schemaExtensions).toEqual({ schema: true });
     });
 
+    it('Should preserve symbol-keyed schema extensions', () => {
+      const stringKey = 'Key1';
+      const symbolKey = Symbol('Key2');
+      schema.extensions = {
+        [stringKey]: 'Extension 1',
+        [symbolKey]: 'Extension 2',
+      };
+      const result = extractExtensionsFromSchema(schema);
+      expect(result.schemaExtensions).toEqual({
+        [stringKey]: 'Extension 1',
+        [symbolKey]: 'Extension 2',
+      });
+    });
+
+    it('Should preserve non-enumerable symbol-keyed schema extensions', () => {
+      const hidden = Symbol('hidden');
+      schema.extensions = { tagged: true };
+      Object.defineProperty(schema.extensions, hidden, {
+        value: 'secret',
+        enumerable: false,
+        writable: true,
+        configurable: true,
+      });
+
+      const result = extractExtensionsFromSchema(schema);
+      expect(result.schemaExtensions['tagged']).toBe(true);
+      expect(result.schemaExtensions[hidden]).toBe('secret');
+    });
+
     it('Should extract extensions correctly for all possible types', () => {
       const MyInput = schema.getType('MyInput');
       assertSome(MyInput);
@@ -157,6 +186,32 @@ describe('extensions', () => {
       expect(mergedExtensions.types['Query'].extensions).toEqual({
         queryTest: true,
         querySecondTest: true,
+      });
+    });
+
+    it('Should merge symbol-keyed schema extensions from multiple sources', () => {
+      const META = Symbol('META');
+      const merged = mergeExtensions([
+        {
+          schemaExtensions: {
+            [META]: { from: 'first' },
+            tagged: true,
+          },
+          types: {},
+        },
+        {
+          schemaExtensions: {
+            [META]: { from: 'second' },
+            extra: true,
+          },
+          types: {},
+        },
+      ]);
+
+      expect(merged.schemaExtensions).toEqual({
+        [META]: { from: 'second' },
+        tagged: true,
+        extra: true,
       });
     });
   });

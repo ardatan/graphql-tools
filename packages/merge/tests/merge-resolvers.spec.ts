@@ -50,4 +50,40 @@ describe('Merge Resolvers', () => {
       },
     });
   });
+
+  it('should preserve symbol-keyed field extensions when merging resolver arrays', () => {
+    const META = Symbol('META');
+    const merged = mergeResolvers([
+      {
+        Query: {
+          hello: {
+            resolve: () => 'a',
+            extensions: {
+              [META]: { from: 'first' },
+              tagged: true,
+            },
+          },
+        },
+      },
+      {
+        Query: {
+          hello: {
+            resolve: () => 'b',
+            extensions: {
+              [META]: { from: 'second' },
+              extra: true,
+            },
+          },
+        },
+      },
+    ]);
+
+    const hello = (merged['Query'] as any).hello;
+    expect(hello.extensions).toEqual({
+      [META]: { from: 'second' },
+      tagged: true,
+      extra: true,
+    });
+    expect(hello.resolve()).toBe('b');
+  });
 });

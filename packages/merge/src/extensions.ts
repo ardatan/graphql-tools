@@ -3,8 +3,13 @@ import { ExtensionsObject, Maybe, mergeDeep, SchemaExtensions } from '@graphql-t
 
 export { extractExtensionsFromSchema } from '@graphql-tools/utils';
 
+const mergeExtensionsOptions = {
+  respectArrays: true,
+  respectSymbols: { enumerable: true, nonEnumerable: true },
+} as const;
+
 export function mergeExtensions(extensions: SchemaExtensions[]): SchemaExtensions {
-  return mergeDeep(extensions, false, true);
+  return mergeDeep(extensions, mergeExtensionsOptions);
 }
 
 function applyExtensionObject(
@@ -18,7 +23,7 @@ function applyExtensionObject(
     obj.extensions = extensions;
     return;
   }
-  obj.extensions = mergeDeep([obj.extensions, extensions], false, true);
+  obj.extensions = mergeDeep([obj.extensions, extensions], mergeExtensionsOptions);
 }
 
 export function applyExtensions(
