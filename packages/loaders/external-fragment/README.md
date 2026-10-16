@@ -1,17 +1,16 @@
 # @graphql-tools/external-fragment-loader
 
-Resolves GraphQL fragments referenced by a package from its transitive package dependencies. The
-loader scans the configured dependency packages, parses GraphQL from `.graphql` files and supported
-code files, and returns only the external fragments required by the consumer package.
+Resolves missing GraphQL fragments by following direct and transitive dependencies in
+`package.json`, loading only the external fragments the package needs.
 
 ## Installation
 
 ```sh
-npm install @graphql-tools/external-fragment-loader graphql
+npm install @graphql-tools/external-fragment-loader
 ```
 
-The resolver requires a package directory and one or more directories containing its dependency
-packages:
+The resolver requires a target (consumer) package directory and one or more directories containing
+its dependency packages:
 
 ```ts
 const options = {
@@ -21,8 +20,8 @@ const options = {
 ```
 
 `packageDir` and `externalPackagesDirs` should be absolute paths. By default, the loader scans `src`
-for `.ts`, `.tsx`, `.js`, `.jsx`, `.graphql`, and `.gql` files. These defaults can be changed with
-the options described in [`options.ts`](./src/options.ts).
+directory in the above packages for `.ts`, `.tsx`, `.js`, `.jsx`, `.graphql`, and `.gql` files.
+These defaults can be changed with the options described in [`options.ts`](./src/options.ts).
 
 ## Three API entry points
 
@@ -34,10 +33,11 @@ the options described in [`options.ts`](./src/options.ts).
 
 Each entry point has a synchronous variant where applicable. The async and sync variants are:
 
-- `ExternalFragmentLoader.load()` / `loadSync()`
+- `async: true` / `async: false`
+- `ExternalFragmentLoader.load()` / `ExternalFragmentLoader.loadSync()`
 - `resolveExternalFragments()` / `resolveExternalFragmentsSync()`
 
-### 1. Default loader export
+### 1. Default loader export (for GraphQL Code Generator)
 
 The default export returns a single merged `DocumentNode`. This is the simplest option for GraphQL
 Code Generator because Codegen's custom-loader path expects one `DocumentNode` or one `Source`.
@@ -54,11 +54,11 @@ const externalPackagesDir = resolve('packages')
 
 const config: CodegenConfig = {
   schema: './schema.graphql',
-  documents: [
-    './packages/my-package/src/**/*.graphql',
+  documents: ['./packages/my-package/src/**/*.graphql'],
+  externalDocuments: [
     {
+      // a pointer that triggers the custom loader for the consumer package
       [packageDir]: {
-        // a pointer that triggers the custom loader for the consumer package
         loader: '@graphql-tools/external-fragment-loader',
         packageDir,
         externalPackagesDirs: [externalPackagesDir],
@@ -153,8 +153,8 @@ The result has this shape:
 ```
 
 This API returns file metadata, not parsed ASTs. Passing the returned `filePath` values as Codegen
-`documents` works, but Codegen will read and parse those files again. Use the default loader or the
-class-based loader when you want to reuse the parsed documents.
+`documents`/`externalDocuments` works, but Codegen will read and parse those files again. Use the
+default loader or the class-based loader when you want to reuse the parsed documents.
 
 ## Caching
 
