@@ -361,6 +361,12 @@ export const schema = new GraphQLSchema(/* ... */)
   [GitHub issue.](https://github.com/ardatan/graphql-tools/issues/1544)
 </Callout>
 
+### `ExternalFragmentLoader`
+
+This loader resolves GraphQL document fragments from a package's direct and transitive dependencies.
+Use it with `loadDocuments` or GraphQL Code Generator. See
+[External Fragment Loader](/docs/external-fragment-loader) for configuration and examples.
+
 ### `UrlLoader`
 
 This loader generates
