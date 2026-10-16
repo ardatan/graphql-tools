@@ -54,8 +54,8 @@ const externalPackagesDir = resolve('packages')
 
 const config: CodegenConfig = {
   schema: './schema.graphql',
-  documents: [
-    './packages/my-package/src/**/*.graphql',
+  documents: ['./packages/my-package/src/**/*.graphql'],
+  externalDocuments: [
     {
       // a pointer that triggers the custom loader for the consumer package
       [packageDir]: {
@@ -153,8 +153,8 @@ The result has this shape:
 ```
 
 This API returns file metadata, not parsed ASTs. Passing the returned `filePath` values as Codegen
-`documents` works, but Codegen will read and parse those files again. Use the default loader or the
-class-based loader when you want to reuse the parsed documents.
+`documents`/`externalDocuments` works, but Codegen will read and parse those files again. Use the
+default loader or the class-based loader when you want to reuse the parsed documents.
 
 ## Caching
 
