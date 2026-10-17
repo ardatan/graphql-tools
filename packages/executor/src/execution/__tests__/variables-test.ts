@@ -1216,7 +1216,7 @@ describe('Execute: Handles inputs', () => {
         errors: [
           {
             message:
-              'Variable "$input" got invalid value { commnet: "great" }; Expected value of type "ReviewInput" not to include unknown field "commnet". Did you mean "comment"? Found: { commnet: "great" }.',
+              "Variable \"$input\" got invalid value { commnet: 'great' }; Expected value of type \"ReviewInput\" not to include unknown field \"commnet\". Did you mean \"comment\"? Found: { commnet: 'great' }.",
             locations: [{ line: 1, column: 8 }],
           },
         ],
@@ -1234,7 +1234,7 @@ describe('Execute: Handles inputs', () => {
         errors: [
           {
             message:
-              'Variable "$input" got invalid value { commnet: "great" }; Expected value of type "ReviewInput" not to include unknown field "commnet", found: { commnet: "great" }.',
+              "Variable \"$input\" got invalid value { commnet: 'great' }; Expected value of type \"ReviewInput\" not to include unknown field \"commnet\", found: { commnet: 'great' }.",
             locations: [{ line: 1, column: 8 }],
           },
         ],
@@ -1250,7 +1250,7 @@ describe('Execute: Handles inputs', () => {
         errors: [
           {
             message:
-              'Variable "$input" got invalid value "REDD"; Value "REDD" does not exist in "Color" enum. Did you mean the enum value "RED"?',
+              'Variable "$input" got invalid value \'REDD\'; Value "REDD" does not exist in "Color" enum. Did you mean the enum value "RED"?',
             locations: [{ line: 1, column: 8 }],
           },
         ],
@@ -1268,7 +1268,7 @@ describe('Execute: Handles inputs', () => {
         errors: [
           {
             message:
-              'Variable "$input" got invalid value "REDD"; Value "REDD" does not exist in "Color" enum.',
+              'Variable "$input" got invalid value \'REDD\'; Value "REDD" does not exist in "Color" enum.',
             locations: [{ line: 1, column: 8 }],
           },
         ],
