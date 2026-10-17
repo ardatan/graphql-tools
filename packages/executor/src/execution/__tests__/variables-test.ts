@@ -1237,10 +1237,9 @@ describe('Execute: Handles inputs', () => {
     });
 
     it('includes suggestions for invalid enum values by default', () => {
-      const result = executeWithHideSuggestions(
-        'query ($input: Color) { color(input: $input) }',
-        { input: 'REDD' },
-      );
+      const result = executeWithHideSuggestions('query ($input: Color) { color(input: $input) }', {
+        input: 'REDD',
+      });
 
       expectJSON(result).toDeepEqual({
         errors: [
