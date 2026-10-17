@@ -23,6 +23,8 @@ const ESM_PACKAGES = [
   '@babel/[^/]+',
   'obug',
   'js-tokens',
+  // dateformat@5 is ESM-only
+  'dateformat',
 ];
 
 const modulePathIgnorePatterns = ['dist', 'test-assets', 'test-files', 'fixtures', '.bob'];

@@ -1,5 +1,11 @@
 # @graphql-tools/executor
 
+## 2.1.0
+
+### Minor Changes
+
+- [#8522](https://github.com/ardatan/graphql-tools/pull/8522) [`7e33c9e`](https://github.com/ardatan/graphql-tools/commit/7e33c9eda3404e7d9536d577e24ee91533152775) Thanks [@ardatan](https://github.com/ardatan)! - Support `hideSuggestions` on `ExecutionArgs` and pass it through variable coercion so "Did you mean" suggestions can be omitted from invalid variable errors, matching `graphql@17`.
+
 ## 2.0.5
 
 ### Patch Changes

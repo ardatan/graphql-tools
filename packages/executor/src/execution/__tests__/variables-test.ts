@@ -1165,6 +1165,117 @@ describe('Execute: Handles inputs', () => {
     });
   });
 
+  // hideSuggestions is aligned with graphql@17 ExecutionArgs; enum leaf coercion
+  // only accepts the flag there. Skip on older graphql majors.
+  (isGraphQL17 ? describe : describe.skip)('hideSuggestions', () => {
+    const hideSuggestionsSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          review: fieldWithInputArg({
+            type: new GraphQLInputObjectType({
+              name: 'ReviewInput',
+              fields: {
+                comment: { type: GraphQLString },
+              },
+            }),
+          }),
+          color: fieldWithInputArg({
+            type: new GraphQLEnumType({
+              name: 'Color',
+              values: {
+                RED: {},
+                GREEN: {},
+              },
+            }),
+          }),
+        },
+      }),
+    });
+
+    function executeWithHideSuggestions(
+      query: string,
+      variableValues: { [variable: string]: unknown },
+      hideSuggestions?: boolean,
+    ) {
+      return executeSync({
+        schema: hideSuggestionsSchema,
+        document: parse(query),
+        variableValues,
+        hideSuggestions,
+      });
+    }
+
+    it('includes suggestions for unknown input fields by default', () => {
+      const result = executeWithHideSuggestions(
+        'query ($input: ReviewInput) { review(input: $input) }',
+        { input: { commnet: 'great' } },
+      );
+
+      expectJSON(result).toDeepEqual({
+        errors: [
+          {
+            message:
+              'Variable "$input" got invalid value { commnet: "great" }; Expected value of type "ReviewInput" not to include unknown field "commnet". Did you mean "comment"? Found: { commnet: "great" }.',
+            locations: [{ line: 1, column: 8 }],
+          },
+        ],
+      });
+    });
+
+    it('omits suggestions for unknown input fields when hideSuggestions is true', () => {
+      const result = executeWithHideSuggestions(
+        'query ($input: ReviewInput) { review(input: $input) }',
+        { input: { commnet: 'great' } },
+        true,
+      );
+
+      expectJSON(result).toDeepEqual({
+        errors: [
+          {
+            message:
+              'Variable "$input" got invalid value { commnet: "great" }; Expected value of type "ReviewInput" not to include unknown field "commnet", found: { commnet: "great" }.',
+            locations: [{ line: 1, column: 8 }],
+          },
+        ],
+      });
+    });
+
+    it('includes suggestions for invalid enum values by default', () => {
+      const result = executeWithHideSuggestions('query ($input: Color) { color(input: $input) }', {
+        input: 'REDD',
+      });
+
+      expectJSON(result).toDeepEqual({
+        errors: [
+          {
+            message:
+              'Variable "$input" got invalid value "REDD"; Value "REDD" does not exist in "Color" enum. Did you mean the enum value "RED"?',
+            locations: [{ line: 1, column: 8 }],
+          },
+        ],
+      });
+    });
+
+    it('omits suggestions for invalid enum values when hideSuggestions is true', () => {
+      const result = executeWithHideSuggestions(
+        'query ($input: Color) { color(input: $input) }',
+        { input: 'REDD' },
+        true,
+      );
+
+      expectJSON(result).toDeepEqual({
+        errors: [
+          {
+            message:
+              'Variable "$input" got invalid value "REDD"; Value "REDD" does not exist in "Color" enum.',
+            locations: [{ line: 1, column: 8 }],
+          },
+        ],
+      });
+    });
+  });
+
   describe('getVariableValues: limit maximum number of coercion errors', () => {
     const doc = parse(`
       query ($input: [String!]) {

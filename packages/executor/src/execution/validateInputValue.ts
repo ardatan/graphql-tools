@@ -235,8 +235,13 @@ function validateInputValueImpl(
 
     try {
       const typeAny = type as any;
-      const methodName = versionInfo.major >= 17 ? 'coerceInputValue' : 'parseValue';
-      result = typeAny[methodName](inputValue);
+      if (versionInfo.major >= 17) {
+        // graphql@17 leaf types accept hideSuggestions on coerceInputValue
+        // (e.g. GraphQLEnumType) so enum "Did you mean" text can be suppressed.
+        result = typeAny.coerceInputValue(inputValue, hideSuggestions);
+      } else {
+        result = typeAny.parseValue(inputValue);
+      }
     } catch (error) {
       if (error instanceof GraphQLError) {
         onError(pathToArray(path), inputValue, error);
