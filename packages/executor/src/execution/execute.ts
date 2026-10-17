@@ -250,6 +250,11 @@ export interface ExecutionArgs<TData = any, TVariables = any, TContext = any> {
   subscribeFieldResolver?: Maybe<GraphQLFieldResolver<any, TContext>>;
   signal?: AbortSignal;
   schemaCoordinateInErrors?: boolean;
+  /**
+   * When true, omit "Did you mean ...?" suggestion text from variable coercion
+   * errors. Matches `graphql@17`'s `ExecutionArgs.hideSuggestions`.
+   */
+  hideSuggestions?: Maybe<boolean>;
 }
 
 /**
@@ -423,6 +428,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     subscribeFieldResolver,
     signal,
     schemaCoordinateInErrors,
+    hideSuggestions,
   } = args;
 
   signal?.throwIfAborted();
@@ -488,6 +494,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     rawVariableValues ?? {},
     {
       maxErrors: 50,
+      hideSuggestions: hideSuggestions ?? undefined,
     },
   );
 
