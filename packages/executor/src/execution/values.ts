@@ -40,19 +40,26 @@ export function getVariableValues(
   schema: GraphQLSchema,
   varDefNodes: ReadonlyArray<VariableDefinitionNode>,
   inputs: { readonly [variable: string]: unknown },
-  options?: { maxErrors?: number },
+  options?: { maxErrors?: number; hideSuggestions?: boolean },
 ): VariableValuesOrErrors {
   const errors: any[] = [];
   const maxErrors = options?.maxErrors;
+  const hideSuggestions = options?.hideSuggestions;
   try {
-    const variableValues = coerceVariableValues(schema, varDefNodes, inputs, error => {
-      if (maxErrors != null && errors.length >= maxErrors) {
-        throw createGraphQLError(
-          'Too many errors processing variables, error limit reached. Execution aborted.',
-        );
-      }
-      errors.push(error);
-    });
+    const variableValues = coerceVariableValues(
+      schema,
+      varDefNodes,
+      inputs,
+      error => {
+        if (maxErrors != null && errors.length >= maxErrors) {
+          throw createGraphQLError(
+            'Too many errors processing variables, error limit reached. Execution aborted.',
+          );
+        }
+        errors.push(error);
+      },
+      hideSuggestions,
+    );
 
     if (errors.length === 0) {
       return { variableValues };
@@ -69,6 +76,7 @@ function coerceVariableValues(
   varDefNodes: ReadonlyArray<VariableDefinitionNode>,
   inputs: { readonly [variable: string]: unknown },
   onError: (error: GraphQLError) => void,
+  hideSuggestions?: boolean,
 ): VariableValues {
   const coercedValues: { [variable: string]: unknown } = {};
   const sources: Record<string, VariableValueSource> = {};
@@ -150,7 +158,7 @@ function coerceVariableValues(
     coercedValues[varName] = (coerceInputValue as any)(sourceValue, varType, callback);
 
     if (coercedValues[varName] === undefined && !errored) {
-      validateInputValue(sourceValue, varType, callback);
+      validateInputValue(sourceValue, varType, callback, hideSuggestions);
     }
   }
 
