@@ -4,10 +4,8 @@ import {
   ExecutionResult,
   Executor,
   MaybeAsyncIterable,
-  MaybePromise,
-  memoize1,
 } from '@graphql-tools/utils';
-import { handleMaybePromise } from '@whatwg-node/promise-helpers';
+import { handleMaybePromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 import {
   execute,
   ExecutionArgs,
@@ -37,19 +35,24 @@ export function normalizedExecutor<TData = any, TVariables = any, TContext = any
   );
 }
 
-export const executorFromSchema = memoize1(function executorFromSchema(
-  schema: GraphQLSchema,
-): Executor {
-  return function schemaExecutor(request: ExecutionRequest) {
-    return normalizedExecutor({
-      schema,
-      document: request.document,
-      variableValues: request.variables,
-      operationName: request.operationName,
-      rootValue: request.rootValue,
-      contextValue: request.context,
-      signal: request.signal || request.info?.signal,
-      schemaCoordinateInErrors: request.schemaCoordinateInErrors,
-    });
-  };
-});
+const executorFromSchemaCache = new WeakMap<GraphQLSchema, Executor>();
+
+export function executorFromSchema(schema: GraphQLSchema): Executor {
+  let schemaExecutor = executorFromSchemaCache.get(schema);
+  if (schemaExecutor === undefined) {
+    schemaExecutor = function schemaExecutor(request: ExecutionRequest) {
+      return normalizedExecutor({
+        schema,
+        document: request.document,
+        variableValues: request.variables,
+        operationName: request.operationName,
+        rootValue: request.rootValue,
+        contextValue: request.context,
+        signal: request.signal || request.info?.signal,
+        schemaCoordinateInErrors: request.schemaCoordinateInErrors,
+      });
+    };
+    executorFromSchemaCache.set(schema, schemaExecutor);
+  }
+  return schemaExecutor;
+}

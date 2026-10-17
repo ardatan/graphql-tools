@@ -1,40 +1,44 @@
 import { Readable } from 'stream';
 import * as apolloImport from '@apollo/client';
-import { mapMaybePromise } from '@graphql-tools/utils';
 import { File } from '@whatwg-node/fetch';
+import { handleMaybePromise } from '@whatwg-node/promise-helpers';
 
 const apollo: typeof apolloImport = (apolloImport as any)?.default ?? apolloImport;
 
-function getFinalPromise(object: any): Promise<any> {
-  return mapMaybePromise(object, resolvedObject => {
-    if (resolvedObject == null) {
-      return resolvedObject;
-    }
-
-    if (Array.isArray(resolvedObject)) {
-      return Promise.all(resolvedObject.map(o => getFinalPromise(o)));
-    } else if (typeof resolvedObject === 'object') {
-      if (resolvedObject?.createReadStream != null) {
-        const readable: Readable = resolvedObject.createReadStream();
-        return readable
-          .toArray()
-          .then(
-            chunks => new File(chunks, resolvedObject.filename, { type: resolvedObject.mimetype }),
-          );
+function getFinalPromise(object: any) {
+  return handleMaybePromise(
+    () => object,
+    resolvedObject => {
+      if (resolvedObject == null) {
+        return resolvedObject;
       }
-      const keys = Object.keys(resolvedObject);
-      return Promise.all(keys.map(key => getFinalPromise(resolvedObject[key]))).then(
-        awaitedValues => {
-          for (let i = 0; i < keys.length; i++) {
-            resolvedObject[keys[i]] = awaitedValues[i];
-          }
-          return resolvedObject;
-        },
-      );
-    }
 
-    return resolvedObject;
-  });
+      if (Array.isArray(resolvedObject)) {
+        return Promise.all(resolvedObject.map(o => getFinalPromise(o)));
+      } else if (typeof resolvedObject === 'object') {
+        if (resolvedObject?.createReadStream != null) {
+          const readable: Readable = resolvedObject.createReadStream();
+          return readable
+            .toArray()
+            .then(
+              chunks =>
+                new File(chunks, resolvedObject.filename, { type: resolvedObject.mimetype }),
+            );
+        }
+        const keys = Object.keys(resolvedObject);
+        return Promise.all(keys.map(key => getFinalPromise(resolvedObject[key]))).then(
+          awaitedValues => {
+            for (let i = 0; i < keys.length; i++) {
+              resolvedObject[keys[i]] = awaitedValues[i];
+            }
+            return resolvedObject;
+          },
+        );
+      }
+
+      return resolvedObject;
+    },
+  );
 }
 
 export class AwaitVariablesLink extends apollo.ApolloLink {
@@ -44,16 +48,20 @@ export class AwaitVariablesLink extends apollo.ApolloLink {
   ): apolloImport.Observable<apolloImport.ApolloLink.Result> {
     return new apollo.Observable(observer => {
       let subscription: any;
-      getFinalPromise(operation.variables)
-        .then(resolvedVariables => {
+      handleMaybePromise(
+        () => getFinalPromise(operation.variables),
+        resolvedVariables => {
           operation.variables = resolvedVariables;
           subscription = forward(operation).subscribe({
             next: observer.next.bind(observer),
             error: observer.error.bind(observer),
             complete: observer.complete.bind(observer),
           });
-        })
-        .catch(observer.error.bind(observer));
+        },
+        err => {
+          observer.error(err);
+        },
+      );
 
       return () => {
         if (subscription != null) {

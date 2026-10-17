@@ -1,6 +1,5 @@
 import type { ASTNode, DirectiveNode, GraphQLSchema } from 'graphql';
-import { valueFromAST, valueFromASTUntyped } from 'graphql';
-import { getArgumentValues } from './getArgumentValues.js';
+import { getArgumentValues, valueFromAST, valueFromASTUntyped } from 'graphql';
 import { memoize1 } from './memoize.js';
 
 export type DirectableASTNode = ASTNode & {
@@ -60,7 +59,7 @@ export function getDirectiveExtensions<
     }
   }
 
-  const memoizedStringify = memoize1(obj => JSON.stringify(obj));
+  const memoizedStringify = memoize1((obj: object) => JSON.stringify(obj));
 
   const astNodes: DirectableASTNode[] = [];
   if (directableObj.astNode) {

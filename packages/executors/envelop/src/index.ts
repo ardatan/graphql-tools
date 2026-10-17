@@ -1,6 +1,7 @@
-import { ExecutionArgs, mapMaybePromise, Plugin } from '@envelop/core';
-import { Executor, isPromise, MaybePromise } from '@graphql-tools/utils';
+import { ExecutionArgs, Plugin } from '@envelop/core';
+import { Executor } from '@graphql-tools/utils';
 import { schemaFromExecutor } from '@graphql-tools/wrap';
+import { handleMaybePromise, isPromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 
 type GraphQLSchema = any;
 
@@ -93,9 +94,12 @@ export function useExecutor<TPluginContext extends Record<string, any>>(
         pluginCtx.schema$ = pluginCtx.schema;
       }
       ensureSchema(args.contextValue);
-      return mapMaybePromise(pluginCtx.schemaSetPromise$, () => {
-        setExecuteFn(executorToExecuteFn);
-      });
+      return handleMaybePromise(
+        () => pluginCtx.schemaSetPromise$,
+        () => {
+          setExecuteFn(executorToExecuteFn);
+        },
+      );
     },
     onSubscribe({ args, setSubscribeFn }) {
       if (args.schema) {
@@ -103,9 +107,12 @@ export function useExecutor<TPluginContext extends Record<string, any>>(
         pluginCtx.schema$ = pluginCtx.schema;
       }
       ensureSchema(args.contextValue);
-      return mapMaybePromise(pluginCtx.schemaSetPromise$, () => {
-        setSubscribeFn(executorToExecuteFn);
-      });
+      return handleMaybePromise(
+        () => pluginCtx.schemaSetPromise$,
+        () => {
+          setSubscribeFn(executorToExecuteFn);
+        },
+      );
     },
     onValidate({ params, context, setResult }) {
       if (params.schema) {

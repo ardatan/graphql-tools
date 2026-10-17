@@ -1,6 +1,6 @@
 import { parse } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { createDeferred, isAsyncIterable } from '@graphql-tools/utils';
+import { isAsyncIterable } from '@graphql-tools/utils';
 import { Repeater } from '@repeaterjs/repeater';
 import { assertAsyncIterable } from '../../../../loaders/url/tests/test-utils';
 import { normalizedExecutor } from '../normalizedExecutor';
@@ -71,8 +71,8 @@ describe('Abort Signal', () => {
     expect(results).toEqual([0, 1, 2, 3, 4]);
   });
   it('pending subscription execution is canceled', async () => {
-    const rootResolverGotInvokedD = createDeferred<void>();
-    const requestGotCancelledD = createDeferred<void>();
+    const rootResolverGotInvokedD = Promise.withResolvers<void>();
+    const requestGotCancelledD = Promise.withResolvers<void>();
     let aResolverGotInvoked = false;
 
     const schema = makeExecutableSchema({
@@ -229,7 +229,7 @@ describe('Abort Signal', () => {
     expect(isAborted).toEqual(true);
   });
   it('stops pending stream execution for incremental delivery (@stream)', async () => {
-    const d = createDeferred<void>();
+    const d = Promise.withResolvers<void>();
     let isReturnInvoked = false;
 
     const schema = makeExecutableSchema({
@@ -290,8 +290,8 @@ describe('Abort Signal', () => {
     expect(isReturnInvoked).toEqual(true);
   });
   it('stops pending stream execution for parallel sources incremental delivery (@stream)', async () => {
-    const d1 = createDeferred<void>();
-    const d2 = createDeferred<void>();
+    const d1 = Promise.withResolvers<void>();
+    const d2 = Promise.withResolvers<void>();
 
     let isReturn1Invoked = false;
     let isReturn2Invoked = false;
@@ -371,8 +371,8 @@ describe('Abort Signal', () => {
     expect(isReturn2Invoked).toEqual(true);
   });
   it('stops pending stream execution for incremental delivery (@defer)', async () => {
-    const aResolverGotInvokedD = createDeferred<void>();
-    const requestGotCancelledD = createDeferred<void>();
+    const aResolverGotInvokedD = Promise.withResolvers<void>();
+    const requestGotCancelledD = Promise.withResolvers<void>();
     let bResolverGotInvoked = false;
 
     const schema = makeExecutableSchema({
@@ -444,7 +444,7 @@ describe('Abort Signal', () => {
     expect(bResolverGotInvoked).toBe(false);
   });
   it('stops promise execution', async () => {
-    const d = createDeferred<void>();
+    const d = Promise.withResolvers<void>();
 
     const schema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
@@ -503,5 +503,47 @@ describe('Abort Signal', () => {
       }),
     ).toThrow(/operation was aborted/);
     expect(resolverGotInvoked).toBe(false);
+  });
+  it('closes async iterables when the signal is already aborted', async () => {
+    let returnCalled = false;
+    const listReady = Promise.withResolvers<AsyncIterable<number>>();
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          items: [Int]
+        }
+      `,
+      resolvers: {
+        Query: {
+          items: () => listReady.promise,
+        },
+      },
+    });
+
+    const result$ = normalizedExecutor({
+      schema,
+      document: parse(/* GraphQL */ `
+        query {
+          items
+        }
+      `),
+      signal: controller.signal,
+    });
+
+    controller.abort();
+    listReady.resolve({
+      [Symbol.asyncIterator]() {
+        return {
+          next: async () => ({ done: false, value: 1 }),
+          return: async () => {
+            returnCalled = true;
+            return { done: true, value: undefined };
+          },
+        };
+      },
+    });
+
+    await expect(result$).rejects.toThrow(/operation was aborted/);
+    expect(returnCalled).toBe(true);
   });
 });

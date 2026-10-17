@@ -1,0 +1,62 @@
+diff --git a/node_modules/@graphql-tools/wrap/dist/index.cjs b/node_modules/@graphql-tools/wrap/dist/index.cjs
+index 8fcc5d7..9bb3944 100644
+--- a/node_modules/@graphql-tools/wrap/dist/index.cjs
++++ b/node_modules/@graphql-tools/wrap/dist/index.cjs
+@@ -1480,7 +1480,7 @@ class FilterObjectFieldDirectives {
+           const directiveDef = originalWrappingSchema.getDirective(
+             dir.name.value
+           );
+-          const directiveValue = directiveDef ? utils.getArgumentValues(directiveDef, dir) : void 0;
++          const directiveValue = directiveDef ? graphql.getArgumentValues(directiveDef, dir) : void 0;
+           return this.filter(dir.name.value, directiveValue);
+         }) ?? [];
+         if (fieldConfig.astNode?.directives != null && keepDirectives.length !== fieldConfig.astNode.directives.length) {
+@@ -2314,7 +2314,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
+   }
+   if (introspectionResult?.errors) {
+     const graphqlErrors = introspectionResult.errors.map(
+-      (error) => utils.createGraphQLError(error.message, error)
++      (error) => new graphql.GraphQLError(error.message, error)
+     );
+     if (introspectionResult.errors.length === 1) {
+       throw graphqlErrors[0];
+@@ -2325,7 +2325,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
+       );
+     }
+   }
+-  throw utils.createGraphQLError(
++  throw new graphql.GraphQLError(
+     `Could not obtain introspection result, received the following as response; 
+  ${utils.inspect(
+       introspectionResult
+diff --git a/node_modules/@graphql-tools/wrap/dist/index.js b/node_modules/@graphql-tools/wrap/dist/index.js
+index 5f98762..00955b4 100644
+--- a/node_modules/@graphql-tools/wrap/dist/index.js
++++ b/node_modules/@graphql-tools/wrap/dist/index.js
+@@ -1,6 +1,6 @@
+ import { delegateToSchema, isExternalObject, getUnpathedErrors, getSubschema, resolveExternalValue, applySchemaTransforms, defaultMergedResolver, getTypeInfo, isPrototypePollutingKey } from '@graphql-tools/delegate';
+-import { getRootTypeMap, memoize1, mapSchema, MapperKind, renameType, visitData, transformInputValue, visitResult, astFromValueUntyped, getOperationASTFromRequest, relocatedError, getArgumentValues, valueMatchesCriteria, getDirectives, pruneSchema, selectObjectFields, appendObjectFields, modifyObjectFields, removeObjectFields, isAsyncIterable, createGraphQLError, inspect } from '@graphql-tools/utils';
+-import { isSpecifiedScalarType, GraphQLScalarType, GraphQLUnionType, GraphQLInterfaceType, GraphQLObjectType, isScalarType, visit, Kind, visitWithTypeInfo, isObjectType, isInterfaceType, typeFromAST, isInputType, getNamedType, isLeafType, valueFromAST, valueFromASTUntyped, astFromValue, GraphQLNonNull, getNullableType, isListType, GraphQLList, BREAK, parse, getIntrospectionQuery, buildClientSchema } from 'graphql';
++import { getRootTypeMap, memoize1, mapSchema, MapperKind, renameType, visitData, transformInputValue, visitResult, astFromValueUntyped, getOperationASTFromRequest, relocatedError, valueMatchesCriteria, getDirectives, pruneSchema, selectObjectFields, appendObjectFields, modifyObjectFields, removeObjectFields, isAsyncIterable, inspect } from '@graphql-tools/utils';
++import { GraphQLError, getArgumentValues, isSpecifiedScalarType, GraphQLScalarType, GraphQLUnionType, GraphQLInterfaceType, GraphQLObjectType, isScalarType, visit, Kind, visitWithTypeInfo, isObjectType, isInterfaceType, typeFromAST, isInputType, getNamedType, isLeafType, valueFromAST, valueFromASTUntyped, astFromValue, GraphQLNonNull, getNullableType, isListType, GraphQLList, BREAK, parse, getIntrospectionQuery, buildClientSchema } from 'graphql';
+ import { handleMaybePromise } from '@whatwg-node/promise-helpers';
+ 
+ function generateProxyingResolvers(subschemaConfig) {
+@@ -2312,7 +2312,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
+   }
+   if (introspectionResult?.errors) {
+     const graphqlErrors = introspectionResult.errors.map(
+-      (error) => createGraphQLError(error.message, error)
++      (error) => new GraphQLError(error.message, error)
+     );
+     if (introspectionResult.errors.length === 1) {
+       throw graphqlErrors[0];
+@@ -2323,7 +2323,7 @@ function getSchemaFromIntrospection(introspectionResult, options) {
+       );
+     }
+   }
+-  throw createGraphQLError(
++  throw new GraphQLError(
+     `Could not obtain introspection result, received the following as response; 
+  ${inspect(
+       introspectionResult

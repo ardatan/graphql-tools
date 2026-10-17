@@ -1,10 +1,9 @@
 import { existsSync, promises as fsPromises, readFileSync } from 'fs';
 import { isAbsolute, resolve } from 'path';
 import { env, cwd as processCwd } from 'process';
-import type { GlobbyOptions } from 'globby';
-import globby from 'globby';
 import unixify from 'unixify';
 import { extractImportLines, PathAliases, processImport } from '@graphql-tools/import';
+import { matchFiles, matchFilesSync } from '@graphql-tools/load-files';
 import {
   asArray,
   BaseLoaderOptions,
@@ -43,10 +42,6 @@ export interface GraphQLFileLoaderOptions extends BaseLoaderOptions {
 
 function isGraphQLImportFile(rawSDL: string) {
   return extractImportLines(rawSDL).importLines.length > 0;
-}
-
-function createGlobbyOptions(options: GraphQLFileLoaderOptions): GlobbyOptions {
-  return { absolute: true, ...options, ignore: [] };
 }
 
 const buildIgnoreGlob = (path: string) => `!${path}`;
@@ -121,10 +116,9 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
       !asArray(options.ignore || []).length &&
       !options['includeSources']
     )
-      return [glob]; // bypass globby when no glob character, can be loaded, no ignores and source not requested. Fixes problem with pkg and passes ci tests
+      return [glob]; // bypass globbing when no glob character, can be loaded, no ignores and source not requested. Fixes problem with pkg and passes ci tests
     const globs = this._buildGlobs(glob, options);
-    const result = await globby(globs, createGlobbyOptions(options));
-    return result;
+    return matchFiles(globs, { absolute: true, cwd: options.cwd });
   }
 
   resolveGlobsSync(glob: string, options: GraphQLFileLoaderOptions) {
@@ -134,10 +128,9 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
       !asArray(options.ignore || []).length &&
       !options['includeSources']
     )
-      return [glob]; // bypass globby when no glob character, can be loaded, no ignores and source not requested. Fixes problem with pkg and passes ci tests
+      return [glob]; // bypass globbing when no glob character, can be loaded, no ignores and source not requested. Fixes problem with pkg and passes ci tests
     const globs = this._buildGlobs(glob, options);
-    const result = globby.sync(globs, createGlobbyOptions(options));
-    return result;
+    return matchFilesSync(globs, { absolute: true, cwd: options.cwd });
   }
 
   async load(pointer: string, options: GraphQLFileLoaderOptions): Promise<Source[]> {

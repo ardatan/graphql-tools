@@ -14,7 +14,6 @@ import {
   VariableDefinitionNode,
 } from 'graphql';
 import {
-  createGraphQLError,
   hasOwnProperty,
   inspect,
   printPathArray,
@@ -52,7 +51,7 @@ export function getVariableValues(
       inputs,
       error => {
         if (maxErrors != null && errors.length >= maxErrors) {
-          throw createGraphQLError(
+          throw new GraphQLError(
             'Too many errors processing variables, error limit reached. Execution aborted.',
           );
         }
@@ -88,7 +87,7 @@ function coerceVariableValues(
       // validation, however is checked again here for safety.
       const varTypeStr = print(varDefNode.type);
       onError(
-        createGraphQLError(
+        new GraphQLError(
           `Variable "$${varName}" expected value of type "${varTypeStr}" which cannot be used as an input type.`,
           { nodes: varDefNode.type },
         ),
@@ -109,7 +108,7 @@ function coerceVariableValues(
       } else if (isNonNullType(varType)) {
         const varTypeStr = inspect(varType);
         onError(
-          createGraphQLError(
+          new GraphQLError(
             `Variable "$${varName}" of required type "${varTypeStr}" was not provided.`,
             {
               nodes: varDefNode,
@@ -126,7 +125,7 @@ function coerceVariableValues(
     if (value === null && isNonNullType(varType)) {
       const varTypeStr = inspect(varType);
       onError(
-        createGraphQLError(
+        new GraphQLError(
           `Variable "$${varName}" of non-null type "${varTypeStr}" must not be null.`,
           {
             nodes: varDefNode,
@@ -148,7 +147,7 @@ function coerceVariableValues(
         prefix += ` at "${varName}${printPathArray(path)}"`;
       }
       onError(
-        createGraphQLError(prefix + '; ' + error.message, {
+        new GraphQLError(prefix + '; ' + error.message, {
           nodes: varDefNode,
           originalError: error,
         }),

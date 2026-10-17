@@ -1,9 +1,8 @@
 import { existsSync, promises as fsPromises, readFileSync } from 'fs';
 import { isAbsolute, resolve } from 'path';
 import { env, cwd as processCwd } from 'process';
-import type { GlobbyOptions } from 'globby';
-import globby from 'globby';
 import unixify from 'unixify';
+import { matchFiles, matchFilesSync } from '@graphql-tools/load-files';
 import {
   asArray,
   BaseLoaderOptions,
@@ -21,10 +20,6 @@ const FILE_EXTENSIONS = ['.json'];
  * Additional options for loading from a JSON file
  */
 export interface JsonFileLoaderOptions extends BaseLoaderOptions {}
-
-function createGlobbyOptions(options: JsonFileLoaderOptions): GlobbyOptions {
-  return { absolute: true, ...options, ignore: [] };
-}
 
 const buildIgnoreGlob = (path: string) => `!${path}`;
 
@@ -90,14 +85,12 @@ export class JsonFileLoader implements Loader {
 
   async resolveGlobs(glob: string, options: JsonFileLoaderOptions) {
     const globs = this._buildGlobs(glob, options);
-    const result = await globby(globs, createGlobbyOptions(options));
-    return result;
+    return matchFiles(globs, { absolute: true, cwd: options.cwd });
   }
 
   resolveGlobsSync(glob: string, options: JsonFileLoaderOptions) {
     const globs = this._buildGlobs(glob, options);
-    const result = globby.sync(globs, createGlobbyOptions(options));
-    return result;
+    return matchFilesSync(globs, { absolute: true, cwd: options.cwd });
   }
 
   async load(pointer: string, options: JsonFileLoaderOptions): Promise<Source[]> {

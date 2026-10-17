@@ -28,7 +28,6 @@
     "types": ["node", "jest"],
 
     "paths": {
-      "cross-inspect": ["./packages/inspect/src/index.ts"],
       "@graphql-tools/*-loader": [
         "./packages/loaders/*/src/index.ts",
         "./packages/*-loader/src/index.ts"
@@ -38,5 +37,12 @@
     }
   },
   "include": ["packages"],
-  "exclude": ["**/node_modules", "**/dist", "**/test-files"]
+  "exclude": [
+    "**/node_modules",
+    "**/dist",
+    "**/test-files",
+    "**/__benchmarks__/**",
+    "**/*.bench.ts",
+    "**/*.benchmark.ts"
+  ]
 }

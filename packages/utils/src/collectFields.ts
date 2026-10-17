@@ -15,7 +15,6 @@ import {
 import { AccumulatorMap } from './AccumulatorMap.js';
 import { GraphQLDeferDirective } from './directives.js';
 import { getDirectiveValues } from './getDirectiveValues.js';
-import { memoize5 } from './memoize.js';
 import { VariableValues } from './types.js';
 
 export interface PatchFields {
@@ -254,8 +253,10 @@ export function getDeferValues<TVariables = any>(
  * returns an Interface or Union type, the "return type" will be the actual
  * object type returned by that field.
  *
+ * Unmemoized on purpose: callers that hit this on a hot path (e.g. executor)
+ * should wrap with a single lightweight memoize3 keyed by execution context.
  */
-export const collectSubFields = memoize5(function collectSubfields(
+export function collectSubFields(
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
   variableValues: VariableValues,
@@ -264,12 +265,7 @@ export const collectSubFields = memoize5(function collectSubfields(
 ): FieldsAndPatches {
   const subFieldNodes = new AccumulatorMap<string, FieldNode>();
   const visitedFragmentNames = new Set<string>();
-
   const subPatches: Array<PatchFields> = [];
-  const subFieldsAndPatches = {
-    fields: subFieldNodes,
-    patches: subPatches,
-  };
 
   for (const node of fieldNodes) {
     if (node.selectionSet) {
@@ -285,5 +281,9 @@ export const collectSubFields = memoize5(function collectSubfields(
       );
     }
   }
-  return subFieldsAndPatches;
-});
+
+  return {
+    fields: subFieldNodes,
+    patches: subPatches,
+  };
+}

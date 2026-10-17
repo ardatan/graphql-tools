@@ -19,6 +19,10 @@ const ESM_PACKAGES = [
   '@puppeteer/browsers',
   // cookie@2 is ESM-only; express may resolve the hoisted copy under Node 24
   'cookie',
+  // Babel 8 packages ship as native ESM (`"type": "module"`)
+  '@babel/[^/]+',
+  'obug',
+  'js-tokens',
   // dateformat@5 is ESM-only
   'dateformat',
 ];
@@ -59,6 +63,11 @@ module.exports = {
   restoreMocks: true,
   reporters: ['default'],
   modulePathIgnorePatterns,
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '\\.bench\\.ts$',
+    ...(!process.env.LEAK_TEST ? ['<rootDir>/scripts/leak-warmup\\.spec\\.ts$'] : []),
+  ],
   moduleNameMapper: {
     ...externalModulesMapper,
     ...pathsToModuleNameMapper(tsconfig.compilerOptions.paths, {
@@ -67,6 +76,13 @@ module.exports = {
     ...externalModulesMapper,
   },
   collectCoverage: false,
+  // Babel 8 retains the first Jest isolate under --detectLeaks; absorb that false positive.
+  ...(process.env.LEAK_TEST
+    ? {
+        runner: '<rootDir>/scripts/jest-leak-runner.cjs',
+        testSequencer: '<rootDir>/scripts/jest-leak-sequencer.cjs',
+      }
+    : {}),
   cacheDirectory: resolve(ROOT_DIR, `${CI ? '' : 'node_modules/'}.cache/jest`),
   transform: {
     '^.+\\.mjs?$': 'babel-jest',
