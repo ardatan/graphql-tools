@@ -1216,7 +1216,7 @@ describe('Execute: Handles inputs', () => {
         errors: [
           {
             message:
-              "Variable \"$input\" got invalid value { commnet: 'great' }; Expected value of type \"ReviewInput\" not to include unknown field \"commnet\". Did you mean \"comment\"? Found: { commnet: 'great' }.",
+              'Variable "$input" got invalid value { commnet: \'great\' }; Expected value of type "ReviewInput" not to include unknown field "commnet". Did you mean "comment"? Found: { commnet: \'great\' }.',
             locations: [{ line: 1, column: 8 }],
           },
         ],
@@ -1234,7 +1234,7 @@ describe('Execute: Handles inputs', () => {
         errors: [
           {
             message:
-              "Variable \"$input\" got invalid value { commnet: 'great' }; Expected value of type \"ReviewInput\" not to include unknown field \"commnet\", found: { commnet: 'great' }.",
+              'Variable "$input" got invalid value { commnet: \'great\' }; Expected value of type "ReviewInput" not to include unknown field "commnet", found: { commnet: \'great\' }.',
             locations: [{ line: 1, column: 8 }],
           },
         ],
