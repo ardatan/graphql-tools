@@ -2,7 +2,7 @@ name: Cancel superseded runs
 
 # `concurrency.cancel-in-progress` often fails to drop runs stuck in the
 # account-level job queue. On each PR synchronize, cancel older runs that belong
-# to this PR (by commit ancestry), never newer ones.
+# to this PR, never the current head's runs.
 
 # pull_request_target: metadata-only (no checkout of PR code) so fork PRs get a
 # token that can cancel workflow runs. The script uses only the Actions/PR APIs.
@@ -31,7 +31,6 @@ jobs:
             const repo = context.repo.repo;
             const prNumber = context.payload.pull_request.number;
             const keepSha = context.payload.pull_request.head.sha;
-            const headRepoFullName = context.payload.pull_request.head.repo.full_name;
 
             const thisRun = await github.rest.actions.getWorkflowRun({
               owner,
@@ -40,14 +39,6 @@ jobs:
             });
             const cutoffMs = Date.parse(thisRun.data.created_at);
 
-            const prCommits = await github.paginate(github.rest.pulls.listCommits, {
-              owner,
-              repo,
-              pull_number: prNumber,
-              per_page: 100,
-            });
-            const prShas = new Set(prCommits.map(c => c.sha));
-
             async function prHeadStillCurrent() {
               const fresh = await github.rest.pulls.get({
                 owner,
@@ -55,6 +46,25 @@ jobs:
                 pull_number: prNumber,
               });
               return fresh.data.head.sha === keepSha;
+            }
+
+            // pull_request workflow runs use the merge commit as head_sha, so do
+            // not match against branch tip SHAs. Prefer the run's PR association
+            // (survives force-push); fall back to head repo + branch only when
+            // GitHub omits pull_requests.
+            function isSupersededRunForThisPr(run) {
+              if (run.id === context.runId) return false;
+              if (!(Date.parse(run.created_at) < cutoffMs)) return false;
+
+              const prs = run.pull_requests || [];
+              const prHit = prs.find(pr => pr.number === prNumber);
+              if (prHit) {
+                // Current head's runs — keep them.
+                if (prHit.head?.sha === keepSha) return false;
+                return true;
+              }
+              // Different PR, or pull_requests omitted (cannot safely claim identity).
+              return false;
             }
 
             if (!(await prHeadStillCurrent())) {
@@ -93,19 +103,7 @@ jobs:
                 for (const run of runs) {
                   if (seen.has(run.id)) continue;
                   seen.add(run.id);
-                  if (run.id === context.runId) continue;
-                  if (run.head_sha === keepSha) continue;
-                  if (!prShas.has(run.head_sha)) continue;
-
-                  const runHeadRepo = run.head_repository?.full_name;
-                  if (runHeadRepo && runHeadRepo !== headRepoFullName) continue;
-
-                  const belongsToPr = (run.pull_requests || []).some(pr => pr.number === prNumber);
-                  // When GitHub omits pull_requests, fall back to PR commit membership only.
-                  if ((run.pull_requests || []).length > 0 && !belongsToPr) continue;
-
-                  const runCreatedMs = Date.parse(run.created_at);
-                  if (!(runCreatedMs < cutoffMs)) continue;
+                  if (!isSupersededRunForThisPr(run)) continue;
 
                   try {
                     await github.rest.actions.forceCancelWorkflowRun({
