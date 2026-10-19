@@ -14,6 +14,14 @@ function getDefault<T>(module: T & { default?: T }): T {
 
 const traverse = getDefault(traversePkg);
 
+/** Babel/Vue parser columns are 0-based; GraphQL `Source` requires 1-based columns. */
+function toGraphQLSourceLocation(start: { line: number; column: number }) {
+  return {
+    line: start.line,
+    column: start.column + 1,
+  };
+}
+
 /**
  * Additional options for determining how a file is parsed.
  */
@@ -197,7 +205,7 @@ function customBlockFromVue(
     return;
   }
 
-  return new Source(block.content.trim(), filePath, block.loc.start);
+  return new Source(block.content.trim(), filePath, toGraphQLSourceLocation(block.loc.start));
 }
 
 // tslint:disable-next-line: no-implicit-dependencies
@@ -264,7 +272,7 @@ export const gqlPluckFromCodeString = async (
   }
 
   const sources = parseCode({ code, filePath, options }).map(
-    t => new Source(t.content, filePath, t.loc.start),
+    t => new Source(t.content, filePath, toGraphQLSourceLocation(t.loc.start)),
   );
   if (blockSource) {
     sources.push(blockSource);
@@ -305,7 +313,7 @@ export const gqlPluckFromCodeStringSync = (
   }
 
   const sources = parseCode({ code, filePath, options }).map(
-    t => new Source(t.content, filePath, t.loc.start),
+    t => new Source(t.content, filePath, toGraphQLSourceLocation(t.loc.start)),
   );
   if (blockSource) {
     sources.push(blockSource);
