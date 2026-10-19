@@ -6,6 +6,7 @@ import {
   GraphQLSchema,
   GraphQLString,
   parse,
+  versionInfo,
 } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { ExecutionResult, isAsyncIterable } from '@graphql-tools/utils';
@@ -533,7 +534,9 @@ describe('Subscription Initialization Phase', () => {
       errors: [
         {
           message:
-            'Variable "$arg" got invalid value \'meow\'; Int cannot represent non-integer value: "meow"',
+            versionInfo.major >= 17
+              ? 'Variable "$arg" has invalid value: Int cannot represent non-integer value: "meow"'
+              : 'Variable "$arg" got invalid value "meow"; Int cannot represent non-integer value: "meow"',
           locations: [{ line: 2, column: 21 }],
         },
       ],

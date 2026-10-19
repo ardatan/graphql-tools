@@ -4,6 +4,7 @@ import {
   FieldNode,
   FragmentDefinitionNode,
   getArgumentValues,
+  getVariableValues,
   GraphQLAbstractType,
   GraphQLError,
   GraphQLField,
@@ -61,7 +62,6 @@ import { coerceError } from './coerceError.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import { invariant } from './invariant.js';
 import { promiseForObject } from './promiseForObject.js';
-import { getVariableValues } from './values.js';
 
 const EMPTY_ARGS: { [argument: string]: unknown } = Object.freeze(Object.create(null));
 const isGraphQL17 = versionInfo.major >= 17;
@@ -578,7 +578,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     {
       maxErrors: 50,
       hideSuggestions: hideSuggestions ?? undefined,
-    },
+    } as { maxErrors?: number },
   );
 
   if (coercedVariableValues.errors) {
@@ -587,7 +587,13 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
 
   signal?.throwIfAborted();
 
-  const variableValues = coercedVariableValues.variableValues;
+  // GraphQL 17 returns { variableValues }; GraphQL 16 returns { coerced }.
+  const variableValues: VariableValues = isGraphQL17
+    ? (coercedVariableValues as { variableValues: VariableValues }).variableValues
+    : {
+        coerced: (coercedVariableValues as { coerced: Record<string, unknown> }).coerced,
+        sources: Object.create(null),
+      };
   const resolveInfoVariableValues = (
     isGraphQL17 ? variableValues : variableValues.coerced
   ) as GraphQLResolveInfo['variableValues'];

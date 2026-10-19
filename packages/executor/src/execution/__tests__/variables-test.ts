@@ -1,4 +1,6 @@
 import {
+  buildSchema,
+  getVariableValues,
   GraphQLArgumentConfig,
   GraphQLEnumType,
   GraphQLError,
@@ -17,9 +19,23 @@ import {
 import { inspect } from '@graphql-tools/utils';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { executeSync } from '../execute.js';
-import { getVariableValues } from '../values.js';
 
 const isGraphQL17 = versionInfo.major >= 17;
+
+function variableValuesFromResult(result: ReturnType<typeof getVariableValues>) {
+  if (result.errors) {
+    return result;
+  }
+  if (isGraphQL17) {
+    return result;
+  }
+  return {
+    variableValues: {
+      coerced: (result as { coerced: Record<string, unknown> }).coerced,
+      sources: Object.create(null),
+    },
+  };
+}
 
 const TestComplexScalar = new GraphQLScalarType({
   name: 'ComplexScalar',
@@ -408,8 +424,9 @@ describe('Execute: Handles inputs', () => {
         expectJSON(result).toDeepEqual({
           errors: [
             {
-              message:
-                'Variable "$input" got invalid value \'SerializedValue\' at "input.e"; FaultyScalarErrorMessage',
+              message: isGraphQL17
+                ? 'Variable "$input" has invalid value at .e: FaultyScalarErrorMessage'
+                : 'Variable "$input" got invalid value "SerializedValue" at "input.e"; FaultyScalarErrorMessage',
               locations: [{ line: 2, column: 16 }],
               extensions: { code: 'FaultyScalarErrorMessageExtensionCode' },
             },
@@ -425,7 +442,7 @@ describe('Execute: Handles inputs', () => {
           errors: [
             {
               message: isGraphQL17
-                ? 'Variable "$input" got invalid value null at "input.c"; Expected value of non-null type "String!" not to be null.'
+                ? 'Variable "$input" has invalid value at .c: Expected value of non-null type "String!" not to be null.'
                 : 'Variable "$input" got invalid value null at "input.c"; Expected non-nullable type "String!" not to be null.',
               locations: [{ line: 2, column: 16 }],
             },
@@ -440,8 +457,8 @@ describe('Execute: Handles inputs', () => {
           errors: [
             {
               message: isGraphQL17
-                ? 'Variable "$input" got invalid value \'foo bar\'; Expected value of type "TestInputObject" to be an object, found: \'foo bar\'.'
-                : 'Variable "$input" got invalid value \'foo bar\'; Expected type "TestInputObject" to be an object.',
+                ? 'Variable "$input" has invalid value: Expected value of type "TestInputObject" to be an object, found: "foo bar".'
+                : 'Variable "$input" got invalid value "foo bar"; Expected type "TestInputObject" to be an object.',
               locations: [{ line: 2, column: 16 }],
             },
           ],
@@ -455,7 +472,7 @@ describe('Execute: Handles inputs', () => {
 
         // graphql-js@16+ reject arrays as non-objects for input-object variables.
         const arrayInputObjectMessage = isGraphQL17
-          ? 'Variable "$input" got invalid value []; Expected value of type "TestInputObject" to be an object, found: [].'
+          ? 'Variable "$input" has invalid value: Expected value of type "TestInputObject" to be an object, found: [].'
           : 'Variable "$input" got invalid value []; Expected type "TestInputObject" to be an object.';
 
         expectJSON(result).toDeepEqual({
@@ -531,8 +548,8 @@ describe('Execute: Handles inputs', () => {
           errors: [
             {
               message: isGraphQL17
-                ? "Variable \"$input\" got invalid value { a: 'foo', b: 'bar' }; Expected value of type \"TestInputObject\" to include required field \"c\", found: { a: 'foo', b: 'bar' }."
-                : 'Variable "$input" got invalid value { a: \'foo\', b: \'bar\' }; Field "c" of required type "String!" was not provided.',
+                ? 'Variable "$input" has invalid value: Expected value of type "TestInputObject" to include required field "c", found: { a: "foo", b: "bar" }.'
+                : 'Variable "$input" got invalid value { a: "foo", b: "bar" }; Field "c" of required type "String!" was not provided.',
               locations: [{ line: 2, column: 16 }],
             },
           ],
@@ -551,14 +568,14 @@ describe('Execute: Handles inputs', () => {
           errors: [
             {
               message: isGraphQL17
-                ? 'Variable "$input" got invalid value { a: \'foo\' } at "input.na"; Expected value of type "TestInputObject" to include required field "c", found: { a: \'foo\' }.'
-                : 'Variable "$input" got invalid value { a: \'foo\' } at "input.na"; Field "c" of required type "String!" was not provided.',
+                ? 'Variable "$input" has invalid value at .na: Expected value of type "TestInputObject" to include required field "c", found: { a: "foo" }.'
+                : 'Variable "$input" got invalid value { a: "foo" } at "input.na"; Field "c" of required type "String!" was not provided.',
               locations: [{ line: 2, column: 18 }],
             },
             {
               message: isGraphQL17
-                ? 'Variable "$input" got invalid value { na: { a: \'foo\' } }; Expected value of type "TestNestedInputObject" to include required field "nb", found: { na: { a: \'foo\' } }.'
-                : 'Variable "$input" got invalid value { na: { a: \'foo\' } }; Field "nb" of required type "String!" was not provided.',
+                ? 'Variable "$input" has invalid value: Expected value of type "TestNestedInputObject" to include required field "nb", found: { na: { a: "foo" } }.'
+                : 'Variable "$input" got invalid value { na: { a: "foo" } }; Field "nb" of required type "String!" was not provided.',
               locations: [{ line: 2, column: 18 }],
             },
           ],
@@ -575,8 +592,8 @@ describe('Execute: Handles inputs', () => {
           errors: [
             {
               message: isGraphQL17
-                ? "Variable \"$input\" got invalid value { a: 'foo', b: 'bar', c: 'baz', extra: 'dog' }; Expected value of type \"TestInputObject\" not to include unknown field \"extra\", found: { a: 'foo', b: 'bar', c: 'baz', extra: 'dog' }."
-                : "Variable \"$input\" got invalid value { a: 'foo', b: 'bar', c: 'baz', extra: 'dog' }; Field \"extra\" is not defined by type \"TestInputObject\".",
+                ? 'Variable "$input" has invalid value: Expected value of type "TestInputObject" not to include unknown field "extra", found: { a: "foo", b: "bar", c: "baz", extra: "dog" }.'
+                : 'Variable "$input" got invalid value { a: "foo", b: "bar", c: "baz", extra: "dog" }; Field "extra" is not defined by type "TestInputObject".',
               locations: [{ line: 2, column: 16 }],
             },
           ],
@@ -750,7 +767,9 @@ describe('Execute: Handles inputs', () => {
       expectJSON(result).toDeepEqual({
         errors: [
           {
-            message: 'Variable "$value" of required type "String!" was not provided.',
+            message: isGraphQL17
+              ? 'Variable "$value" has invalid value: Expected a value of non-null type "String!" to be provided.'
+              : 'Variable "$value" of required type "String!" was not provided.',
             locations: [{ line: 2, column: 16 }],
           },
         ],
@@ -768,7 +787,9 @@ describe('Execute: Handles inputs', () => {
       expectJSON(result).toDeepEqual({
         errors: [
           {
-            message: 'Variable "$value" of non-null type "String!" must not be null.',
+            message: isGraphQL17
+              ? 'Variable "$value" has invalid value: Expected value of non-null type "String!" not to be null.'
+              : 'Variable "$value" of non-null type "String!" must not be null.',
             locations: [{ line: 2, column: 16 }],
           },
         ],
@@ -834,8 +855,9 @@ describe('Execute: Handles inputs', () => {
       expectJSON(result).toDeepEqual({
         errors: [
           {
-            message:
-              'Variable "$value" got invalid value [ 1, 2, 3 ]; String cannot represent a non string value: [1, 2, 3]',
+            message: isGraphQL17
+              ? 'Variable "$value" has invalid value: String cannot represent a non string value: [1, 2, 3]'
+              : 'Variable "$value" got invalid value [1, 2, 3]; String cannot represent a non string value: [1, 2, 3]',
             locations: [{ line: 2, column: 16 }],
           },
         ],
@@ -898,7 +920,7 @@ describe('Execute: Handles inputs', () => {
 
     it('treats objects with a non-callable iterator as a singleton list item', () => {
       // graphql-js only iterates when typeof value[Symbol.iterator] === 'function'.
-      // A null iterator must not snapshot to [] via Array.from.
+      // A null iterator must not be treated as an empty list.
       const listDoc = parse(`
         query ($input: [TestInputObject]) {
           list(input: $input)
@@ -914,7 +936,9 @@ describe('Execute: Handles inputs', () => {
         c: 'baz',
         [Symbol.iterator]: null,
       });
-      const coerced = getVariableValues(schema, variableDefinitions, { input: value });
+      const coerced = variableValuesFromResult(
+        getVariableValues(schema, variableDefinitions, { input: value }),
+      );
       expect(coerced.errors).toBeUndefined();
       expect(coerced.variableValues?.coerced['input']).toEqual([
         { a: 'foo', b: ['bar'], c: 'baz' },
@@ -943,7 +967,9 @@ describe('Execute: Handles inputs', () => {
       expectJSON(result).toDeepEqual({
         errors: [
           {
-            message: 'Variable "$input" of non-null type "[String]!" must not be null.',
+            message: isGraphQL17
+              ? 'Variable "$input" has invalid value: Expected value of non-null type "[String]!" not to be null.'
+              : 'Variable "$input" of non-null type "[String]!" must not be null.',
             locations: [{ line: 2, column: 16 }],
           },
         ],
@@ -1006,7 +1032,7 @@ describe('Execute: Handles inputs', () => {
         errors: [
           {
             message: isGraphQL17
-              ? 'Variable "$input" got invalid value null at "input[1]"; Expected value of non-null type "String!" not to be null.'
+              ? 'Variable "$input" has invalid value at [1]: Expected value of non-null type "String!" not to be null.'
               : 'Variable "$input" got invalid value null at "input[1]"; Expected non-nullable type "String!" not to be null.',
             locations: [{ line: 2, column: 16 }],
           },
@@ -1025,7 +1051,9 @@ describe('Execute: Handles inputs', () => {
       expectJSON(result).toDeepEqual({
         errors: [
           {
-            message: 'Variable "$input" of non-null type "[String!]!" must not be null.',
+            message: isGraphQL17
+              ? 'Variable "$input" has invalid value: Expected value of non-null type "[String!]!" not to be null.'
+              : 'Variable "$input" of non-null type "[String!]!" must not be null.',
             locations: [{ line: 2, column: 16 }],
           },
         ],
@@ -1055,7 +1083,7 @@ describe('Execute: Handles inputs', () => {
         errors: [
           {
             message: isGraphQL17
-              ? 'Variable "$input" got invalid value null at "input[1]"; Expected value of non-null type "String!" not to be null.'
+              ? 'Variable "$input" has invalid value at [1]: Expected value of non-null type "String!" not to be null.'
               : 'Variable "$input" got invalid value null at "input[1]"; Expected non-nullable type "String!" not to be null.',
             locations: [{ line: 2, column: 16 }],
           },
@@ -1165,6 +1193,39 @@ describe('Execute: Handles inputs', () => {
     });
   });
 
+  describe('Execute: Uses variable default values with SDL input-field defaults', () => {
+    // Regression for #8535: graphql-js applies GraphQL 17 SDL input-field defaults
+    // (field.default) for omitted variables.
+    it('applies input-field defaults inside an omitted variable default', () => {
+      const sdlSchema = buildSchema(/* GraphQL */ `
+        input PostInput {
+          text: String!
+          assets: [String!]! = []
+          note: String = "n"
+        }
+        type Query {
+          echo(input: PostInput!): String!
+        }
+      `);
+      const document = parse('query ($i: PostInput = { text: "hi" }) { echo(input: $i) }');
+      const operation = document.definitions[0];
+      if (operation.kind !== Kind.OPERATION_DEFINITION || !operation.variableDefinitions) {
+        throw new Error('Expected operation with variable definitions');
+      }
+
+      const coerced = variableValuesFromResult(
+        getVariableValues(sdlSchema, operation.variableDefinitions, {}),
+      );
+
+      expect(coerced.errors).toBeUndefined();
+      expect(coerced.variableValues?.coerced['i']).toEqual({
+        text: 'hi',
+        assets: [],
+        note: 'n',
+      });
+    });
+  });
+
   // hideSuggestions is aligned with graphql@17 ExecutionArgs; enum leaf coercion
   // only accepts the flag there. Skip on older graphql majors.
   (isGraphQL17 ? describe : describe.skip)('hideSuggestions', () => {
@@ -1216,7 +1277,7 @@ describe('Execute: Handles inputs', () => {
         errors: [
           {
             message:
-              'Variable "$input" got invalid value { commnet: \'great\' }; Expected value of type "ReviewInput" not to include unknown field "commnet". Did you mean "comment"? Found: { commnet: \'great\' }.',
+              'Variable "$input" has invalid value: Expected value of type "ReviewInput" not to include unknown field "commnet". Did you mean "comment"? Found: { commnet: "great" }.',
             locations: [{ line: 1, column: 8 }],
           },
         ],
@@ -1234,7 +1295,7 @@ describe('Execute: Handles inputs', () => {
         errors: [
           {
             message:
-              'Variable "$input" got invalid value { commnet: \'great\' }; Expected value of type "ReviewInput" not to include unknown field "commnet", found: { commnet: \'great\' }.',
+              'Variable "$input" has invalid value: Expected value of type "ReviewInput" not to include unknown field "commnet", found: { commnet: "great" }.',
             locations: [{ line: 1, column: 8 }],
           },
         ],
@@ -1250,7 +1311,7 @@ describe('Execute: Handles inputs', () => {
         errors: [
           {
             message:
-              'Variable "$input" got invalid value \'REDD\'; Value "REDD" does not exist in "Color" enum. Did you mean the enum value "RED"?',
+              'Variable "$input" has invalid value: Value "REDD" does not exist in "Color" enum. Did you mean the enum value "RED"?',
             locations: [{ line: 1, column: 8 }],
           },
         ],
@@ -1268,7 +1329,7 @@ describe('Execute: Handles inputs', () => {
         errors: [
           {
             message:
-              'Variable "$input" got invalid value \'REDD\'; Value "REDD" does not exist in "Color" enum.',
+              'Variable "$input" has invalid value: Value "REDD" does not exist in "Color" enum.',
             locations: [{ line: 1, column: 8 }],
           },
         ],
@@ -1293,7 +1354,9 @@ describe('Execute: Handles inputs', () => {
 
     function invalidValueError(value: number, index: number) {
       return {
-        message: `Variable "$input" got invalid value ${value} at "input[${index}]"; String cannot represent a non string value: ${value}`,
+        message: isGraphQL17
+          ? `Variable "$input" has invalid value at [${index}]: String cannot represent a non string value: ${value}`
+          : `Variable "$input" got invalid value ${value} at "input[${index}]"; String cannot represent a non string value: ${value}`,
         locations: [{ line: 2, column: 14 }],
       };
     }
