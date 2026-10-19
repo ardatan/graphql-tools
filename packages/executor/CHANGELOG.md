@@ -1,5 +1,13 @@
 # @graphql-tools/executor
 
+## 4.0.0
+
+### Major Changes
+
+- [#8536](https://github.com/ardatan/graphql-tools/pull/8536) [`875d060`](https://github.com/ardatan/graphql-tools/commit/875d0601036cf12b28caa879620372467fceb0b4) Thanks [@ardatan](https://github.com/ardatan)! - BREAKING: stop exporting `getVariableValues` from `@graphql-tools/executor`. Use `graphql`'s `getVariableValues` instead.
+  
+  Execution now calls graphql-js directly for variable coercion (including GraphQL 17 SDL input-field defaults on omitted variables). The maintained fork and helpers (`values.ts`, `validateInputValue`, etc.) were removed.
+
 ## 3.0.0
 
 ### Major Changes
