@@ -35,7 +35,7 @@ describe('asGetArgumentValuesVariables', () => {
   it('lets getArgumentValues read flat execution variables on the current GraphQL major', () => {
     const document = parse('{ echo(message: $message) }');
     const fieldNode = (document.definitions[0] as any).selectionSet.selections[0];
-    const field = schema.getQueryType()!.getFields().echo;
+    const field = schema.getQueryType()!.getFields()['echo'];
 
     const args = getArgumentValues(
       field,
