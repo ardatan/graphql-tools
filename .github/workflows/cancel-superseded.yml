@@ -1,0 +1,86 @@
+name: Cancel superseded runs
+
+# `concurrency.cancel-in-progress` often fails to drop runs that are stuck in the
+# account-level job queue. On each PR synchronize, actively cancel older runs for
+# the same head branch across our workflows.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: cancel-superseded-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  actions: write
+
+jobs:
+  cancel:
+    name: Cancel older runs on this PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Force-cancel superseded workflow runs
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const branch = context.payload.pull_request.head.ref;
+            const keepSha = context.payload.pull_request.head.sha;
+
+            const workflows = await github.paginate(github.rest.actions.listRepoWorkflows, {
+              owner,
+              repo,
+              per_page: 100,
+            });
+
+            let cancelled = 0;
+            for (const workflow of workflows) {
+              if (!workflow.path?.startsWith('.github/workflows/')) continue;
+              // Do not cancel this housekeeping workflow itself mid-flight.
+              if (workflow.path.endsWith('cancel-superseded.yml')) continue;
+
+              const seen = new Set();
+              for (const status of ['queued', 'in_progress', 'pending', 'waiting']) {
+                const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
+                  owner,
+                  repo,
+                  workflow_id: workflow.id,
+                  branch,
+                  event: 'pull_request',
+                  status,
+                  per_page: 30,
+                });
+                for (const run of runs) {
+                  if (seen.has(run.id)) continue;
+                  seen.add(run.id);
+                  if (run.head_sha === keepSha) continue;
+                  if (run.id === context.runId) continue;
+                  try {
+                    await github.rest.actions.forceCancelWorkflowRun({
+                      owner,
+                      repo,
+                      run_id: run.id,
+                    });
+                    cancelled += 1;
+                    core.info(`force-cancelled ${workflow.name}#${run.id} (${run.head_sha.slice(0, 8)})`);
+                  } catch (forceErr) {
+                    try {
+                      await github.rest.actions.cancelWorkflowRun({
+                        owner,
+                        repo,
+                        run_id: run.id,
+                      });
+                      cancelled += 1;
+                      core.info(`cancelled ${workflow.name}#${run.id} (${run.head_sha.slice(0, 8)})`);
+                    } catch (cancelErr) {
+                      core.warning(
+                        `skip ${workflow.name}#${run.id}: ${cancelErr.message || forceErr.message}`,
+                      );
+                    }
+                  }
+                }
+              }
+            }
+            core.info(`Cancelled ${cancelled} superseded run(s) on ${branch}`);

@@ -6,7 +6,8 @@ env:
   CI: true
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Prefer PR number so synchronize events share one group; cancel older pushes.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 on:
@@ -60,11 +61,15 @@ jobs:
     name:
       Test on Node ${{matrix.node-version}} (${{matrix.os}}) and GraphQL
       v${{matrix.graphql_version}}
+    # Windows runners are scarce in the shared queue; keep them on master only.
+    if:
+      matrix.os == 'ubuntu-latest' || (github.event_name == 'push' && github.ref ==
+      'refs/heads/master')
     runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest] # remove windows to speed up the tests
+        os: [windows-latest, ubuntu-latest]
         node-version: [22, 24]
         graphql_version:
           - 16
