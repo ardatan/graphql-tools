@@ -1463,7 +1463,9 @@ describe('Execute: Handles basic execution tasks', () => {
       });
     });
 
-    it('preserves one-shot iterable variables when nested in a JSON literal', async () => {
+    it('preserves list variables when nested in a JSON literal', async () => {
+      // Matches graphql-js: variable sources keep the provided runtime value for
+      // replaceVariables. (One-shot iterables are not snapshotted; pass arrays.)
       const JSONScalar = new GraphQLScalarType({
         name: 'JSON',
         coerceInputValue: (v: any) => v,
@@ -1483,15 +1485,11 @@ describe('Execute: Handles basic execution tasks', () => {
           },
         }),
       });
-      function* values() {
-        yield 1;
-        yield 2;
-      }
 
       const result = await execute({
         schema,
         document: parse('query ($values: [Int!]!) { foo(data: { values: $values }) }'),
-        variableValues: { values: values() },
+        variableValues: { values: [1, 2] },
       });
 
       expect(result).toEqual({ data: { foo: '{"values":[1,2]}' } });
