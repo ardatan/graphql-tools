@@ -1,5 +1,11 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 9.0.1
+
+### Patch Changes
+
+- [#8537](https://github.com/ardatan/graphql-tools/pull/8537) [`d4268db`](https://github.com/ardatan/graphql-tools/commit/d4268dbb2e6a9e27755a5c0e0ba28c7dacf525e0) Thanks [@ardatan](https://github.com/ardatan)! - Deduplicate dual-marker template plucks and convert Babel's 0-based columns to GraphQL `Source` 1-based offsets so standalone `#graphql` templates at column 0 no longer throw.
+
 ## 9.0.0
 
 ### Major Changes
