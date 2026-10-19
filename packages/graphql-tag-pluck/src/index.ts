@@ -14,7 +14,7 @@ function getDefault<T>(module: T & { default?: T }): T {
 
 const traverse = getDefault(traversePkg);
 
-/** Babel/Vue parser columns are 0-based; GraphQL `Source` requires 1-based columns. */
+/** Babel parser columns are 0-based; GraphQL `Source` requires 1-based columns. */
 function toGraphQLSourceLocation(start: { line: number; column: number }) {
   return {
     line: start.line,
@@ -205,7 +205,8 @@ function customBlockFromVue(
     return;
   }
 
-  return new Source(block.content.trim(), filePath, toGraphQLSourceLocation(block.loc.start));
+  // Vue SFC custom-block locations are already 1-based.
+  return new Source(block.content.trim(), filePath, block.loc.start);
 }
 
 // tslint:disable-next-line: no-implicit-dependencies
