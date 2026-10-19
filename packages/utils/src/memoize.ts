@@ -108,9 +108,9 @@ export function memoize4<F extends (a1: any, a2: any, a3: any, a4: any) => any>(
       return newValue;
     }
 
-    const cache4 = cache3.get(a3);
+    let cache4 = cache3.get(a3);
     if (!cache4) {
-      const cache4 = new WeakMap();
+      cache4 = new WeakMap();
       cache3.set(a3, cache4);
       const newValue = fn(a1, a2, a3, a4);
       cache4.set(a4, newValue);
