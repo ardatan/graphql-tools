@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/external-fragment-loader",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "type": "module",
   "description": "A GraphQL loader that resolves cross-package fragment dependencies from external packages",
   "repository": {
@@ -51,15 +51,15 @@
     "graphql": "^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/graphql-tag-pluck": "8.3.41",
-    "@graphql-tools/load-files": "^7.0.1",
-    "@graphql-tools/utils": "^12.1.0",
+    "@graphql-tools/graphql-tag-pluck": "9.0.0",
+    "@graphql-tools/load-files": "^8.0.0",
+    "@graphql-tools/utils": "^13.0.0",
     "memoizee": "^0.4.17",
     "tslib": "^2.4.0",
     "unixify": "^1.0.0"
   },
   "devDependencies": {
-    "@graphql-tools/load": "8.1.21",
+    "@graphql-tools/load": "9.0.0",
     "@types/memoizee": "^0.4.11"
   },
   "publishConfig": {
