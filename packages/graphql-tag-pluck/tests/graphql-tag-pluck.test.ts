@@ -2536,7 +2536,7 @@ describe('graphql-tag-pluck', () => {
 
       expect(sources).toHaveLength(1);
       expect(sources[0].body).toEqual('#graphql\ntype Query { hello: String }');
-      expect(sources[0].locationOffset.column).toBeGreaterThanOrEqual(1);
+      expect(sources[0].locationOffset.column).toBe(1);
     });
 
     it('should pluck once when both /* GraphQL */ and #graphql markers are present', async () => {
