@@ -277,11 +277,13 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
     const nodeToUse = takeExpression ? node.expression : node;
     const gqlTemplateLiteral = pluckStringFromFile(code, nodeToUse, hooksOptions);
     if (gqlTemplateLiteral) {
+      // Use the template node's coordinates (not the enclosing ExpressionStatement)
+      // so semicolon-terminated / dual-marker visits share one cache key.
       addTemplateLiteralToResult({
         content: gqlTemplateLiteral,
-        loc: node.loc,
-        end: node.end,
-        start: node.start,
+        loc: nodeToUse.loc,
+        end: nodeToUse.end,
+        start: nodeToUse.start,
       });
     }
   };
