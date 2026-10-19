@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor-urql-exchange",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "type": "module",
   "description": "",
   "repository": {
@@ -48,7 +48,7 @@
     "wonka": "^6.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^13.0.0",
+    "@graphql-tools/utils": "^13.0.1",
     "@whatwg-node/promise-helpers": "^2.0.0",
     "tslib": "^2.4.0"
   },

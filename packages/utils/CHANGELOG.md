@@ -1,5 +1,13 @@
 # @graphql-tools/utils
 
+## 13.0.1
+
+### Patch Changes
+
+- [#8540](https://github.com/ardatan/graphql-tools/pull/8540) [`15efe55`](https://github.com/ardatan/graphql-tools/commit/15efe550f6b8d5c2073dc4ef812031397ddf3506) Thanks [@ardatan](https://github.com/ardatan)! - Align `memoize4` third-level cache initialization with the `let` + reassignment pattern used by `memoize3` / `memoize5`.
+  
+  Previously a nested `const cache4` inside `if (!cache4)` shadowed the outer binding. Runtime behavior was already safe (that branch stores the map and returns), but the declaration was easy to misread and fragile if the early return were removed. The helper now assigns to the outer `let cache4` instead, with regression tests for the third-level cache path.
+
 ## 13.0.0
 
 ### Major Changes
