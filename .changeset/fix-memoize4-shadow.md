@@ -2,7 +2,7 @@
 '@graphql-tools/utils': patch
 ---
 
-fix(utils): `memoize4` no longer throws on partial cache hits
+`memoize4` no longer throws on partial cache hits.
 
 `memoize4` nested a `const cache4 = new WeakMap()` inside `if (!cache4)`, which shadowed the outer binding. The map was stored correctly on the first miss, but the outer `cache4` stayed `undefined`, so the next call that shared the first three arguments and missed on the fourth crashed with `TypeError: Cannot read properties of undefined (reading 'get')`.
 
