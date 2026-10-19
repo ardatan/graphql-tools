@@ -204,14 +204,14 @@ describe('graphql-tag-pluck', () => {
       );
     });
 
-    it('should pluck graphql-tag template literals from .ts file that uses `assert` keyword', async () => {
+    it('should pluck graphql-tag template literals from .ts file that uses import attributes (`with`)', async () => {
       const sources = await pluck(
         'tmp-XXXXXX.ts',
         freeText(`
         import gql from 'graphql-tag'
         import { Document } from 'graphql'
 
-        import any from "./package.json" assert { type: "json" };
+        import any from "./package.json" with { type: "json" };
 
         const fragment: Document = gql\`
             fragment Foo on FooType {

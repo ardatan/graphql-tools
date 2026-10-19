@@ -15,7 +15,6 @@ import {
 } from 'graphql';
 import {
   addPath,
-  createGraphQLError,
   inspect,
   isIterableObject,
   isObjectLike,
@@ -274,7 +273,7 @@ function reportInvalidValue(
   invalidValue: unknown,
   originalError?: GraphQLError,
 ): void {
-  onError(pathToArray(path), invalidValue, createGraphQLError(message, { originalError }));
+  onError(pathToArray(path), invalidValue, new GraphQLError(message, { originalError }));
 }
 
 /**
@@ -609,7 +608,7 @@ function reportInvalidLiteral(
   originalError?: GraphQLError,
 ): void {
   onError(
-    createGraphQLError(message, {
+    new GraphQLError(message, {
       nodes: valueNode,
       originalError,
     }),

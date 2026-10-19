@@ -1,0 +1,612 @@
+diff --git a/node_modules/graphql-yoga/cjs/error.js b/node_modules/graphql-yoga/cjs/error.js
+index 5bcf96f..18da27c 100644
+--- a/node_modules/graphql-yoga/cjs/error.js
++++ b/node_modules/graphql-yoga/cjs/error.js
+@@ -1,5 +1,6 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
++exports.createGraphQLError = createGraphQLError;
+ exports.isGraphQLError = isGraphQLError;
+ exports.isOriginalGraphQLError = isOriginalGraphQLError;
+ exports.isAbortError = isAbortError;
+@@ -7,7 +8,15 @@ exports.handleError = handleError;
+ exports.getResponseInitByRespectingErrors = getResponseInitByRespectingErrors;
+ exports.areGraphQLErrors = areGraphQLErrors;
+ const graphql_1 = require("graphql");
+-const utils_1 = require("@graphql-tools/utils");
++function createGraphQLError(message, options) {
++    const error = new graphql_1.GraphQLError(message, options);
++    if ((options?.coordinate != null) && error.coordinate == null) {
++        Object.defineProperties(error, {
++            coordinate: { value: options.coordinate, enumerable: true, configurable: true },
++        });
++    }
++    return error;
++}
+ function isAggregateError(obj) {
+     return obj != null && typeof obj === 'object' && 'errors' in obj;
+ }
+@@ -52,7 +61,7 @@ function handleError(error, maskedErrorsOpts, logger) {
+         }
+         errors.add(isGraphQLError(maskedError)
+             ? maskedError
+-            : (0, utils_1.createGraphQLError)(maskedError.message, {
++            : createGraphQLError(maskedError.message, {
+                 originalError: maskedError,
+             }));
+     }
+@@ -60,12 +69,12 @@ function handleError(error, maskedErrorsOpts, logger) {
+         errors.add(error);
+     }
+     else if (error instanceof Error) {
+-        errors.add((0, utils_1.createGraphQLError)(error.message, {
++        errors.add(createGraphQLError(error.message, {
+             originalError: error,
+         }));
+     }
+     else if (typeof error === 'string') {
+-        errors.add((0, utils_1.createGraphQLError)(error, {
++        errors.add(createGraphQLError(error, {
+             extensions: {
+                 code: 'INTERNAL_SERVER_ERROR',
+                 unexpected: true,
+@@ -73,7 +82,7 @@ function handleError(error, maskedErrorsOpts, logger) {
+         }));
+     }
+     else if (hasToString(error)) {
+-        errors.add((0, utils_1.createGraphQLError)(error.toString(), {
++        errors.add(createGraphQLError(error.toString(), {
+             extensions: {
+                 code: 'INTERNAL_SERVER_ERROR',
+                 unexpected: true,
+@@ -82,7 +91,7 @@ function handleError(error, maskedErrorsOpts, logger) {
+     }
+     else {
+         logger.error(error);
+-        errors.add((0, utils_1.createGraphQLError)('Unexpected error.', {
++        errors.add(createGraphQLError('Unexpected error.', {
+             extensions: {
+                 unexpected: true,
+             },
+diff --git a/node_modules/graphql-yoga/cjs/index.js b/node_modules/graphql-yoga/cjs/index.js
+index d34b8e2..54eb56f 100644
+--- a/node_modules/graphql-yoga/cjs/index.js
++++ b/node_modules/graphql-yoga/cjs/index.js
+@@ -44,10 +44,11 @@ var instrumentation_1 = require("@envelop/instrumentation");
+ Object.defineProperty(exports, "getInstrumentationAndPlugin", { enumerable: true, get: function () { return instrumentation_1.getInstrumentationAndPlugin; } });
+ Object.defineProperty(exports, "chain", { enumerable: true, get: function () { return instrumentation_1.chain; } });
+ Object.defineProperty(exports, "composeInstrumentation", { enumerable: true, get: function () { return instrumentation_1.composeInstrumentation; } });
+-var utils_1 = require("@graphql-tools/utils");
+-Object.defineProperty(exports, "createGraphQLError", { enumerable: true, get: function () { return utils_1.createGraphQLError; } });
+-Object.defineProperty(exports, "isPromise", { enumerable: true, get: function () { return utils_1.isPromise; } });
+-Object.defineProperty(exports, "mapMaybePromise", { enumerable: true, get: function () { return utils_1.mapMaybePromise; } });
++var error_1 = require("./error.js");
++Object.defineProperty(exports, "createGraphQLError", { enumerable: true, get: function () { return error_1.createGraphQLError; } });
++var promise_helpers_1 = require("@whatwg-node/promise-helpers");
++Object.defineProperty(exports, "isPromise", { enumerable: true, get: function () { return promise_helpers_1.isPromise; } });
++Object.defineProperty(exports, "mapMaybePromise", { enumerable: true, get: function () { return promise_helpers_1.mapMaybePromise; } });
+ var sse_js_1 = require("./plugins/result-processor/sse.js");
+ Object.defineProperty(exports, "getSSEProcessor", { enumerable: true, get: function () { return sse_js_1.getSSEProcessor; } });
+ var regular_js_1 = require("./plugins/result-processor/regular.js");
+diff --git a/node_modules/graphql-yoga/cjs/plugins/request-parser/post-json.js b/node_modules/graphql-yoga/cjs/plugins/request-parser/post-json.js
+index c9dc61a..c463b65 100644
+--- a/node_modules/graphql-yoga/cjs/plugins/request-parser/post-json.js
++++ b/node_modules/graphql-yoga/cjs/plugins/request-parser/post-json.js
+@@ -14,7 +14,7 @@ function isPOSTJsonRequest(request) {
+ function parsePOSTJsonRequest(request) {
+     return (0, promise_helpers_1.handleMaybePromise)(() => request.json(), (requestBody) => {
+         if (requestBody == null) {
+-            throw (0, utils_1.createGraphQLError)(`POST body is expected to be object but received ${requestBody}`, {
++            throw new graphql_1.GraphQLError(`POST body is expected to be object but received ${requestBody}`, {
+                 extensions: {
+                     http: {
+                         status: 400,
+@@ -25,7 +25,7 @@ function parsePOSTJsonRequest(request) {
+         }
+         const requestBodyTypeof = typeof requestBody;
+         if (requestBodyTypeof !== 'object') {
+-            throw (0, utils_1.createGraphQLError)(`POST body is expected to be object but received ${requestBodyTypeof}`, {
++            throw new graphql_1.GraphQLError(`POST body is expected to be object but received ${requestBodyTypeof}`, {
+                 extensions: {
+                     http: {
+                         status: 400,
+@@ -52,7 +52,7 @@ function parsePOSTJsonRequest(request) {
+                 message: err.message,
+             };
+         }
+-        throw (0, utils_1.createGraphQLError)('POST body sent invalid JSON.', {
++        throw new graphql_1.GraphQLError('POST body sent invalid JSON.', {
+             extensions,
+         });
+     });
+diff --git a/node_modules/graphql-yoga/cjs/plugins/request-parser/post-multipart.js b/node_modules/graphql-yoga/cjs/plugins/request-parser/post-multipart.js
+index 13a3537..3c1bac4 100644
+--- a/node_modules/graphql-yoga/cjs/plugins/request-parser/post-multipart.js
++++ b/node_modules/graphql-yoga/cjs/plugins/request-parser/post-multipart.js
+@@ -1,4 +1,5 @@
+ "use strict";
++const graphql_1 = require("graphql");
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.isPOSTMultipartRequest = isPOSTMultipartRequest;
+ exports.parsePOSTMultipartRequest = parsePOSTMultipartRequest;
+@@ -13,29 +14,29 @@ function parsePOSTMultipartRequest(request) {
+     return (0, promise_helpers_1.handleMaybePromise)(() => request.formData(), (requestBody) => {
+         const operationsStr = requestBody.get('operations');
+         if (!operationsStr) {
+-            throw (0, utils_1.createGraphQLError)('Missing multipart form field "operations"');
++            throw new graphql_1.GraphQLError('Missing multipart form field "operations"');
+         }
+         if (typeof operationsStr !== 'string') {
+-            throw (0, utils_1.createGraphQLError)('Multipart form field "operations" must be a string');
++            throw new graphql_1.GraphQLError('Multipart form field "operations" must be a string');
+         }
+         let operations;
+         try {
+             operations = JSON.parse(operationsStr);
+         }
+         catch {
+-            throw (0, utils_1.createGraphQLError)('Multipart form field "operations" must be a valid JSON string');
++            throw new graphql_1.GraphQLError('Multipart form field "operations" must be a valid JSON string');
+         }
+         const mapStr = requestBody.get('map');
+         if (mapStr != null) {
+             if (typeof mapStr !== 'string') {
+-                throw (0, utils_1.createGraphQLError)('Multipart form field "map" must be a string');
++                throw new graphql_1.GraphQLError('Multipart form field "map" must be a string');
+             }
+             let map;
+             try {
+                 map = JSON.parse(mapStr);
+             }
+             catch {
+-                throw (0, utils_1.createGraphQLError)('Multipart form field "map" must be a valid JSON string');
++                throw new graphql_1.GraphQLError('Multipart form field "map" must be a valid JSON string');
+             }
+             for (const fileIndex in map) {
+                 const file = requestBody.get(fileIndex);
+@@ -52,7 +53,7 @@ function parsePOSTMultipartRequest(request) {
+         }
+         if (e instanceof Error) {
+             if (e.message.startsWith('File size limit exceeded: ')) {
+-                throw (0, utils_1.createGraphQLError)(e.message, {
++                throw new graphql_1.GraphQLError(e.message, {
+                     extensions: {
+                         http: {
+                             status: 413,
+@@ -61,7 +62,7 @@ function parsePOSTMultipartRequest(request) {
+                     },
+                 });
+             }
+-            throw (0, utils_1.createGraphQLError)(`POST body sent invalid multipart data: ${e.message}`, {
++            throw new graphql_1.GraphQLError(`POST body sent invalid multipart data: ${e.message}`, {
+                 extensions: {
+                     http: {
+                         status: 400,
+diff --git a/node_modules/graphql-yoga/cjs/plugins/request-validation/use-check-graphql-query-params.js b/node_modules/graphql-yoga/cjs/plugins/request-validation/use-check-graphql-query-params.js
+index 6928f32..a5af5d1 100644
+--- a/node_modules/graphql-yoga/cjs/plugins/request-validation/use-check-graphql-query-params.js
++++ b/node_modules/graphql-yoga/cjs/plugins/request-validation/use-check-graphql-query-params.js
+@@ -1,4 +1,5 @@
+ "use strict";
++const graphql_1 = require("graphql");
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.assertInvalidParams = assertInvalidParams;
+ exports.checkGraphQLQueryParams = checkGraphQLQueryParams;
+@@ -8,7 +9,7 @@ const utils_1 = require("@graphql-tools/utils");
+ const expectedParameters = new Set(['query', 'variables', 'operationName', 'extensions']);
+ function assertInvalidParams(params, extraParamNames) {
+     if (params == null || typeof params !== 'object') {
+-        throw (0, utils_1.createGraphQLError)('Invalid "params" in the request body', {
++        throw new graphql_1.GraphQLError('Invalid "params" in the request body', {
+             extensions: {
+                 http: {
+                     spec: true,
+@@ -26,7 +27,7 @@ function assertInvalidParams(params, extraParamNames) {
+             if (extraParamNames?.includes(paramKey)) {
+                 continue;
+             }
+-            throw (0, utils_1.createGraphQLError)(`Unexpected parameter "${paramKey}" in the request body.`, {
++            throw new graphql_1.GraphQLError(`Unexpected parameter "${paramKey}" in the request body.`, {
+                 extensions: {
+                     http: {
+                         status: 400,
+@@ -39,7 +40,7 @@ function assertInvalidParams(params, extraParamNames) {
+ }
+ function checkGraphQLQueryParams(params, extraParamNames) {
+     if (!isObject(params)) {
+-        throw (0, utils_1.createGraphQLError)(`Expected params to be an object but given ${extendedTypeof(params)}.`, {
++        throw new graphql_1.GraphQLError(`Expected params to be an object but given ${extendedTypeof(params)}.`, {
+             extensions: {
+                 http: {
+                     status: 400,
+@@ -53,7 +54,7 @@ function checkGraphQLQueryParams(params, extraParamNames) {
+     }
+     assertInvalidParams(params, extraParamNames);
+     if (params['query'] == null) {
+-        throw (0, utils_1.createGraphQLError)('Must provide query string.', {
++        throw new graphql_1.GraphQLError('Must provide query string.', {
+             extensions: {
+                 http: {
+                     spec: true,
+@@ -68,7 +69,7 @@ function checkGraphQLQueryParams(params, extraParamNames) {
+     }
+     const queryType = extendedTypeof(params['query']);
+     if (queryType !== 'string') {
+-        throw (0, utils_1.createGraphQLError)(`Expected "query" param to be a string, but given ${queryType}.`, {
++        throw new graphql_1.GraphQLError(`Expected "query" param to be a string, but given ${queryType}.`, {
+             extensions: {
+                 http: {
+                     status: 400,
+@@ -82,7 +83,7 @@ function checkGraphQLQueryParams(params, extraParamNames) {
+     }
+     const variablesParamType = extendedTypeof(params['variables']);
+     if (!['object', 'null', 'undefined'].includes(variablesParamType)) {
+-        throw (0, utils_1.createGraphQLError)(`Expected "variables" param to be empty or an object, but given ${variablesParamType}.`, {
++        throw new graphql_1.GraphQLError(`Expected "variables" param to be empty or an object, but given ${variablesParamType}.`, {
+             extensions: {
+                 http: {
+                     status: 400,
+@@ -96,7 +97,7 @@ function checkGraphQLQueryParams(params, extraParamNames) {
+     }
+     const extensionsParamType = extendedTypeof(params['extensions']);
+     if (!['object', 'null', 'undefined'].includes(extensionsParamType)) {
+-        throw (0, utils_1.createGraphQLError)(`Expected "extensions" param to be empty or an object, but given ${extensionsParamType}.`, {
++        throw new graphql_1.GraphQLError(`Expected "extensions" param to be empty or an object, but given ${extensionsParamType}.`, {
+             extensions: {
+                 http: {
+                     status: 400,
+diff --git a/node_modules/graphql-yoga/cjs/plugins/request-validation/use-check-method-for-graphql.js b/node_modules/graphql-yoga/cjs/plugins/request-validation/use-check-method-for-graphql.js
+index dee8d6f..bf3258d 100644
+--- a/node_modules/graphql-yoga/cjs/plugins/request-validation/use-check-method-for-graphql.js
++++ b/node_modules/graphql-yoga/cjs/plugins/request-validation/use-check-method-for-graphql.js
+@@ -1,4 +1,5 @@
+ "use strict";
++const graphql_1 = require("graphql");
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.isValidMethodForGraphQL = isValidMethodForGraphQL;
+ exports.useCheckMethodForGraphQL = useCheckMethodForGraphQL;
+@@ -10,7 +11,7 @@ function useCheckMethodForGraphQL() {
+     return {
+         onRequestParse({ request }) {
+             if (!isValidMethodForGraphQL(request.method)) {
+-                throw (0, utils_1.createGraphQLError)('GraphQL only supports GET and POST requests.', {
++                throw new graphql_1.GraphQLError('GraphQL only supports GET and POST requests.', {
+                     extensions: {
+                         http: {
+                             status: 405,
+diff --git a/node_modules/graphql-yoga/cjs/plugins/request-validation/use-limit-batching.js b/node_modules/graphql-yoga/cjs/plugins/request-validation/use-limit-batching.js
+index 23f4b20..abeba12 100644
+--- a/node_modules/graphql-yoga/cjs/plugins/request-validation/use-limit-batching.js
++++ b/node_modules/graphql-yoga/cjs/plugins/request-validation/use-limit-batching.js
+@@ -1,4 +1,5 @@
+ "use strict";
++const graphql_1 = require("graphql");
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.useLimitBatching = useLimitBatching;
+ const utils_1 = require("@graphql-tools/utils");
+@@ -9,7 +10,7 @@ function useLimitBatching(limit) {
+                 onRequestParseDone({ requestParserResult }) {
+                     if (Array.isArray(requestParserResult)) {
+                         if (!limit) {
+-                            throw (0, utils_1.createGraphQLError)(`Batching is not supported.`, {
++                            throw new graphql_1.GraphQLError(`Batching is not supported.`, {
+                                 extensions: {
+                                     http: {
+                                         status: 400,
+@@ -19,7 +20,7 @@ function useLimitBatching(limit) {
+                             });
+                         }
+                         if (requestParserResult.length > limit) {
+-                            throw (0, utils_1.createGraphQLError)(`Batching is limited to ${limit} operations per request.`, {
++                            throw new graphql_1.GraphQLError(`Batching is limited to ${limit} operations per request.`, {
+                                 extensions: {
+                                     http: {
+                                         status: 413,
+diff --git a/node_modules/graphql-yoga/cjs/plugins/request-validation/use-limit-request-body-size.js b/node_modules/graphql-yoga/cjs/plugins/request-validation/use-limit-request-body-size.js
+index 5dae8c7..966d643 100644
+--- a/node_modules/graphql-yoga/cjs/plugins/request-validation/use-limit-request-body-size.js
++++ b/node_modules/graphql-yoga/cjs/plugins/request-validation/use-limit-request-body-size.js
+@@ -1,10 +1,11 @@
+ "use strict";
++const graphql_1 = require("graphql");
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.limitRequestBodySize = limitRequestBodySize;
+ exports.useLimitRequestBodySize = useLimitRequestBodySize;
+ const utils_1 = require("@graphql-tools/utils");
+ function createRequestBodyTooLargeError() {
+-    return (0, utils_1.createGraphQLError)(`Request body too large`, {
++    return new graphql_1.GraphQLError(`Request body too large`, {
+         extensions: {
+             http: {
+                 status: 413,
+@@ -14,7 +15,7 @@ function createRequestBodyTooLargeError() {
+     });
+ }
+ function createInvalidContentLengthError() {
+-    return (0, utils_1.createGraphQLError)('Content-Length header is invalid.', {
++    return new graphql_1.GraphQLError('Content-Length header is invalid.', {
+         extensions: {
+             http: {
+                 status: 400,
+diff --git a/node_modules/graphql-yoga/cjs/plugins/request-validation/use-prevent-mutation-via-get.js b/node_modules/graphql-yoga/cjs/plugins/request-validation/use-prevent-mutation-via-get.js
+index df42b74..a9a5d6e 100644
+--- a/node_modules/graphql-yoga/cjs/plugins/request-validation/use-prevent-mutation-via-get.js
++++ b/node_modules/graphql-yoga/cjs/plugins/request-validation/use-prevent-mutation-via-get.js
+@@ -9,7 +9,7 @@ function assertMutationViaGet(method, document, operationName) {
+         ? ((0, graphql_1.getOperationAST)(document, operationName) ?? undefined)
+         : undefined;
+     if (!operation) {
+-        throw (0, utils_1.createGraphQLError)('Could not determine what operation to execute.', {
++        throw new graphql_1.GraphQLError('Could not determine what operation to execute.', {
+             extensions: {
+                 code: 'OPERATION_RESOLUTION_FAILURE',
+                 http: {
+@@ -19,7 +19,7 @@ function assertMutationViaGet(method, document, operationName) {
+         });
+     }
+     if (operation.operation === 'mutation' && method === 'GET') {
+-        throw (0, utils_1.createGraphQLError)('Can only perform a mutation operation from a POST request.', {
++        throw new graphql_1.GraphQLError('Can only perform a mutation operation from a POST request.', {
+             extensions: {
+                 http: {
+                     status: 405,
+diff --git a/node_modules/graphql-yoga/cjs/plugins/result-processor/stringify.js b/node_modules/graphql-yoga/cjs/plugins/result-processor/stringify.js
+index ddb612c..9c9274a 100644
+--- a/node_modules/graphql-yoga/cjs/plugins/result-processor/stringify.js
++++ b/node_modules/graphql-yoga/cjs/plugins/result-processor/stringify.js
+@@ -1,4 +1,5 @@
+ "use strict";
++const graphql_1 = require("graphql");
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.jsonStringifyResultWithoutInternals = jsonStringifyResultWithoutInternals;
+ exports.omitInternalsFromResultErrors = omitInternalsFromResultErrors;
+@@ -37,7 +38,7 @@ function omitInternalsFromError(err) {
+         const serializedError = 'toJSON' in err && typeof err.toJSON === 'function' ? err.toJSON() : Object(err);
+         // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TS should check for unused vars instead
+         const { http, unexpected, ...extensions } = serializedError.extensions || {};
+-        return (0, utils_1.createGraphQLError)(err.message, {
++        return new graphql_1.GraphQLError(err.message, {
+             nodes: err.nodes,
+             source: err.source,
+             positions: err.positions,
+diff --git a/node_modules/graphql-yoga/cjs/plugins/use-unhandled-route.js b/node_modules/graphql-yoga/cjs/plugins/use-unhandled-route.js
+index b4b464c..e4d4bcd 100644
+--- a/node_modules/graphql-yoga/cjs/plugins/use-unhandled-route.js
++++ b/node_modules/graphql-yoga/cjs/plugins/use-unhandled-route.js
+@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.defaultRenderLandingPage = void 0;
+ exports.useUnhandledRoute = useUnhandledRoute;
+ const tslib_1 = require("tslib");
+-const utils_1 = require("@graphql-tools/utils");
++const promise_helpers_1 = require("@whatwg-node/promise-helpers");
+ const landing_page_html_js_1 = tslib_1.__importDefault(require("../landing-page-html.js"));
+ const defaultRenderLandingPage = function defaultRenderLandingPage(opts) {
+     return new opts.fetchAPI.Response(landing_page_html_js_1.default
+@@ -39,7 +39,7 @@ function useUnhandledRoute(args) {
+                             return args.getGraphQLEndpointURLPattern();
+                         },
+                     });
+-                    if ((0, utils_1.isPromise)(landingPage$)) {
++                    if ((0, promise_helpers_1.isPromise)(landingPage$)) {
+                         return landingPage$.then(endResponse);
+                     }
+                     endResponse(landingPage$);
+diff --git a/node_modules/graphql-yoga/cjs/utils/mask-error.js b/node_modules/graphql-yoga/cjs/utils/mask-error.js
+index 413b6cd..001dd78 100644
+--- a/node_modules/graphql-yoga/cjs/utils/mask-error.js
++++ b/node_modules/graphql-yoga/cjs/utils/mask-error.js
+@@ -1,4 +1,5 @@
+ "use strict";
++const graphql_1 = require("graphql");
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.maskError = void 0;
+ const utils_1 = require("@graphql-tools/utils");
+@@ -43,6 +44,6 @@ const maskError = (error, message, isDev = globalThis.process?.env?.['NODE_ENV']
+     else if (isDev) {
+         errorExtensions['originalError'] = serializeError(error);
+     }
+-    return (0, utils_1.createGraphQLError)(message, errorOptions);
++    return new graphql_1.GraphQLError(message, errorOptions);
+ };
+ exports.maskError = maskError;
+diff --git a/node_modules/graphql-yoga/esm/error.js b/node_modules/graphql-yoga/esm/error.js
+index 679a34b..4be5701 100644
+--- a/node_modules/graphql-yoga/esm/error.js
++++ b/node_modules/graphql-yoga/esm/error.js
+@@ -1,5 +1,13 @@
+ import { GraphQLError } from 'graphql';
+-import { createGraphQLError } from '@graphql-tools/utils';
++export function createGraphQLError(message, options) {
++    const error = new GraphQLError(message, options);
++    if ((options?.coordinate != null) && error.coordinate == null) {
++        Object.defineProperties(error, {
++            coordinate: { value: options.coordinate, enumerable: true, configurable: true },
++        });
++    }
++    return error;
++}
+ function isAggregateError(obj) {
+     return obj != null && typeof obj === 'object' && 'errors' in obj;
+ }
+diff --git a/node_modules/graphql-yoga/esm/index.js b/node_modules/graphql-yoga/esm/index.js
+index 284ba57..c3c3c77 100644
+--- a/node_modules/graphql-yoga/esm/index.js
++++ b/node_modules/graphql-yoga/esm/index.js
+@@ -17,7 +17,8 @@ isIntrospectionOperationString, makeExecute, makeSubscribe, mapAsyncIterator,
+ // Default plugins
+ useEnvelop, useErrorHandler, useExtendContext, useLogger, usePayloadFormatter, withState, } from '@envelop/core';
+ export { getInstrumentationAndPlugin, chain, composeInstrumentation, } from '@envelop/instrumentation';
+-export { createGraphQLError, isPromise, mapMaybePromise } from '@graphql-tools/utils';
++export { createGraphQLError } from './error.js';
++export { isPromise, mapMaybePromise } from '@whatwg-node/promise-helpers';
+ export { getSSEProcessor } from './plugins/result-processor/sse.js';
+ export { processRegularResult } from './plugins/result-processor/regular.js';
+ export { useExecutionCancellation } from './plugins/use-execution-cancellation.js';
+diff --git a/node_modules/graphql-yoga/esm/plugins/request-parser/post-json.js b/node_modules/graphql-yoga/esm/plugins/request-parser/post-json.js
+index 31ffc65..bbab350 100644
+--- a/node_modules/graphql-yoga/esm/plugins/request-parser/post-json.js
++++ b/node_modules/graphql-yoga/esm/plugins/request-parser/post-json.js
+@@ -1,5 +1,5 @@
+ import { GraphQLError } from 'graphql';
+-import { createGraphQLError } from '@graphql-tools/utils';
++import { createGraphQLError } from '../../error.js';
+ import { handleMaybePromise } from '@whatwg-node/promise-helpers';
+ import { isContentTypeMatch } from './utils.js';
+ export function isPOSTJsonRequest(request) {
+diff --git a/node_modules/graphql-yoga/esm/plugins/request-parser/post-multipart.js b/node_modules/graphql-yoga/esm/plugins/request-parser/post-multipart.js
+index 1a8cda3..aa69b24 100644
+--- a/node_modules/graphql-yoga/esm/plugins/request-parser/post-multipart.js
++++ b/node_modules/graphql-yoga/esm/plugins/request-parser/post-multipart.js
+@@ -1,4 +1,4 @@
+-import { createGraphQLError } from '@graphql-tools/utils';
++import { createGraphQLError } from '../../error.js';
+ import { handleMaybePromise } from '@whatwg-node/promise-helpers';
+ import { isAbortError } from '../../error.js';
+ import { isContentTypeMatch } from './utils.js';
+diff --git a/node_modules/graphql-yoga/esm/plugins/request-validation/use-check-graphql-query-params.js b/node_modules/graphql-yoga/esm/plugins/request-validation/use-check-graphql-query-params.js
+index c5fdf59..c5b9545 100644
+--- a/node_modules/graphql-yoga/esm/plugins/request-validation/use-check-graphql-query-params.js
++++ b/node_modules/graphql-yoga/esm/plugins/request-validation/use-check-graphql-query-params.js
+@@ -1,4 +1,4 @@
+-import { createGraphQLError } from '@graphql-tools/utils';
++import { createGraphQLError } from '../../error.js';
+ const expectedParameters = new Set(['query', 'variables', 'operationName', 'extensions']);
+ export function assertInvalidParams(params, extraParamNames) {
+     if (params == null || typeof params !== 'object') {
+diff --git a/node_modules/graphql-yoga/esm/plugins/request-validation/use-check-method-for-graphql.js b/node_modules/graphql-yoga/esm/plugins/request-validation/use-check-method-for-graphql.js
+index 05b4690..f0b8196 100644
+--- a/node_modules/graphql-yoga/esm/plugins/request-validation/use-check-method-for-graphql.js
++++ b/node_modules/graphql-yoga/esm/plugins/request-validation/use-check-method-for-graphql.js
+@@ -1,4 +1,4 @@
+-import { createGraphQLError } from '@graphql-tools/utils';
++import { createGraphQLError } from '../../error.js';
+ export function isValidMethodForGraphQL(method) {
+     return method === 'GET' || method === 'POST';
+ }
+diff --git a/node_modules/graphql-yoga/esm/plugins/request-validation/use-limit-batching.js b/node_modules/graphql-yoga/esm/plugins/request-validation/use-limit-batching.js
+index 122eae8..0046b91 100644
+--- a/node_modules/graphql-yoga/esm/plugins/request-validation/use-limit-batching.js
++++ b/node_modules/graphql-yoga/esm/plugins/request-validation/use-limit-batching.js
+@@ -1,4 +1,4 @@
+-import { createGraphQLError } from '@graphql-tools/utils';
++import { createGraphQLError } from '../../error.js';
+ export function useLimitBatching(limit) {
+     return {
+         onRequestParse() {
+diff --git a/node_modules/graphql-yoga/esm/plugins/request-validation/use-limit-request-body-size.js b/node_modules/graphql-yoga/esm/plugins/request-validation/use-limit-request-body-size.js
+index 39d2b6d..f5ef3fe 100644
+--- a/node_modules/graphql-yoga/esm/plugins/request-validation/use-limit-request-body-size.js
++++ b/node_modules/graphql-yoga/esm/plugins/request-validation/use-limit-request-body-size.js
+@@ -1,4 +1,4 @@
+-import { createGraphQLError } from '@graphql-tools/utils';
++import { createGraphQLError } from '../../error.js';
+ function createRequestBodyTooLargeError() {
+     return createGraphQLError(`Request body too large`, {
+         extensions: {
+diff --git a/node_modules/graphql-yoga/esm/plugins/request-validation/use-prevent-mutation-via-get.js b/node_modules/graphql-yoga/esm/plugins/request-validation/use-prevent-mutation-via-get.js
+index e763d50..1f00804 100644
+--- a/node_modules/graphql-yoga/esm/plugins/request-validation/use-prevent-mutation-via-get.js
++++ b/node_modules/graphql-yoga/esm/plugins/request-validation/use-prevent-mutation-via-get.js
+@@ -1,5 +1,5 @@
+ import { getOperationAST, GraphQLError } from 'graphql';
+-import { createGraphQLError } from '@graphql-tools/utils';
++import { createGraphQLError } from '../../error.js';
+ export function assertMutationViaGet(method, document, operationName) {
+     const operation = document
+         ? (getOperationAST(document, operationName) ?? undefined)
+diff --git a/node_modules/graphql-yoga/esm/plugins/result-processor/stringify.js b/node_modules/graphql-yoga/esm/plugins/result-processor/stringify.js
+index 7a5c794..5d6a2a6 100644
+--- a/node_modules/graphql-yoga/esm/plugins/result-processor/stringify.js
++++ b/node_modules/graphql-yoga/esm/plugins/result-processor/stringify.js
+@@ -1,4 +1,5 @@
+-import { createGraphQLError, getSchemaCoordinate } from '@graphql-tools/utils';
++import { getSchemaCoordinate } from '@graphql-tools/utils';
++import { createGraphQLError } from '../../error.js';
+ import { isGraphQLError } from '../../error.js';
+ // JSON stringifier that adjusts the result error extensions while serialising
+ export function jsonStringifyResultWithoutInternals(result) {
+diff --git a/node_modules/graphql-yoga/esm/plugins/use-unhandled-route.js b/node_modules/graphql-yoga/esm/plugins/use-unhandled-route.js
+index 8afffcb..5ed372f 100644
+--- a/node_modules/graphql-yoga/esm/plugins/use-unhandled-route.js
++++ b/node_modules/graphql-yoga/esm/plugins/use-unhandled-route.js
+@@ -1,4 +1,4 @@
+-import { isPromise } from '@graphql-tools/utils';
++import { isPromise } from '@whatwg-node/promise-helpers';
+ import landingPageBody from '../landing-page-html.js';
+ export const defaultRenderLandingPage = function defaultRenderLandingPage(opts) {
+     return new opts.fetchAPI.Response(landingPageBody
+diff --git a/node_modules/graphql-yoga/esm/utils/mask-error.js b/node_modules/graphql-yoga/esm/utils/mask-error.js
+index 5519e94..2144b46 100644
+--- a/node_modules/graphql-yoga/esm/utils/mask-error.js
++++ b/node_modules/graphql-yoga/esm/utils/mask-error.js
+@@ -1,4 +1,5 @@
+-import { createGraphQLError, getSchemaCoordinate } from '@graphql-tools/utils';
++import { getSchemaCoordinate } from '@graphql-tools/utils';
++import { createGraphQLError } from '../error.js';
+ import { isGraphQLError, isOriginalGraphQLError } from '../error.js';
+ function serializeError(error) {
+     if (isGraphQLError(error)) {
+diff --git a/node_modules/graphql-yoga/typings/error.d.cts b/node_modules/graphql-yoga/typings/error.d.cts
+index f1642c0..28f29cd 100644
+--- a/node_modules/graphql-yoga/typings/error.d.cts
++++ b/node_modules/graphql-yoga/typings/error.d.cts
+@@ -1,4 +1,4 @@
+-import { GraphQLError } from 'graphql';
++import { GraphQLError, type GraphQLErrorOptions } from 'graphql';
+ import type { YogaLogger } from '@graphql-yoga/logger';
+ import type { ResultProcessorInput } from './plugins/types.cjs';
+ import type { GraphQLHTTPExtensions, YogaMaskedErrorOpts } from './types.cjs';
+@@ -8,6 +8,7 @@ declare module 'graphql' {
+         unexpected?: boolean;
+     }
+ }
++export declare function createGraphQLError(message: string, options?: GraphQLErrorOptions): GraphQLError;
+ export declare function isGraphQLError(val: unknown): val is GraphQLError;
+ export declare function isOriginalGraphQLError(val: unknown): val is GraphQLError & {
+     originalError: GraphQLError;
+diff --git a/node_modules/graphql-yoga/typings/error.d.ts b/node_modules/graphql-yoga/typings/error.d.ts
+index 56b3144..f56e8db 100644
+--- a/node_modules/graphql-yoga/typings/error.d.ts
++++ b/node_modules/graphql-yoga/typings/error.d.ts
+@@ -1,4 +1,4 @@
+-import { GraphQLError } from 'graphql';
++import { GraphQLError, type GraphQLErrorOptions } from 'graphql';
+ import type { YogaLogger } from '@graphql-yoga/logger';
+ import type { ResultProcessorInput } from './plugins/types.js';
+ import type { GraphQLHTTPExtensions, YogaMaskedErrorOpts } from './types.js';
+@@ -8,6 +8,7 @@ declare module 'graphql' {
+         unexpected?: boolean;
+     }
+ }
++export declare function createGraphQLError(message: string, options?: GraphQLErrorOptions): GraphQLError;
+ export declare function isGraphQLError(val: unknown): val is GraphQLError;
+ export declare function isOriginalGraphQLError(val: unknown): val is GraphQLError & {
+     originalError: GraphQLError;
+diff --git a/node_modules/graphql-yoga/typings/index.d.cts b/node_modules/graphql-yoga/typings/index.d.cts
+index f32710f..f1f7ed4 100644
+--- a/node_modules/graphql-yoga/typings/index.d.cts
++++ b/node_modules/graphql-yoga/typings/index.d.cts
+@@ -13,7 +13,8 @@ export { _createLRUCache, createLRUCache } from './utils/create-lru-cache.cjs';
+ export { mergeSchemas } from '@graphql-tools/schema';
+ export { type Maybe, type Optional, type PromiseOrValue, type Spread, type AsyncIterableIteratorOrValue, envelop, errorAsyncIterator, finalAsyncIterator, handleStreamOrSingleExecutionResult, isAsyncIterable, isIntrospectionOperationString, makeExecute, makeSubscribe, mapAsyncIterator, useEnvelop, useErrorHandler, useExtendContext, useLogger, usePayloadFormatter, withState, } from '@envelop/core';
+ export { getInstrumentationAndPlugin, chain, composeInstrumentation, } from '@envelop/instrumentation';
+-export { createGraphQLError, isPromise, mapMaybePromise } from '@graphql-tools/utils';
++export { createGraphQLError } from './error.cjs';
++export { isPromise, mapMaybePromise } from '@whatwg-node/promise-helpers';
+ export { getSSEProcessor } from './plugins/result-processor/sse.cjs';
+ export { processRegularResult } from './plugins/result-processor/regular.cjs';
+ export { useExecutionCancellation } from './plugins/use-execution-cancellation.cjs';
+diff --git a/node_modules/graphql-yoga/typings/index.d.ts b/node_modules/graphql-yoga/typings/index.d.ts
+index e7b8a28..9e1941a 100644
+--- a/node_modules/graphql-yoga/typings/index.d.ts
++++ b/node_modules/graphql-yoga/typings/index.d.ts
+@@ -13,7 +13,8 @@ export { _createLRUCache, createLRUCache } from './utils/create-lru-cache.js';
+ export { mergeSchemas } from '@graphql-tools/schema';
+ export { type Maybe, type Optional, type PromiseOrValue, type Spread, type AsyncIterableIteratorOrValue, envelop, errorAsyncIterator, finalAsyncIterator, handleStreamOrSingleExecutionResult, isAsyncIterable, isIntrospectionOperationString, makeExecute, makeSubscribe, mapAsyncIterator, useEnvelop, useErrorHandler, useExtendContext, useLogger, usePayloadFormatter, withState, } from '@envelop/core';
+ export { getInstrumentationAndPlugin, chain, composeInstrumentation, } from '@envelop/instrumentation';
+-export { createGraphQLError, isPromise, mapMaybePromise } from '@graphql-tools/utils';
++export { createGraphQLError } from './error.js';
++export { isPromise, mapMaybePromise } from '@whatwg-node/promise-helpers';
+ export { getSSEProcessor } from './plugins/result-processor/sse.js';
+ export { processRegularResult } from './plugins/result-processor/regular.js';
+ export { useExecutionCancellation } from './plugins/use-execution-cancellation.js';

@@ -1,9 +1,8 @@
 import { env } from 'process';
-import { debugTimerEnd, debugTimerStart, Source } from '@graphql-tools/utils';
+import { Source } from '@graphql-tools/utils';
 import { LoadTypedefsOptions } from '../load-typedefs.js';
 
 export async function loadFile(pointer: string, options: LoadTypedefsOptions): Promise<Source[]> {
-  debugTimerStart(`@graphql-tools/load: loadFile ${pointer}`);
   let results = options.cache?.[pointer];
 
   if (!results) {
@@ -44,13 +43,10 @@ export async function loadFile(pointer: string, options: LoadTypedefsOptions): P
     }
   }
 
-  debugTimerEnd(`@graphql-tools/load: loadFile ${pointer}`);
-
   return results;
 }
 
 export function loadFileSync(pointer: string, options: LoadTypedefsOptions): Source[] {
-  debugTimerStart(`@graphql-tools/load: loadFileSync ${pointer}`);
   let results = options.cache?.[pointer];
 
   if (!results) {
@@ -88,8 +84,6 @@ export function loadFileSync(pointer: string, options: LoadTypedefsOptions): Sou
       options.cache[pointer] = results;
     }
   }
-
-  debugTimerEnd(`@graphql-tools/load: loadFileSync ${pointer}`);
 
   return results;
 }

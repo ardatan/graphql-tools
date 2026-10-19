@@ -10,7 +10,7 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.18.0"
   },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -48,11 +48,12 @@
   "typings": "dist/typings/index.d.ts",
   "peerDependencies": {
     "@apollo/client": "^4.0.4",
-    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
+    "graphql": "^16.0.0 || ^17.0.0"
   },
   "dependencies": {
     "@graphql-tools/utils": "^12.1.0",
     "@whatwg-node/fetch": "^0.12.0",
+    "@whatwg-node/promise-helpers": "^2.0.0",
     "apollo-upload-client": "^20.0.0",
     "tslib": "^2.4.0"
   },

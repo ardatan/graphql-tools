@@ -1,4 +1,4 @@
-import { isPromise, MaybePromise } from '@graphql-tools/utils';
+import { isPromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 import { expectJSON } from './expectJSON.js';
 
 export function expectMatchingValues<T>(values: ReadonlyArray<T>): T {

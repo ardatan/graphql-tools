@@ -11,7 +11,7 @@
   "author": "Dotan Simha <dotansimha@gmail.com>",
   "license": "MIT",
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=22.18.0"
   },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -48,7 +48,7 @@
   },
   "typings": "dist/typings/index.d.ts",
   "peerDependencies": {
-    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
+    "graphql": "^16.0.0 || ^17.0.0"
   },
   "dependencies": {
     "@graphql-tools/schema": "^10.1.5",
@@ -57,6 +57,7 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
+    "@graphql-tools/load-files": "^7.0.1",
     "graphql-tag": "2.12.7",
     "graphql-type-json": "0.3.2"
   },

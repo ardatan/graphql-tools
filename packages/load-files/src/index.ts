@@ -1,10 +1,13 @@
 import { promises as fsPromises, readFileSync, statSync } from 'fs';
 import { createRequire } from 'module';
-import { extname, join } from 'path';
+import { extname, isAbsolute, join } from 'path';
 import { cwd } from 'process';
-import globby, { GlobbyOptions, sync as globbySync } from 'globby';
 import { DocumentNode, parse } from 'graphql';
 import unixify from 'unixify';
+import { asArray } from '@graphql-tools/utils';
+import { matchFiles, matchFilesSync, type MatchFilesOptions } from './matchFiles.js';
+
+export { matchFiles, matchFilesSync, type MatchFilesOptions } from './matchFiles.js';
 
 const { readFile, stat } = fsPromises;
 
@@ -37,34 +40,36 @@ const DEFAULT_EXTRACT_EXPORTS_FACTORY =
     return fileExport;
   };
 
-function asArray<T>(obj: T | T[]): T[] {
-  if (obj instanceof Array) {
-    return obj;
-  } else {
-    return [obj];
+function resolveAgainstCwd(path: string, baseCwd?: string) {
+  if (isAbsolute(path)) {
+    return path;
   }
+  return join(baseCwd || cwd(), path);
 }
 
-function isDirectorySync(path: string) {
+function isDirectorySync(path: string, baseCwd?: string) {
   try {
-    const pathStat = statSync(path);
+    const pathStat = statSync(resolveAgainstCwd(path, baseCwd));
     return pathStat.isDirectory();
   } catch (e: any) {
     return false;
   }
 }
 
-async function isDirectory(path: string) {
+async function isDirectory(path: string, baseCwd?: string) {
   try {
-    const pathStat = await stat(path);
+    const pathStat = await stat(resolveAgainstCwd(path, baseCwd));
     return pathStat.isDirectory();
   } catch (e: any) {
     return false;
   }
 }
 
-function scanForFilesSync(globStr: string | string[], globOptions: GlobbyOptions = {}): string[] {
-  return globbySync(globStr, { absolute: true, ...globOptions });
+function scanForFilesSync(
+  globStr: string | string[],
+  globOptions: MatchFilesOptions = {},
+): string[] {
+  return matchFilesSync(globStr, { absolute: true, ...globOptions });
 }
 
 function formatExtension(extension: string): string {
@@ -98,8 +103,8 @@ export interface LoadFilesOptions {
   useRequire?: boolean;
   // An alternative to `require` to use if `require` would be used to load a file
   requireMethod?: any;
-  // Additional options to pass to globby
-  globOptions?: GlobbyOptions;
+  // Additional options to pass to the file matcher
+  globOptions?: MatchFilesOptions;
   // Named exports to extract from each file. Defaults to ['typeDefs', 'schema']
   exportNames?: string[];
   // Load files from nested directories. Set to `false` to only search the top-level directory.
@@ -134,9 +139,10 @@ export function loadFilesSync<T = any>(
   options: LoadFilesOptions = LoadFilesDefaultOptions,
 ): T[] {
   const execOptions = { ...LoadFilesDefaultOptions, ...options };
+  const baseCwd = options.globOptions?.cwd || execOptions.globOptions?.cwd || cwd();
   const relevantPaths = scanForFilesSync(
     asArray(pattern).map(path =>
-      isDirectorySync(path)
+      isDirectorySync(path, baseCwd)
         ? buildGlob(
             unixify(path),
             execOptions.extensions,
@@ -183,9 +189,9 @@ export function loadFilesSync<T = any>(
 
 async function scanForFiles(
   globStr: string | string[],
-  globOptions: GlobbyOptions = {},
+  globOptions: MatchFilesOptions = {},
 ): Promise<string[]> {
-  return globby(globStr, { absolute: true, ...globOptions });
+  return matchFiles(globStr, { absolute: true, ...globOptions });
 }
 
 const checkExtension = (
@@ -232,10 +238,11 @@ export async function loadFiles(
   options: LoadFilesOptions = LoadFilesDefaultOptions,
 ): Promise<any[]> {
   const execOptions = { ...LoadFilesDefaultOptions, ...options };
+  const baseCwd = options.globOptions?.cwd || execOptions.globOptions?.cwd || cwd();
   const relevantPaths = await scanForFiles(
     await Promise.all(
       asArray(pattern).map(async path =>
-        (await isDirectory(path))
+        (await isDirectory(path, baseCwd))
           ? buildGlob(
               unixify(path),
               execOptions.extensions,

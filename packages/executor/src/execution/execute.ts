@@ -3,6 +3,7 @@ import {
   DocumentNode,
   FieldNode,
   FragmentDefinitionNode,
+  getArgumentValues,
   GraphQLAbstractType,
   GraphQLError,
   GraphQLField,
@@ -30,9 +31,6 @@ import {
   collectSubFields as _collectSubfields,
   addPath,
   collectFields,
-  createGraphQLError,
-  fakePromise,
-  getArgumentValues,
   getDefinedRootType,
   getDirectiveValues,
   GraphQLResolveInfo,
@@ -41,12 +39,9 @@ import {
   isAsyncIterable,
   isIterableObject,
   isObjectLike,
-  isPromise,
   locatedError,
-  mapAsyncIterator,
   Maybe,
-  MaybePromise,
-  memoize1,
+  memoize2,
   memoize3,
   Path,
   pathToArray,
@@ -55,12 +50,21 @@ import {
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
-import { createDeferredPromise, handleMaybePromise } from '@whatwg-node/promise-helpers';
+import {
+  fakePromise,
+  handleMaybePromise,
+  isPromise,
+  mapAsyncIterator,
+  type MaybePromise,
+} from '@whatwg-node/promise-helpers';
 import { coerceError } from './coerceError.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import { invariant } from './invariant.js';
 import { promiseForObject } from './promiseForObject.js';
 import { getVariableValues } from './values.js';
+
+const EMPTY_ARGS: { [argument: string]: unknown } = Object.freeze(Object.create(null));
+const isGraphQL17 = versionInfo.major >= 17;
 
 export interface SingularExecutionResult<TData = any, TExtensions = any> {
   errors?: ReadonlyArray<GraphQLError>;
@@ -72,17 +76,80 @@ export interface SingularExecutionResult<TData = any, TExtensions = any> {
  * A memoized collection of relevant subfields with regard to the return
  * type. Memoizing ensures the subfields are not repeatedly calculated, which
  * saves overhead when resolving lists of values.
+ *
+ * Single WeakMap stack (graphql-js style) via utils `memoize3`.
  */
-const collectSubfields = memoize3(
-  (exeContext: ExecutionContext, returnType: GraphQLObjectType, fieldNodes: Array<FieldNode>) =>
-    _collectSubfields(
-      exeContext.schema,
-      exeContext.fragments,
-      exeContext.variableValues,
-      returnType,
-      fieldNodes,
-    ),
-);
+const collectSubfields = memoize3(function collectSubfields(
+  exeContext: ExecutionContext,
+  returnType: GraphQLObjectType,
+  fieldNodes: Array<FieldNode>,
+) {
+  return _collectSubfields(
+    exeContext.schema,
+    exeContext.fragments,
+    exeContext.variableValues,
+    returnType,
+    fieldNodes,
+  );
+});
+
+/**
+ * Memoize argument coercion across list items that share the same field AST
+ * and variable values (same identity within one execution).
+ */
+const getArgumentValuesMemo = memoize3(function getArgumentValuesMemo(
+  fieldDef: GraphQLField<unknown, unknown>,
+  fieldNode: FieldNode,
+  variableValues: object,
+) {
+  return getArgumentValues(fieldDef, fieldNode, variableValues as any);
+});
+
+function getFieldArgumentValues(
+  fieldDef: GraphQLField<unknown, unknown>,
+  fieldNode: FieldNode,
+  variableValues: VariableValues,
+): { [argument: string]: unknown } {
+  if (fieldDef.args.length === 0) {
+    return EMPTY_ARGS;
+  }
+  // graphql@17 expects VariableValues; graphql@16 expects the flat coerced map.
+  const valuesForArgs = isGraphQL17 ? variableValues : variableValues.coerced;
+  return getArgumentValuesMemo(fieldDef, fieldNode, valuesForArgs as object);
+}
+
+/**
+ * Memoize `@stream` directive parsing for repeated list completions.
+ */
+const getStreamUsageMemo = memoize2(function getStreamUsageMemo(
+  fieldNode: FieldNode,
+  variableValues: VariableValues,
+):
+  | undefined
+  | {
+      initialCount: number | undefined;
+      label: string | undefined;
+    } {
+  const stream = getDirectiveValues(GraphQLStreamDirective, fieldNode, variableValues) as
+    | {
+        initialCount: number;
+        label: string;
+        if?: boolean;
+      }
+    | undefined;
+
+  if (!stream || stream.if === false) {
+    return;
+  }
+
+  invariant(typeof stream['initialCount'] === 'number', 'initialCount must be a number');
+  invariant(stream['initialCount'] >= 0, 'initialCount must be a positive integer');
+
+  return {
+    initialCount: stream['initialCount'],
+    label: typeof stream['label'] === 'string' ? stream['label'] : undefined,
+  };
+});
 
 // This file contains a lot of such errors but we plan to refactor it anyway
 // so just disable it for entire file.
@@ -120,12 +187,19 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   contextValue: TContext;
   operation: OperationDefinitionNode;
   variableValues: VariableValues<TVariables>;
+  /** Precomputed for GraphQLResolveInfo (GQL16 coerced map vs GQL17 VariableValues). */
+  resolveInfoVariableValues: GraphQLResolveInfo['variableValues'];
   fieldResolver: GraphQLFieldResolver<any, TContext>;
   typeResolver: GraphQLTypeResolver<any, TContext>;
   subscribeFieldResolver: GraphQLFieldResolver<any, TContext>;
   errors: Array<GraphQLError>;
   subsequentPayloads: Set<AsyncPayloadRecord>;
   signal?: AbortSignal;
+  getAbortSignal: () => AbortSignal | undefined;
+  getAsyncHelpers: () => {
+    promiseAll: typeof Promise.all;
+    track: (maybePromises: ReadonlyArray<unknown>) => void;
+  };
   onSignalAbort?(handler: () => void): void;
   signalPromise?: Promise<never>;
   schemaCoordinateInErrors?: boolean;
@@ -392,17 +466,26 @@ export function assertValidExecutionArguments<TVariables>(
   );
 }
 
-export const getFragmentsFromDocument = memoize1(function getFragmentsFromDocument(
+const fragmentsFromDocumentCache = new WeakMap<
+  DocumentNode,
+  Record<string, FragmentDefinitionNode>
+>();
+
+export function getFragmentsFromDocument(
   document: DocumentNode,
 ): Record<string, FragmentDefinitionNode> {
-  const fragments: Record<string, FragmentDefinitionNode> = Object.create(null);
-  for (const definition of document.definitions) {
-    if (definition.kind === Kind.FRAGMENT_DEFINITION) {
-      fragments[definition.name.value] = definition;
+  let fragments = fragmentsFromDocumentCache.get(document);
+  if (fragments === undefined) {
+    fragments = Object.create(null) as Record<string, FragmentDefinitionNode>;
+    for (const definition of document.definitions) {
+      if (definition.kind === Kind.FRAGMENT_DEFINITION) {
+        fragments[definition.name.value] = definition;
+      }
     }
+    fragmentsFromDocumentCache.set(document, fragments);
   }
   return fragments;
-});
+}
 
 /**
  * Constructs a ExecutionContext object from the arguments passed to
@@ -445,7 +528,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
         if (operationName == null) {
           if (operation !== undefined) {
             return [
-              createGraphQLError(
+              new GraphQLError(
                 'Must provide operation name if query contains multiple operations.',
                 {
                   extensions: {
@@ -468,7 +551,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
   if (operation == null) {
     if (operationName != null) {
       return [
-        createGraphQLError(`Unknown operation named "${operationName}".`, {
+        new GraphQLError(`Unknown operation named "${operationName}".`, {
           extensions: {
             code: 'OPERATION_RESOLUTION_FAILURE',
           },
@@ -476,7 +559,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
       ];
     }
     return [
-      createGraphQLError('Must provide an operation.', {
+      new GraphQLError('Must provide an operation.', {
         extensions: {
           code: 'OPERATION_RESOLUTION_FAILURE',
         },
@@ -504,58 +587,144 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
 
   signal?.throwIfAborted();
 
+  const variableValues = coercedVariableValues.variableValues;
+  const resolveInfoVariableValues = (
+    isGraphQL17 ? variableValues : variableValues.coerced
+  ) as GraphQLResolveInfo['variableValues'];
+
+  let asyncHelpers:
+    | {
+        promiseAll: typeof Promise.all;
+        track: (maybePromises: ReadonlyArray<unknown>) => void;
+      }
+    | undefined;
+  const getAbortSignal = () => signal;
+  const getAsyncHelpers = () =>
+    (asyncHelpers ??= {
+      promiseAll: Promise.all.bind(Promise),
+      track: maybePromises => {
+        const waitUntil = (contextValue as { waitUntil?: (p: PromiseLike<unknown>) => void } | null)
+          ?.waitUntil;
+        if (typeof waitUntil !== 'function') {
+          return;
+        }
+        for (const value of maybePromises) {
+          if (isPromise(value)) {
+            waitUntil(value);
+          }
+        }
+      },
+    });
+
+  // Lazily wire AbortSignal → Promise.withResolvers only when something races
+  // against abort (async fields / streams), not for fully sync executions.
   let onSignalAbort: ExecutionContext['onSignalAbort'];
-  let signalPromise: ExecutionContext['signalPromise'];
+  let signalPromise: Promise<never> | undefined;
+  let ensureSignalPlumbing: (() => void) | undefined;
 
   if (signal) {
-    const listeners = new Set<() => void>();
-    const signalDeferred = createDeferredPromise<never>();
-    signalPromise = signalDeferred.promise;
-    const sharedListener = () => {
-      signalDeferred.reject(signal.reason);
-      signal.removeEventListener('abort', sharedListener);
-    };
-    signal.addEventListener('abort', sharedListener, { once: true });
-    signalPromise.catch(() => {
-      for (const listener of listeners) {
-        listener();
+    let listeners: Set<() => void> | undefined;
+    ensureSignalPlumbing = () => {
+      if (listeners) {
+        return;
       }
-      listeners.clear();
-    });
+      listeners = new Set();
+      const signalDeferred = Promise.withResolvers<never>();
+      signalPromise = signalDeferred.promise;
+      // Attach cleanup before any possible immediate reject so already-aborted
+      // signals still drain registered handlers.
+      signalPromise.catch(() => {
+        for (const listener of listeners!) {
+          listener();
+        }
+        listeners!.clear();
+      });
+      if (signal.aborted) {
+        signalDeferred.reject(signal.reason);
+        return;
+      }
+      const sharedListener = () => {
+        signalDeferred.reject(signal.reason);
+        signal.removeEventListener('abort', sharedListener);
+      };
+      signal.addEventListener('abort', sharedListener, { once: true });
+    };
     onSignalAbort = handler => {
-      listeners.add(handler);
+      ensureSignalPlumbing!();
+      if (signal.aborted) {
+        handler();
+      } else {
+        listeners!.add(handler);
+      }
     };
   }
 
-  return {
+  const exeContext: ExecutionContext = {
     schema,
     fragments,
     rootValue,
     contextValue,
     operation,
-    variableValues: coercedVariableValues.variableValues,
+    variableValues,
+    resolveInfoVariableValues,
     fieldResolver: fieldResolver ?? defaultFieldResolver,
     typeResolver: typeResolver ?? defaultTypeResolver,
     subscribeFieldResolver: subscribeFieldResolver ?? defaultFieldResolver,
     subsequentPayloads: new Set(),
     errors: [],
     signal,
+    getAbortSignal,
+    getAsyncHelpers,
     onSignalAbort,
-    signalPromise,
     schemaCoordinateInErrors,
   };
+
+  if (ensureSignalPlumbing) {
+    Object.defineProperty(exeContext, 'signalPromise', {
+      configurable: true,
+      enumerable: true,
+      get() {
+        ensureSignalPlumbing!();
+        return signalPromise;
+      },
+    });
+  }
+
+  return exeContext;
 }
 
 function buildPerEventExecutionContext(
   exeContext: ExecutionContext,
   payload: unknown,
 ): ExecutionContext {
-  return {
-    ...exeContext,
+  // Avoid object spread: it would invoke a lazy `signalPromise` getter and
+  // eagerly install AbortSignal listeners for sync subscription events.
+  const perEvent: ExecutionContext = {
+    schema: exeContext.schema,
+    fragments: exeContext.fragments,
     rootValue: payload,
+    contextValue: exeContext.contextValue,
+    operation: exeContext.operation,
+    variableValues: exeContext.variableValues,
+    resolveInfoVariableValues: exeContext.resolveInfoVariableValues,
+    fieldResolver: exeContext.fieldResolver,
+    typeResolver: exeContext.typeResolver,
+    subscribeFieldResolver: exeContext.subscribeFieldResolver,
     subsequentPayloads: new Set(),
     errors: [],
+    signal: exeContext.signal,
+    getAbortSignal: exeContext.getAbortSignal,
+    getAsyncHelpers: exeContext.getAsyncHelpers,
+    onSignalAbort: exeContext.onSignalAbort,
+    schemaCoordinateInErrors: exeContext.schemaCoordinateInErrors,
   };
+  const parentDescriptor = Object.getOwnPropertyDescriptor(exeContext, 'signalPromise');
+  if (parentDescriptor?.get) {
+    Object.defineProperty(perEvent, 'signalPromise', parentDescriptor);
+  } else if (parentDescriptor && 'value' in parentDescriptor) {
+    perEvent.signalPromise = parentDescriptor.value;
+  }
+  return perEvent;
 }
 
 /**
@@ -567,9 +736,12 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
   const { operation, schema, fragments, variableValues, rootValue } = exeContext;
   const rootType = getDefinedRootType(schema, operation.operation, [operation]);
   if (rootType == null) {
-    createGraphQLError(`Schema is not configured to execute ${operation.operation} operation.`, {
-      nodes: operation,
-    });
+    throw new GraphQLError(
+      `Schema is not configured to execute ${operation.operation} operation.`,
+      {
+        nodes: operation,
+      },
+    );
   }
 
   const { fields: rootFields, patches } = collectFields(
@@ -722,14 +894,9 @@ function executeField(
   try {
     exeContext.signal?.throwIfAborted();
     // Build a JS object of arguments from the field.arguments AST, using the
-    // variables scope to fulfill any variable references.
-    // TODO: find a way to memoize, in case this field is within a List type.
-    const args = getArgumentValues(
-      fieldDef,
-      fieldNodes[0],
-      exeContext.variableValues.coerced,
-      exeContext.variableValues.sources,
-    );
+    // variables scope to fulfill any variable references. Empty-arg fields skip
+    // coercion; list items reuse a memo keyed by fieldDef/fieldNode/variables.
+    const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
 
     // The resolve function's optional third argument is a context value that
     // is provided to every resolve function within an execution. It is commonly
@@ -829,14 +996,8 @@ export function buildResolveInfo(
 ): GraphQLResolveInfo {
   // The resolve function's optional fourth argument is a collection of
   // information about the current execution state.
-  // GraphQL.js v17 requires getAbortSignal / getAsyncHelpers on GraphQLResolveInfo.
-  // track() mirrors Yoga/Cloudflare waitUntil via context.waitUntil when available.
-  let asyncHelpers: {
-    promiseAll: typeof Promise.all;
-    track: (maybePromises: ReadonlyArray<unknown>) => void;
-  };
-  const variableValues =
-    versionInfo.major >= 17 ? exeContext.variableValues : exeContext.variableValues.coerced;
+  // GraphQL.js v17 requires getAbortSignal / getAsyncHelpers on GraphQLResolveInfo —
+  // those helpers are shared for the whole execution (not rebuilt per field).
   return {
     fieldName: fieldDef.name,
     fieldNodes,
@@ -847,26 +1008,10 @@ export function buildResolveInfo(
     fragments: exeContext.fragments,
     rootValue: exeContext.rootValue,
     operation: exeContext.operation,
-    variableValues: variableValues as GraphQLResolveInfo['variableValues'],
+    variableValues: exeContext.resolveInfoVariableValues,
     signal: exeContext.signal,
-    getAbortSignal: () => exeContext.signal,
-    getAsyncHelpers: () =>
-      (asyncHelpers ??= {
-        promiseAll: Promise.all.bind(Promise),
-        track: maybePromises => {
-          const waitUntil = (
-            exeContext.contextValue as { waitUntil?: (p: PromiseLike<unknown>) => void } | null
-          )?.waitUntil;
-          if (typeof waitUntil !== 'function') {
-            return;
-          }
-          for (const value of maybePromises) {
-            if (isPromise(value)) {
-              waitUntil(value);
-            }
-          }
-        },
-      }),
+    getAbortSignal: exeContext.getAbortSignal,
+    getAsyncHelpers: exeContext.getAsyncHelpers,
   };
 }
 
@@ -1025,32 +1170,12 @@ function getStreamValues(
 
   // validation only allows equivalent streams on multiple fields, so it is
   // safe to only check the first fieldNode for the stream directive
-  const stream = getDirectiveValues(
-    GraphQLStreamDirective,
-    fieldNodes[0],
-    exeContext.variableValues,
-  ) as {
-    initialCount: number;
-    label: string;
-    if?: boolean;
-  };
-
-  if (!stream) {
+  const fieldNode = fieldNodes[0];
+  // Fast path: no directives ⇒ cannot be @stream
+  if (!fieldNode.directives?.length) {
     return;
   }
-
-  if (stream.if === false) {
-    return;
-  }
-
-  invariant(typeof stream['initialCount'] === 'number', 'initialCount must be a number');
-
-  invariant(stream['initialCount'] >= 0, 'initialCount must be a positive integer');
-
-  return {
-    initialCount: stream['initialCount'],
-    label: typeof stream['label'] === 'string' ? stream['label'] : undefined,
-  };
+  return getStreamUsageMemo(fieldNode, exeContext.variableValues);
 }
 
 /**
@@ -1066,12 +1191,14 @@ async function completeAsyncIteratorValue(
   iterator: AsyncIterator<unknown>,
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): Promise<ReadonlyArray<unknown>> {
-  exeContext.signal?.throwIfAborted();
+  // Register cleanup before throwIfAborted so an already-aborted signal still
+  // closes the iterator instead of skipping registration.
   if (iterator.return) {
     exeContext.onSignalAbort?.(() => {
       iterator.return?.();
     });
   }
+  exeContext.signal?.throwIfAborted();
 
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
   const stream = getStreamValues(exeContext, fieldNodes, path);
@@ -1165,7 +1292,7 @@ function completeListValue(
   }
 
   if (!isIterableObject(result)) {
-    throw createGraphQLError(
+    throw new GraphQLError(
       `Expected Iterable, but did not find one for field "${info.parentType.name}.${info.fieldName}".`,
     );
   }
@@ -1388,25 +1515,20 @@ function ensureValidRuntimeType(
   result: unknown,
 ): GraphQLObjectType {
   if (runtimeTypeName == null) {
-    throw createGraphQLError(
+    throw new GraphQLError(
       `Abstract type "${returnType.name}" must resolve to an Object type at runtime for field "${info.parentType.name}.${info.fieldName}". Either the "${returnType.name}" type should provide a "resolveType" function or each possible type should provide an "isTypeOf" function.`,
       { nodes: fieldNodes },
     );
   }
 
-  // releases before 16.0.0 supported returning `GraphQLObjectType` from `resolveType`
-  // TODO: remove in 17.0.0 release
   if (isObjectType(runtimeTypeName)) {
-    if (versionInfo.major >= 16) {
-      throw createGraphQLError(
-        'Support for returning GraphQLObjectType from resolveType was removed in graphql-js@16.0.0 please return type name instead.',
-      );
-    }
-    runtimeTypeName = runtimeTypeName.name;
+    throw new GraphQLError(
+      'Support for returning GraphQLObjectType from resolveType was removed in graphql-js@16.0.0 please return type name instead.',
+    );
   }
 
   if (typeof runtimeTypeName !== 'string') {
-    throw createGraphQLError(
+    throw new GraphQLError(
       `Abstract type "${returnType.name}" must resolve to an Object type at runtime for field "${info.parentType.name}.${info.fieldName}" with ` +
         `value ${inspect(result)}, received "${inspect(runtimeTypeName)}".`,
     );
@@ -1414,21 +1536,21 @@ function ensureValidRuntimeType(
 
   const runtimeType = exeContext.schema.getType(runtimeTypeName);
   if (runtimeType == null) {
-    throw createGraphQLError(
+    throw new GraphQLError(
       `Abstract type "${returnType.name}" was resolved to a type "${runtimeTypeName}" that does not exist inside the schema.`,
       { nodes: fieldNodes },
     );
   }
 
   if (!isObjectType(runtimeType)) {
-    throw createGraphQLError(
+    throw new GraphQLError(
       `Abstract type "${returnType.name}" was resolved to a non-object type "${runtimeTypeName}".`,
       { nodes: fieldNodes },
     );
   }
 
   if (!exeContext.schema.isSubType(returnType, runtimeType)) {
-    throw createGraphQLError(
+    throw new GraphQLError(
       `Runtime Object type "${runtimeType.name}" is not a possible type for "${returnType.name}".`,
       { nodes: fieldNodes },
     );
@@ -1491,7 +1613,7 @@ function invalidReturnTypeError(
   result: unknown,
   fieldNodes: Array<FieldNode>,
 ): GraphQLError {
-  return createGraphQLError(
+  return new GraphQLError(
     `Expected value of type "${returnType.name}" but got: ${inspect(result)}.`,
     {
       nodes: fieldNodes,
@@ -1794,7 +1916,7 @@ function mapSourceToResponse(
 }
 
 function wrapError(error: Error, operation: OperationDefinitionNode) {
-  return createGraphQLError(error.message, {
+  return new GraphQLError(error.message, {
     originalError: error,
     nodes: [operation],
   });
@@ -1820,7 +1942,7 @@ function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIt
 
   const rootType = schema.getSubscriptionType();
   if (rootType == null) {
-    throw createGraphQLError('Schema is not configured to execute subscription operation.', {
+    throw new GraphQLError('Schema is not configured to execute subscription operation.', {
       nodes: operation,
     });
   }
@@ -1837,7 +1959,7 @@ function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIt
   const fieldDef = getFieldDef(schema, rootType, fieldNodes[0]);
 
   if (!fieldDef) {
-    throw createGraphQLError(`The subscription field "${fieldName}" is not defined.`, {
+    throw new GraphQLError(`The subscription field "${fieldName}" is not defined.`, {
       nodes: fieldNodes,
     });
   }
@@ -1851,12 +1973,7 @@ function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIt
 
     // Build a JS object of arguments from the field.arguments AST, using the
     // variables scope to fulfill any variable references.
-    const args = getArgumentValues(
-      fieldDef,
-      fieldNodes[0],
-      variableValues.coerced,
-      variableValues.sources,
-    );
+    const args = getFieldArgumentValues(fieldDef, fieldNodes[0], variableValues);
 
     // The resolve function's optional third argument is a context value that
     // is provided to every resolve function within an execution. It is commonly
@@ -1904,7 +2021,7 @@ function assertEventStream(
 
   // Assert field returned an event stream, otherwise yield an error.
   if (!isAsyncIterable(result)) {
-    throw createGraphQLError(
+    throw new GraphQLError(
       'Subscription field must return Async Iterable. ' + `Received: ${inspect(result)}.`,
     );
   }

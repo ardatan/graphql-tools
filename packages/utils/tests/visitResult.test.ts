@@ -1,5 +1,11 @@
-import { buildSchema, getIntrospectionQuery, introspectionFromSchema, parse } from 'graphql';
-import { createGraphQLError, ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
+import {
+  buildSchema,
+  getIntrospectionQuery,
+  GraphQLError,
+  introspectionFromSchema,
+  parse,
+} from 'graphql';
+import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 import { relocatedError } from '../src/errors.js';
 import { visitData, visitResult } from '../src/visitResult.js';
 
@@ -407,8 +413,8 @@ describe('visiting errors', () => {
         },
       },
       errors: [
-        createGraphQLError('unpathed error'),
-        createGraphQLError('pathed error', {
+        new GraphQLError('unpathed error'),
+        new GraphQLError('pathed error', {
           path: ['test', 'field'],
         }),
       ],
@@ -427,8 +433,8 @@ describe('visiting errors', () => {
         },
       },
       errors: [
-        createGraphQLError('unpathed error'),
-        createGraphQLError('pathed error', {
+        new GraphQLError('unpathed error'),
+        new GraphQLError('pathed error', {
           path: ['test', 'field'],
         }),
       ],

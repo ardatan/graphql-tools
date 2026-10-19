@@ -1,5 +1,5 @@
-import { fakePromise } from '@graphql-tools/utils';
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
+import { fakePromise } from '@whatwg-node/promise-helpers';
 
 /**
  * Create an AsyncIterator from an EventEmitter. Useful for mocking a

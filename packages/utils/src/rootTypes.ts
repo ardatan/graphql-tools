@@ -1,5 +1,10 @@
-import { ASTNode, GraphQLObjectType, GraphQLSchema, OperationTypeNode } from 'graphql';
-import { createGraphQLError } from './errors.js';
+import {
+  ASTNode,
+  GraphQLError,
+  GraphQLObjectType,
+  GraphQLSchema,
+  OperationTypeNode,
+} from 'graphql';
 import { memoize1 } from './memoize.js';
 
 export function getDefinedRootType(
@@ -10,7 +15,7 @@ export function getDefinedRootType(
   const rootTypeMap = getRootTypeMap(schema);
   const rootType = rootTypeMap.get(operation);
   if (rootType == null) {
-    throw createGraphQLError(`Schema is not configured to execute ${operation} operation.`, {
+    throw new GraphQLError(`Schema is not configured to execute ${operation} operation.`, {
       nodes,
     });
   }

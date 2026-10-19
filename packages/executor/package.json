@@ -10,7 +10,7 @@
   "author": "Saihajpreet Singh <saihajpreet.singh@gmail.com>",
   "license": "MIT",
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=22.18.0"
   },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -52,7 +52,7 @@
     "typescript"
   ],
   "peerDependencies": {
-    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
+    "graphql": "^16.0.0 || ^17.0.0"
   },
   "dependencies": {
     "@graphql-tools/utils": "^12.1.0",
@@ -63,7 +63,6 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "cross-inspect": "1.0.1",
     "graphql-yoga": "^5.24.5"
   },
   "publishConfig": {

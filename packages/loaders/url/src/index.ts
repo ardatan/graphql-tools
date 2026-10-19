@@ -18,13 +18,12 @@ import {
   getOperationASTFromRequest,
   isUrl,
   Loader,
-  MaybePromise,
   parseGraphQLSDL,
   Source,
   SyncExecutor,
 } from '@graphql-tools/utils';
 import { schemaFromExecutor, wrapSchema } from '@graphql-tools/wrap';
-import { handleMaybePromise } from '@whatwg-node/promise-helpers';
+import { handleMaybePromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 import { defaultAsyncFetch } from './defaultAsyncFetch.js';
 import { defaultSyncFetch } from './defaultSyncFetch.js';
 

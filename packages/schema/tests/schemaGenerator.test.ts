@@ -360,36 +360,32 @@ describe('generating schema from shorthand', () => {
 
   // GraphQL.js only keeps symbol keys on field configs when rebuilding types via
   // mapSchema/toObjMapWithSymbols (v17+). Our merge path always preserves them.
-  // versionInfo is absent before graphql@14.4.0; treat missing as pre-v17.
-  testIf((versionInfo?.major ?? 0) >= 17)(
-    'preserves symbol-keyed field resolver extensions',
-    () => {
-      const verbose = Symbol('verbose');
-      const resolvers = {
-        Query: {
-          foo: {
-            resolve() {
-              return 'Foo';
-            },
-            extensions: {
-              [verbose]: true,
-            },
+  testIf(versionInfo.major >= 17)('preserves symbol-keyed field resolver extensions', () => {
+    const verbose = Symbol('verbose');
+    const resolvers = {
+      Query: {
+        foo: {
+          resolve() {
+            return 'Foo';
+          },
+          extensions: {
+            [verbose]: true,
           },
         },
-      } satisfies IResolvers;
-      const jsSchema = makeExecutableSchema({
-        typeDefs: /* GraphQL */ `
-          type Query {
-            foo: String
-          }
-        `,
-        resolvers,
-      });
-      const extensions = jsSchema.getQueryType()?.getFields()['foo'].extensions;
-      // GraphQL.js types field.extensions as string-keyed on v15/v16; Reflect avoids TS2538.
-      expect(Reflect.get(extensions ?? {}, verbose)).toBe(true);
-    },
-  );
+      },
+    } satisfies IResolvers;
+    const jsSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          foo: String
+        }
+      `,
+      resolvers,
+    });
+    const extensions = jsSchema.getQueryType()?.getFields()['foo'].extensions;
+    // GraphQL.js types field.extensions as string-keyed on v15/v16; Reflect avoids TS2538.
+    expect(Reflect.get(extensions ?? {}, verbose)).toBe(true);
+  });
 
   it('preserves symbol-keyed schema extensions', () => {
     const Extension1 = 'Key1';
