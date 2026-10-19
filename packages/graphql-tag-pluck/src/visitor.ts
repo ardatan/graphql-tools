@@ -161,27 +161,19 @@ function defaultPluckStringFromFile(
   );
 }
 
-function getTemplateLiteralRawStart(node: any): string {
-  const templateLiteral = isTemplateLiteral(node)
-    ? node
-    : isTemplateLiteral(node?.expression)
-      ? node.expression
-      : null;
-
-  return templateLiteral?.quasis?.[0]?.value?.raw || '';
-}
-
 function defaultIsGqlTemplateLiteral(
   node: any,
   options: { gqlMagicComment?: string; gqlHashComment?: string },
 ) {
-  // `#graphql` (or custom gqlHashComment) marker at the start of the template literal
-  if (options.gqlHashComment) {
+  // Only match hash markers on TemplateLiteral nodes. ExpressionStatement also visits
+  // standalone templates (including the trailing semicolon), which would otherwise
+  // produce a duplicate with a different end coordinate.
+  if (options.gqlHashComment && isTemplateLiteral(node)) {
     const hashCommentPattern = new RegExp(
       `^\\s*#${escapeRegExp(options.gqlHashComment)}\\s*\\n`,
       'i',
     );
-    if (hashCommentPattern.test(getTemplateLiteralRawStart(node))) {
+    if (hashCommentPattern.test(node.quasis?.[0]?.value?.raw || '')) {
       return true;
     }
   }

@@ -2531,6 +2531,17 @@ describe('graphql-tag-pluck', () => {
       expect(sources.map(source => source.body).join('\n\n')).toEqual(query);
     });
 
+    it('should pluck a semicolon-terminated standalone #graphql template exactly once', async () => {
+      // Keep a same-line prefix so Babel's 0-based column is not 0 (graphql Source is 1-based).
+      const sources = await pluck(
+        'schema.ts',
+        'void 0; `#graphql\ntype Query { hello: String }\n`;',
+      );
+
+      expect(sources).toHaveLength(1);
+      expect(sources[0].body).toEqual('#graphql\ntype Query { hello: String }');
+    });
+
     it('should pluck template literals using a custom gqlHashComment', async () => {
       const query = freeText(`#gql
         type Query {
