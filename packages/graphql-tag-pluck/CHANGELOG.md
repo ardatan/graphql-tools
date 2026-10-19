@@ -47,7 +47,7 @@
   ### Errors and other cleanup
   
   - Prefer `new GraphQLError(message, options)` from `graphql`. Experimental schema `coordinate` support remains on `locatedError` / `relocatedError` / `getSchemaCoordinate`.
-  - Removed GraphQL <16 compatibility branches (error construction, validation rule name suffixes, `URL.canParse` fallback).
+  - Removed GraphQL versions older than 16 compatibility branches (error construction, validation rule name suffixes, `URL.canParse` fallback).
   - Promise helpers should be imported from `@whatwg-node/promise-helpers` (`handleMaybePromise`, `isPromise`, `fakePromise`, `mapAsyncIterator`, `MaybePromise`) rather than re-exported from utils.
 
 ### Minor Changes
