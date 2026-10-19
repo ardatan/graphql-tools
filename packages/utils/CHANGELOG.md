@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 13.0.2
+
+### Patch Changes
+
+- [#8546](https://github.com/ardatan/graphql-tools/pull/8546) [`34b740b`](https://github.com/ardatan/graphql-tools/commit/34b740ba11ef58458fd077b12953d9de81221b11) Thanks [@ardatan](https://github.com/ardatan)! - Add `asGetArgumentValuesVariables` and `coerceGetVariableValuesResult` helpers for GraphQL 16/17 `VariableValues` compatibility when calling `getArgumentValues` / normalizing `getVariableValues` results for helpers like `shouldIncludeNode`.
+
 ## 13.0.1
 
 ### Patch Changes
