@@ -123,6 +123,7 @@ const defaults: GraphQLTagPluckOptions = {
     },
   ],
   gqlMagicComment: 'graphql',
+  gqlHashComment: 'graphql',
   globalGqlIdentifierName: ['gql', 'graphql'],
 };
 
@@ -160,7 +161,31 @@ function defaultPluckStringFromFile(
   );
 }
 
-function defaultIsGqlTemplateLiteral(node: any, options: { gqlMagicComment?: string }) {
+function getTemplateLiteralRawStart(node: any): string {
+  const templateLiteral = isTemplateLiteral(node)
+    ? node
+    : isTemplateLiteral(node?.expression)
+      ? node.expression
+      : null;
+
+  return templateLiteral?.quasis?.[0]?.value?.raw || '';
+}
+
+function defaultIsGqlTemplateLiteral(
+  node: any,
+  options: { gqlMagicComment?: string; gqlHashComment?: string },
+) {
+  // `#graphql` (or custom gqlHashComment) marker at the start of the template literal
+  if (options.gqlHashComment) {
+    const hashCommentPattern = new RegExp(
+      `^\\s*#${escapeRegExp(options.gqlHashComment)}\\s*\\n`,
+      'i',
+    );
+    if (hashCommentPattern.test(getTemplateLiteralRawStart(node))) {
+      return true;
+    }
+  }
+
   const leadingComments = node.leadingComments;
 
   if (!leadingComments) {
@@ -180,12 +205,17 @@ function defaultIsGqlTemplateLiteral(node: any, options: { gqlMagicComment?: str
   return false;
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) => {
   // Apply defaults to options
   let {
     modules = [],
     globalGqlIdentifierName,
     gqlMagicComment,
+    gqlHashComment,
     skipIndent,
     isGqlTemplateLiteral = defaultIsGqlTemplateLiteral,
     pluckStringFromFile = defaultPluckStringFromFile,
@@ -196,6 +226,7 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
 
   // Prevent case related potential errors
   gqlMagicComment = gqlMagicComment!.toLowerCase();
+  gqlHashComment = gqlHashComment?.toLowerCase();
   // normalize `name` and `identifier` values
   modules = modules.map(mod => {
     return {
@@ -205,7 +236,13 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
   });
   globalGqlIdentifierName = asArray(globalGqlIdentifierName ?? '');
 
-  const hooksOptions = { skipIndent, gqlMagicComment, modules, globalGqlIdentifierName };
+  const hooksOptions = {
+    skipIndent,
+    gqlMagicComment,
+    gqlHashComment,
+    modules,
+    globalGqlIdentifierName,
+  };
 
   // Keep imported identifiers
   // import gql from 'graphql-tag' -> gql

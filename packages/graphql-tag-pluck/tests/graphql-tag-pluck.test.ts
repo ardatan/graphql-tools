@@ -2520,8 +2520,49 @@ describe('graphql-tag-pluck', () => {
       );
     });
 
-    it('should pluck graphql-tag template literals using the custom `isGqlTemplateLiteral` hook', async () => {
+    it('should pluck template literals that start with a #graphql comment by default', async () => {
       const query = freeText(`#graphql
+        type Query {
+          hello: String
+        }
+      `);
+      const sources = await pluck('schema.ts', `export const schema = \`${query}\`;`);
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(query);
+    });
+
+    it('should pluck template literals using a custom gqlHashComment', async () => {
+      const query = freeText(`#gql
+        type Query {
+          hello: String
+        }
+      `);
+      const fileContent = `export const schema = \`${query}\`;`;
+
+      let sources = await pluck('schema.ts', fileContent);
+      expect(sources.map(source => source.body).join('\n\n')).toEqual('');
+
+      sources = await pluck('schema.ts', fileContent, {
+        gqlHashComment: 'gql',
+      });
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(query);
+    });
+
+    it('should not pluck #graphql template literals when gqlHashComment is disabled', async () => {
+      const query = freeText(`#graphql
+        type Query {
+          hello: String
+        }
+      `);
+      const sources = await pluck('schema.ts', `export const schema = \`${query}\`;`, {
+        gqlHashComment: '',
+      });
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual('');
+    });
+
+    it('should pluck graphql-tag template literals using the custom `isGqlTemplateLiteral` hook', async () => {
+      const query = freeText(`#custom
         query queryName {
           id
         }
@@ -2529,16 +2570,16 @@ describe('graphql-tag-pluck', () => {
       const fileContent = `export const query = \`${query}\`;`;
       const fileName = 'tmp-HOOKS1.ts';
 
-      // Default behavior: ignores in-query comments
+      // Default behavior: ignores unrecognized in-query comments
       let sources = await pluck(fileName, fileContent);
       expect(sources.map(source => source.body).join('\n\n')).toEqual('');
 
-      // Custom behavior: recognizes in-query comments
+      // Custom behavior: recognizes a custom in-query comment marker
       sources = await pluck(fileName, fileContent, {
         isGqlTemplateLiteral: node => {
           return (
             node.type === 'TemplateLiteral' &&
-            /\s*#graphql\s*\n/i.test(node.quasis[0]?.value?.raw || '')
+            /\s*#custom\s*\n/i.test(node.quasis[0]?.value?.raw || '')
           );
         },
       });

@@ -101,6 +101,38 @@ for a clearer understanding of the transformation options.
 The magic comment anchor to look for when parsing GraphQL strings. Defaults to `graphql`, which may
 be translated into `/* GraphQL */` in code.
 
+### `gqlHashComment`
+
+The `#`-comment marker looked for at the start of a template literal. Defaults to `graphql`, which
+matches `#graphql`:
+
+```js
+export const typeDefs = `#graphql
+  type Query {
+    hello: String
+  }
+`
+```
+
+Set to an empty string to disable. Use a custom value to recognize a different marker, for example
+`#gql`:
+
+```js
+import { gqlPluckFromCodeString } from '@graphql-tools/graphql-tag-pluck'
+
+const source = `
+  export const typeDefs = \`#gql
+    type Query {
+      hello: String
+    }
+  \`
+`
+
+await gqlPluckFromCodeString('schema.ts', source, {
+  gqlHashComment: 'gql'
+})
+```
+
 ### `globalGqlIdentifierName`
 
 Allows using a global identifier instead of a module import. Identifiers are case sensitive.
@@ -151,14 +183,8 @@ The following modules are supported by default:
 
 A custom way to determine if a template literal node contains a GraphQL query.
 
-By default, it checks if the leading comment is equal to the `gqlMagicComment` option.
-
-```js
-function isGqlTemplateLiteral(node, options) {
-  // Check if the template literal starts with `#graphql` comment
-  return node.type === 'TemplateLiteral' && node.quasis[0]?.value?.raw?.startsWith('#graphql')
-}
-```
+By default, it checks if the leading comment is equal to the `gqlMagicComment` option, or if the
+template literal starts with a `#${gqlHashComment}` comment.
 
 ### `pluckStringFromFile`
 

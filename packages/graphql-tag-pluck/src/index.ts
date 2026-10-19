@@ -90,8 +90,16 @@ export interface GraphQLTagPluckOptions {
   modules?: Array<{ name: string; identifier?: string }>;
   /**
    * The magic comment anchor to look for when parsing GraphQL strings. Defaults to `graphql`.
+   * Matches a leading block comment before a template literal (for example, GraphQL in
+   * slash-star comments).
    */
   gqlMagicComment?: string;
+  /**
+   * The `#`-comment marker looked for at the start of a template literal.
+   * Defaults to `graphql`, which matches `#graphql`.
+   * Set to an empty string to disable.
+   */
+  gqlHashComment?: string;
   /**
    * The name of a custom Vue block that contains raw GraphQL to be plucked.
    */
@@ -125,7 +133,8 @@ export interface GraphQLTagPluckOptions {
   ) => string | undefined | null;
   /**
    * A custom way to determine if a template literal node contains a GraphQL query.
-   * By default, it checks if the leading comment is equal to the `gqlMagicComment` option.
+   * By default, it checks if the leading comment is equal to the `gqlMagicComment` option,
+   * or if the template literal starts with a `#${gqlHashComment}` comment.
    */
   isGqlTemplateLiteral?: (
     node: TemplateLiteral | ExpressionStatement,
