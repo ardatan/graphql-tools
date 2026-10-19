@@ -51,4 +51,5 @@ export * from './directives.js';
 export * from './mergeIncrementalResult.js';
 export * from './getDirectiveExtensions.js';
 export * from './getDirectiveValues.js';
+export * from './variableValues.js';
 export * from './memoize.js';
