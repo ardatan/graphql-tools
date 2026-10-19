@@ -326,7 +326,8 @@ export interface ExecutionArgs<TData = any, TVariables = any, TContext = any> {
   schemaCoordinateInErrors?: boolean;
   /**
    * When true, omit "Did you mean ...?" suggestion text from variable coercion
-   * errors. Matches `graphql@17`'s `ExecutionArgs.hideSuggestions`.
+   * errors with GraphQL 17. GraphQL 16 ignores this option.
+   * Matches `graphql@17`'s `ExecutionArgs.hideSuggestions`.
    */
   hideSuggestions?: Maybe<boolean>;
 }
@@ -588,10 +589,11 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
   signal?.throwIfAborted();
 
   // GraphQL 17 returns { variableValues }; GraphQL 16 returns { coerced }.
+  // Cast through unknown: installed graphql typings match only one major.
   const variableValues: VariableValues = isGraphQL17
-    ? (coercedVariableValues as { variableValues: VariableValues }).variableValues
+    ? (coercedVariableValues as unknown as { variableValues: VariableValues }).variableValues
     : {
-        coerced: (coercedVariableValues as { coerced: Record<string, unknown> }).coerced,
+        coerced: (coercedVariableValues as unknown as { coerced: Record<string, unknown> }).coerced,
         sources: Object.create(null),
       };
   const resolveInfoVariableValues = (

@@ -22,16 +22,26 @@ import { executeSync } from '../execute.js';
 
 const isGraphQL17 = versionInfo.major >= 17;
 
-function variableValuesFromResult(result: ReturnType<typeof getVariableValues>) {
-  if (result.errors) {
-    return result;
+type NormalizedVariableValuesResult =
+  | { errors: ReadonlyArray<GraphQLError>; variableValues?: never }
+  | {
+      variableValues: { coerced: Record<string, unknown>; sources: Record<string, unknown> };
+      errors?: never;
+    };
+
+function variableValuesFromResult(
+  result: ReturnType<typeof getVariableValues>,
+): NormalizedVariableValuesResult {
+  if ('errors' in result && result.errors) {
+    return { errors: result.errors };
   }
+  // Cast through unknown: installed graphql typings match only one major.
   if (isGraphQL17) {
-    return result;
+    return result as unknown as NormalizedVariableValuesResult;
   }
   return {
     variableValues: {
-      coerced: (result as { coerced: Record<string, unknown> }).coerced,
+      coerced: (result as unknown as { coerced: Record<string, unknown> }).coerced,
       sources: Object.create(null),
     },
   };
@@ -1195,7 +1205,7 @@ describe('Execute: Handles inputs', () => {
 
   describe('Execute: Uses variable default values with SDL input-field defaults', () => {
     // Regression for #8535: graphql-js applies GraphQL 17 SDL input-field defaults
-    // (field.default) for omitted variables.
+    // (field.default) for omitted variables; exercise the executor path.
     it('applies input-field defaults inside an omitted variable default', () => {
       const sdlSchema = buildSchema(/* GraphQL */ `
         input PostInput {
@@ -1208,21 +1218,16 @@ describe('Execute: Handles inputs', () => {
         }
       `);
       const document = parse('query ($i: PostInput = { text: "hi" }) { echo(input: $i) }');
-      const operation = document.definitions[0];
-      if (operation.kind !== Kind.OPERATION_DEFINITION || !operation.variableDefinitions) {
-        throw new Error('Expected operation with variable definitions');
-      }
-
-      const coerced = variableValuesFromResult(
-        getVariableValues(sdlSchema, operation.variableDefinitions, {}),
-      );
-
-      expect(coerced.errors).toBeUndefined();
-      expect(coerced.variableValues?.coerced['i']).toEqual({
-        text: 'hi',
-        assets: [],
-        note: 'n',
+      const result = executeSync({
+        schema: sdlSchema,
+        document,
+        rootValue: {
+          echo: ({ input }: { input: { text: string; assets: string[]; note: string } }) =>
+            `${input.text}|${input.assets.length}|${input.note}`,
+        },
       });
+
+      expect(result).toEqual({ data: { echo: 'hi|0|n' } });
     });
   });
 
