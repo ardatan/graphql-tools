@@ -166,18 +166,10 @@ function isEmptyIncrementalData(data: unknown): boolean {
   if (data == null) {
     return true;
   }
-  if (typeof data !== 'object') {
-    return false;
-  }
-  if (Array.isArray(data)) {
-    return data.length === 0;
-  }
-  const entries = Object.entries(data as Record<string, unknown>);
-  if (entries.length === 0) {
-    return true;
-  }
-  return entries.every(
-    ([, value]) => value != null && typeof value === 'object' && isEmptyIncrementalData(value),
+  return (
+    typeof data === 'object' &&
+    !Array.isArray(data) &&
+    Object.keys(data as Record<string, unknown>).length === 0
   );
 }
 

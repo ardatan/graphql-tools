@@ -445,6 +445,77 @@ describe('Execute: defer directive (incremental spec v0.2)', () => {
     ]);
   });
 
+  it('keeps an empty list in a deferred payload', async () => {
+    const result = await complete(parse('{ hero { ... @defer { friends { name } } } }'), {
+      hero: { friends: [] },
+    });
+    expectJSON(result).toDeepEqual([
+      {
+        data: { hero: {} },
+        pending: [{ id: '0', path: ['hero'] }],
+        hasNext: true,
+      },
+      {
+        incremental: [{ data: { friends: [] }, id: '0' }],
+        completed: [{ id: '0' }],
+        hasNext: false,
+      },
+    ]);
+  });
+
+  it('keeps a placeholder object when all subfields are deferred further', async () => {
+    const result = await complete(parse('{ ... @defer { hero { ... @defer { name } } } }'));
+    expectJSON(result).toDeepEqual([
+      {
+        data: {},
+        pending: [{ id: '0', path: [] }],
+        hasNext: true,
+      },
+      {
+        pending: [{ id: '1', path: ['hero'] }],
+        incremental: [{ data: { hero: {} }, id: '0' }],
+        completed: [{ id: '0' }],
+        hasNext: true,
+      },
+      {
+        incremental: [{ data: { name: 'Luke' }, id: '1' }],
+        completed: [{ id: '1' }],
+        hasNext: false,
+      },
+    ]);
+  });
+
+  it('completes overlapping sibling @defer labels', async () => {
+    const result = await complete(
+      parse(`
+        {
+          hero {
+            ... @defer(label: "A") { id name }
+            ... @defer(label: "B") { id }
+          }
+        }
+      `),
+    );
+    expectJSON(result).toDeepEqual([
+      {
+        data: { hero: {} },
+        pending: [
+          { id: '0', path: ['hero'], label: 'A' },
+          { id: '1', path: ['hero'], label: 'B' },
+        ],
+        hasNext: true,
+      },
+      {
+        incremental: [
+          { data: { id: '1', name: 'Luke' }, id: '0' },
+          { data: { id: '1' }, id: '1' },
+        ],
+        completed: [{ id: '0' }, { id: '1' }],
+        hasNext: false,
+      },
+    ]);
+  });
+
   it('Can separately emit defer fragments with different labels with varying fields', async () => {
     const document = parse(`
       query HeroNameQuery {

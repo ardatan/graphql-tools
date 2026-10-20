@@ -169,6 +169,91 @@ describe('Execute: defer directive', () => {
     });
   });
 
+  it('keeps an empty list in a deferred payload', async () => {
+    const emptyFriendsHero = new GraphQLObjectType({
+      name: 'EmptyFriendsHero',
+      fields: {
+        friends: {
+          type: new GraphQLList(friendType),
+          resolve: () => [],
+        },
+      },
+    });
+    const emptyFriendsSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          hero: { type: emptyFriendsHero, resolve: () => ({}) },
+        },
+      }),
+    });
+    const result = await execute({
+      schema: emptyFriendsSchema,
+      document: parse('{ hero { ... @defer { friends { name } } } }'),
+    });
+    if (!('initialResult' in result)) {
+      throw new Error('Expected incremental results');
+    }
+    const payloads = [result.initialResult];
+    for await (const patch of result.subsequentResults) {
+      payloads.push(patch);
+    }
+    expectJSON(payloads).toDeepEqual([
+      {
+        data: { hero: {} },
+        hasNext: true,
+      },
+      {
+        incremental: [{ data: { friends: [] }, path: ['hero'] }],
+        hasNext: false,
+      },
+    ]);
+  });
+
+  it('keeps a placeholder object when all subfields are deferred further', async () => {
+    const result = await complete(parse('{ ... @defer { hero { ... @defer { name } } } }'));
+    expectJSON(result).toDeepEqual([
+      {
+        data: {},
+        hasNext: true,
+      },
+      {
+        incremental: [{ data: { hero: {} }, path: [] }],
+        hasNext: true,
+      },
+      {
+        incremental: [{ data: { name: 'Luke' }, path: ['hero'] }],
+        hasNext: false,
+      },
+    ]);
+  });
+
+  it('completes overlapping sibling @defer labels', async () => {
+    const result = await complete(
+      parse(`
+        {
+          hero {
+            ... @defer(label: "A") { id name }
+            ... @defer(label: "B") { id }
+          }
+        }
+      `),
+    );
+    expectJSON(result).toDeepEqual([
+      {
+        data: { hero: {} },
+        hasNext: true,
+      },
+      {
+        incremental: [
+          { data: { id: '1', name: 'Luke' }, path: ['hero'], label: 'A' },
+          { data: { id: '1' }, path: ['hero'], label: 'B' },
+        ],
+        hasNext: false,
+      },
+    ]);
+  });
+
   it('Can defer fragments containing scalar types', async () => {
     const document = parse(/* GraphQL */ `
       query HeroNameQuery {

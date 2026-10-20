@@ -51,7 +51,6 @@ import {
   promiseReduce,
   VariableValues,
   type IncrementalSpec,
-  type PatchFields,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
@@ -84,9 +83,7 @@ import {
   buildExecutionPlan,
   collectIncrementalFields,
   collectIncrementalSubfields,
-  deferUsageForFieldNode,
   groupedFieldSetToFieldMap,
-  labelForDeferUsageSet,
   rootDeferUsage,
   type DeferUsage,
   type DeferUsageSet,
@@ -237,6 +234,25 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
    * default execution does not pay for null-bubble bookkeeping.
    */
   nulledPaths?: Array<ReadonlyArray<string | number>>;
+  /**
+   * Per-execution FieldNode → DeferUsage. Document AST nodes are reused
+   * across requests, so this must not live at module scope.
+   */
+  deferUsageByFieldNode?: WeakMap<FieldNode, DeferUsage | undefined>;
+  /**
+   * Field-node arrays from a planned group → that group's DeferUsageSet.
+   * List items share the same array identity, so overlapping sibling
+   * usages stay stable across async item completion.
+   */
+  deferUsagesForFieldNodes?: WeakMap<ReadonlyArray<FieldNode>, DeferUsageSet>;
+  /**
+   * Memoize incremental subfield collect per fieldNodes array so list
+   * items reuse the same DeferUsage objects.
+   */
+  incrementalSubfieldCache?: WeakMap<
+    ReadonlyArray<FieldNode>,
+    ReturnType<typeof collectIncrementalSubfields>
+  >;
   signal?: AbortSignal;
   getAbortSignal: () => AbortSignal | undefined;
   getAsyncHelpers: () => {
@@ -845,7 +861,7 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
     return result;
   }
 
-  exeContext.nulledPaths ??= [];
+  ensureIncrementalCollectState(exeContext);
 
   const { groupedFieldSet } = collectIncrementalFields(
     schema,
@@ -856,7 +872,10 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
   );
   const { groupedFieldSet: initialFields, newGroupedFieldSets } =
     buildExecutionPlan(groupedFieldSet);
-  const plannedRootFields = groupedFieldSetToFieldMap(initialFields);
+  const plannedRootFields = groupedFieldSetToFieldMap(
+    initialFields,
+    exeContext.deferUsageByFieldNode,
+  );
 
   if (operation.operation === 'mutation') {
     result = executeFieldsSerially(exeContext, rootType, rootValue, path, plannedRootFields);
@@ -881,29 +900,119 @@ function executeDeferredGroups(
     return;
   }
   const records = new Map<DeferUsage, DeferredFragmentRecord>();
+  const remainingGroups = new Map<DeferUsage, number>();
+  const parts = new Map<DeferUsage, Array<MaybePromise<Record<string, unknown> | null>>>();
   const groups = [...newGroupedFieldSets.entries()].sort(
     ([a], [b]) => deferUsageDepth(rootDeferUsage(a)) - deferUsageDepth(rootDeferUsage(b)),
   );
-  for (const [deferUsageSet, groupedFieldSet] of groups) {
-    const usage = rootDeferUsage(deferUsageSet);
+  for (const [deferUsageSet] of groups) {
+    for (const usage of deferUsageSet) {
+      remainingGroups.set(usage, (remainingGroups.get(usage) ?? 0) + 1);
+    }
+  }
+  const usages = [...remainingGroups.keys()].sort(
+    (a, b) => deferUsageDepth(a) - deferUsageDepth(b),
+  );
+  for (const usage of usages) {
     const deliveryParent =
-      (usage?.parentDeferUsage && records.get(usage.parentDeferUsage)) ?? parentContext;
-    const record = executeDeferredFragment(
+      (usage.parentDeferUsage && records.get(usage.parentDeferUsage)) ?? parentContext;
+    records.set(
+      usage,
+      new DeferredFragmentRecord({
+        label: usage.label,
+        path,
+        parentContext,
+        deliveryParent,
+        exeContext,
+        deferUsage: usage,
+      }),
+    );
+  }
+  for (const [deferUsageSet, groupedFieldSet] of groups) {
+    const fields = groupedFieldSetToFieldMap(groupedFieldSet, exeContext.deferUsageByFieldNode);
+    const fieldUsageStore = (exeContext.deferUsagesForFieldNodes ??= new WeakMap());
+    for (const fieldNodes of fields.values()) {
+      fieldUsageStore.set(fieldNodes, deferUsageSet);
+    }
+    const primaryUsage = rootDeferUsage(deferUsageSet);
+    const primaryRecord = primaryUsage ? records.get(primaryUsage) : undefined;
+    const data = executeDeferredGroupedFields(
       exeContext,
       parentType,
       sourceValue,
-      groupedFieldSetToFieldMap(groupedFieldSet),
-      labelForDeferUsageSet(deferUsageSet),
       path,
-      parentContext,
-      undefined,
-      deliveryParent,
-      usage,
+      fields,
+      primaryRecord,
+      [...deferUsageSet].map(usage => records.get(usage)).filter(record => record != null),
     );
-    if (usage) {
-      records.set(usage, record);
+    for (const usage of deferUsageSet) {
+      const list = parts.get(usage) ?? [];
+      list.push(data);
+      parts.set(usage, list);
+      const left = (remainingGroups.get(usage) ?? 1) - 1;
+      remainingGroups.set(usage, left);
+      if (left === 0) {
+        records.get(usage)?.addData(mergeDeferredParts(list));
+      }
     }
   }
+}
+
+function executeDeferredGroupedFields(
+  exeContext: ExecutionContext,
+  parentType: GraphQLObjectType,
+  sourceValue: unknown,
+  path: Path | undefined,
+  fields: Map<string, Array<FieldNode>>,
+  primaryRecord: DeferredFragmentRecord | undefined,
+  records: Array<DeferredFragmentRecord>,
+): MaybePromise<Record<string, unknown> | null> {
+  try {
+    const data = executeFields(exeContext, parentType, sourceValue, path, fields, primaryRecord);
+    if (isPromise(data)) {
+      return data.then(null, e => {
+        for (const record of records) {
+          record.errors.push(e);
+        }
+        return null;
+      });
+    }
+    return data;
+  } catch (e) {
+    for (const record of records) {
+      record.errors.push(e as GraphQLError);
+    }
+    return null;
+  }
+}
+
+function mergeDeferredParts(
+  parts: Array<MaybePromise<Record<string, unknown> | null>>,
+): MaybePromise<Record<string, unknown> | null> {
+  if (parts.some(isPromise)) {
+    return Promise.all(parts).then(mergeDeferredObjects);
+  }
+  return mergeDeferredObjects(parts as Array<Record<string, unknown> | null>);
+}
+
+function mergeDeferredObjects(
+  parts: ReadonlyArray<Record<string, unknown> | null>,
+): Record<string, unknown> | null {
+  const result: Record<string, unknown> = Object.create(null);
+  let sawObject = false;
+  for (const part of parts) {
+    if (part == null) {
+      continue;
+    }
+    sawObject = true;
+    Object.assign(result, part);
+  }
+  return sawObject ? result : null;
+}
+
+function ensureIncrementalCollectState(exeContext: ExecutionContext): void {
+  exeContext.nulledPaths ??= [];
+  exeContext.deferUsageByFieldNode ??= new WeakMap();
 }
 
 function deferUsageDepth(usage: DeferUsage | undefined): number {
@@ -1801,24 +1910,36 @@ function collectAndExecuteSubfields(
     return executeFields(exeContext, returnType, result, path, subFieldNodes, asyncPayloadRecord);
   }
 
-  exeContext.nulledPaths ??= [];
+  ensureIncrementalCollectState(exeContext);
 
   const parentDeferUsage =
     asyncPayloadRecord?.type === 'defer' ? asyncPayloadRecord.deferUsage : undefined;
-  const { groupedFieldSet } = collectIncrementalSubfields(
-    exeContext.schema,
-    exeContext.fragments,
-    exeContext.variableValues,
-    returnType,
-    fieldNodes,
-    parentDeferUsage,
-  );
+  const subfieldCache = (exeContext.incrementalSubfieldCache ??= new WeakMap());
+  let collected = subfieldCache.get(fieldNodes);
+  if (collected == null) {
+    collected = collectIncrementalSubfields(
+      exeContext.schema,
+      exeContext.fragments,
+      exeContext.variableValues,
+      returnType,
+      fieldNodes,
+      parentDeferUsage,
+      exeContext.deferUsageByFieldNode,
+    );
+    subfieldCache.set(fieldNodes, collected);
+  }
+  const { groupedFieldSet } = collected;
   const parentDeferUsages = new Set<DeferUsage>();
-  if (parentDeferUsage) {
+  const plannedUsages = exeContext.deferUsagesForFieldNodes?.get(fieldNodes);
+  if (plannedUsages) {
+    for (const usage of plannedUsages) {
+      parentDeferUsages.add(usage);
+    }
+  } else if (parentDeferUsage) {
     parentDeferUsages.add(parentDeferUsage);
   } else if (asyncPayloadRecord?.type === 'stream') {
     for (const node of fieldNodes) {
-      const usage = deferUsageForFieldNode(node);
+      const usage = exeContext.deferUsageByFieldNode?.get(node);
       if (usage) {
         parentDeferUsages.add(usage);
       }
@@ -1834,7 +1955,7 @@ function collectAndExecuteSubfields(
     returnType,
     result,
     path,
-    groupedFieldSetToFieldMap(initialFields),
+    groupedFieldSetToFieldMap(initialFields, exeContext.deferUsageByFieldNode),
     asyncPayloadRecord,
   );
 
@@ -2158,68 +2279,6 @@ function assertEventStream(
     };
   }
   return result;
-}
-
-function executeDeferredFragment(
-  exeContext: ExecutionContext,
-  parentType: GraphQLObjectType,
-  sourceValue: unknown,
-  fields: Map<string, Array<FieldNode>>,
-  label?: string,
-  path?: Path,
-  parentContext?: AsyncPayloadRecord,
-  nestedPatches?: ReadonlyArray<PatchFields>,
-  deliveryParent?: AsyncPayloadRecord,
-  deferUsage?: DeferUsage,
-): DeferredFragmentRecord {
-  const asyncPayloadRecord = new DeferredFragmentRecord({
-    label,
-    path,
-    parentContext,
-    deliveryParent: deliveryParent ?? parentContext,
-    exeContext,
-    deferUsage,
-  });
-  let promiseOrData;
-  try {
-    promiseOrData = executeFields(
-      exeContext,
-      parentType,
-      sourceValue,
-      path,
-      fields,
-      asyncPayloadRecord,
-    );
-
-    if (isPromise(promiseOrData)) {
-      promiseOrData = promiseOrData.then(null, e => {
-        asyncPayloadRecord.errors.push(e);
-        return null;
-      });
-    }
-  } catch (e) {
-    asyncPayloadRecord.errors.push(e as GraphQLError);
-    promiseOrData = null;
-  }
-  asyncPayloadRecord.addData(promiseOrData);
-
-  if (nestedPatches) {
-    for (const nested of nestedPatches) {
-      executeDeferredFragment(
-        exeContext,
-        parentType,
-        sourceValue,
-        nested.fields,
-        nested.label,
-        path,
-        // Keep v0.1 sibling completion; v0.2 pending still nests via deliveryParent.
-        parentContext,
-        nested.patches,
-        asyncPayloadRecord,
-      );
-    }
-  }
-  return asyncPayloadRecord;
 }
 
 function executeStreamField(
