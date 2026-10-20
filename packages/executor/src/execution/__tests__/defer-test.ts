@@ -1,6 +1,7 @@
 import {
   DocumentNode,
   GraphQLID,
+  GraphQLInterfaceType,
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
@@ -121,9 +122,207 @@ describe('Execute: defer directive', () => {
 
     const patch = result[1].incremental?.[0];
     const deferredData = patch && 'data' in patch ? patch.data : undefined;
-    expect(Object.entries(deferredData ?? {})).toEqual([
-      ['slowField', 'slow'],
-      ['name', 'Luke'],
+    expect(Object.entries(deferredData ?? {})).toEqual([['name', 'Luke']]);
+  });
+
+  it('executes overlapping deferred fields once', async () => {
+    let calls = 0;
+    const countingHero = new GraphQLObjectType({
+      name: 'Hero',
+      fields: {
+        name: { type: GraphQLString },
+        counted: {
+          type: GraphQLString,
+          resolve: () => {
+            calls += 1;
+            return 'once';
+          },
+        },
+      },
+    });
+    const countingSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          hero: { type: countingHero, resolve: () => ({ name: 'Luke' }) },
+        },
+      }),
+    });
+    const result = await execute({
+      schema: countingSchema,
+      document: parse('{ hero { counted ... @defer { counted name } } }'),
+    });
+    if (!('initialResult' in result)) {
+      throw new Error('Expected incremental results');
+    }
+    const payloads = [result.initialResult];
+    for await (const patch of result.subsequentResults) {
+      payloads.push(patch);
+    }
+    expect(calls).toBe(1);
+    expect(payloads[0]).toMatchObject({
+      data: { hero: { counted: 'once' } },
+      hasNext: true,
+    });
+    expect(payloads[1]).toMatchObject({
+      incremental: [{ data: { name: 'Luke' }, path: ['hero'] }],
+      hasNext: false,
+    });
+  });
+
+  it('keeps an empty list in a deferred payload', async () => {
+    const emptyFriendsHero = new GraphQLObjectType({
+      name: 'EmptyFriendsHero',
+      fields: {
+        friends: {
+          type: new GraphQLList(friendType),
+          resolve: () => [],
+        },
+      },
+    });
+    const emptyFriendsSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          hero: { type: emptyFriendsHero, resolve: () => ({}) },
+        },
+      }),
+    });
+    const result = await execute({
+      schema: emptyFriendsSchema,
+      document: parse('{ hero { ... @defer { friends { name } } } }'),
+    });
+    if (!('initialResult' in result)) {
+      throw new Error('Expected incremental results');
+    }
+    const payloads = [result.initialResult];
+    for await (const patch of result.subsequentResults) {
+      payloads.push(patch);
+    }
+    expectJSON(payloads).toDeepEqual([
+      {
+        data: { hero: {} },
+        hasNext: true,
+      },
+      {
+        incremental: [{ data: { friends: [] }, path: ['hero'] }],
+        hasNext: false,
+      },
+    ]);
+  });
+
+  it('keeps a placeholder object when all subfields are deferred further', async () => {
+    const result = await complete(parse('{ ... @defer { hero { ... @defer { name } } } }'));
+    expectJSON(result).toDeepEqual([
+      {
+        data: {},
+        hasNext: true,
+      },
+      {
+        incremental: [{ data: { hero: {} }, path: [] }],
+        hasNext: true,
+      },
+      {
+        incremental: [{ data: { name: 'Luke' }, path: ['hero'] }],
+        hasNext: false,
+      },
+    ]);
+  });
+
+  it('completes overlapping sibling @defer labels', async () => {
+    const result = await complete(
+      parse(`
+        {
+          hero {
+            ... @defer(label: "A") { id name }
+            ... @defer(label: "B") { id }
+          }
+        }
+      `),
+    );
+    expectJSON(result).toDeepEqual([
+      {
+        data: { hero: {} },
+        hasNext: true,
+      },
+      {
+        incremental: [
+          { data: { id: '1', name: 'Luke' }, path: ['hero'], label: 'A' },
+          { data: { id: '1' }, path: ['hero'], label: 'B' },
+        ],
+        hasNext: false,
+      },
+    ]);
+  });
+
+  it('collects type-conditioned @defer fields per concrete list item type', async () => {
+    const Character = new GraphQLInterfaceType({
+      name: 'Character',
+      fields: { name: { type: GraphQLString } },
+      resolveType: obj => obj.kind,
+    });
+    const Hero = new GraphQLObjectType({
+      name: 'Hero',
+      interfaces: [Character],
+      fields: {
+        name: { type: GraphQLString },
+        heroTitle: { type: GraphQLString },
+      },
+    });
+    const Villain = new GraphQLObjectType({
+      name: 'Villain',
+      interfaces: [Character],
+      fields: {
+        name: { type: GraphQLString },
+        villainTitle: { type: GraphQLString },
+      },
+    });
+    const listSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          characters: {
+            type: new GraphQLList(Character),
+            resolve: () => [
+              { kind: 'Hero', name: 'Luke', heroTitle: 'Jedi' },
+              { kind: 'Villain', name: 'Vader', villainTitle: 'Sith' },
+            ],
+          },
+        },
+      }),
+      types: [Hero, Villain],
+    });
+    const result = await execute({
+      schema: listSchema,
+      document: parse(`{
+        characters {
+          name
+          ... on Hero @defer { heroTitle }
+          ... on Villain @defer { villainTitle }
+        }
+      }`),
+    });
+    if (!('initialResult' in result)) {
+      throw new Error('Expected incremental results');
+    }
+    const payloads = [result.initialResult];
+    for await (const patch of result.subsequentResults) {
+      payloads.push(patch);
+    }
+    expectJSON(payloads).toDeepEqual([
+      {
+        data: {
+          characters: [{ name: 'Luke' }, { name: 'Vader' }],
+        },
+        hasNext: true,
+      },
+      {
+        incremental: [
+          { data: { heroTitle: 'Jedi' }, path: ['characters', 0] },
+          { data: { villainTitle: 'Sith' }, path: ['characters', 1] },
+        ],
+        hasNext: false,
+      },
     ]);
   });
 
@@ -156,7 +355,6 @@ describe('Execute: defer directive', () => {
         incremental: [
           {
             data: {
-              id: '1',
               name: 'Luke',
             },
             path: ['hero'],
@@ -369,29 +567,14 @@ describe('Execute: defer directive', () => {
     `);
 
     const result = await complete(document);
-    expectJSON(result).toDeepEqual([
-      {
-        data: {
-          hero: {
-            id: '1',
-            name: 'Luke',
-          },
+    expectJSON(result).toDeepEqual({
+      data: {
+        hero: {
+          id: '1',
+          name: 'Luke',
         },
-        hasNext: true,
       },
-      {
-        incremental: [
-          {
-            data: {
-              name: 'Luke',
-            },
-            path: ['hero'],
-            label: 'DeferTop',
-          },
-        ],
-        hasNext: false,
-      },
-    ]);
+    });
   });
 
   it('Can defer a fragment that is also not deferred, non-deferred fragment is first', async () => {
@@ -409,29 +592,33 @@ describe('Execute: defer directive', () => {
     `);
 
     const result = await complete(document);
-    expectJSON(result).toDeepEqual([
-      {
-        data: {
-          hero: {
-            id: '1',
-            name: 'Luke',
-          },
+    expectJSON(result).toDeepEqual({
+      data: {
+        hero: {
+          id: '1',
+          name: 'Luke',
         },
-        hasNext: true,
       },
-      {
-        incremental: [
-          {
-            data: {
-              name: 'Luke',
-            },
-            path: ['hero'],
-            label: 'DeferTop',
-          },
-        ],
-        hasNext: false,
+    });
+  });
+
+  it('Does not emit empty defer fragments', async () => {
+    const document = parse(/* GraphQL */ `
+      query HeroNameQuery {
+        hero {
+          ... @defer {
+            name @skip(if: true)
+          }
+        }
+      }
+    `);
+
+    const result = await complete(document);
+    expectJSON(result).toDeepEqual({
+      data: {
+        hero: {},
       },
-    ]);
+    });
   });
 
   it('Can defer an inline fragment', async () => {
