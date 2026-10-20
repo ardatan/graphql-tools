@@ -9,8 +9,6 @@ import type {
   SubsequentIncrementalExecutionResult,
 } from './execute.js';
 
-export type { IncrementalSpec } from '@graphql-tools/utils';
-
 export interface PendingResult {
   id: string;
   path: ReadonlyArray<string | number>;

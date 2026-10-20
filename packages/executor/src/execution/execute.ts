@@ -48,6 +48,7 @@ import {
   pathToArray,
   promiseReduce,
   VariableValues,
+  type IncrementalSpec,
   type PatchFields,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
@@ -73,14 +74,13 @@ import {
   type AsyncPayloadRecord,
   type CompletedResult,
   type IncrementalPublisherState,
-  type IncrementalSpec,
   type PendingResult,
   type StreamGroup,
 } from './incremental.js';
 import { invariant } from './invariant.js';
 import { promiseForObject } from './promiseForObject.js';
 
-export type { CompletedResult, IncrementalSpec, PendingResult } from './incremental.js';
+export type { CompletedResult, PendingResult } from './incremental.js';
 
 const EMPTY_ARGS: { [argument: string]: unknown } = Object.freeze(Object.create(null));
 const isGraphQL17 = versionInfo.major >= 17;
