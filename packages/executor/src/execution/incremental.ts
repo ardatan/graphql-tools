@@ -8,6 +8,7 @@ import type {
   IncrementalStreamResult,
   SubsequentIncrementalExecutionResult,
 } from './execute.js';
+import type { DeferUsage } from './incrementalCollect.js';
 
 export interface PendingResult {
   id: string;
@@ -111,6 +112,7 @@ export class DeferredFragmentRecord {
   data: Record<string, unknown> | null;
   parentContext: AsyncPayloadRecord | undefined;
   deliveryParent: AsyncPayloadRecord | undefined;
+  deferUsage: DeferUsage | undefined;
   isCompleted: boolean;
   _exeContext: IncrementalPublisherContext;
   _resolve?: (arg: MaybePromise<Record<string, unknown> | null>) => void;
@@ -120,12 +122,14 @@ export class DeferredFragmentRecord {
     parentContext: AsyncPayloadRecord | undefined;
     deliveryParent?: AsyncPayloadRecord | undefined;
     exeContext: IncrementalPublisherContext;
+    deferUsage?: DeferUsage;
   }) {
     this.type = 'defer';
     this.label = opts.label;
     this.path = pathToArray(opts.path);
     this.parentContext = opts.parentContext;
     this.deliveryParent = opts.deliveryParent ?? opts.parentContext;
+    this.deferUsage = opts.deferUsage;
     this.errors = [];
     this._exeContext = opts.exeContext;
     this._exeContext.subsequentPayloads.add(this);

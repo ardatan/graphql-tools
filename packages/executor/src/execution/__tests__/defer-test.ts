@@ -121,10 +121,52 @@ describe('Execute: defer directive', () => {
 
     const patch = result[1].incremental?.[0];
     const deferredData = patch && 'data' in patch ? patch.data : undefined;
-    expect(Object.entries(deferredData ?? {})).toEqual([
-      ['slowField', 'slow'],
-      ['name', 'Luke'],
-    ]);
+    expect(Object.entries(deferredData ?? {})).toEqual([['name', 'Luke']]);
+  });
+
+  it('executes overlapping deferred fields once', async () => {
+    let calls = 0;
+    const countingHero = new GraphQLObjectType({
+      name: 'Hero',
+      fields: {
+        name: { type: GraphQLString },
+        counted: {
+          type: GraphQLString,
+          resolve: () => {
+            calls += 1;
+            return 'once';
+          },
+        },
+      },
+    });
+    const countingSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          hero: { type: countingHero, resolve: () => ({ name: 'Luke' }) },
+        },
+      }),
+    });
+    const result = await execute({
+      schema: countingSchema,
+      document: parse('{ hero { counted ... @defer { counted name } } }'),
+    });
+    if (!('initialResult' in result)) {
+      throw new Error('Expected incremental results');
+    }
+    const payloads = [result.initialResult];
+    for await (const patch of result.subsequentResults) {
+      payloads.push(patch);
+    }
+    expect(calls).toBe(1);
+    expect(payloads[0]).toMatchObject({
+      data: { hero: { counted: 'once' } },
+      hasNext: true,
+    });
+    expect(payloads[1]).toMatchObject({
+      incremental: [{ data: { name: 'Luke' }, path: ['hero'] }],
+      hasNext: false,
+    });
   });
 
   it('Can defer fragments containing scalar types', async () => {
@@ -156,7 +198,6 @@ describe('Execute: defer directive', () => {
         incremental: [
           {
             data: {
-              id: '1',
               name: 'Luke',
             },
             path: ['hero'],
@@ -369,29 +410,14 @@ describe('Execute: defer directive', () => {
     `);
 
     const result = await complete(document);
-    expectJSON(result).toDeepEqual([
-      {
-        data: {
-          hero: {
-            id: '1',
-            name: 'Luke',
-          },
+    expectJSON(result).toDeepEqual({
+      data: {
+        hero: {
+          id: '1',
+          name: 'Luke',
         },
-        hasNext: true,
       },
-      {
-        incremental: [
-          {
-            data: {
-              name: 'Luke',
-            },
-            path: ['hero'],
-            label: 'DeferTop',
-          },
-        ],
-        hasNext: false,
-      },
-    ]);
+    });
   });
 
   it('Can defer a fragment that is also not deferred, non-deferred fragment is first', async () => {
@@ -409,29 +435,14 @@ describe('Execute: defer directive', () => {
     `);
 
     const result = await complete(document);
-    expectJSON(result).toDeepEqual([
-      {
-        data: {
-          hero: {
-            id: '1',
-            name: 'Luke',
-          },
+    expectJSON(result).toDeepEqual({
+      data: {
+        hero: {
+          id: '1',
+          name: 'Luke',
         },
-        hasNext: true,
       },
-      {
-        incremental: [
-          {
-            data: {
-              name: 'Luke',
-            },
-            path: ['hero'],
-            label: 'DeferTop',
-          },
-        ],
-        hasNext: false,
-      },
-    ]);
+    });
   });
 
   it('Can defer an inline fragment', async () => {

@@ -77,6 +77,17 @@ import {
   type PendingResult,
   type StreamGroup,
 } from './incremental.js';
+import {
+  buildExecutionPlan,
+  collectIncrementalFields,
+  collectIncrementalSubfields,
+  groupedFieldSetToFieldMap,
+  labelForDeferUsageSet,
+  rootDeferUsage,
+  type DeferUsage,
+  type DeferUsageSet,
+  type GroupedFieldSet,
+} from './incrementalCollect.js';
 import { invariant } from './invariant.js';
 import { promiseForObject } from './promiseForObject.js';
 
@@ -814,27 +825,79 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
   const path = undefined;
   let result: MaybePromise<TData>;
 
-  if (operation.operation === 'mutation') {
-    result = executeFieldsSerially(exeContext, rootType, rootValue, path, rootFields);
-  } else {
-    result = executeFields(exeContext, rootType, rootValue, path, rootFields) as TData;
+  if (patches.length === 0) {
+    if (operation.operation === 'mutation') {
+      result = executeFieldsSerially(exeContext, rootType, rootValue, path, rootFields);
+    } else {
+      result = executeFields(exeContext, rootType, rootValue, path, rootFields) as TData;
+    }
+    return result;
   }
 
-  for (const patch of patches) {
-    const { label, fields: patchFields, patches: nestedPatches } = patch;
-    executeDeferredFragment(
-      exeContext,
-      rootType,
-      rootValue,
-      patchFields,
-      label,
-      path,
-      undefined,
-      nestedPatches,
-    );
+  const { groupedFieldSet } = collectIncrementalFields(
+    schema,
+    fragments,
+    variableValues,
+    rootType,
+    operation.selectionSet,
+  );
+  const { groupedFieldSet: initialFields, newGroupedFieldSets } =
+    buildExecutionPlan(groupedFieldSet);
+  const plannedRootFields = groupedFieldSetToFieldMap(initialFields);
+
+  if (operation.operation === 'mutation') {
+    result = executeFieldsSerially(exeContext, rootType, rootValue, path, plannedRootFields);
+  } else {
+    result = executeFields(exeContext, rootType, rootValue, path, plannedRootFields) as TData;
   }
+
+  executeDeferredGroups(exeContext, rootType, rootValue, path, newGroupedFieldSets, undefined);
 
   return result;
+}
+
+function executeDeferredGroups(
+  exeContext: ExecutionContext,
+  parentType: GraphQLObjectType,
+  sourceValue: unknown,
+  path: Path | undefined,
+  newGroupedFieldSets: Map<DeferUsageSet, GroupedFieldSet>,
+  parentContext: AsyncPayloadRecord | undefined,
+): void {
+  const records = new Map<DeferUsage, DeferredFragmentRecord>();
+  const groups = [...newGroupedFieldSets.entries()].sort(
+    ([a], [b]) => deferUsageDepth(rootDeferUsage(a)) - deferUsageDepth(rootDeferUsage(b)),
+  );
+  for (const [deferUsageSet, groupedFieldSet] of groups) {
+    const usage = rootDeferUsage(deferUsageSet);
+    const deliveryParent =
+      (usage?.parentDeferUsage && records.get(usage.parentDeferUsage)) ?? parentContext;
+    const record = executeDeferredFragment(
+      exeContext,
+      parentType,
+      sourceValue,
+      groupedFieldSetToFieldMap(groupedFieldSet),
+      labelForDeferUsageSet(deferUsageSet),
+      path,
+      parentContext,
+      undefined,
+      deliveryParent,
+      usage,
+    );
+    if (usage) {
+      records.set(usage, record);
+    }
+  }
+}
+
+function deferUsageDepth(usage: DeferUsage | undefined): number {
+  let depth = 0;
+  let current = usage;
+  while (current?.parentDeferUsage) {
+    depth++;
+    current = current.parentDeferUsage;
+  }
+  return depth;
 }
 
 /**
@@ -1718,28 +1781,42 @@ function collectAndExecuteSubfields(
     fieldNodes,
   );
 
+  if (subPatches.length === 0) {
+    return executeFields(exeContext, returnType, result, path, subFieldNodes, asyncPayloadRecord);
+  }
+
+  const parentDeferUsage =
+    asyncPayloadRecord?.type === 'defer' ? asyncPayloadRecord.deferUsage : undefined;
+  const { groupedFieldSet } = collectIncrementalSubfields(
+    exeContext.schema,
+    exeContext.fragments,
+    exeContext.variableValues,
+    returnType,
+    fieldNodes,
+    parentDeferUsage,
+  );
+  const { groupedFieldSet: initialFields, newGroupedFieldSets } = buildExecutionPlan(
+    groupedFieldSet,
+    parentDeferUsage == null ? undefined : new Set([parentDeferUsage]),
+  );
+
   const subFields = executeFields(
     exeContext,
     returnType,
     result,
     path,
-    subFieldNodes,
+    groupedFieldSetToFieldMap(initialFields),
     asyncPayloadRecord,
   );
 
-  for (const subPatch of subPatches) {
-    const { label, fields: subPatchFieldNodes, patches: nestedPatches } = subPatch;
-    executeDeferredFragment(
-      exeContext,
-      returnType,
-      result,
-      subPatchFieldNodes,
-      label,
-      path,
-      asyncPayloadRecord,
-      nestedPatches,
-    );
-  }
+  executeDeferredGroups(
+    exeContext,
+    returnType,
+    result,
+    path,
+    newGroupedFieldSets,
+    asyncPayloadRecord,
+  );
 
   return subFields;
 }
@@ -2136,13 +2213,15 @@ function executeDeferredFragment(
   parentContext?: AsyncPayloadRecord,
   nestedPatches?: ReadonlyArray<PatchFields>,
   deliveryParent?: AsyncPayloadRecord,
-): void {
+  deferUsage?: DeferUsage,
+): DeferredFragmentRecord {
   const asyncPayloadRecord = new DeferredFragmentRecord({
     label,
     path,
     parentContext,
     deliveryParent: deliveryParent ?? parentContext,
     exeContext,
+    deferUsage,
   });
   let promiseOrData;
   try {
@@ -2183,6 +2262,7 @@ function executeDeferredFragment(
       );
     }
   }
+  return asyncPayloadRecord;
 }
 
 function executeStreamField(
