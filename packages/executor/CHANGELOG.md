@@ -1,5 +1,11 @@
 # @graphql-tools/executor
 
+## 4.1.2
+
+### Patch Changes
+
+- [#6790](https://github.com/ardatan/graphql-tools/pull/6790) [`d54bc77`](https://github.com/ardatan/graphql-tools/commit/d54bc777af18052c63c3674571a84a0eed1d682a) Thanks [@n1ru4l](https://github.com/n1ru4l)! - Executor now collects `@defer` fields the way graphql-js 17 `IncrementalExecutor` does: overlapping fields execute once in the parent group instead of again in the deferred patch. Subsequent payloads only contain fields that were not already delivered. When a field is nulled by error bubbling, deferred and streamed work at or under that path is cancelled (and ancestor patches that would write into the nulled subtree are dropped), matching graphql-js 17 `hasNulledPosition`. Default / non-incremental execution still uses the previous collect path.
+
 ## 4.1.1
 
 ### Patch Changes
