@@ -52,6 +52,13 @@ There are some defaults to be aware of - to learn more, see
   sources.
 </Callout>
 
+## Fragments from Package Dependencies
+
+Use [`@graphql-tools/external-fragment-loader`](/docs/external-fragment-loader) to resolve fragments
+defined in other packages. It follows `package.json` dependencies and returns the external fragments
+required by the consumer package. See the guide for GraphQL Code Generator and `loadDocuments`
+examples.
+
 ## Error Handling
 
 ### No Files Found

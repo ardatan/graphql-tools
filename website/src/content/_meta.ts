@@ -15,6 +15,7 @@ export default {
   'server-setup': 'Setup an HTTP Server',
   'schema-loading': 'Schema Loading',
   'documents-loading': 'Documents Loading',
+  'external-fragment-loader': 'External Fragment Loader',
   'graphql-tag-pluck': 'GraphQL Tag Pluck',
   'relay-operation-optimizer': 'Relay Operation Optimizer',
   migration: 'Migration',
