@@ -1,4 +1,5 @@
 import { GraphQLError } from 'graphql';
+import { ExecutionResult } from '../src/Interfaces';
 import { mergeIncrementalResult } from '../src/mergeIncrementalResult';
 
 describe('mergeIncrementalResult', () => {
@@ -361,7 +362,7 @@ describe('mergeIncrementalResult', () => {
   });
 
   it('does not merge v0.2 data for an unregistered pending id', () => {
-    const executionResult = {
+    const executionResult: ExecutionResult = {
       data: { hero: { id: '1' } },
     };
     mergeIncrementalResult({
