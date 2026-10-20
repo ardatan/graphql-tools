@@ -54,18 +54,18 @@ class FieldDetailsMap extends Map<string, Array<FieldDetails>> {
   }
 }
 
-interface CollectFieldsContext {
+interface CollectFieldsContext<TVariables = any> {
   schema: GraphQLSchema;
   fragments: Record<string, FragmentDefinitionNode>;
-  variableValues: VariableValues;
+  variableValues: VariableValues<TVariables>;
   runtimeType: GraphQLObjectType;
   visitedFragmentNames: Map<string, boolean>;
 }
 
-export function collectIncrementalFields(
+export function collectIncrementalFields<TVariables = any>(
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
-  variableValues: VariableValues,
+  variableValues: VariableValues<TVariables>,
   runtimeType: GraphQLObjectType,
   selectionSet: SelectionSetNode,
   parentDeferUsage?: DeferUsage,
@@ -86,10 +86,10 @@ export function collectIncrementalFields(
   return { groupedFieldSet, newDeferUsages };
 }
 
-export function collectIncrementalSubfields(
+export function collectIncrementalSubfields<TVariables = any>(
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
-  variableValues: VariableValues,
+  variableValues: VariableValues<TVariables>,
   returnType: GraphQLObjectType,
   fieldNodes: ReadonlyArray<FieldNode>,
   parentDeferUsage?: DeferUsage,
@@ -120,8 +120,8 @@ export function collectIncrementalSubfields(
   return { groupedFieldSet, newDeferUsages };
 }
 
-function collectFieldsImpl(
-  context: CollectFieldsContext,
+function collectFieldsImpl<TVariables = any>(
+  context: CollectFieldsContext<TVariables>,
   selectionSet: SelectionSetNode,
   groupedFieldSet: FieldDetailsMap,
   newDeferUsages: Array<DeferUsage>,
@@ -208,8 +208,8 @@ function collectFieldsImpl(
   }
 }
 
-function getDeferUsage(
-  variableValues: VariableValues,
+function getDeferUsage<TVariables = any>(
+  variableValues: VariableValues<TVariables>,
   node: FragmentSpreadNode | InlineFragmentNode,
   parentDeferUsage: DeferUsage | undefined,
 ): DeferUsage | undefined {
