@@ -1,5 +1,5 @@
 import { GraphQLError } from 'graphql';
-import { Path, pathToArray } from '@graphql-tools/utils';
+import { Path, pathToArray, type IncrementalSpec } from '@graphql-tools/utils';
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
 import { type MaybePromise } from '@whatwg-node/promise-helpers';
 import type {
@@ -9,15 +9,7 @@ import type {
   SubsequentIncrementalExecutionResult,
 } from './execute.js';
 
-/**
- * Incremental delivery payload format.
- *
- * - `'v0.1'` — Apollo incremental v0.1 / `multipart/mixed;deferSpec=20220824`
- *   (`path` + optional `label` on each incremental payload).
- * - `'v0.2'` — Apollo incremental v0.2 / `multipart/mixed;incrementalSpec=v0.2`
- *   (`pending` + `id` + optional `subPath` + `completed`).
- */
-export type IncrementalSpec = 'v0.1' | 'v0.2';
+export type { IncrementalSpec } from '@graphql-tools/utils';
 
 export interface PendingResult {
   id: string;

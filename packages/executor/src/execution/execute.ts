@@ -368,8 +368,8 @@ export interface ExecutionArgs<TData = any, TVariables = any, TContext = any> {
   /**
    * Incremental delivery payload format.
    *
-   * `'v0.1'` (default) matches `multipart/mixed;deferSpec=20220824`.
-   * `'v0.2'` matches `multipart/mixed;incrementalSpec=v0.2`.
+   * HTTP mapping lives in `INCREMENTAL_DELIVERY_SPECS` from `@graphql-tools/utils`.
+   * `'v0.1'` is the default.
    */
   incrementalSpec?: IncrementalSpec;
 }

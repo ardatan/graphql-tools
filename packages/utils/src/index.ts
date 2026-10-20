@@ -49,6 +49,7 @@ export * from './Path.js';
 export * from './jsutils.js';
 export * from './directives.js';
 export * from './mergeIncrementalResult.js';
+export * from './incrementalSpec.js';
 export * from './getDirectiveExtensions.js';
 export * from './getDirectiveValues.js';
 export * from './variableValues.js';
