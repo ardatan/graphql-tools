@@ -490,4 +490,42 @@ describe.each([
       ]);
     }
   });
+
+  it('cancels root deferred work when a non-null root field bubbles', async () => {
+    const queryType = new GraphQLObjectType({
+      name: 'Query',
+      fields: {
+        required: {
+          type: new GraphQLNonNull(GraphQLString),
+          resolve: async () => {
+            await resolveOnNextTick();
+            return null;
+          },
+        },
+        leftover: {
+          type: GraphQLString,
+          resolve: async () => {
+            await resolveOnNextTick();
+            return 'late';
+          },
+        },
+      },
+    });
+    const result = await execute({
+      schema: new GraphQLSchema({ query: queryType }),
+      document: parse('{ required ... @defer { leftover } }'),
+      incrementalSpec,
+    });
+    expect('initialResult' in result).toBe(false);
+    expectJSON(result).toDeepEqual({
+      data: null,
+      errors: [
+        {
+          message: 'Cannot return null for non-nullable field Query.required.',
+          locations: [{ line: 1, column: 3 }],
+          path: ['required'],
+        },
+      ],
+    });
+  });
 });

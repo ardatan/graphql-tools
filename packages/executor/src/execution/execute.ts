@@ -490,6 +490,10 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
     },
     (error: any) => {
       exeContext.signal?.throwIfAborted();
+      // A non-null bubble through the root returns `{ data: null }` and
+      // never yields subsequent payloads. Cancel root defers/streams
+      // (path `[]`) so their resolvers and iterators do not keep running.
+      filterSubsequentPayloads(exeContext, undefined, undefined);
 
       if (error.errors) {
         exeContext.errors.push(...error.errors);
@@ -2544,7 +2548,7 @@ async function executeStreamIterator(
 
 function filterSubsequentPayloads(
   exeContext: ExecutionContext,
-  nullPath: Path,
+  nullPath: Path | undefined,
   currentAsyncRecord: AsyncPayloadRecord | undefined,
 ): void {
   const nullPathArray = pathToArray(nullPath);
