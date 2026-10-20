@@ -1,5 +1,13 @@
 # @graphql-tools/url-loader
 
+## 10.0.4
+
+### Patch Changes
+
+- Updated dependencies [[`f87bdf4`](https://github.com/ardatan/graphql-tools/commit/f87bdf4545ad2ce7e59f5e18a852069c804e18b6)]:
+  - @graphql-tools/utils@13.1.1
+  - @graphql-tools/executor-legacy-ws@2.0.4
+
 ## 10.0.3
 
 ### Patch Changes
