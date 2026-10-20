@@ -1,5 +1,7 @@
 import {
   assertValidSchema,
+  defaultFieldResolver,
+  defaultTypeResolver,
   DocumentNode,
   FieldNode,
   FragmentDefinitionNode,
@@ -92,6 +94,8 @@ import {
 } from './incrementalCollect.js';
 import { invariant } from './invariant.js';
 import { promiseForObject } from './promiseForObject.js';
+
+export { defaultFieldResolver, defaultTypeResolver };
 
 export type { CompletedResult, PendingResult } from './incremental.js';
 
@@ -1845,78 +1849,6 @@ function collectAndExecuteSubfields(
 
   return subFields;
 }
-
-/**
- * If a resolveType function is not given, then a default resolve behavior is
- * used which attempts two strategies:
- *
- * First, See if the provided value has a `__typename` field defined, if so, use
- * that value as name of the resolved type.
- *
- * Otherwise, test each possible type for the abstract type by calling
- * isTypeOf for the object being coerced, returning the first type that matches.
- */
-export const defaultTypeResolver: GraphQLTypeResolver<unknown, unknown> = function (
-  value,
-  contextValue,
-  info,
-  abstractType,
-) {
-  // First, look for `__typename`.
-  if (isObjectLike(value) && typeof value['__typename'] === 'string') {
-    return value['__typename'];
-  }
-
-  // Otherwise, test each possible type.
-  const possibleTypes = info.schema.getPossibleTypes(abstractType);
-  const promisedIsTypeOfResults: any[] = [];
-
-  for (let i = 0; i < possibleTypes.length; i++) {
-    const type = possibleTypes[i];
-
-    if (type.isTypeOf) {
-      const isTypeOfResult = type.isTypeOf(value, contextValue, info);
-
-      if (isPromise(isTypeOfResult)) {
-        promisedIsTypeOfResults[i] = isTypeOfResult;
-      } else if (isTypeOfResult) {
-        return type.name;
-      }
-    }
-  }
-
-  if (promisedIsTypeOfResults.length) {
-    return Promise.all(promisedIsTypeOfResults).then(isTypeOfResults => {
-      for (let i = 0; i < isTypeOfResults.length; i++) {
-        if (isTypeOfResults[i]) {
-          return possibleTypes[i].name;
-        }
-      }
-    });
-  }
-};
-
-/**
- * If a resolve function is not given, then a default resolve behavior is used
- * which takes the property of the source object of the same name as the field
- * and returns it as the result, or if it's a function, returns the result
- * of calling that function while passing along args and context value.
- */
-export const defaultFieldResolver: GraphQLFieldResolver<unknown, unknown> = function (
-  source: any,
-  args,
-  contextValue,
-  info,
-) {
-  // ensure source is a value for which property access is acceptable.
-  if (isObjectLike(source) || typeof source === 'function') {
-    const property = source[info.fieldName];
-    if (typeof property === 'function') {
-      return source[info.fieldName](args, contextValue, info);
-    }
-    return property;
-  }
-};
 
 /**
  * Implements the "Subscribe" algorithm described in the GraphQL specification,
