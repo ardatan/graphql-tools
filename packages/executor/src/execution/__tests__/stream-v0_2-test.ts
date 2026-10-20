@@ -184,4 +184,42 @@ describe('Execute: stream directive (incremental spec v0.2)', () => {
       scalarList: ['apple', 'banana', 'coconut'],
     });
   });
+
+  it('completes the stream when the async iterable throws after initialCount', async () => {
+    const document = parse('{ scalarList @stream(initialCount: 1) }');
+    const result = await complete(document, {
+      async *scalarList() {
+        yield 'apple';
+        throw new Error('bad');
+      },
+    });
+
+    const payloads = result as Array<
+      InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult
+    >;
+    expectJSON(payloads[0]).toDeepEqual({
+      data: {
+        scalarList: ['apple'],
+      },
+      pending: [{ id: '0', path: ['scalarList'] }],
+      hasNext: true,
+    });
+
+    const completedIds = payloads
+      .flatMap(payload => payload.completed ?? [])
+      .map(entry => entry.id);
+    expect(completedIds).toEqual(['0']);
+    expect(collectStreamItems(payloads, '0')).toEqual([null]);
+    expect(payloads[payloads.length - 1].hasNext).toBe(false);
+
+    const streamErrors = payloads.flatMap(
+      payload => payload.incremental?.flatMap(patch => patch.errors ?? []) ?? [],
+    );
+    expect(streamErrors).toEqual([
+      expect.objectContaining({
+        message: 'bad',
+        path: ['scalarList', 1],
+      }),
+    ]);
+  });
 });

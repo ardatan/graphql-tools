@@ -359,4 +359,25 @@ describe('mergeIncrementalResult', () => {
 
     expect(executionResult.data).toEqual({ f2: { a: 'a', b: 'b' } });
   });
+
+  it('does not merge v0.2 data for an unregistered pending id', () => {
+    const executionResult = {
+      data: { hero: { id: '1' } },
+    };
+    mergeIncrementalResult({
+      incrementalResult: {
+        incremental: [
+          {
+            id: 'missing',
+            data: { polluted: true },
+            errors: [new GraphQLError('unknown id')],
+          },
+        ],
+      },
+      executionResult,
+    });
+
+    expect(executionResult.data).toEqual({ hero: { id: '1' } });
+    expect(executionResult.errors).toEqual([expect.objectContaining({ message: 'unknown id' })]);
+  });
 });

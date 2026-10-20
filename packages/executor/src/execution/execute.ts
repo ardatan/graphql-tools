@@ -2309,7 +2309,11 @@ async function executeStreamIteratorItem(
       exeContext.schemaCoordinateInErrors && info,
     );
     const value = handleFieldError(error, itemType, asyncPayloadRecord.errors);
-    // don't continue if iterator throws
+    // Mark the group complete without isCompletedIterator, so the error item
+    // is still published. Don't continue if iterator throws.
+    if (asyncPayloadRecord.streamGroup) {
+      asyncPayloadRecord.streamGroup.iteratorCompleted = true;
+    }
     return { done: true, value };
   }
   let completedItem;

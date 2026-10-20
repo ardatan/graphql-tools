@@ -30,27 +30,30 @@ export function mergeIncrementalResult({
     }
   }
 
-  const path = ['data', ...resolveIncrementalPath(incrementalResult, executionResult)];
+  const resolvedPath = resolveIncrementalPath(incrementalResult, executionResult);
+  if (resolvedPath !== undefined) {
+    const path = ['data', ...resolvedPath];
 
-  if (incrementalResult.items) {
-    if (
-      incrementalResult.id != null &&
-      (incrementalResult.path == null || incrementalResult.path.length === 0)
-    ) {
-      appendItemsAtPath(executionResult, path, incrementalResult.items);
-    } else if (isSafeKeyPath(path)) {
-      // Reject the whole items batch if any path segment is unsafe, so a later
-      // index increment cannot turn a bad segment into a write at `data.NaN`.
-      for (const item of incrementalResult.items) {
-        setObjectKeyPath(executionResult, path, item);
-        // Increment the last path segment (the array index) to merge the next item at the next index
-        (path[path.length - 1] as number)++;
+    if (incrementalResult.items) {
+      if (
+        incrementalResult.id != null &&
+        (incrementalResult.path == null || incrementalResult.path.length === 0)
+      ) {
+        appendItemsAtPath(executionResult, path, incrementalResult.items);
+      } else if (isSafeKeyPath(path)) {
+        // Reject the whole items batch if any path segment is unsafe, so a later
+        // index increment cannot turn a bad segment into a write at `data.NaN`.
+        for (const item of incrementalResult.items) {
+          setObjectKeyPath(executionResult, path, item);
+          // Increment the last path segment (the array index) to merge the next item at the next index
+          (path[path.length - 1] as number)++;
+        }
       }
     }
-  }
 
-  if (incrementalResult.data) {
-    setObjectKeyPath(executionResult, path, incrementalResult.data);
+    if (incrementalResult.data) {
+      setObjectKeyPath(executionResult, path, incrementalResult.data);
+    }
   }
 
   if (incrementalResult.errors) {
@@ -84,9 +87,12 @@ export function mergeIncrementalResult({
 function resolveIncrementalPath(
   incrementalResult: ExecutionResult,
   executionResult: ExecutionResult,
-): ReadonlyArray<string | number> {
+): ReadonlyArray<string | number> | undefined {
   if (incrementalResult.id != null) {
-    const pendingPath = getPendingPaths(executionResult).get(incrementalResult.id) ?? [];
+    const pendingPath = getPendingPaths(executionResult).get(incrementalResult.id);
+    if (pendingPath == null) {
+      return undefined;
+    }
     return [...pendingPath, ...(incrementalResult.subPath ?? [])];
   }
   return incrementalResult.path ?? [];

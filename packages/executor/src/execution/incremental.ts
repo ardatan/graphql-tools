@@ -356,20 +356,29 @@ function buildSubsequentV02(
   const incremental: Array<IncrementalResult> = [];
   const completed: Array<CompletedResult> = [];
 
-  for (const record of completedRecords) {
-    announceIfNeeded(record, state, pending);
-  }
-  for (const record of exeContext.subsequentPayloads) {
-    announceIfNeeded(record, state, pending);
-  }
+  let announcedCount: number;
+  do {
+    announcedCount = pending.length;
+    for (const record of completedRecords) {
+      announceIfNeeded(record, state, pending);
+    }
+    for (const record of exeContext.subsequentPayloads) {
+      announceIfNeeded(record, state, pending);
+    }
+  } while (pending.length !== announcedCount);
 
   const streamBatches = new Map<
     StreamGroup,
     { items: Array<unknown>; errors: Array<GraphQLError>; failed: boolean }
   >();
+  const completedGroups = new Set<StreamGroup>();
+  const iteratorDoneGroups = new Set<StreamGroup>();
 
   for (const record of completedRecords) {
     if (record.type === 'defer') {
+      if (!state.announced.has(record)) {
+        continue;
+      }
       const id = ensureId(state, record);
       if (record.data == null && record.errors.length > 0) {
         completed.push({ id, errors: record.errors });
@@ -388,15 +397,14 @@ function buildSubsequentV02(
     }
 
     if (record.isCompletedIterator) {
-      const group = record.streamGroup;
-      if (group && !group.isStillPending()) {
-        completed.push({ id: ensureId(state, group) });
+      if (record.streamGroup) {
+        iteratorDoneGroups.add(record.streamGroup);
       }
       continue;
     }
 
     const group = record.streamGroup;
-    if (group == null) {
+    if (group == null || !state.announced.has(group)) {
       continue;
     }
     let batch = streamBatches.get(group);
@@ -431,8 +439,18 @@ function buildSubsequentV02(
     }
     incremental.push(incrementalResult);
     if (!group.isStillPending()) {
-      completed.push({ id });
+      completedGroups.add(group);
     }
+  }
+
+  for (const group of iteratorDoneGroups) {
+    if (state.announced.has(group) && !group.isStillPending() && !streamBatches.has(group)) {
+      completedGroups.add(group);
+    }
+  }
+
+  for (const group of completedGroups) {
+    completed.push({ id: ensureId(state, group) });
   }
 
   let hasNext = exeContext.subsequentPayloads.size > 0;

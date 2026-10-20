@@ -8,7 +8,9 @@ import {
   GraphQLString,
   parse,
 } from 'graphql';
+import { mergeIncrementalResult } from '@graphql-tools/utils';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
+import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
 import type {
   InitialIncrementalExecutionResult,
   SubsequentIncrementalExecutionResult,
@@ -42,6 +44,13 @@ const heroType = new GraphQLObjectType({
   fields: {
     id: { type: GraphQLID },
     name: { type: GraphQLString },
+    slowField: {
+      type: GraphQLString,
+      resolve: async () => {
+        await resolveOnNextTick();
+        return 'slow';
+      },
+    },
     nonNullName: { type: new GraphQLNonNull(GraphQLString) },
     friends: { type: new GraphQLList(friendType) },
   },
@@ -327,6 +336,66 @@ describe('Execute: defer directive (incremental spec v0.2)', () => {
         hasNext: false,
       },
     ]);
+  });
+
+  it('announces a nested defer before delivering a grandchild that finished first', async () => {
+    const document = parse(`
+      query HeroNameQuery {
+        hero {
+          ...D1 @defer(label: "DeferD1")
+        }
+      }
+      fragment D1 on Hero {
+        id
+        ...D2 @defer(label: "DeferD2")
+      }
+      fragment D2 on Hero {
+        slowField
+        ...D3 @defer(label: "DeferD3")
+      }
+      fragment D3 on Hero {
+        friends {
+          name
+        }
+      }
+    `);
+    const result = await complete(document);
+    const payloads = result as Array<
+      InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult
+    >;
+
+    const pendingIds = new Set<string>();
+    for (const payload of payloads) {
+      for (const pending of payload.pending ?? []) {
+        pendingIds.add(pending.id);
+      }
+      for (const patch of payload.incremental ?? []) {
+        expect(patch.id).toBeDefined();
+        expect(pendingIds.has(patch.id as string)).toBe(true);
+      }
+      for (const entry of payload.completed ?? []) {
+        expect(pendingIds.has(entry.id)).toBe(true);
+      }
+    }
+
+    const initial = payloads[0];
+    const executionResult = {
+      data: 'data' in initial ? initial.data : undefined,
+    };
+    mergeIncrementalResult({
+      incrementalResult: { pending: initial.pending },
+      executionResult,
+    });
+    for (const payload of payloads.slice(1)) {
+      mergeIncrementalResult({ incrementalResult: payload, executionResult });
+    }
+    expect(executionResult.data).toEqual({
+      hero: {
+        id: '1',
+        slowField: 'slow',
+        friends: [{ name: 'Han' }, { name: 'Leia' }, { name: 'C-3PO' }],
+      },
+    });
   });
 
   it('Can defer an inline fragment', async () => {
