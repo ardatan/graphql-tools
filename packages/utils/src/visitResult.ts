@@ -15,7 +15,7 @@ import {
   TypeMetaFieldDef,
   TypeNameMetaFieldDef,
 } from 'graphql';
-import { collectFields, collectSubFields } from './collectFields.js';
+import { collectFields, collectSubFields, type PatchFields } from './collectFields.js';
 import { getOperationASTFromRequest } from './getOperationASTFromRequest.js';
 import { ExecutionRequest, ExecutionResult } from './Interfaces.js';
 import { Maybe, VariableValues } from './types.js';
@@ -395,16 +395,7 @@ function visitFieldValue(
     );
     if (patches.length) {
       collectedFields = new Map(collectedFields);
-      for (const patch of patches) {
-        for (const [responseKey, fields] of patch.fields) {
-          const existingFields = collectedFields.get(responseKey);
-          if (existingFields) {
-            existingFields.push(...fields);
-          } else {
-            collectedFields.set(responseKey, fields);
-          }
-        }
-      }
+      addPatchFields(collectedFields, patches);
     }
     return visitObjectValue(
       value,
@@ -428,16 +419,7 @@ function visitFieldValue(
     );
     if (patches.length) {
       collectedFields = new Map(collectedFields);
-      for (const patch of patches) {
-        for (const [responseKey, fields] of patch.fields) {
-          const existingFields = collectedFields.get(responseKey);
-          if (existingFields) {
-            existingFields.push(...fields);
-          } else {
-            collectedFields.set(responseKey, fields);
-          }
-        }
-      }
+      addPatchFields(collectedFields, patches);
     }
     return visitObjectValue(
       value,
@@ -460,6 +442,25 @@ function visitFieldValue(
 
   const visitedValue = typeVisitorMap(value);
   return visitedValue === undefined ? value : visitedValue;
+}
+
+function addPatchFields(
+  collectedFields: Map<string, Array<FieldNode>>,
+  patches: ReadonlyArray<PatchFields>,
+): void {
+  for (const patch of patches) {
+    for (const [responseKey, fields] of patch.fields) {
+      const existingFields = collectedFields.get(responseKey);
+      if (existingFields) {
+        existingFields.push(...fields);
+      } else {
+        collectedFields.set(responseKey, fields);
+      }
+    }
+    if (patch.patches?.length) {
+      addPatchFields(collectedFields, patch.patches);
+    }
+  }
 }
 
 function sortErrorsByPathSegment(

@@ -48,6 +48,7 @@ import {
   pathToArray,
   promiseReduce,
   VariableValues,
+  type PatchFields,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
@@ -60,8 +61,26 @@ import {
 } from '@whatwg-node/promise-helpers';
 import { coerceError } from './coerceError.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
+import {
+  collectInitialPending,
+  createIncrementalPublisherState,
+  createStreamGroupIfV02,
+  DeferredFragmentRecord,
+  deleteAsyncPayload,
+  isStreamPayload,
+  StreamRecord,
+  yieldSubsequentPayloads,
+  type AsyncPayloadRecord,
+  type CompletedResult,
+  type IncrementalPublisherState,
+  type IncrementalSpec,
+  type PendingResult,
+  type StreamGroup,
+} from './incremental.js';
 import { invariant } from './invariant.js';
 import { promiseForObject } from './promiseForObject.js';
+
+export type { CompletedResult, IncrementalSpec, PendingResult } from './incremental.js';
 
 const EMPTY_ARGS: { [argument: string]: unknown } = Object.freeze(Object.create(null));
 const isGraphQL17 = versionInfo.major >= 17;
@@ -194,6 +213,8 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   subscribeFieldResolver: GraphQLFieldResolver<any, TContext>;
   errors: Array<GraphQLError>;
   subsequentPayloads: Set<AsyncPayloadRecord>;
+  incrementalSpec: IncrementalSpec;
+  publisher?: IncrementalPublisherState;
   signal?: AbortSignal;
   getAbortSignal: () => AbortSignal | undefined;
   getAsyncHelpers: () => {
@@ -231,7 +252,9 @@ export interface InitialIncrementalExecutionResult<
   TExtensions = Record<string, unknown>,
 > extends SingularExecutionResult<TData, TExtensions> {
   hasNext: boolean;
+  pending?: ReadonlyArray<PendingResult>;
   incremental?: ReadonlyArray<IncrementalResult<TData, TExtensions>>;
+  completed?: ReadonlyArray<CompletedResult>;
   extensions?: TExtensions;
 }
 
@@ -240,7 +263,9 @@ export interface FormattedInitialIncrementalExecutionResult<
   TExtensions = Record<string, unknown>,
 > extends FormattedExecutionResult<TData, TExtensions> {
   hasNext: boolean;
+  pending?: ReadonlyArray<PendingResult>;
   incremental?: ReadonlyArray<FormattedIncrementalResult<TData, TExtensions>>;
+  completed?: ReadonlyArray<CompletedResult>;
   extensions?: TExtensions;
 }
 
@@ -249,7 +274,9 @@ export interface SubsequentIncrementalExecutionResult<
   TExtensions = Record<string, unknown>,
 > {
   hasNext: boolean;
+  pending?: ReadonlyArray<PendingResult>;
   incremental?: ReadonlyArray<IncrementalResult<TData, TExtensions>>;
+  completed?: ReadonlyArray<CompletedResult>;
   extensions?: TExtensions;
 }
 
@@ -258,7 +285,9 @@ export interface FormattedSubsequentIncrementalExecutionResult<
   TExtensions = Record<string, unknown>,
 > {
   hasNext: boolean;
+  pending?: ReadonlyArray<PendingResult>;
   incremental?: ReadonlyArray<FormattedIncrementalResult<TData, TExtensions>>;
+  completed?: ReadonlyArray<CompletedResult>;
   extensions?: TExtensions;
 }
 
@@ -268,6 +297,8 @@ export interface IncrementalDeferResult<
 > extends SingularExecutionResult<TData, TExtensions> {
   path?: ReadonlyArray<string | number>;
   label?: string;
+  id?: string;
+  subPath?: ReadonlyArray<string | number>;
 }
 
 export interface FormattedIncrementalDeferResult<
@@ -276,6 +307,8 @@ export interface FormattedIncrementalDeferResult<
 > extends FormattedExecutionResult<TData, TExtensions> {
   path?: ReadonlyArray<string | number>;
   label?: string;
+  id?: string;
+  subPath?: ReadonlyArray<string | number>;
 }
 
 export interface IncrementalStreamResult<
@@ -286,6 +319,7 @@ export interface IncrementalStreamResult<
   items?: TData | null;
   path?: ReadonlyArray<string | number>;
   label?: string;
+  id?: string;
   extensions?: TExtensions;
 }
 
@@ -297,6 +331,7 @@ export interface FormattedIncrementalStreamResult<
   items?: TData | null;
   path?: ReadonlyArray<string | number>;
   label?: string;
+  id?: string;
   extensions?: TExtensions;
 }
 
@@ -330,6 +365,13 @@ export interface ExecutionArgs<TData = any, TVariables = any, TContext = any> {
    * Matches `graphql@17`'s `ExecutionArgs.hideSuggestions`.
    */
   hideSuggestions?: Maybe<boolean>;
+  /**
+   * Incremental delivery payload format.
+   *
+   * `'v0.1'` (default) matches `multipart/mixed;deferSpec=20220824`.
+   * `'v0.2'` matches `multipart/mixed;incrementalSpec=v0.2`.
+   */
+  incrementalSpec?: IncrementalSpec;
 }
 
 /**
@@ -393,11 +435,15 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
     data => {
       const initialResult = buildResponse(data, exeContext.errors);
       if (exeContext.subsequentPayloads.size > 0) {
+        const incrementalInitial: InitialIncrementalExecutionResult<TData> = {
+          ...initialResult,
+          hasNext: true,
+        };
+        if (exeContext.incrementalSpec === 'v0.2') {
+          incrementalInitial.pending = collectInitialPending(exeContext);
+        }
         return {
-          initialResult: {
-            ...initialResult,
-            hasNext: true,
-          },
+          initialResult: incrementalInitial,
           subsequentResults: yieldSubsequentPayloads(exeContext),
         };
       }
@@ -513,6 +559,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     signal,
     schemaCoordinateInErrors,
     hideSuggestions,
+    incrementalSpec = 'v0.1',
   } = args;
 
   signal?.throwIfAborted();
@@ -679,6 +726,8 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     typeResolver: typeResolver ?? defaultTypeResolver,
     subscribeFieldResolver: subscribeFieldResolver ?? defaultFieldResolver,
     subsequentPayloads: new Set(),
+    incrementalSpec,
+    publisher: incrementalSpec === 'v0.2' ? createIncrementalPublisherState() : undefined,
     errors: [],
     signal,
     getAbortSignal,
@@ -719,6 +768,9 @@ function buildPerEventExecutionContext(
     typeResolver: exeContext.typeResolver,
     subscribeFieldResolver: exeContext.subscribeFieldResolver,
     subsequentPayloads: new Set(),
+    incrementalSpec: exeContext.incrementalSpec,
+    publisher:
+      exeContext.incrementalSpec === 'v0.2' ? createIncrementalPublisherState() : undefined,
     errors: [],
     signal: exeContext.signal,
     getAbortSignal: exeContext.getAbortSignal,
@@ -769,8 +821,17 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
   }
 
   for (const patch of patches) {
-    const { label, fields: patchFields } = patch;
-    executeDeferredFragment(exeContext, rootType, rootValue, patchFields, label, path);
+    const { label, fields: patchFields, patches: nestedPatches } = patch;
+    executeDeferredFragment(
+      exeContext,
+      rootType,
+      rootValue,
+      patchFields,
+      label,
+      path,
+      undefined,
+      nestedPatches,
+    );
   }
 
   return result;
@@ -1226,6 +1287,12 @@ async function completeAsyncIteratorValue(
         path,
         stream.label,
         asyncPayloadRecord,
+        createStreamGroupIfV02(exeContext, {
+          path,
+          label: stream.label,
+          parentContext: asyncPayloadRecord,
+          hasIterator: true,
+        }),
       );
       break;
     }
@@ -1306,6 +1373,7 @@ function completeListValue(
   }
 
   const stream = getStreamValues(exeContext, fieldNodes, path);
+  let streamGroup: StreamGroup | undefined;
 
   // This is specified as a simple map, however we're optimizing the path
   // where the list contains no Promises by avoiding creating another Promise.
@@ -1319,6 +1387,11 @@ function completeListValue(
     const itemPath = addPath(path, index, undefined);
 
     if (stream && typeof stream.initialCount === 'number' && index >= stream.initialCount) {
+      streamGroup ??= createStreamGroupIfV02(exeContext, {
+        path,
+        label: stream.label,
+        parentContext: asyncPayloadRecord,
+      });
       previousAsyncPayloadRecord = executeStreamField(
         path,
         itemPath,
@@ -1329,6 +1402,7 @@ function completeListValue(
         itemType,
         stream.label,
         previousAsyncPayloadRecord,
+        streamGroup,
       );
       index++;
       continue;
@@ -1654,7 +1728,7 @@ function collectAndExecuteSubfields(
   );
 
   for (const subPatch of subPatches) {
-    const { label, fields: subPatchFieldNodes } = subPatch;
+    const { label, fields: subPatchFieldNodes, patches: nestedPatches } = subPatch;
     executeDeferredFragment(
       exeContext,
       returnType,
@@ -1663,6 +1737,7 @@ function collectAndExecuteSubfields(
       label,
       path,
       asyncPayloadRecord,
+      nestedPatches,
     );
   }
 
@@ -2059,11 +2134,14 @@ function executeDeferredFragment(
   label?: string,
   path?: Path,
   parentContext?: AsyncPayloadRecord,
+  nestedPatches?: ReadonlyArray<PatchFields>,
+  deliveryParent?: AsyncPayloadRecord,
 ): void {
   const asyncPayloadRecord = new DeferredFragmentRecord({
     label,
     path,
     parentContext,
+    deliveryParent: deliveryParent ?? parentContext,
     exeContext,
   });
   let promiseOrData;
@@ -2088,6 +2166,23 @@ function executeDeferredFragment(
     promiseOrData = null;
   }
   asyncPayloadRecord.addData(promiseOrData);
+
+  if (nestedPatches) {
+    for (const nested of nestedPatches) {
+      executeDeferredFragment(
+        exeContext,
+        parentType,
+        sourceValue,
+        nested.fields,
+        nested.label,
+        path,
+        // Keep v0.1 sibling completion; v0.2 pending still nests via deliveryParent.
+        parentContext,
+        nested.patches,
+        asyncPayloadRecord,
+      );
+    }
+  }
 }
 
 function executeStreamField(
@@ -2098,14 +2193,16 @@ function executeStreamField(
   fieldNodes: Array<FieldNode>,
   info: GraphQLResolveInfo,
   itemType: GraphQLOutputType,
-  label?: string,
-  parentContext?: AsyncPayloadRecord,
+  label: string | undefined,
+  parentContext: AsyncPayloadRecord | undefined,
+  streamGroup: StreamGroup | undefined,
 ): AsyncPayloadRecord {
   const asyncPayloadRecord = new StreamRecord({
     label,
     path: itemPath,
     parentContext,
     exeContext,
+    streamGroup,
   });
   let completedItem: MaybePromise<unknown>;
   try {
@@ -2212,7 +2309,11 @@ async function executeStreamIteratorItem(
       exeContext.schemaCoordinateInErrors && info,
     );
     const value = handleFieldError(error, itemType, asyncPayloadRecord.errors);
-    // don't continue if iterator throws
+    // Mark the group complete without isCompletedIterator, so the error item
+    // is still published. Don't continue if iterator throws.
+    if (asyncPayloadRecord.streamGroup) {
+      asyncPayloadRecord.streamGroup.iteratorCompleted = true;
+    }
     return { done: true, value };
   }
   let completedItem;
@@ -2262,8 +2363,9 @@ async function executeStreamIterator(
   info: GraphQLResolveInfo,
   itemType: GraphQLOutputType,
   path: Path,
-  label?: string,
-  parentContext?: AsyncPayloadRecord,
+  label: string | undefined,
+  parentContext: AsyncPayloadRecord | undefined,
+  streamGroup: StreamGroup | undefined,
 ): Promise<void> {
   let index = initialIndex;
   let previousAsyncPayloadRecord = parentContext ?? undefined;
@@ -2275,6 +2377,7 @@ async function executeStreamIterator(
       parentContext: previousAsyncPayloadRecord,
       iterator,
       exeContext,
+      streamGroup,
     });
 
     let iteration;
@@ -2290,6 +2393,9 @@ async function executeStreamIterator(
       );
     } catch (error) {
       asyncPayloadRecord.errors.push(error as GraphQLError);
+      if (streamGroup) {
+        streamGroup.iteratorCompleted = true;
+      }
       filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
       asyncPayloadRecord.addItems(null);
       // entire stream has errored and bubbled upwards
@@ -2350,221 +2456,8 @@ function filterSubsequentPayloads(
         // ignore error
       });
     }
-    exeContext.subsequentPayloads.delete(asyncRecord);
+    deleteAsyncPayload(exeContext, asyncRecord);
   });
-}
-
-function getCompletedIncrementalResults(exeContext: ExecutionContext): Array<IncrementalResult> {
-  const incrementalResults: Array<IncrementalResult> = [];
-  for (const asyncPayloadRecord of exeContext.subsequentPayloads) {
-    const incrementalResult: IncrementalResult = {};
-    if (!asyncPayloadRecord.isCompleted) {
-      continue;
-    }
-    exeContext.subsequentPayloads.delete(asyncPayloadRecord);
-    if (isStreamPayload(asyncPayloadRecord)) {
-      const items = asyncPayloadRecord.items;
-      if (asyncPayloadRecord.isCompletedIterator) {
-        // async iterable resolver just finished but there may be pending payloads
-        continue;
-      }
-      (incrementalResult as IncrementalStreamResult).items = items;
-    } else {
-      const data = asyncPayloadRecord.data;
-      (incrementalResult as IncrementalDeferResult).data = data ?? null;
-    }
-
-    incrementalResult.path = asyncPayloadRecord.path;
-    if (asyncPayloadRecord.label) {
-      incrementalResult.label = asyncPayloadRecord.label;
-    }
-    if (asyncPayloadRecord.errors.length > 0) {
-      incrementalResult.errors = asyncPayloadRecord.errors;
-    }
-    incrementalResults.push(incrementalResult);
-  }
-  return incrementalResults;
-}
-
-function yieldSubsequentPayloads(
-  exeContext: ExecutionContext,
-): AsyncGenerator<SubsequentIncrementalExecutionResult, void, void> {
-  let isDone = false;
-
-  async function next(): Promise<IteratorResult<SubsequentIncrementalExecutionResult, void>> {
-    if (isDone) {
-      return { value: undefined, done: true };
-    }
-
-    const subSequentPayloadPromises = Array.from(exeContext.subsequentPayloads).map(
-      record => record.promise,
-    );
-
-    if (exeContext.signalPromise) {
-      await Promise.race([exeContext.signalPromise, ...subSequentPayloadPromises]);
-    } else {
-      await Promise.race(subSequentPayloadPromises);
-    }
-
-    if (isDone) {
-      // a different call to next has exhausted all payloads
-      return { value: undefined, done: true };
-    }
-
-    const incremental = getCompletedIncrementalResults(exeContext);
-    const hasNext = exeContext.subsequentPayloads.size > 0;
-
-    if (!incremental.length && hasNext) {
-      return next();
-    }
-
-    if (!hasNext) {
-      isDone = true;
-    }
-
-    return {
-      value: incremental.length ? { incremental, hasNext } : { hasNext },
-      done: false,
-    };
-  }
-
-  function returnStreamIterators() {
-    const promises: Array<Promise<IteratorResult<unknown>>> = [];
-    exeContext.subsequentPayloads.forEach(asyncPayloadRecord => {
-      if (isStreamPayload(asyncPayloadRecord) && asyncPayloadRecord.iterator?.return) {
-        promises.push(asyncPayloadRecord.iterator.return());
-      }
-    });
-    return Promise.all(promises);
-  }
-
-  return {
-    [Symbol.asyncIterator]() {
-      return this;
-    },
-    next,
-    async return(): Promise<IteratorResult<SubsequentIncrementalExecutionResult, void>> {
-      await returnStreamIterators();
-      isDone = true;
-      return { value: undefined, done: true };
-    },
-    async throw(error?: unknown): Promise<IteratorResult<never, void>> {
-      await returnStreamIterators();
-      isDone = true;
-      throw error;
-    },
-    async [DisposableSymbols.asyncDispose]() {
-      await returnStreamIterators();
-      isDone = true;
-    },
-  };
-}
-
-class DeferredFragmentRecord {
-  type: 'defer';
-  errors: Array<GraphQLError>;
-  label: string | undefined;
-  path: Array<string | number>;
-  promise: Promise<void>;
-  data: Record<string, unknown> | null;
-  parentContext: AsyncPayloadRecord | undefined;
-  isCompleted: boolean;
-  _exeContext: ExecutionContext;
-  _resolve?: (arg: MaybePromise<Record<string, unknown> | null>) => void;
-  constructor(opts: {
-    label: string | undefined;
-    path: Path | undefined;
-    parentContext: AsyncPayloadRecord | undefined;
-    exeContext: ExecutionContext;
-  }) {
-    this.type = 'defer';
-    this.label = opts.label;
-    this.path = pathToArray(opts.path);
-    this.parentContext = opts.parentContext;
-    this.errors = [];
-    this._exeContext = opts.exeContext;
-    this._exeContext.subsequentPayloads.add(this);
-    this.isCompleted = false;
-    this.data = null;
-    this.promise = new Promise<Record<string, unknown> | null>(resolve => {
-      this._resolve = MaybePromise => {
-        resolve(MaybePromise);
-      };
-    }).then(data => {
-      this.data = data;
-      this.isCompleted = true;
-    });
-  }
-
-  addData(data: MaybePromise<Record<string, unknown> | null>) {
-    const parentData = this.parentContext?.promise;
-    if (parentData) {
-      this._resolve?.(parentData.then(() => data));
-      return;
-    }
-    this._resolve?.(data);
-  }
-}
-
-class StreamRecord {
-  type: 'stream';
-  errors: Array<GraphQLError>;
-  label: string | undefined;
-  path: Array<string | number>;
-  items: Array<unknown> | null;
-  promise: Promise<void>;
-  parentContext: AsyncPayloadRecord | undefined;
-  iterator: AsyncIterator<unknown> | undefined;
-  isCompletedIterator?: boolean;
-  isCompleted: boolean;
-  _exeContext: ExecutionContext;
-  _resolve?: (arg: MaybePromise<Array<unknown> | null>) => void;
-  constructor(opts: {
-    label: string | undefined;
-    path: Path | undefined;
-    iterator?: AsyncIterator<unknown>;
-    parentContext: AsyncPayloadRecord | undefined;
-    exeContext: ExecutionContext;
-  }) {
-    this.type = 'stream';
-    this.items = null;
-    this.label = opts.label;
-    this.path = pathToArray(opts.path);
-    this.parentContext = opts.parentContext;
-    this.iterator = opts.iterator;
-    this.errors = [];
-    this._exeContext = opts.exeContext;
-    this._exeContext.subsequentPayloads.add(this);
-    this.isCompleted = false;
-    this.items = null;
-    this.promise = new Promise<Array<unknown> | null>(resolve => {
-      this._resolve = MaybePromise => {
-        resolve(MaybePromise);
-      };
-    }).then(items => {
-      this.items = items;
-      this.isCompleted = true;
-    });
-  }
-
-  addItems(items: MaybePromise<Array<unknown> | null>) {
-    const parentData = this.parentContext?.promise;
-    if (parentData) {
-      this._resolve?.(parentData.then(() => items));
-      return;
-    }
-    this._resolve?.(items);
-  }
-
-  setIsCompletedIterator() {
-    this.isCompletedIterator = true;
-  }
-}
-
-type AsyncPayloadRecord = DeferredFragmentRecord | StreamRecord;
-
-function isStreamPayload(asyncPayload: AsyncPayloadRecord): asyncPayload is StreamRecord {
-  return asyncPayload.type === 'stream';
 }
 
 /**

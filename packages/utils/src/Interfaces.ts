@@ -67,6 +67,17 @@ export interface ExecutionResult<TData = any, TExtensions = any> {
   label?: string;
   path?: ReadonlyArray<string | number>;
   items?: TData | null;
+  pending?: ReadonlyArray<{
+    id: string;
+    path: ReadonlyArray<string | number>;
+    label?: string;
+  }>;
+  completed?: ReadonlyArray<{
+    id: string;
+    errors?: ReadonlyArray<GraphQLError>;
+  }>;
+  id?: string;
+  subPath?: ReadonlyArray<string | number>;
 }
 
 export interface GraphQLResolveInfo extends OrigGraphQLResolveInfo {
@@ -133,6 +144,13 @@ export interface ExecutionRequest<
    *       serialized. Exposing schema coordinate can ease the discovery of private schemas.
    */
   schemaCoordinateInErrors?: boolean;
+  /**
+   * Incremental delivery payload format.
+   *
+   * `'v0.1'` matches `multipart/mixed;deferSpec=20220824`.
+   * `'v0.2'` matches `multipart/mixed;incrementalSpec=v0.2`.
+   */
+  incrementalSpec?: 'v0.1' | 'v0.2';
 }
 
 // graphql-js non-exported typings

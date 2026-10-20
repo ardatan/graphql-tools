@@ -1,4 +1,5 @@
 import { GraphQLError } from 'graphql';
+import { ExecutionResult } from '../src/Interfaces';
 import { mergeIncrementalResult } from '../src/mergeIncrementalResult';
 
 describe('mergeIncrementalResult', () => {
@@ -296,5 +297,88 @@ describe('mergeIncrementalResult', () => {
     expect(executionResult).toEqual({ data: {} });
     expect((executionResult.data as any).NaN).toBeUndefined();
     delete (Object.prototype as any).polluted;
+  });
+
+  it('merges v0.2 deferred data by pending id', () => {
+    const executionResult = {
+      data: { hero: { id: '1' } },
+    };
+    mergeIncrementalResult({
+      incrementalResult: { pending: [{ id: '0', path: ['hero'] }] },
+      executionResult,
+    });
+    mergeIncrementalResult({
+      incrementalResult: {
+        incremental: [{ id: '0', data: { name: 'Luke' } }],
+        completed: [{ id: '0' }],
+        hasNext: false,
+      },
+      executionResult,
+    });
+
+    expect(executionResult.data).toEqual({ hero: { id: '1', name: 'Luke' } });
+  });
+
+  it('appends v0.2 streamed items by pending id', () => {
+    const executionResult = {
+      data: { scalarList: ['apple'] },
+    };
+    mergeIncrementalResult({
+      incrementalResult: { pending: [{ id: '0', path: ['scalarList'] }] },
+      executionResult,
+    });
+    mergeIncrementalResult({
+      incrementalResult: {
+        incremental: [{ id: '0', items: ['banana', 'coconut'] }],
+        completed: [{ id: '0' }],
+        hasNext: false,
+      },
+      executionResult,
+    });
+
+    expect(executionResult.data).toEqual({
+      scalarList: ['apple', 'banana', 'coconut'],
+    });
+  });
+
+  it('merges v0.2 deferred data at subPath', () => {
+    const executionResult = {
+      data: { f2: { a: 'a' } },
+    };
+    mergeIncrementalResult({
+      incrementalResult: { pending: [{ id: '0', path: [] }] },
+      executionResult,
+    });
+    mergeIncrementalResult({
+      incrementalResult: {
+        incremental: [{ id: '0', subPath: ['f2'], data: { b: 'b' } }],
+        completed: [{ id: '0' }],
+        hasNext: false,
+      },
+      executionResult,
+    });
+
+    expect(executionResult.data).toEqual({ f2: { a: 'a', b: 'b' } });
+  });
+
+  it('does not merge v0.2 data for an unregistered pending id', () => {
+    const executionResult: ExecutionResult = {
+      data: { hero: { id: '1' } },
+    };
+    mergeIncrementalResult({
+      incrementalResult: {
+        incremental: [
+          {
+            id: 'missing',
+            data: { polluted: true },
+            errors: [new GraphQLError('unknown id')],
+          },
+        ],
+      },
+      executionResult,
+    });
+
+    expect(executionResult.data).toEqual({ hero: { id: '1' } });
+    expect(executionResult.errors).toEqual([expect.objectContaining({ message: 'unknown id' })]);
   });
 });

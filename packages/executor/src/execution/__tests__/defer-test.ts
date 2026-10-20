@@ -336,17 +336,17 @@ describe('Execute: defer directive', () => {
         incremental: [
           {
             data: {
-              friends: [{ name: 'Han' }, { name: 'Leia' }, { name: 'C-3PO' }],
-            },
-            path: ['hero'],
-            label: 'DeferNested',
-          },
-          {
-            data: {
               name: 'Luke',
             },
             path: ['hero'],
             label: 'DeferTop',
+          },
+          {
+            data: {
+              friends: [{ name: 'Han' }, { name: 'Leia' }, { name: 'C-3PO' }],
+            },
+            path: ['hero'],
+            label: 'DeferNested',
           },
         ],
         hasNext: false,
