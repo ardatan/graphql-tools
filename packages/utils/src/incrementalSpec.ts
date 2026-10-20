@@ -8,8 +8,10 @@ export const DEFAULT_MULTIPART_BOUNDARY = '-';
  *
  * Servers and HTTP executors map Accept / Content-Type parameters to `id`.
  * Payload JSON stays in `@graphql-tools/executor`. A new spec is a new row
- * here plus an executor publisher; unknown values for a registered parameter
- * name should be treated as unsupported (HTTP 406).
+ * here plus an executor publisher; Yoga, Hive Gateway, and HTTP executors then
+ * pick it up from a utils bump without rewriting Accept negotiation. Unknown
+ * values for a registered parameter name should be treated as unsupported
+ * (HTTP 406).
  */
 export interface IncrementalDeliverySpec {
   id: IncrementalSpec;
