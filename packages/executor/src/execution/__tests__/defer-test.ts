@@ -1,6 +1,7 @@
 import {
   DocumentNode,
   GraphQLID,
+  GraphQLInterfaceType,
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
@@ -248,6 +249,77 @@ describe('Execute: defer directive', () => {
         incremental: [
           { data: { id: '1', name: 'Luke' }, path: ['hero'], label: 'A' },
           { data: { id: '1' }, path: ['hero'], label: 'B' },
+        ],
+        hasNext: false,
+      },
+    ]);
+  });
+
+  it('collects type-conditioned @defer fields per concrete list item type', async () => {
+    const Character = new GraphQLInterfaceType({
+      name: 'Character',
+      fields: { name: { type: GraphQLString } },
+      resolveType: obj => obj.kind,
+    });
+    const Hero = new GraphQLObjectType({
+      name: 'Hero',
+      interfaces: [Character],
+      fields: {
+        name: { type: GraphQLString },
+        heroTitle: { type: GraphQLString },
+      },
+    });
+    const Villain = new GraphQLObjectType({
+      name: 'Villain',
+      interfaces: [Character],
+      fields: {
+        name: { type: GraphQLString },
+        villainTitle: { type: GraphQLString },
+      },
+    });
+    const listSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          characters: {
+            type: new GraphQLList(Character),
+            resolve: () => [
+              { kind: 'Hero', name: 'Luke', heroTitle: 'Jedi' },
+              { kind: 'Villain', name: 'Vader', villainTitle: 'Sith' },
+            ],
+          },
+        },
+      }),
+      types: [Hero, Villain],
+    });
+    const result = await execute({
+      schema: listSchema,
+      document: parse(`{
+        characters {
+          name
+          ... on Hero @defer { heroTitle }
+          ... on Villain @defer { villainTitle }
+        }
+      }`),
+    });
+    if (!('initialResult' in result)) {
+      throw new Error('Expected incremental results');
+    }
+    const payloads = [result.initialResult];
+    for await (const patch of result.subsequentResults) {
+      payloads.push(patch);
+    }
+    expectJSON(payloads).toDeepEqual([
+      {
+        data: {
+          characters: [{ name: 'Luke' }, { name: 'Vader' }],
+        },
+        hasNext: true,
+      },
+      {
+        incremental: [
+          { data: { heroTitle: 'Jedi' }, path: ['characters', 0] },
+          { data: { villainTitle: 'Sith' }, path: ['characters', 1] },
         ],
         hasNext: false,
       },

@@ -246,12 +246,14 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
    */
   deferUsagesForFieldNodes?: WeakMap<ReadonlyArray<FieldNode>, DeferUsageSet>;
   /**
-   * Memoize incremental subfield collect per fieldNodes array so list
-   * items reuse the same DeferUsage objects.
+   * Memoize incremental subfield collect per fieldNodes array and
+   * concrete return type so list items of the same type reuse DeferUsage
+   * objects without sharing type-conditioned selections across a
+   * heterogeneous interface or union list.
    */
   incrementalSubfieldCache?: WeakMap<
     ReadonlyArray<FieldNode>,
-    ReturnType<typeof collectIncrementalSubfields>
+    WeakMap<GraphQLObjectType, ReturnType<typeof collectIncrementalSubfields>>
   >;
   signal?: AbortSignal;
   getAbortSignal: () => AbortSignal | undefined;
@@ -1923,7 +1925,12 @@ function collectAndExecuteSubfields(
   const parentDeferUsage =
     asyncPayloadRecord?.type === 'defer' ? asyncPayloadRecord.deferUsage : undefined;
   const subfieldCache = (exeContext.incrementalSubfieldCache ??= new WeakMap());
-  let collected = subfieldCache.get(fieldNodes);
+  let collectedByType = subfieldCache.get(fieldNodes);
+  if (collectedByType == null) {
+    collectedByType = new WeakMap();
+    subfieldCache.set(fieldNodes, collectedByType);
+  }
+  let collected = collectedByType.get(returnType);
   if (collected == null) {
     collected = collectIncrementalSubfields(
       exeContext.schema,
@@ -1934,7 +1941,7 @@ function collectAndExecuteSubfields(
       parentDeferUsage,
       exeContext.deferUsageByFieldNode,
     );
-    subfieldCache.set(fieldNodes, collected);
+    collectedByType.set(returnType, collected);
   }
   const { groupedFieldSet } = collected;
   const parentDeferUsages = new Set<DeferUsage>();
