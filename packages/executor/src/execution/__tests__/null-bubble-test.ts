@@ -322,11 +322,11 @@ describe.each([
       'Cannot return null for non-nullable field c.nonNullErrorField.',
     );
     for (const patch of incrementalFieldData(result)) {
-      const nestedC = (patch.b as { c?: { d?: unknown } } | undefined)?.c;
+      const nestedC = (patch['b'] as { c?: { d?: unknown } } | undefined)?.c;
       if (nestedC != null) {
-        expect(nestedC.d).toBeUndefined();
+        expect(nestedC['d']).toBeUndefined();
       }
-      expect(patch.d).toBeUndefined();
+      expect(patch['d']).toBeUndefined();
     }
   });
 

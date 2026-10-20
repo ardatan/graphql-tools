@@ -244,7 +244,8 @@ describe('Execute: non-duplicating @defer plan', () => {
     expect(serialized).toContain('"baz":"baz"');
     expect(serialized).toContain('"bak":"bak"');
     const initial = Array.isArray(result) ? result[0] : result;
-    expectJSON(initial.data).toDeepEqual({
+    expect('data' in initial).toBe(true);
+    expectJSON('data' in initial ? initial.data : undefined).toDeepEqual({
       hero: {
         nestedObject: {
           deeperObject: {
