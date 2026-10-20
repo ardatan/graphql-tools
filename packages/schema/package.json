@@ -55,7 +55,7 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "graphql-scalars": "2.0.0"
+    "graphql-scalars": "2.0.1"
   },
   "publishConfig": {
     "directory": "dist",
