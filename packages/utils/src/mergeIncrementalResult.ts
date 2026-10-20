@@ -3,6 +3,19 @@ import { ExecutionResult } from './Interfaces.js';
 import { hasOwnProperty, isSafeObjectKey } from './jsutils.js';
 import { mergeDeep } from './mergeDeep.js';
 
+const pendingPathsByResult = new WeakMap<object, Map<string, ReadonlyArray<string | number>>>();
+
+function getPendingPaths(
+  executionResult: ExecutionResult,
+): Map<string, ReadonlyArray<string | number>> {
+  let pendingPaths = pendingPathsByResult.get(executionResult);
+  if (pendingPaths == null) {
+    pendingPaths = new Map();
+    pendingPathsByResult.set(executionResult, pendingPaths);
+  }
+  return pendingPaths;
+}
+
 export function mergeIncrementalResult({
   incrementalResult,
   executionResult,
@@ -10,12 +23,24 @@ export function mergeIncrementalResult({
   incrementalResult: ExecutionResult;
   executionResult: ExecutionResult;
 }) {
-  const path = ['data', ...(incrementalResult.path ?? [])];
+  if (incrementalResult.pending) {
+    const pendingPaths = getPendingPaths(executionResult);
+    for (const pending of incrementalResult.pending) {
+      pendingPaths.set(pending.id, pending.path);
+    }
+  }
+
+  const path = ['data', ...resolveIncrementalPath(incrementalResult, executionResult)];
 
   if (incrementalResult.items) {
-    // Reject the whole items batch if any path segment is unsafe, so a later
-    // index increment cannot turn a bad segment into a write at `data.NaN`.
-    if (isSafeKeyPath(path)) {
+    if (
+      incrementalResult.id != null &&
+      (incrementalResult.path == null || incrementalResult.path.length === 0)
+    ) {
+      appendItemsAtPath(executionResult, path, incrementalResult.items);
+    } else if (isSafeKeyPath(path)) {
+      // Reject the whole items batch if any path segment is unsafe, so a later
+      // index increment cannot turn a bad segment into a write at `data.NaN`.
       for (const item of incrementalResult.items) {
         setObjectKeyPath(executionResult, path, item);
         // Increment the last path segment (the array index) to merge the next item at the next index
@@ -45,10 +70,60 @@ export function mergeIncrementalResult({
       });
     });
   }
+
+  if (incrementalResult.completed) {
+    for (const completed of incrementalResult.completed) {
+      if (completed.errors) {
+        executionResult.errors = executionResult.errors || [];
+        (executionResult.errors as GraphQLError[]).push(...completed.errors);
+      }
+    }
+  }
+}
+
+function resolveIncrementalPath(
+  incrementalResult: ExecutionResult,
+  executionResult: ExecutionResult,
+): ReadonlyArray<string | number> {
+  if (incrementalResult.id != null) {
+    const pendingPath = getPendingPaths(executionResult).get(incrementalResult.id) ?? [];
+    return [...pendingPath, ...(incrementalResult.subPath ?? [])];
+  }
+  return incrementalResult.path ?? [];
 }
 
 function isSafeKeyPath(keyPath: readonly unknown[]): boolean {
   return keyPath.every(isSafeObjectKey);
+}
+
+function appendItemsAtPath(
+  executionResult: ExecutionResult,
+  keyPath: readonly unknown[],
+  items: ReadonlyArray<unknown>,
+) {
+  if (!isSafeKeyPath(keyPath) || keyPath.length === 0) {
+    return;
+  }
+  let current: Record<string, any> = executionResult;
+  for (let i = 0; i < keyPath.length; i++) {
+    const key = keyPath[i];
+    if (key === '__proto__' || !isSafeObjectKey(key)) {
+      return;
+    }
+    if (i === keyPath.length - 1) {
+      if (!hasOwnProperty(current, key) || current[key] == null) {
+        current[key] = [];
+      }
+      if (Array.isArray(current[key])) {
+        current[key].push(...items);
+      }
+      return;
+    }
+    if (!hasOwnProperty(current, key) || current[key] == null) {
+      current[key] = typeof keyPath[i + 1] === 'number' ? [] : {};
+    }
+    current = current[key];
+  }
 }
 
 function setObjectKeyPath(obj: Record<string, any>, keyPath: readonly unknown[], value: any) {

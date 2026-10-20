@@ -50,6 +50,7 @@ export function executorFromSchema(schema: GraphQLSchema): Executor {
         contextValue: request.context,
         signal: request.signal || request.info?.signal,
         schemaCoordinateInErrors: request.schemaCoordinateInErrors,
+        incrementalSpec: request.incrementalSpec,
       });
     };
     executorFromSchemaCache.set(schema, schemaExecutor);

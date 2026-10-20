@@ -20,6 +20,8 @@ import { VariableValues } from './types.js';
 export interface PatchFields {
   label: string | undefined;
   fields: Map<string, Array<FieldNode>>;
+  /** Nested `@defer` patches collected while building this patch. */
+  patches?: Array<PatchFields>;
 }
 
 export interface FieldsAndPatches {
@@ -58,6 +60,7 @@ function collectFieldsImpl<TVariables = any>(
 
         if (defer) {
           const patchFields = new AccumulatorMap<string, FieldNode>();
+          const nestedPatches: Array<PatchFields> = [];
           collectFieldsImpl(
             schema,
             fragments,
@@ -65,12 +68,13 @@ function collectFieldsImpl<TVariables = any>(
             runtimeType,
             selection.selectionSet,
             patchFields,
-            patches,
+            nestedPatches,
             visitedFragmentNames,
           );
           patches.push({
             label: defer.label,
             fields: patchFields,
+            patches: nestedPatches.length > 0 ? nestedPatches : undefined,
           });
         } else {
           collectFieldsImpl(
@@ -109,6 +113,7 @@ function collectFieldsImpl<TVariables = any>(
 
         if (defer) {
           const patchFields = new AccumulatorMap<string, FieldNode>();
+          const nestedPatches: Array<PatchFields> = [];
           collectFieldsImpl(
             schema,
             fragments,
@@ -116,12 +121,13 @@ function collectFieldsImpl<TVariables = any>(
             runtimeType,
             fragment.selectionSet,
             patchFields,
-            patches,
+            nestedPatches,
             visitedFragmentNames,
           );
           patches.push({
             label: defer.label,
             fields: patchFields,
+            patches: nestedPatches.length > 0 ? nestedPatches : undefined,
           });
         } else {
           collectFieldsImpl(

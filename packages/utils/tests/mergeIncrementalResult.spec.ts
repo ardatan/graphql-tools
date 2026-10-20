@@ -297,4 +297,66 @@ describe('mergeIncrementalResult', () => {
     expect((executionResult.data as any).NaN).toBeUndefined();
     delete (Object.prototype as any).polluted;
   });
+
+  it('merges v0.2 deferred data by pending id', () => {
+    const executionResult = {
+      data: { hero: { id: '1' } },
+    };
+    mergeIncrementalResult({
+      incrementalResult: { pending: [{ id: '0', path: ['hero'] }] },
+      executionResult,
+    });
+    mergeIncrementalResult({
+      incrementalResult: {
+        incremental: [{ id: '0', data: { name: 'Luke' } }],
+        completed: [{ id: '0' }],
+        hasNext: false,
+      },
+      executionResult,
+    });
+
+    expect(executionResult.data).toEqual({ hero: { id: '1', name: 'Luke' } });
+  });
+
+  it('appends v0.2 streamed items by pending id', () => {
+    const executionResult = {
+      data: { scalarList: ['apple'] },
+    };
+    mergeIncrementalResult({
+      incrementalResult: { pending: [{ id: '0', path: ['scalarList'] }] },
+      executionResult,
+    });
+    mergeIncrementalResult({
+      incrementalResult: {
+        incremental: [{ id: '0', items: ['banana', 'coconut'] }],
+        completed: [{ id: '0' }],
+        hasNext: false,
+      },
+      executionResult,
+    });
+
+    expect(executionResult.data).toEqual({
+      scalarList: ['apple', 'banana', 'coconut'],
+    });
+  });
+
+  it('merges v0.2 deferred data at subPath', () => {
+    const executionResult = {
+      data: { f2: { a: 'a' } },
+    };
+    mergeIncrementalResult({
+      incrementalResult: { pending: [{ id: '0', path: [] }] },
+      executionResult,
+    });
+    mergeIncrementalResult({
+      incrementalResult: {
+        incremental: [{ id: '0', subPath: ['f2'], data: { b: 'b' } }],
+        completed: [{ id: '0' }],
+        hasNext: false,
+      },
+      executionResult,
+    });
+
+    expect(executionResult.data).toEqual({ f2: { a: 'a', b: 'b' } });
+  });
 });
