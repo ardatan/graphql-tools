@@ -48,6 +48,7 @@ import {
   UnionTypeExtensionNode,
 } from 'graphql';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
+import type { IncrementalSpec } from './incrementalSpec.js';
 import { ExtensionsObject } from './types.js';
 
 /**
@@ -147,10 +148,10 @@ export interface ExecutionRequest<
   /**
    * Incremental delivery payload format.
    *
-   * `'v0.1'` matches `multipart/mixed;deferSpec=20220824`.
-   * `'v0.2'` matches `multipart/mixed;incrementalSpec=v0.2`.
+   * HTTP mapping (Accept / Content-Type parameters) lives in
+   * `INCREMENTAL_DELIVERY_SPECS`. `'v0.1'` is the default.
    */
-  incrementalSpec?: 'v0.1' | 'v0.2';
+  incrementalSpec?: IncrementalSpec;
 }
 
 // graphql-js non-exported typings

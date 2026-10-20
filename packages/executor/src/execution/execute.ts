@@ -48,6 +48,7 @@ import {
   pathToArray,
   promiseReduce,
   VariableValues,
+  type IncrementalSpec,
   type PatchFields,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
@@ -73,14 +74,13 @@ import {
   type AsyncPayloadRecord,
   type CompletedResult,
   type IncrementalPublisherState,
-  type IncrementalSpec,
   type PendingResult,
   type StreamGroup,
 } from './incremental.js';
 import { invariant } from './invariant.js';
 import { promiseForObject } from './promiseForObject.js';
 
-export type { CompletedResult, IncrementalSpec, PendingResult } from './incremental.js';
+export type { CompletedResult, PendingResult } from './incremental.js';
 
 const EMPTY_ARGS: { [argument: string]: unknown } = Object.freeze(Object.create(null));
 const isGraphQL17 = versionInfo.major >= 17;
@@ -368,8 +368,8 @@ export interface ExecutionArgs<TData = any, TVariables = any, TContext = any> {
   /**
    * Incremental delivery payload format.
    *
-   * `'v0.1'` (default) matches `multipart/mixed;deferSpec=20220824`.
-   * `'v0.2'` matches `multipart/mixed;incrementalSpec=v0.2`.
+   * HTTP mapping lives in `INCREMENTAL_DELIVERY_SPECS` from `@graphql-tools/utils`.
+   * `'v0.1'` is the default.
    */
   incrementalSpec?: IncrementalSpec;
 }
