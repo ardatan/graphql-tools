@@ -493,6 +493,10 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
       // A non-null bubble through the root returns `{ data: null }` and
       // never yields subsequent payloads. Cancel root defers/streams
       // (path `[]`) so their resolvers and iterators do not keep running.
+      // Stream-only operations never call ensureIncrementalCollectState
+      // (`@stream` is not a collect patch). Record the root so a stream
+      // that starts after this error still hits the nulled-path guard.
+      exeContext.nulledPaths ??= [];
       filterSubsequentPayloads(exeContext, undefined, undefined);
 
       if (error.errors) {

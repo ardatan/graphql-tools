@@ -1,5 +1,6 @@
 import {
   DocumentNode,
+  GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLSchema,
@@ -527,5 +528,60 @@ describe.each([
         },
       ],
     });
+  });
+
+  it('cancels a late @stream when a non-null root field bubbles', async () => {
+    let returnCalled = false;
+    let startList!: (iterable: AsyncIterable<string>) => void;
+    const listReady = new Promise<AsyncIterable<string>>(resolve => {
+      startList = resolve;
+    });
+    const queryType = new GraphQLObjectType({
+      name: 'Query',
+      fields: {
+        required: {
+          type: new GraphQLNonNull(GraphQLString),
+          resolve: async () => {
+            await resolveOnNextTick();
+            return null;
+          },
+        },
+        list: {
+          type: new GraphQLList(GraphQLString),
+          resolve: () => listReady,
+        },
+      },
+    });
+    const resultPromise = execute({
+      schema: new GraphQLSchema({ query: queryType }),
+      document: parse('{ required list @stream(initialCount: 0) }'),
+      incrementalSpec,
+    });
+    const result = await resultPromise;
+    expect('initialResult' in result).toBe(false);
+    expectJSON(result).toDeepEqual({
+      data: null,
+      errors: [
+        {
+          message: 'Cannot return null for non-nullable field Query.required.',
+          locations: [{ line: 1, column: 3 }],
+          path: ['required'],
+        },
+      ],
+    });
+    startList({
+      [Symbol.asyncIterator]() {
+        return {
+          next: async () => ({ value: 'item', done: false }),
+          return: async () => {
+            returnCalled = true;
+            return { done: true, value: undefined };
+          },
+        };
+      },
+    });
+    await resolveOnNextTick();
+    await resolveOnNextTick();
+    expect(returnCalled).toBe(true);
   });
 });
