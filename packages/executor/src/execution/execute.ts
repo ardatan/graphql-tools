@@ -63,12 +63,13 @@ import {
 import { coerceError } from './coerceError.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import {
+  cancelAsyncPayload,
   collectInitialPending,
   createIncrementalPublisherState,
   createStreamGroupIfV02,
   DeferredFragmentRecord,
-  deleteAsyncPayload,
-  isStreamPayload,
+  isAtOrUnderNulledPath,
+  pathStartsWith,
   StreamRecord,
   yieldSubsequentPayloads,
   type AsyncPayloadRecord,
@@ -81,6 +82,7 @@ import {
   buildExecutionPlan,
   collectIncrementalFields,
   collectIncrementalSubfields,
+  deferUsageForFieldNode,
   groupedFieldSetToFieldMap,
   labelForDeferUsageSet,
   rootDeferUsage,
@@ -226,6 +228,11 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   subsequentPayloads: Set<AsyncPayloadRecord>;
   incrementalSpec: IncrementalSpec;
   publisher?: IncrementalPublisherState;
+  /**
+   * Allocated only when the operation actually uses @defer/@stream so
+   * default execution does not pay for null-bubble bookkeeping.
+   */
+  nulledPaths?: Array<ReadonlyArray<string | number>>;
   signal?: AbortSignal;
   getAbortSignal: () => AbortSignal | undefined;
   getAsyncHelpers: () => {
@@ -834,6 +841,8 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
     return result;
   }
 
+  exeContext.nulledPaths ??= [];
+
   const { groupedFieldSet } = collectIncrementalFields(
     schema,
     fragments,
@@ -864,6 +873,9 @@ function executeDeferredGroups(
   newGroupedFieldSets: Map<DeferUsageSet, GroupedFieldSet>,
   parentContext: AsyncPayloadRecord | undefined,
 ): void {
+  if (isAtOrUnderNulledPath(pathToArray(path), exeContext.nulledPaths)) {
+    return;
+  }
   const records = new Map<DeferUsage, DeferredFragmentRecord>();
   const groups = [...newGroupedFieldSets.entries()].sort(
     ([a], [b]) => deferUsageDepth(rootDeferUsage(a)) - deferUsageDepth(rootDeferUsage(b)),
@@ -1781,9 +1793,11 @@ function collectAndExecuteSubfields(
     fieldNodes,
   );
 
-  if (subPatches.length === 0) {
+  if (subPatches.length === 0 && exeContext.nulledPaths == null) {
     return executeFields(exeContext, returnType, result, path, subFieldNodes, asyncPayloadRecord);
   }
+
+  exeContext.nulledPaths ??= [];
 
   const parentDeferUsage =
     asyncPayloadRecord?.type === 'defer' ? asyncPayloadRecord.deferUsage : undefined;
@@ -1795,9 +1809,20 @@ function collectAndExecuteSubfields(
     fieldNodes,
     parentDeferUsage,
   );
+  const parentDeferUsages = new Set<DeferUsage>();
+  if (parentDeferUsage) {
+    parentDeferUsages.add(parentDeferUsage);
+  } else if (asyncPayloadRecord?.type === 'stream') {
+    for (const node of fieldNodes) {
+      const usage = deferUsageForFieldNode(node);
+      if (usage) {
+        parentDeferUsages.add(usage);
+      }
+    }
+  }
   const { groupedFieldSet: initialFields, newGroupedFieldSets } = buildExecutionPlan(
     groupedFieldSet,
-    parentDeferUsage == null ? undefined : new Set([parentDeferUsage]),
+    parentDeferUsages,
   );
 
   const subFields = executeFields(
@@ -2284,6 +2309,10 @@ function executeStreamField(
     exeContext,
     streamGroup,
   });
+  if (isAtOrUnderNulledPath(asyncPayloadRecord.path, exeContext.nulledPaths)) {
+    cancelAsyncPayload(exeContext, asyncPayloadRecord);
+    return asyncPayloadRecord;
+  }
   let completedItem: MaybePromise<unknown>;
   try {
     try {
@@ -2459,6 +2488,15 @@ async function executeStreamIterator(
       exeContext,
       streamGroup,
     });
+    if (isAtOrUnderNulledPath(asyncPayloadRecord.path, exeContext.nulledPaths)) {
+      cancelAsyncPayload(exeContext, asyncPayloadRecord);
+      if (iterator.return) {
+        iterator.return().catch(() => {
+          // ignore errors
+        });
+      }
+      break;
+    }
 
     let iteration;
     try {
@@ -2519,24 +2557,21 @@ function filterSubsequentPayloads(
   currentAsyncRecord: AsyncPayloadRecord | undefined,
 ): void {
   const nullPathArray = pathToArray(nullPath);
+  if (exeContext.nulledPaths) {
+    exeContext.nulledPaths.push(nullPathArray);
+  } else if (exeContext.subsequentPayloads.size === 0) {
+    return;
+  }
   exeContext.subsequentPayloads.forEach(asyncRecord => {
-    if (asyncRecord === currentAsyncRecord) {
+    if (asyncRecord === currentAsyncRecord || asyncRecord.cancelled) {
       // don't remove payload from where error originates
       return;
     }
-    for (let i = 0; i < nullPathArray.length; i++) {
-      if (asyncRecord.path[i] !== nullPathArray[i]) {
-        // asyncRecord points to a path unaffected by this payload
-        return;
-      }
+    if (!pathStartsWith(asyncRecord.path, nullPathArray)) {
+      // ancestor or a different branch: ancestor patches are pruned at yield
+      return;
     }
-    // asyncRecord path points to nulled error field
-    if (isStreamPayload(asyncRecord) && asyncRecord.iterator?.return) {
-      asyncRecord.iterator.return().catch(() => {
-        // ignore error
-      });
-    }
-    deleteAsyncPayload(exeContext, asyncRecord);
+    cancelAsyncPayload(exeContext, asyncRecord);
   });
 }
 

@@ -86,6 +86,8 @@ export function collectIncrementalFields<TVariables = any>(
   return { groupedFieldSet, newDeferUsages };
 }
 
+const deferUsageByFieldNode = new WeakMap<FieldNode, DeferUsage | undefined>();
+
 export function collectIncrementalSubfields<TVariables = any>(
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
@@ -108,13 +110,10 @@ export function collectIncrementalSubfields<TVariables = any>(
   };
   for (const node of fieldNodes) {
     if (node.selectionSet) {
-      collectFieldsImpl(
-        context,
-        node.selectionSet,
-        groupedFieldSet,
-        newDeferUsages,
-        parentDeferUsage,
-      );
+      const deferUsage = deferUsageByFieldNode.has(node)
+        ? deferUsageByFieldNode.get(node)
+        : parentDeferUsage;
+      collectFieldsImpl(context, node.selectionSet, groupedFieldSet, newDeferUsages, deferUsage);
     }
   }
   return { groupedFieldSet, newDeferUsages };
@@ -268,6 +267,10 @@ function getFilteredDeferUsageSet(fieldDetailsList: FieldDetailsList): ReadonlyS
   return filteredDeferUsageSet;
 }
 
+export function deferUsageForFieldNode(node: FieldNode): DeferUsage | undefined {
+  return deferUsageByFieldNode.get(node);
+}
+
 export function groupedFieldSetToFieldMap(
   groupedFieldSet: GroupedFieldSet,
 ): Map<string, Array<FieldNode>> {
@@ -275,7 +278,10 @@ export function groupedFieldSetToFieldMap(
   for (const [responseKey, fieldDetailsList] of groupedFieldSet) {
     fields.set(
       responseKey,
-      fieldDetailsList.map(details => details.node),
+      fieldDetailsList.map(details => {
+        deferUsageByFieldNode.set(details.node, details.deferUsage);
+        return details.node;
+      }),
     );
   }
   return fields;

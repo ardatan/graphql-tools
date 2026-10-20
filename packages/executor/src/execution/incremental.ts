@@ -41,6 +41,11 @@ export interface IncrementalPublisherContext {
   incrementalSpec: IncrementalSpec;
   publisher?: IncrementalPublisherState;
   signalPromise?: Promise<never>;
+  /**
+   * Paths that were set to null by error bubbling. Present only on the
+   * incremental collect path so default execution does not allocate.
+   */
+  nulledPaths?: Array<ReadonlyArray<string | number>>;
 }
 
 export class StreamGroup {
@@ -103,6 +108,158 @@ export function deleteAsyncPayload(
   }
 }
 
+export function pathStartsWith(
+  path: ReadonlyArray<string | number>,
+  prefix: ReadonlyArray<string | number>,
+): boolean {
+  if (prefix.length > path.length) {
+    return false;
+  }
+  for (let i = 0; i < prefix.length; i++) {
+    if (path[i] !== prefix[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function isAtOrUnderNulledPath(
+  path: ReadonlyArray<string | number>,
+  nulledPaths: ReadonlyArray<ReadonlyArray<string | number>> | undefined,
+): boolean {
+  if (nulledPaths == null || nulledPaths.length === 0) {
+    return false;
+  }
+  for (const nulledPath of nulledPaths) {
+    if (pathStartsWith(path, nulledPath)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isStrictlyUnderNulledPath(
+  path: ReadonlyArray<string | number>,
+  nulledPaths: ReadonlyArray<ReadonlyArray<string | number>>,
+): boolean {
+  for (const nulledPath of nulledPaths) {
+    if (path.length > nulledPath.length && pathStartsWith(path, nulledPath)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isExactNulledPath(
+  path: ReadonlyArray<string | number>,
+  nulledPaths: ReadonlyArray<ReadonlyArray<string | number>>,
+): boolean {
+  for (const nulledPath of nulledPaths) {
+    if (path.length === nulledPath.length && pathStartsWith(path, nulledPath)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isEmptyIncrementalData(data: unknown): boolean {
+  if (data == null) {
+    return true;
+  }
+  if (typeof data !== 'object') {
+    return false;
+  }
+  if (Array.isArray(data)) {
+    return data.length === 0;
+  }
+  const entries = Object.entries(data as Record<string, unknown>);
+  if (entries.length === 0) {
+    return true;
+  }
+  return entries.every(
+    ([, value]) => value != null && typeof value === 'object' && isEmptyIncrementalData(value),
+  );
+}
+
+/**
+ * Drop keys that would write into a subtree already nulled by error bubbling.
+ * Ancestor deferred records can still deliver sibling fields (e.g. `someField`
+ * next to a nulled `b.c`).
+ */
+export function pruneUnmergeableIncrementalData(
+  data: unknown,
+  basePath: ReadonlyArray<string | number>,
+  nulledPaths: ReadonlyArray<ReadonlyArray<string | number>> | undefined,
+): unknown {
+  if (nulledPaths == null || nulledPaths.length === 0 || data == null || typeof data !== 'object') {
+    return data;
+  }
+  if (Array.isArray(data)) {
+    return data.map((item, index) => {
+      const itemPath = [...basePath, index];
+      if (isAtOrUnderNulledPath(itemPath, nulledPaths)) {
+        return null;
+      }
+      return pruneUnmergeableIncrementalData(item, itemPath, nulledPaths);
+    });
+  }
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
+    const childPath = [...basePath, key];
+    if (isStrictlyUnderNulledPath(childPath, nulledPaths)) {
+      continue;
+    }
+    if (isExactNulledPath(childPath, nulledPaths)) {
+      // Keep a null delivered by this payload; drop a non-null write into an
+      // already-nulled object (Yaacov: unmergeable incremental).
+      if (value != null) {
+        continue;
+      }
+      result[key] = null;
+      continue;
+    }
+    result[key] = pruneUnmergeableIncrementalData(value, childPath, nulledPaths);
+  }
+  return result;
+}
+
+function isAnnounced(exeContext: IncrementalPublisherContext, record: AsyncPayloadRecord): boolean {
+  const state = exeContext.publisher;
+  if (state == null) {
+    return false;
+  }
+  return state.announced.has(getPublishNode(record));
+}
+
+/**
+ * Cancel a subsequent record whose path is at or under a nulled position
+ * (graphql-js 17 `hasNulledPosition`). v0.2 records that were already
+ * announced stay in the set so the publisher can emit `completed` without
+ * incremental data.
+ */
+export function cancelAsyncPayload(
+  exeContext: IncrementalPublisherContext,
+  record: AsyncPayloadRecord,
+): void {
+  record.cancelled = true;
+  if (isStreamPayload(record) && record.iterator?.return) {
+    record.iterator.return().catch(() => {
+      // ignore error
+    });
+  }
+  if (!record.isCompleted) {
+    if (isStreamPayload(record)) {
+      record.addItems(null);
+    } else {
+      record.addData(null);
+    }
+  }
+  if (exeContext.incrementalSpec === 'v0.2' && isAnnounced(exeContext, record)) {
+    return;
+  }
+  deleteAsyncPayload(exeContext, record);
+}
+
 export class DeferredFragmentRecord {
   type: 'defer';
   errors: Array<GraphQLError>;
@@ -114,6 +271,7 @@ export class DeferredFragmentRecord {
   deliveryParent: AsyncPayloadRecord | undefined;
   deferUsage: DeferUsage | undefined;
   isCompleted: boolean;
+  cancelled: boolean;
   _exeContext: IncrementalPublisherContext;
   _resolve?: (arg: MaybePromise<Record<string, unknown> | null>) => void;
   constructor(opts: {
@@ -134,6 +292,7 @@ export class DeferredFragmentRecord {
     this._exeContext = opts.exeContext;
     this._exeContext.subsequentPayloads.add(this);
     this.isCompleted = false;
+    this.cancelled = false;
     this.data = null;
     this.promise = new Promise<Record<string, unknown> | null>(resolve => {
       this._resolve = MaybePromise => {
@@ -166,6 +325,7 @@ export class StreamRecord {
   iterator: AsyncIterator<unknown> | undefined;
   isCompletedIterator?: boolean;
   isCompleted: boolean;
+  cancelled: boolean;
   streamGroup: StreamGroup | undefined;
   _exeContext: IncrementalPublisherContext;
   _resolve?: (arg: MaybePromise<Array<unknown> | null>) => void;
@@ -189,6 +349,7 @@ export class StreamRecord {
     this._exeContext.subsequentPayloads.add(this);
     this.streamGroup?.retain();
     this.isCompleted = false;
+    this.cancelled = false;
     this.items = null;
     this.promise = new Promise<Array<unknown> | null>(resolve => {
       this._resolve = MaybePromise => {
@@ -276,6 +437,9 @@ function announceIfNeeded(
   state: IncrementalPublisherState,
   pending: Array<PendingResult>,
 ): void {
+  if (record.cancelled) {
+    return;
+  }
   const node = getPublishNode(record);
   if (state.announced.has(node)) {
     return;
@@ -314,6 +478,9 @@ function getCompletedIncrementalResults(
       continue;
     }
     deleteAsyncPayload(exeContext, asyncPayloadRecord);
+    if (asyncPayloadRecord.cancelled) {
+      continue;
+    }
     if (isStreamPayload(asyncPayloadRecord)) {
       const items = asyncPayloadRecord.items;
       if (asyncPayloadRecord.isCompletedIterator) {
@@ -322,8 +489,16 @@ function getCompletedIncrementalResults(
       }
       (incrementalResult as IncrementalStreamResult).items = items;
     } else {
-      const data = asyncPayloadRecord.data;
-      (incrementalResult as IncrementalDeferResult).data = data ?? null;
+      const data = pruneUnmergeableIncrementalData(
+        asyncPayloadRecord.data,
+        asyncPayloadRecord.path,
+        exeContext.nulledPaths,
+      );
+      if (isEmptyIncrementalData(data) && asyncPayloadRecord.errors.length === 0) {
+        continue;
+      }
+      (incrementalResult as IncrementalDeferResult).data =
+        (data as Record<string, unknown> | null) ?? null;
     }
 
     incrementalResult.path = asyncPayloadRecord.path;
@@ -374,12 +549,26 @@ function buildSubsequentV02(
         continue;
       }
       const id = ensureId(state, record);
-      if (record.data == null && record.errors.length > 0) {
+      if (record.cancelled) {
+        completed.push({ id });
+        continue;
+      }
+      const data = pruneUnmergeableIncrementalData(
+        record.data,
+        record.path,
+        exeContext.nulledPaths,
+      );
+      if (
+        (record.data == null && record.errors.length > 0) ||
+        (isEmptyIncrementalData(data) && record.errors.length > 0)
+      ) {
         completed.push({ id, errors: record.errors });
+      } else if (isEmptyIncrementalData(data) && record.errors.length === 0) {
+        completed.push({ id });
       } else {
         const incrementalResult: IncrementalDeferResult = {
           id,
-          data: record.data ?? null,
+          data: (data as Record<string, unknown> | null) ?? null,
         };
         if (record.errors.length > 0) {
           incrementalResult.errors = record.errors;

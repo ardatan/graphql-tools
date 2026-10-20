@@ -398,6 +398,89 @@ describe('Execute: defer directive (incremental spec v0.2)', () => {
     });
   });
 
+  it('Does not emit empty defer fragments', async () => {
+    const document = parse(`
+      query HeroNameQuery {
+        hero {
+          ... @defer {
+            name @skip(if: true)
+          }
+        }
+      }
+    `);
+    const result = await complete(document);
+    expectJSON(result).toDeepEqual({
+      data: {
+        hero: {},
+      },
+    });
+  });
+
+  it('Emits children of empty defer fragments', async () => {
+    const document = parse(`
+      query HeroNameQuery {
+        hero {
+          ... @defer {
+            ... @defer {
+              name
+            }
+          }
+        }
+      }
+    `);
+    const result = await complete(document);
+    expectJSON(result).toDeepEqual([
+      {
+        data: {
+          hero: {},
+        },
+        pending: [{ id: '0', path: ['hero'] }],
+        hasNext: true,
+      },
+      {
+        incremental: [{ data: { name: 'Luke' }, id: '0' }],
+        completed: [{ id: '0' }],
+        hasNext: false,
+      },
+    ]);
+  });
+
+  it('Can separately emit defer fragments with different labels with varying fields', async () => {
+    const document = parse(`
+      query HeroNameQuery {
+        hero {
+          ... @defer(label: "DeferID") {
+            id
+          }
+          ... @defer(label: "DeferName") {
+            name
+          }
+        }
+      }
+    `);
+    const result = await complete(document);
+    expectJSON(result).toDeepEqual([
+      {
+        data: {
+          hero: {},
+        },
+        pending: [
+          { id: '0', path: ['hero'], label: 'DeferID' },
+          { id: '1', path: ['hero'], label: 'DeferName' },
+        ],
+        hasNext: true,
+      },
+      {
+        incremental: [
+          { data: { id: '1' }, id: '0' },
+          { data: { name: 'Luke' }, id: '1' },
+        ],
+        completed: [{ id: '0' }, { id: '1' }],
+        hasNext: false,
+      },
+    ]);
+  });
+
   it('Can defer an inline fragment', async () => {
     const document = parse(`
       query HeroNameQuery {
@@ -424,6 +507,49 @@ describe('Execute: defer directive (incremental spec v0.2)', () => {
           },
         ],
         completed: [{ id: '0' }],
+        hasNext: false,
+      },
+    ]);
+  });
+
+  it('Can deduplicate multiple defers on the same object', async () => {
+    const document = parse(`
+      query {
+        hero {
+          friends {
+            ... @defer {
+              ...FriendFrag
+              ... @defer {
+                ...FriendFrag
+              }
+            }
+          }
+        }
+      }
+
+      fragment FriendFrag on Friend {
+        id
+        name
+      }
+    `);
+    const result = await complete(document);
+    expectJSON(result).toDeepEqual([
+      {
+        data: { hero: { friends: [{}, {}, {}] } },
+        pending: [
+          { id: '0', path: ['hero', 'friends', 0] },
+          { id: '1', path: ['hero', 'friends', 1] },
+          { id: '2', path: ['hero', 'friends', 2] },
+        ],
+        hasNext: true,
+      },
+      {
+        incremental: [
+          { data: { id: '2', name: 'Han' }, id: '0' },
+          { data: { id: '3', name: 'Leia' }, id: '1' },
+          { data: { id: '4', name: 'C-3PO' }, id: '2' },
+        ],
+        completed: [{ id: '0' }, { id: '1' }, { id: '2' }],
         hasNext: false,
       },
     ]);

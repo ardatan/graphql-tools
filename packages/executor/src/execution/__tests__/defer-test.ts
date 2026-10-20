@@ -445,6 +445,25 @@ describe('Execute: defer directive', () => {
     });
   });
 
+  it('Does not emit empty defer fragments', async () => {
+    const document = parse(/* GraphQL */ `
+      query HeroNameQuery {
+        hero {
+          ... @defer {
+            name @skip(if: true)
+          }
+        }
+      }
+    `);
+
+    const result = await complete(document);
+    expectJSON(result).toDeepEqual({
+      data: {
+        hero: {},
+      },
+    });
+  });
+
   it('Can defer an inline fragment', async () => {
     const document = parse(/* GraphQL */ `
       query HeroNameQuery {
