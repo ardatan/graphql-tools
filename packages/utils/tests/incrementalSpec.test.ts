@@ -28,6 +28,12 @@ describe('incremental delivery spec table', () => {
     expect(lookupIncrementalDeliverySpec({ deferspec: '2019' })).toBe('unsupported');
   });
 
+  it('matches registered parameter names and values case-insensitively', () => {
+    expect(lookupIncrementalDeliverySpec({ deferSpec: '20220824' })).toEqual(v01);
+    expect(lookupIncrementalDeliverySpec({ IncrementalSpec: 'V0.2' })).toEqual(v02);
+    expect(lookupIncrementalDeliverySpec({ incrementalSpec: 'v0.3' })).toBe('unsupported');
+  });
+
   it('ignores unregistered parameter names', () => {
     expect(lookupIncrementalDeliverySpec({ boundary: '-' })).toBeUndefined();
   });

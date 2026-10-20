@@ -63,11 +63,11 @@ export function lookupIncrementalDeliverySpec(
 ): IncrementalDeliverySpec | 'unsupported' | undefined {
   let matched: IncrementalDeliverySpec | undefined;
   for (const [name, value] of Object.entries(params)) {
-    const named = specs.filter(spec => spec.parameter.toLowerCase() === name);
+    const named = specs.filter(spec => spec.parameter.toLowerCase() === name.toLowerCase());
     if (named.length === 0) {
       continue;
     }
-    const spec = named.find(candidate => candidate.value.toLowerCase() === value);
+    const spec = named.find(candidate => candidate.value.toLowerCase() === value.toLowerCase());
     if (spec == null) {
       return 'unsupported';
     }
