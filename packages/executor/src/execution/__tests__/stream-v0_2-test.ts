@@ -60,7 +60,7 @@ function collectStreamItems(
   const items: Array<unknown> = [];
   for (const payload of payloads) {
     for (const patch of payload.incremental ?? []) {
-      if (patch.id === id && patch.items) {
+      if (patch.id === id && 'items' in patch && Array.isArray(patch.items)) {
         items.push(...patch.items);
       }
     }
@@ -169,9 +169,12 @@ describe('Execute: stream directive (incremental spec v0.2)', () => {
       scalarList: () => ['apple', 'banana', 'coconut'],
     })) as Array<InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult>;
 
-    const executionResult: Record<string, any> = { data: payloads[0].data };
+    const initial = payloads[0];
+    const executionResult = {
+      data: 'data' in initial ? initial.data : undefined,
+    };
     mergeIncrementalResult({
-      incrementalResult: { pending: payloads[0].pending },
+      incrementalResult: { pending: initial.pending },
       executionResult,
     });
     for (const payload of payloads.slice(1)) {
