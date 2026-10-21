@@ -633,10 +633,12 @@ describe('printSchemaWithDirectives', () => {
       }
     `);
 
-    const output = printSchemaWithDirectives(schema);
+    const output = stripIgnoredCharacters(printSchemaWithDirectives(schema));
 
-    expect(output).toContain('@listDir(arg: [argument_value, "string_value"])');
-    expect(output).toContain('@inputDir(arg: { field: argument_value })');
+    expect(output).toContain(
+      stripIgnoredCharacters('@listDir(arg: [argument_value, "string_value"])'),
+    );
+    expect(output).toContain(stripIgnoredCharacters('@inputDir(arg: { field: argument_value })'));
   });
 
   it('still prints code-first custom scalar directive args as strings', () => {
