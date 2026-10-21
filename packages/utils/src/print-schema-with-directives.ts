@@ -43,7 +43,6 @@ import {
   SchemaExtensionNode,
   specifiedDirectives,
   UnionTypeDefinitionNode,
-  valueFromASTUntyped,
   ValueNode,
 } from 'graphql';
 import { astFromType } from './astFromType.js';
@@ -610,15 +609,51 @@ function directiveNodesRepresentSameApplication(a: DirectiveNode, b: DirectiveNo
   const bArgsByName = new Map(bArgs.map(arg => [arg.name.value, arg]));
   for (const aArg of aArgs) {
     const bArg = bArgsByName.get(aArg.name.value);
-    if (bArg == null) {
-      return false;
-    }
-    if (
-      JSON.stringify(valueFromASTUntyped(aArg.value)) !==
-      JSON.stringify(valueFromASTUntyped(bArg.value))
-    ) {
+    if (bArg == null || !valueNodesAreEquivalent(aArg.value, bArg.value)) {
       return false;
     }
   }
   return true;
+}
+
+function valueNodesAreEquivalent(a: ValueNode, b: ValueNode): boolean {
+  if (a.kind === Kind.LIST && b.kind === Kind.LIST) {
+    if (a.values.length !== b.values.length) {
+      return false;
+    }
+    return a.values.every((value, index) => valueNodesAreEquivalent(value, b.values[index]));
+  }
+
+  if (a.kind === Kind.OBJECT && b.kind === Kind.OBJECT) {
+    if (a.fields.length !== b.fields.length) {
+      return false;
+    }
+    const bFields = new Map(b.fields.map(field => [field.name.value, field.value]));
+    for (const field of a.fields) {
+      const other = bFields.get(field.name.value);
+      if (other == null || !valueNodesAreEquivalent(field.value, other)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  if (a.kind === Kind.NULL || b.kind === Kind.NULL) {
+    return a.kind === Kind.NULL && b.kind === Kind.NULL;
+  }
+
+  // Reconstructing via JS collapses EnumValue and StringValue to the same string.
+  // Treat those two kinds as the same application so the original AST kind is kept.
+  if (
+    (a.kind === Kind.ENUM || a.kind === Kind.STRING) &&
+    (b.kind === Kind.ENUM || b.kind === Kind.STRING)
+  ) {
+    return a.value === b.value;
+  }
+
+  if (a.kind === b.kind && 'value' in a && 'value' in b) {
+    return a.value === b.value;
+  }
+
+  return false;
 }
