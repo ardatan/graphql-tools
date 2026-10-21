@@ -606,9 +606,8 @@ function directiveNodesRepresentSameApplication(a: DirectiveNode, b: DirectiveNo
   if (aArgs.length !== bArgs.length) {
     return false;
   }
-  const bArgsByName = new Map(bArgs.map(arg => [arg.name.value, arg]));
   for (const aArg of aArgs) {
-    const bArg = bArgsByName.get(aArg.name.value);
+    const bArg = findNamedNode(bArgs, aArg.name.value);
     if (bArg == null || !valueNodesAreEquivalent(aArg.value, bArg.value)) {
       return false;
     }
@@ -628,10 +627,9 @@ function valueNodesAreEquivalent(a: ValueNode, b: ValueNode): boolean {
     if (a.fields.length !== b.fields.length) {
       return false;
     }
-    const bFields = new Map(b.fields.map(field => [field.name.value, field.value]));
     for (const field of a.fields) {
-      const other = bFields.get(field.name.value);
-      if (other == null || !valueNodesAreEquivalent(field.value, other)) {
+      const other = findNamedNode(b.fields, field.name.value);
+      if (other == null || !valueNodesAreEquivalent(field.value, other.value)) {
         return false;
       }
     }
@@ -656,4 +654,16 @@ function valueNodesAreEquivalent(a: ValueNode, b: ValueNode): boolean {
   }
 
   return false;
+}
+
+function findNamedNode<T extends { name: { value: string } }>(
+  nodes: readonly T[],
+  name: string,
+): T | undefined {
+  for (let i = 0; i < nodes.length; i++) {
+    if (nodes[i].name.value === name) {
+      return nodes[i];
+    }
+  }
+  return undefined;
 }
