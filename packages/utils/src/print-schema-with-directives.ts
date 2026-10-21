@@ -43,6 +43,7 @@ import {
   SchemaExtensionNode,
   specifiedDirectives,
   UnionTypeDefinitionNode,
+  valueFromASTUntyped,
   ValueNode,
 } from 'graphql';
 import { astFromType } from './astFromType.js';
@@ -231,11 +232,26 @@ export function getDirectiveNodes<TDirectiveNode extends DirectiveNode>(
 ): Array<TDirectiveNode> {
   let directiveNodesBesidesNativeDirectives: Array<TDirectiveNode> = [];
 
-  const directivesInExtensions = getDirectivesInExtensions(entity, pathToDirectivesInExtensions);
+  const astDirectiveNodes = getAstDirectiveNodes<TDirectiveNode>(entity);
+  const directivesInExtensionsObject = getDirectivesInExtensionsObject(
+    entity,
+    pathToDirectivesInExtensions,
+  );
 
   let directives: Maybe<ReadonlyArray<TDirectiveNode>>;
-  if (directivesInExtensions != null) {
-    directives = makeDirectiveNodes(schema, directivesInExtensions);
+  // Prefer original AST directive nodes when we are not overlaying extension
+  // values. Reconstructing via JS loses EnumValue vs StringValue for custom scalars.
+  if (directivesInExtensionsObject == null && astDirectiveNodes.length > 0) {
+    directives = astDirectiveNodes;
+  } else {
+    const directivesInExtensions = getDirectivesInExtensions(entity, pathToDirectivesInExtensions);
+    if (directivesInExtensions != null) {
+      const remainingAstDirectiveNodes = astDirectiveNodes.slice();
+      directives = makeDirectiveNodes<TDirectiveNode>(schema, directivesInExtensions).map(
+        directiveNode =>
+          takeMatchingAstDirectiveNode(remainingAstDirectiveNodes, directiveNode) ?? directiveNode,
+      );
+    }
   }
 
   let deprecatedDirectiveNode: Maybe<TDirectiveNode> = null;
@@ -413,22 +429,6 @@ export function astFromScalarType(
   schema: GraphQLSchema,
   pathToDirectivesInExtensions?: Array<string>,
 ): ScalarTypeDefinitionNode {
-  const directivesInExtensions = getDirectivesInExtensions(type, pathToDirectivesInExtensions);
-
-  const directives = makeDirectiveNodes(schema, directivesInExtensions);
-
-  const specifiedByValue = ((type as any)['specifiedByUrl'] ||
-    (type as any)['specifiedByURL']) as string;
-  if (
-    specifiedByValue &&
-    !directives.some(directiveNode => directiveNode.name.value === 'specifiedBy')
-  ) {
-    const specifiedByArgs = {
-      url: specifiedByValue,
-    };
-    directives.push(makeDirectiveNode('specifiedBy', specifiedByArgs));
-  }
-
   return {
     kind: Kind.SCALAR_TYPE_DEFINITION,
     description: getDescriptionNode(type),
@@ -437,7 +437,7 @@ export function astFromScalarType(
       value: type.name,
     },
     // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
-    directives: directives as any,
+    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions) as any,
   };
 }
 
@@ -552,4 +552,73 @@ export function makeDirectiveNodes<TDirectiveNode extends DirectiveNode>(
     directiveNodes.push(makeDirectiveNode(name, args, directive));
   }
   return directiveNodes;
+}
+
+function getAstDirectiveNodes<TDirectiveNode extends DirectiveNode>(
+  entity: DirectableGraphQLObject,
+): Array<TDirectiveNode> {
+  const directiveNodes: Array<TDirectiveNode> = [];
+  if (entity.astNode?.directives?.length) {
+    directiveNodes.push(...(entity.astNode.directives as Array<TDirectiveNode>));
+  }
+  if (entity.extensionASTNodes) {
+    for (const extensionASTNode of entity.extensionASTNodes) {
+      if (extensionASTNode.directives?.length) {
+        directiveNodes.push(...(extensionASTNode.directives as Array<TDirectiveNode>));
+      }
+    }
+  }
+  return directiveNodes;
+}
+
+function getDirectivesInExtensionsObject(
+  entity: DirectableGraphQLObject,
+  pathToDirectivesInExtensions: Array<string> = ['directives'],
+): unknown {
+  if (entity.extensions == null) {
+    return null;
+  }
+  let directivesInExtensions: any = entity.extensions;
+  for (const pathSegment of pathToDirectivesInExtensions) {
+    directivesInExtensions = directivesInExtensions?.[pathSegment];
+  }
+  return directivesInExtensions ?? null;
+}
+
+function takeMatchingAstDirectiveNode<TDirectiveNode extends DirectiveNode>(
+  astDirectiveNodes: Array<TDirectiveNode>,
+  directiveNode: TDirectiveNode,
+): TDirectiveNode | undefined {
+  const index = astDirectiveNodes.findIndex(astDirectiveNode =>
+    directiveNodesRepresentSameApplication(astDirectiveNode, directiveNode),
+  );
+  if (index === -1) {
+    return undefined;
+  }
+  return astDirectiveNodes.splice(index, 1)[0];
+}
+
+function directiveNodesRepresentSameApplication(a: DirectiveNode, b: DirectiveNode): boolean {
+  if (a.name.value !== b.name.value) {
+    return false;
+  }
+  const aArgs = a.arguments ?? [];
+  const bArgs = b.arguments ?? [];
+  if (aArgs.length !== bArgs.length) {
+    return false;
+  }
+  const bArgsByName = new Map(bArgs.map(arg => [arg.name.value, arg]));
+  for (const aArg of aArgs) {
+    const bArg = bArgsByName.get(aArg.name.value);
+    if (bArg == null) {
+      return false;
+    }
+    if (
+      JSON.stringify(valueFromASTUntyped(aArg.value)) !==
+      JSON.stringify(valueFromASTUntyped(bArg.value))
+    ) {
+      return false;
+    }
+  }
+  return true;
 }

@@ -1,4 +1,5 @@
 import {
+  buildASTSchema,
   buildSchema,
   GraphQLDirective,
   GraphQLEnumType,
@@ -9,9 +10,11 @@ import {
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
+  GraphQLScalarType,
   GraphQLSchema,
   GraphQLString,
   Kind,
+  parse,
   printSchema,
   specifiedDirectives,
   stripIgnoredCharacters,
@@ -577,6 +580,95 @@ describe('printSchemaWithDirectives', () => {
 
     const output = printSchemaWithDirectives(schema);
     expect(output).toContain('me: String @scope(name: TEAMS_WRITE)');
+  });
+
+  it('preserves enum AST nodes in custom scalar directive arguments (#8557)', () => {
+    const src = /* GraphQL */ `
+      scalar Scalar
+
+      directive @directive(arg: Scalar!) on FIELD_DEFINITION
+
+      type Object {
+        field: String @directive(arg: argument_value)
+      }
+    `;
+
+    const schema = buildASTSchema(parse(src));
+    const output = printSchemaWithDirectives(schema);
+
+    expect(output).toContain('@directive(arg: argument_value)');
+    expect(output).not.toContain('@directive(arg: "argument_value")');
+  });
+
+  it('preserves string AST nodes in custom scalar directive arguments', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      scalar Scalar
+
+      directive @directive(arg: Scalar!) on FIELD_DEFINITION
+
+      type Query {
+        field: String @directive(arg: "argument_value")
+      }
+    `);
+
+    const output = printSchemaWithDirectives(schema);
+
+    expect(output).toContain('@directive(arg: "argument_value")');
+  });
+
+  it('preserves mixed enum and string literals in list and input directive arguments', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      scalar Scalar
+
+      input Input {
+        field: Scalar
+      }
+
+      directive @listDir(arg: [Scalar!]!) on FIELD_DEFINITION
+      directive @inputDir(arg: Input!) on FIELD_DEFINITION
+
+      type Query {
+        listed: String @listDir(arg: [argument_value, "string_value"])
+        nested: String @inputDir(arg: { field: argument_value })
+      }
+    `);
+
+    const output = printSchemaWithDirectives(schema);
+
+    expect(output).toContain('@listDir(arg: [argument_value, "string_value"])');
+    expect(output).toContain('@inputDir(arg: { field: argument_value })');
+  });
+
+  it('still prints code-first custom scalar directive args as strings', () => {
+    const Scalar = new GraphQLScalarType({ name: 'Scalar' });
+    const directive = new GraphQLDirective({
+      name: 'directive',
+      args: {
+        arg: { type: new GraphQLNonNull(Scalar) },
+      },
+      locations: ['FIELD_DEFINITION'] as any,
+    });
+
+    const schema = new GraphQLSchema({
+      directives: [...specifiedDirectives, directive],
+      types: [Scalar],
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          field: {
+            type: GraphQLString,
+            extensions: {
+              directives: {
+                directive: { arg: 'argument_value' },
+              },
+            },
+          },
+        },
+      }),
+    });
+
+    const output = printSchemaWithDirectives(schema);
+    expect(output).toContain('@directive(arg: "argument_value")');
   });
 
   it('prints a federation-style subgraph schema correctly', () => {
