@@ -257,8 +257,9 @@ const jsSchema = makeExecutableSchema({
   can be set to `error`, `warn`, or `ignore`:
   - `requireResolversForArgs` will cause `makeExecutableSchema` to throw an error (`error`) or issue
     a warning (`warn`) unless a resolver is defined for every field with arguments. On the
-    subscription type this means a `subscribe` function; `resolve` is optional there. On Query and
-    Mutation it means `resolve`. The default is `ignore`, causing this validator to be skipped.
+    subscription type this means a `subscribe` function; `resolve` is optional there. On every other
+    type (Query, Mutation, and your own object types) it means `resolve`. The default is `ignore`,
+    causing this validator to be skipped.
 
   - `requireResolversForNonScalar` require a resolver for every non-scalar field. Default is
     `ignore`.

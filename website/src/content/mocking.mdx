@@ -257,8 +257,9 @@ updated value.
 
 ### Mocking Errors
 
-To mock an error response, use a resolver that throws a `GraphQLError`. `mocks` functions only
-return values; they cannot produce GraphQL errors.
+To mock an error response, throw a `GraphQLError` from a resolver (or from a `mocks` function).
+Returning a `GraphQLError` as a value is not enough; GraphQL only treats it as an error if it is
+thrown during field resolution.
 
 ```ts
 import { GraphQLError } from 'graphql'
