@@ -74,7 +74,11 @@ export function mapSchema(schema: GraphQLSchema, schemaMapper: SchemaMapper = {}
   );
 
   const originalDirectives = schema.getDirectives();
-  const newDirectives = mapDirectives(originalDirectives, schema, schemaMapper);
+  const newDirectives = mapDirectiveDefaultValues(
+    mapDirectives(originalDirectives, schema, schemaMapper),
+    newTypeMap,
+    parseInputValue,
+  );
 
   const { typeMap, directives } = rewireTypes(newTypeMap, newDirectives);
 
@@ -183,6 +187,32 @@ function mapEnumValues(
     },
     type => isEnumType(type),
   );
+}
+
+function mapDirectiveDefaultValues(
+  directives: GraphQLDirective[],
+  typeMap: Record<string, GraphQLNamedType>,
+  fn: IDefaultValueIteratorFn,
+): GraphQLDirective[] {
+  return directives.map(directive => {
+    const config = directive.toConfig();
+    let changed = false;
+    for (const argName in config.args) {
+      const arg = config.args[argName];
+      if (arg.defaultValue === undefined) {
+        continue;
+      }
+      const maybeNewType = getNewType(typeMap, arg.type);
+      if (maybeNewType != null) {
+        config.args[argName] = {
+          ...arg,
+          defaultValue: fn(maybeNewType, arg.defaultValue),
+        };
+        changed = true;
+      }
+    }
+    return changed ? new GraphQLDirective(config) : directive;
+  });
 }
 
 function mapDefaultValues(

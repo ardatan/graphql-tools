@@ -65,6 +65,56 @@ describe('mapSchema - directives with defaults', () => {
     transformer(schemaWithResolvers);
   });
 
+  it('maps a remapped enum default to the internal value', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        enum UserRole {
+          ADMIN
+          MODERATOR
+          USER
+        }
+
+        directive @auth(role: UserRole = USER) on FIELD_DEFINITION
+
+        type Query {
+          usersList: [ID!]! @auth
+          moderatorsList: [ID!]! @auth(role: MODERATOR)
+          adminsList: [ID!]! @auth(role: ADMIN)
+        }
+      `,
+      resolvers: {
+        Query: {
+          usersList: () => ['u1'],
+          moderatorsList: () => ['m1'],
+          adminsList: () => ['a1'],
+        },
+        UserRole: {
+          ADMIN: '0admin',
+          MODERATOR: '1moderator',
+          USER: '3user',
+        },
+      },
+    });
+
+    const roles: Record<string, unknown> = {};
+    mapSchema(schema, {
+      [MapperKind.OBJECT_FIELD]: fieldConfig => {
+        const authDirective = getDirective(schema, fieldConfig, 'auth')?.[0];
+        const fieldName = fieldConfig.astNode?.name.value;
+        if (fieldName && authDirective) {
+          roles[fieldName] = authDirective.role;
+        }
+        return fieldConfig;
+      },
+    });
+
+    expect(roles).toEqual({
+      usersList: '3user',
+      moderatorsList: '1moderator',
+      adminsList: '0admin',
+    });
+  });
+
   it('handles Enum with default correctly', () => {
     const { typeDefs, transformer } = noopDirective({
       declaration: '@noop(arg: ALPHABET = D)',
