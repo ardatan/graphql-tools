@@ -102,7 +102,7 @@ describe('mapSchema - directives with defaults', () => {
         const authDirective = getDirective(schema, fieldConfig, 'auth')?.[0];
         const fieldName = fieldConfig.astNode?.name.value;
         if (fieldName && authDirective) {
-          roles[fieldName] = authDirective.role;
+          roles[fieldName] = authDirective['role'];
         }
         return fieldConfig;
       },
