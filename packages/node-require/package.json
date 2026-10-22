@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/node-require",
-  "version": "8.0.4",
+  "version": "8.0.5",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
@@ -50,9 +50,9 @@
     "graphql": "^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/graphql-file-loader": "9.0.4",
-    "@graphql-tools/load": "9.0.4",
-    "@graphql-tools/utils": "^13.1.1",
+    "@graphql-tools/graphql-file-loader": "9.0.5",
+    "@graphql-tools/load": "9.0.5",
+    "@graphql-tools/utils": "^13.1.2",
     "tslib": "^2.4.0"
   },
   "publishConfig": {
