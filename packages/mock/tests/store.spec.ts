@@ -862,4 +862,47 @@ describe('MockStore', () => {
       expect(surnames).toHaveLength(5);
     });
   });
+
+  describe('input types', () => {
+    const inputSchema = buildSchema(/* GraphQL */ `
+      input AddressInput {
+        city: String!
+      }
+
+      input CreateUserInput {
+        name: String!
+        age: Int
+        address: AddressInput
+      }
+
+      type User {
+        id: ID!
+        name: String!
+      }
+
+      type Query {
+        user(id: ID!): User
+      }
+
+      type Mutation {
+        createUser(input: CreateUserInput!): User
+      }
+    `);
+
+    it('can set and get fields on an input type', () => {
+      const store = createMockStore({ schema: inputSchema });
+      store.set('CreateUserInput', 'draft', { name: 'Ada', age: 36 });
+      expect(store.get('CreateUserInput', 'draft', 'name')).toEqual('Ada');
+      expect(store.get('CreateUserInput', 'draft', 'age')).toEqual(36);
+    });
+
+    it('can store and retrieve nested input objects', () => {
+      const store = createMockStore({ schema: inputSchema });
+      store.set('CreateUserInput', 'draft', {
+        name: 'Ada',
+        address: { city: 'London' },
+      });
+      expect(store.get('CreateUserInput', 'draft', ['address', 'city'])).toEqual('London');
+    });
+  });
 });

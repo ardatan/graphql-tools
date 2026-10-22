@@ -1,12 +1,13 @@
 import stringify from 'fast-json-stable-stringify';
 import {
   getNullableType,
-  GraphQLOutputType,
   GraphQLSchema,
   GraphQLString,
+  GraphQLType,
   isAbstractType,
   isCompositeType,
   isEnumType,
+  isInputObjectType,
   isInterfaceType,
   isListType,
   isNonNullType,
@@ -369,7 +370,7 @@ export class MockStore implements IMockStore {
   }
 
   private normalizeValueToStore(
-    fieldType: GraphQLOutputType,
+    fieldType: GraphQLType,
     value: unknown,
     currentValue: unknown,
     onInsertType: (typeName: string, values: { [fieldName: string]: unknown }) => Ref,
@@ -385,7 +386,7 @@ export class MockStore implements IMockStore {
     if (value === undefined) return this.generateValueFromType(nullableFieldType);
 
     // deal with nesting insert
-    if (isCompositeType(nullableFieldType)) {
+    if (isCompositeType(nullableFieldType) || isInputObjectType(nullableFieldType)) {
       if (!isRecord(value))
         throw new Error(`should be an object or null or undefined. Received ${value}`);
 
@@ -575,7 +576,7 @@ export class MockStore implements IMockStore {
     ) as KeyT;
   }
 
-  private generateValueFromType(fieldType: GraphQLOutputType, listIndex?: number): unknown {
+  private generateValueFromType(fieldType: GraphQLType, listIndex?: number): unknown {
     const nullableType = getNullableType(fieldType);
 
     if (isScalarType(nullableType)) {
@@ -589,7 +590,7 @@ export class MockStore implements IMockStore {
 
       const values = nullableType.getValues().map(v => v.value);
       return takeOneOf(values, this.mockGenerationBehavior);
-    } else if (isObjectType(nullableType)) {
+    } else if (isObjectType(nullableType) || isInputObjectType(nullableType)) {
       // this will create a new random ref
       return this.insert(nullableType.name, {});
     } else if (isListType(nullableType)) {
@@ -667,8 +668,10 @@ export class MockStore implements IMockStore {
   private getType(typeName: string) {
     const type = this.schema.getType(typeName);
 
-    if (!type || !(isObjectType(type) || isInterfaceType(type))) {
-      throw new Error(`${typeName} does not exist on schema or is not an object or interface`);
+    if (!type || !(isObjectType(type) || isInterfaceType(type) || isInputObjectType(type))) {
+      throw new Error(
+        `${typeName} does not exist on schema or is not an object, interface, or input`,
+      );
     }
 
     return type;
