@@ -16,7 +16,11 @@ export function assertResolversPresent(
     );
   }
 
+  const subscriptionTypeName = schema.getSubscriptionType()?.name;
+
   forEachField(schema, (field, typeName, fieldName) => {
+    const isSubscriptionField = typeName === subscriptionTypeName;
+
     // requires a resolver for *every* field.
     if (requireResolversForAllFields) {
       expectResolver(
@@ -25,6 +29,7 @@ export function assertResolversPresent(
         field,
         typeName,
         fieldName,
+        isSubscriptionField,
       );
     }
 
@@ -36,6 +41,7 @@ export function assertResolversPresent(
         field,
         typeName,
         fieldName,
+        isSubscriptionField,
       );
     }
 
@@ -47,6 +53,7 @@ export function assertResolversPresent(
         field,
         typeName,
         fieldName,
+        isSubscriptionField,
       );
     }
   });
@@ -58,8 +65,10 @@ function expectResolver(
   field: GraphQLField<any, any>,
   typeName: string,
   fieldName: string,
+  isSubscriptionField = false,
 ) {
-  if (!field.resolve) {
+  const resolverFn = isSubscriptionField ? field.subscribe : field.resolve;
+  if (!resolverFn) {
     const message = `Resolver missing for "${typeName}.${fieldName}".
 To disable this validator, use:
   resolverValidationOptions: {
@@ -76,7 +85,7 @@ To disable this validator, use:
 
     return;
   }
-  if (typeof field.resolve !== 'function') {
+  if (typeof resolverFn !== 'function') {
     throw new Error(`Resolver "${typeName}.${fieldName}" must be a function`);
   }
 }

@@ -1517,6 +1517,82 @@ describe('generating schema from shorthand', () => {
     }, 'Resolver missing for "Query.bird"');
   });
 
+  test('does not throw if a subscription field with args has a subscribe function', () => {
+    expect(() =>
+      makeExecutableSchema({
+        typeDefs: /* GraphQL */ `
+          type Query {
+            _: Boolean
+          }
+          type Subscription {
+            numberIncremented(id: Int): Int
+          }
+        `,
+        resolvers: {
+          Subscription: {
+            numberIncremented: {
+              subscribe: async function* () {
+                yield { numberIncremented: 1 };
+              },
+            },
+          },
+        },
+        resolverValidationOptions: {
+          requireResolversForArgs: 'error',
+        },
+      }),
+    ).not.toThrow();
+  });
+
+  test('does not accept resolve alone on a subscription field with args', () => {
+    expect(() =>
+      makeExecutableSchema({
+        typeDefs: /* GraphQL */ `
+          type Query {
+            _: Boolean
+          }
+          type Subscription {
+            numberIncremented(id: Int): Int
+          }
+        `,
+        resolvers: {
+          Subscription: {
+            numberIncremented: {
+              resolve: () => 1,
+            },
+          },
+        },
+        resolverValidationOptions: {
+          requireResolversForArgs: 'error',
+        },
+      }),
+    ).toThrow('Resolver missing for "Subscription.numberIncremented"');
+  });
+
+  test('still requires resolve on query fields with args even if subscribe is present', () => {
+    expect(() =>
+      makeExecutableSchema({
+        typeDefs: /* GraphQL */ `
+          type Query {
+            bird(id: ID): String
+          }
+        `,
+        resolvers: {
+          Query: {
+            bird: {
+              subscribe: async function* () {
+                yield { bird: 'robin' };
+              },
+            },
+          },
+        },
+        resolverValidationOptions: {
+          requireResolversForArgs: 'error',
+        },
+      }),
+    ).toThrow('Resolver missing for "Query.bird"');
+  });
+
   test('does not throw an error if `resolverValidationOptions.requireResolversForArgs` is false', () => {
     const short = `
       type Query{
