@@ -158,8 +158,32 @@ will return a value for it.
 
 ### Using Lists in Mocks
 
-To define a mock for a list, simply return an empty array of the desired length as a mock value for
-the field:
+When a list field has no explicit mock, the store generates `defaultListLength` items (2 by
+default). Pass `defaultListLength` to `addMocksToSchema` or `createMockStore` to change that,
+including `0` for an empty list:
+
+```ts
+const schemaWithMocks = addMocksToSchema({
+  schema,
+  defaultListLength: 0
+})
+```
+
+Scalar and enum mock functions receive each item's zero-based index when they generate list items:
+
+```ts
+const schemaWithMocks = addMocksToSchema({
+  schema,
+  defaultListLength: 3,
+  mocks: {
+    Int: (index?: number) => index ?? 0
+  }
+})
+// a field of type [Int!]! resolves to [0, 1, 2]
+```
+
+To define a mock for a list yourself, return an array of the desired length as a mock value for the
+field:
 
 ```js
 {
@@ -438,6 +462,7 @@ const schemaWithMocks = addMocksToSchema({
   schema,
   mocks: {},
   mockGenerationBehavior: 'random',
+  defaultListLength: 2,
   preserveResolvers: false
 })
 ```
@@ -448,6 +473,9 @@ can return mock data for any valid query that is sent to the server.
 If `mocks` is not passed, the defaults will be used for each of the scalar types. By default it'll
 generate random values, if this causes flakiness and you need a more deterministic behavior, set
 `mockGenerationBehavior` to `'deterministic'`.
+
+`defaultListLength` (default `2`) is the length of lists the store auto-generates when a list field
+has no explicit mock.
 
 If `preserveResolvers` is set to `true`, existing resolvers will not be overwritten to provide mock
 data. This can be used to mock some parts of the server and not others.
@@ -511,7 +539,7 @@ or by using `createMockStore` (and use the store in `addMocksToSchema`):
 ```ts
 import { createMockStore } from '@graphql-tools/mock'
 
-const store = createMockStore({ schema })
+const store = createMockStore({ schema, defaultListLength: 2 })
 const schemaWithMocks = addMocksToSchema({ schema, store })
 ```
 
@@ -616,6 +644,28 @@ store.set('Query', 'ROOT', {
     friends: [{ name: 'Emily' }, { name: 'Caroline' }]
   }
 })
+```
+
+If a field takes arguments, `set` without `fieldArgs` still stores the value under the bare field
+name. A later `get` (or query) that passes arguments reuses that **explicit** override. Values the
+store generated on its own for the bare field are not reused for argumented reads.
+
+```ts
+store.set('User', '1', { membership: null })
+store.get('User', '1', 'membership', { param: 'test' })
+// null
+```
+
+The same applies to mocks on list items: `{ membership: null }` or
+`{ returnStringArgument: 'Overridden' }` is used when the field is queried with arguments.
+
+Input object types work the same way as object types. That lets you store a mutation input and read
+it back later:
+
+```ts
+store.set('CreateUserInput', 'draft', { name: 'Ada', age: 36 })
+store.get('CreateUserInput', 'draft', 'name')
+// 'Ada'
 ```
 
 #### `reset`
@@ -810,7 +860,16 @@ const schemaWithMocks = addMocksToSchema({ schema, mocks })
 ### Deprecated: MockList
 
 `MockList` is deprecated, use plain arrays instead. See
-[_Using lists in mocks_](#using-lists-in-mocks).
+[_Using lists in mocks_](#using-lists-in-mocks). If you still return a `MockList`, its callback
+receives each item's zero-based index:
+
+```js
+{
+  Person: () => ({
+    friends: () => new MockList(3, index => `Friend ${index}`)
+  })
+}
+```
 
 ```js filename="Example"
 // Previously:
