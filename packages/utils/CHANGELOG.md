@@ -1,5 +1,47 @@
 # @graphql-tools/utils
 
+## 13.1.3
+
+### Patch Changes
+
+- [#8575](https://github.com/ardatan/graphql-tools/pull/8575) [`7fbc6e7`](https://github.com/ardatan/graphql-tools/commit/7fbc6e7fc4640985e97be21d17c1f6e025e7021f) Thanks [@ardatan](https://github.com/ardatan)! - `mapSchema` now remaps directive argument defaults the same way it already remaps field argument defaults.
+  
+  Use case: `UserRole` is remapped to internal ids, and `@auth` defaults to `USER`.
+  
+  ```ts
+  const schema = mapSchema(originalSchema, {
+    [MapperKind.ENUM_VALUE]: (valueConfig, typeName, _schema, externalValue) => {
+      if (typeName === 'UserRole' && externalValue === 'USER') {
+        return { ...valueConfig, value: '3user' };
+      }
+      return valueConfig;
+    },
+  });
+  
+  // directive @auth(role: UserRole = USER)
+  schema.getDirective('auth').args.find(arg => arg.name === 'role').defaultValue;
+  // before: "USER"
+  // after:  "3user"
+  ```
+  
+  `mapSchema` serializes the stored default with the source type before parsing with the remapped type, so an internal value that matches another enum name (`USER` -> `"ADMIN"`) stays `"ADMIN"` instead of being parsed as that name.
+  
+  `forEachDefaultValue` walks directive arguments too, so `makeExecutableSchema` enum resolvers get the same result.
+
+- [#8574](https://github.com/ardatan/graphql-tools/pull/8574) [`5ceed9d`](https://github.com/ardatan/graphql-tools/commit/5ceed9d16fc776fb5a8ec7b5cf2d585f3a0b082e) Thanks [@ardatan](https://github.com/ardatan)! - Published `Executor` types include `/// <reference lib="esnext.disposable" preserve="true" />` so consumers do not need `skipLibCheck` or a full `esnext` lib just to import this package.
+  
+  Use case: an app with `"lib": ["es2022"]` or `["es2024"]` and `skipLibCheck: false` that imports `@graphql-tools/utils`:
+  
+  ```ts
+  import type { Executor } from '@graphql-tools/utils';
+  
+  export const executor: Executor = async request => {
+    // ...
+  };
+  ```
+  
+  `Executor` can return a `Disposable` / `AsyncIterable` result. Those names live in TypeScript's `esnext.disposable` lib, which is not part of `es2022`/`es2024`. Without the preserved reference, `tsc` reports `Cannot find name 'Disposable'`. With it, the published `.d.ts` pulls in that lib for the consumer automatically.
+
 ## 13.1.2
 
 ### Patch Changes
