@@ -1,7 +1,6 @@
 import {
   EnumValueDefinitionNode,
   FieldDefinitionNode,
-  getNamedType,
   GraphQLDirective,
   GraphQLEnumType,
   GraphQLFieldConfig,
@@ -221,11 +220,16 @@ function isValidMappedEnumDefault(type: GraphQLType, value: unknown): boolean {
   if (value == null) {
     return true;
   }
-  const named = getNamedType(type);
-  if (!isEnumType(named)) {
+  if (isNonNullType(type)) {
+    return isValidMappedEnumDefault(type.ofType, value);
+  }
+  if (isListType(type)) {
+    return Array.isArray(value) && value.every(item => isValidMappedEnumDefault(type.ofType, item));
+  }
+  if (!isEnumType(type)) {
     return true;
   }
-  return named.getValues().some(enumValue => enumValue.value === value);
+  return type.getValues().some(enumValue => enumValue.value === value);
 }
 
 function mapDefaultValues(

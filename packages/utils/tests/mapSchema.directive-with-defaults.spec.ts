@@ -212,6 +212,54 @@ describe('mapSchema - directives with defaults', () => {
     expect(roleDefault).toBe('3user');
   });
 
+  it('keeps remapped list enum defaults on directive arguments', () => {
+    const UserRole = new GraphQLEnumType({
+      name: 'UserRole',
+      values: {
+        ADMIN: { value: 'ADMIN' },
+        USER: { value: 'USER' },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          usersList: {
+            type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLID))),
+          },
+        },
+      }),
+      directives: [
+        new GraphQLDirective({
+          name: 'auth',
+          locations: [DirectiveLocation.FIELD_DEFINITION],
+          args: {
+            roles: {
+              type: new GraphQLList(UserRole),
+              defaultValue: ['USER'],
+            },
+          },
+        }),
+      ],
+      types: [UserRole],
+    });
+
+    const mapped = mapSchema(schema, {
+      [MapperKind.ENUM_VALUE]: (valueConfig, typeName, _schema, externalValue) => {
+        if (typeName === 'UserRole' && externalValue === 'USER') {
+          return { ...valueConfig, value: '3user' };
+        }
+        return valueConfig;
+      },
+    });
+
+    const rolesDefault = mapped
+      .getDirective('auth')
+      ?.args.find(arg => arg.name === 'roles')?.defaultValue;
+
+    expect(rolesDefault).toEqual(['3user']);
+  });
+
   it('handles Enum with default correctly', () => {
     const { typeDefs, transformer } = noopDirective({
       declaration: '@noop(arg: ALPHABET = D)',
