@@ -21,7 +21,6 @@ import {
   InterfaceTypeExtensionNode,
   Kind,
   ListTypeNode,
-  Location,
   NamedTypeNode,
   NameNode,
   NonNullTypeNode,
@@ -180,17 +179,7 @@ export function processImport(
   return {
     kind: Kind.DOCUMENT,
     definitions,
-    loc: loc ? documentLocationFrom(loc) : undefined,
-  };
-}
-
-function documentLocationFrom(loc: Location): Location {
-  return {
-    start: 0,
-    end: loc.source.body.length,
-    startToken: loc.startToken,
-    endToken: loc.endToken,
-    source: loc.source,
+    loc,
   };
 }
 
