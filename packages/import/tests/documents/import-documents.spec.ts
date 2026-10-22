@@ -64,6 +64,28 @@ describe('import in documents', () => {
     `);
   });
 
+  it('keeps original definition nodes instead of reprinting them', () => {
+    const visitedFiles: VisitedFilesMap = new Map();
+    const document = processImport(
+      './import-test/default/a.graphql',
+      __dirname,
+      undefined,
+      visitedFiles,
+    );
+    const collected = new Set();
+    for (const fileDefs of visitedFiles.values()) {
+      for (const defs of fileDefs.values()) {
+        for (const def of defs) {
+          collected.add(def);
+        }
+      }
+    }
+    expect(document.definitions.length).toBeGreaterThan(0);
+    for (const def of document.definitions) {
+      expect(collected.has(def)).toBe(true);
+    }
+  });
+
   it('should accept a map as fourth argument for users to get visited file paths with details', () => {
     const visitedFiles: VisitedFilesMap = new Map();
     processImport('./import-test/default/a.graphql', __dirname, undefined, visitedFiles);
