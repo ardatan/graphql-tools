@@ -1,4 +1,13 @@
-import { GraphQLSchema } from 'graphql';
+import {
+  DirectiveLocation,
+  GraphQLDirective,
+  GraphQLEnumType,
+  GraphQLID,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLSchema,
+} from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { getDirective, MapperKind, mapSchema } from '../src/index.js';
 
@@ -63,6 +72,192 @@ describe('mapSchema - directives with defaults', () => {
     });
 
     transformer(schemaWithResolvers);
+  });
+
+  it('maps a remapped enum default to the internal value', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        enum UserRole {
+          ADMIN
+          MODERATOR
+          USER
+        }
+
+        directive @auth(role: UserRole = USER) on FIELD_DEFINITION
+
+        type Query {
+          usersList: [ID!]! @auth
+          moderatorsList: [ID!]! @auth(role: MODERATOR)
+          adminsList: [ID!]! @auth(role: ADMIN)
+        }
+      `,
+      resolvers: {
+        Query: {
+          usersList: () => ['u1'],
+          moderatorsList: () => ['m1'],
+          adminsList: () => ['a1'],
+        },
+        UserRole: {
+          ADMIN: '0admin',
+          MODERATOR: '1moderator',
+          USER: '3user',
+        },
+      },
+    });
+
+    const roles: Record<string, unknown> = {};
+    mapSchema(schema, {
+      [MapperKind.OBJECT_FIELD]: fieldConfig => {
+        const authDirective = getDirective(schema, fieldConfig, 'auth')?.[0];
+        const fieldName = fieldConfig.astNode?.name.value;
+        if (fieldName && authDirective) {
+          roles[fieldName] = authDirective['role'];
+        }
+        return fieldConfig;
+      },
+    });
+
+    expect(roles).toEqual({
+      usersList: '3user',
+      moderatorsList: '1moderator',
+      adminsList: '0admin',
+    });
+  });
+
+  it('keeps a remapped directive enum default when the internal value matches another name', () => {
+    const UserRole = new GraphQLEnumType({
+      name: 'UserRole',
+      values: {
+        ADMIN: { value: '1admin' },
+        USER: { value: 'ADMIN' },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          usersList: {
+            type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLID))),
+          },
+        },
+      }),
+      directives: [
+        new GraphQLDirective({
+          name: 'auth',
+          locations: [DirectiveLocation.FIELD_DEFINITION],
+          args: {
+            role: {
+              type: UserRole,
+              defaultValue: 'ADMIN',
+            },
+          },
+        }),
+      ],
+      types: [UserRole],
+    });
+
+    const mapped = mapSchema(schema);
+    const roleDefault = mapped
+      .getDirective('auth')
+      ?.args.find(arg => arg.name === 'role')?.defaultValue;
+
+    expect(roleDefault).toBe('ADMIN');
+  });
+
+  it('keeps the internal directive default when an enum value is renamed', () => {
+    const UserRole = new GraphQLEnumType({
+      name: 'UserRole',
+      values: {
+        ADMIN: { value: '0admin' },
+        USER: { value: '3user' },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          usersList: {
+            type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLID))),
+          },
+        },
+      }),
+      directives: [
+        new GraphQLDirective({
+          name: 'auth',
+          locations: [DirectiveLocation.FIELD_DEFINITION],
+          args: {
+            role: {
+              type: UserRole,
+              defaultValue: '3user',
+            },
+          },
+        }),
+      ],
+      types: [UserRole],
+    });
+
+    const mapped = mapSchema(schema, {
+      [MapperKind.ENUM_VALUE]: (valueConfig, typeName, _schema, externalValue) => {
+        if (typeName === 'UserRole' && externalValue === 'USER') {
+          return ['MEMBER', valueConfig];
+        }
+        return valueConfig;
+      },
+    });
+
+    const roleDefault = mapped
+      .getDirective('auth')
+      ?.args.find(arg => arg.name === 'role')?.defaultValue;
+
+    expect(roleDefault).toBe('3user');
+  });
+
+  it('keeps remapped list enum defaults on directive arguments', () => {
+    const UserRole = new GraphQLEnumType({
+      name: 'UserRole',
+      values: {
+        ADMIN: { value: 'ADMIN' },
+        USER: { value: 'USER' },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          usersList: {
+            type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLID))),
+          },
+        },
+      }),
+      directives: [
+        new GraphQLDirective({
+          name: 'auth',
+          locations: [DirectiveLocation.FIELD_DEFINITION],
+          args: {
+            roles: {
+              type: new GraphQLList(UserRole),
+              defaultValue: ['USER'],
+            },
+          },
+        }),
+      ],
+      types: [UserRole],
+    });
+
+    const mapped = mapSchema(schema, {
+      [MapperKind.ENUM_VALUE]: (valueConfig, typeName, _schema, externalValue) => {
+        if (typeName === 'UserRole' && externalValue === 'USER') {
+          return { ...valueConfig, value: '3user' };
+        }
+        return valueConfig;
+      },
+    });
+
+    const rolesDefault = mapped
+      .getDirective('auth')
+      ?.args.find(arg => arg.name === 'roles')?.defaultValue;
+
+    expect(rolesDefault).toEqual(['3user']);
   });
 
   it('handles Enum with default correctly', () => {

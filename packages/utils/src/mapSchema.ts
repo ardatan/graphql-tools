@@ -74,7 +74,11 @@ export function mapSchema(schema: GraphQLSchema, schemaMapper: SchemaMapper = {}
   );
 
   const originalDirectives = schema.getDirectives();
-  const newDirectives = mapDirectives(originalDirectives, schema, schemaMapper);
+  const newDirectives = mapDirectiveDefaultValues(
+    mapDirectives(originalDirectives, schema, schemaMapper),
+    newTypeMap,
+    parseInputValue,
+  );
 
   const { typeMap, directives } = rewireTypes(newTypeMap, newDirectives);
 
@@ -183,6 +187,49 @@ function mapEnumValues(
     },
     type => isEnumType(type),
   );
+}
+
+function mapDirectiveDefaultValues(
+  directives: GraphQLDirective[],
+  typeMap: Record<string, GraphQLNamedType>,
+  fn: IDefaultValueIteratorFn,
+): GraphQLDirective[] {
+  return directives.map(directive => {
+    const config = directive.toConfig();
+    let changed = false;
+    for (const argName in config.args) {
+      const arg = config.args[argName];
+      if (arg.defaultValue === undefined) {
+        continue;
+      }
+      const maybeNewType = getNewType(typeMap, arg.type);
+      if (maybeNewType != null) {
+        const parsed = fn(maybeNewType, serializeInputValue(arg.type, arg.defaultValue));
+        config.args[argName] = {
+          ...arg,
+          defaultValue: isValidMappedEnumDefault(maybeNewType, parsed) ? parsed : arg.defaultValue,
+        };
+        changed = true;
+      }
+    }
+    return changed ? new GraphQLDirective(config) : directive;
+  });
+}
+
+function isValidMappedEnumDefault(type: GraphQLType, value: unknown): boolean {
+  if (value == null) {
+    return true;
+  }
+  if (isNonNullType(type)) {
+    return isValidMappedEnumDefault(type.ofType, value);
+  }
+  if (isListType(type)) {
+    return Array.isArray(value) && value.every(item => isValidMappedEnumDefault(type.ofType, item));
+  }
+  if (!isEnumType(type)) {
+    return true;
+  }
+  return type.getValues().some(enumValue => enumValue.value === value);
 }
 
 function mapDefaultValues(

@@ -25,4 +25,12 @@ export function forEachDefaultValue(schema: GraphQLSchema, fn: IDefaultValueIter
       }
     }
   }
+
+  for (const directive of schema.getDirectives()) {
+    for (const arg of directive.args) {
+      if (arg.defaultValue !== undefined) {
+        arg.defaultValue = fn(arg.type, arg.defaultValue);
+      }
+    }
+  }
 }
