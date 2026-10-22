@@ -88,30 +88,30 @@ You can also use this to describe object types, and the fields can be functions 
 }
 ```
 
-`Query` / `Mutation` / `Subscription` mocks receive the field arguments of the field being resolved.
-Nested type mocks such as `User` do not.
+In this example, we are using [casual](https://github.com/boo1ean/casual), a fake data generator for
+JavaScript, so that we can get a different result every time the field is called. You might want to
+use a collection of fake objects, or a generator that always uses a consistent seed, if you are
+planning to use the data for testing.
 
-```ts
-const query = jest.fn(() => ({
-  user: { name: 'Ada' }
-}))
+### Field arguments on Query, Mutation, and Subscription
 
-const schemaWithMocks = addMocksToSchema({
-  schema,
-  mocks: { Query: query }
-})
+`Query`, `Mutation`, and `Subscription` mocks receive the **resolved field arguments** of the field
+being resolved. Nested type mocks such as `User` stay factories with no arguments.
 
-await graphql({
-  schema: schemaWithMocks,
-  source: 'query ($id: ID!) { user(id: $id) { name } }',
-  variableValues: { id: 'user-1' }
-})
+A mock is a type factory, not a GraphQL resolver. A resolver is called as
+`(source, args, context, info)`. The mock library only passes `args`:
 
-query.mock.calls[0][0]
-// { id: 'user-1' }
-```
+- **Field arguments** are the schema contract for that invocation. `user(id: ID!)` always has `id`,
+  after GraphQL has coerced whatever the client sent (a literal or a variable) into that map. That
+  is what identifies this call and what you key mock data by.
+- **`context`** is the same request-wide bag (auth, loaders, locale) for every field. It does not
+  distinguish `user(id: "1")` from `user(id: "2")`.
+- **`info`** is execution metadata.
 
-An operation field function gets the same map. Other fields on `User` keep the default mocks.
+When you need `context`, `info`, or the [`MockStore`](#mockstore), use the `resolvers` option of
+`addMocksToSchema` so the rest of the fields can still come from mocks.
+
+Field functions on the object an operation mock returns get the same argument map:
 
 ```ts
 {
@@ -124,10 +124,77 @@ An operation field function gets the same map. Other fields on `User` keep the d
 }
 ```
 
-In this example, we are using [casual](https://github.com/boo1ean/casual), a fake data generator for
-JavaScript, so that we can get a different result every time the field is called. You might want to
-use a collection of fake objects, or a generator that always uses a consistent seed, if you are
-planning to use the data for testing.
+### Testing with Jest
+
+`addMocksToSchema` is meant for tests: you write a schema, stub the few fields you care about, and
+let the store fill the rest. Jest spies work on the mock functions themselves.
+
+```ts
+import { graphql } from 'graphql'
+import { addMocksToSchema } from '@graphql-tools/mock'
+import { makeExecutableSchema } from '@graphql-tools/schema'
+
+const schema = makeExecutableSchema({
+  typeDefs: /* GraphQL */ `
+    type User {
+      id: ID!
+      name: String!
+      email: String!
+    }
+
+    type Query {
+      user(id: ID!): User
+    }
+  `
+})
+
+it('returns a mocked user for the requested id', async () => {
+  const Query = jest.fn(() => ({
+    user: ({ id }) => ({
+      id,
+      name: 'Ada Lovelace'
+    })
+  }))
+
+  const schemaWithMocks = addMocksToSchema({
+    schema,
+    mocks: {
+      Query,
+      User: () => ({
+        email: 'ada@example.com'
+      })
+    }
+  })
+
+  const { data, errors } = await graphql({
+    schema: schemaWithMocks,
+    source: /* GraphQL */ `
+      query GetUser($id: ID!) {
+        user(id: $id) {
+          id
+          name
+          email
+        }
+      }
+    `,
+    variableValues: { id: 'user-1' }
+  })
+
+  expect(errors).toBeFalsy()
+  expect(data).toEqual({
+    user: {
+      id: 'user-1',
+      name: 'Ada Lovelace',
+      email: 'ada@example.com'
+    }
+  })
+  expect(Query).toHaveBeenCalledWith({ id: 'user-1' })
+})
+```
+
+`Query` is called with `{ id: 'user-1' }` because that is `user(id:)`'s argument map. `User` only
+supplies `email`; `id` and `name` come from the `user` field function. The default mocks would have
+filled any other `User` field you selected.
 
 ### Mocking Custom Scalar Types
 
@@ -754,8 +821,9 @@ store.has('User', '1') // true
 
 Mock functions do not receive resolvers' source, context, or `info` anymore. Query, Mutation, and
 Subscription mocks get the resolved **field arguments** of the field being mocked (see
-[Customizing Mocks](#customizing-mocks)). Use the `resolvers` option of `addMocksToSchema` when you
-need a real resolver that can interact with [`MockStore`](#mockstore).
+[Field arguments on Query, Mutation, and Subscription](#field-arguments-on-query-mutation-and-subscription)).
+Use the `resolvers` option of `addMocksToSchema` when you need a real resolver that can interact
+with [`MockStore`](#mockstore).
 
 ```js filename="Example"
 // Previously:
