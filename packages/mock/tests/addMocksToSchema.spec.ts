@@ -538,6 +538,45 @@ describe('addMocksToSchema', () => {
       ),
     ).toBe(false);
   });
+
+  it('honors defaultListLength when auto-generating lists', async () => {
+    const listSchema = buildSchema(/* GraphQL */ `
+      type Query {
+        tags: [String!]!
+      }
+    `);
+    const mockedSchema = addMocksToSchema({
+      schema: listSchema,
+      defaultListLength: 0,
+    });
+    const { data, errors } = await graphql({
+      schema: mockedSchema,
+      source: '{ tags }',
+    });
+    expect(errors).toBeFalsy();
+    expect(data).toEqual({ tags: [] });
+  });
+
+  it('passes list index to scalar mocks when auto-generating lists', async () => {
+    const listSchema = buildSchema(/* GraphQL */ `
+      type Query {
+        nums: [Int!]!
+      }
+    `);
+    const mockedSchema = addMocksToSchema({
+      schema: listSchema,
+      defaultListLength: 3,
+      mocks: {
+        Int: (index?: number) => index ?? -1,
+      },
+    });
+    const { data, errors } = await graphql({
+      schema: mockedSchema,
+      source: '{ nums }',
+    });
+    expect(errors).toBeFalsy();
+    expect(data).toEqual({ nums: [0, 1, 2] });
+  });
 });
 
 describe('list and nested mock overrides', () => {

@@ -1410,6 +1410,26 @@ describe('Mock retro-compatibility', () => {
     });
   });
 
+  test('passes the list index to the MockList function', () => {
+    let jsSchema = buildSchema(shorthand);
+    const mockMap = {
+      RootQuery: () => ({
+        returnListOfInt: () => new MockList(3, (index: number) => index),
+      }),
+    };
+    jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
+    const testQuery = /* GraphQL */ `
+      {
+        returnListOfInt
+      }
+    `;
+    return graphql({ schema: jsSchema, source: testQuery }).then(res => {
+      expect(res.data).toEqual({
+        returnListOfInt: [0, 1, 2],
+      });
+    });
+  });
+
   test('lets you provide a function for your MockList', () => {
     let jsSchema = buildSchema(shorthand);
     const mockMap = {

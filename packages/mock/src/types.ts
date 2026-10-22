@@ -1,7 +1,7 @@
 import { GraphQLSchema } from 'graphql';
 import { ExecutionResult, IResolvers } from '@graphql-tools/utils';
 
-export type IMockFn = () => unknown;
+export type IMockFn = (index?: number) => unknown;
 export type IScalarMock = unknown | IMockFn;
 export type ITypeMock = () =>
   { [fieldName: string]: unknown | IMockFn } | { [fieldName: string]: IMockFn };

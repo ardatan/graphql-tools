@@ -20,7 +20,7 @@ export function isMockList(obj: any): obj is MockList {
  */
 export class MockList {
   private readonly len: number | Array<number>;
-  private readonly wrappedFunction: undefined | (() => unknown);
+  private readonly wrappedFunction: undefined | ((index: number) => unknown);
 
   /**
    * @param length Either the exact length of items to return or an inclusive
@@ -28,7 +28,7 @@ export class MockList {
    * @param mockFunction The function to call for each item in the list to
    * resolve it. It can return another MockList or a value.
    */
-  constructor(length: number | Array<number>, mockFunction?: () => unknown) {
+  constructor(length: number | Array<number>, mockFunction?: (index: number) => unknown) {
     this.len = length;
     if (typeof mockFunction !== 'undefined') {
       if (typeof mockFunction !== 'function') {
@@ -51,7 +51,7 @@ export class MockList {
 
     for (let i = 0; i < arr.length; i++) {
       if (typeof this.wrappedFunction === 'function') {
-        const res = this.wrappedFunction();
+        const res = this.wrappedFunction(i);
         if (isMockList(res)) {
           arr[i] = res.mock();
         } else {

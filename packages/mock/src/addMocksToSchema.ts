@@ -24,6 +24,11 @@ type IMockOptions<TResolvers = IResolvers> = {
   store?: IMockStore;
   mocks?: IMocks<TResolvers>;
   mockGenerationBehavior?: MockGenerationBehavior;
+  /**
+   * Length used when the store auto-generates a list that has no explicit mock.
+   * Defaults to `2`.
+   */
+  defaultListLength?: number;
   typePolicies?: {
     [typeName: string]: TypePolicy;
   };
@@ -105,6 +110,7 @@ export function addMocksToSchema<TResolvers = IResolvers>({
   store: maybeStore,
   mocks,
   mockGenerationBehavior,
+  defaultListLength,
   typePolicies,
   resolvers: resolversOrFnResolvers,
   preserveResolvers = false,
@@ -126,6 +132,7 @@ export function addMocksToSchema<TResolvers = IResolvers>({
       schema,
       mocks,
       mockGenerationBehavior,
+      defaultListLength,
       typePolicies,
     });
 

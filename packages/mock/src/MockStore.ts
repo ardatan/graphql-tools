@@ -30,7 +30,7 @@ import {
   SetArgs,
   TypePolicy,
 } from './types.js';
-import { makeRef, randomListLength, takeOneOf, uuidv4 } from './utils.js';
+import { makeRef, takeOneOf, uuidv4 } from './utils.js';
 
 const defaultRandomMocks = {
   Int: () => Math.round(Math.random() * 200) - 100,
@@ -59,6 +59,7 @@ export class MockStore implements IMockStore {
   public schema: GraphQLSchema;
   private mocks: IMocks;
   private mockGenerationBehavior: MockGenerationBehavior;
+  private defaultListLength: number;
   private typePolicies: {
     [typeName: string]: TypePolicy;
   };
@@ -70,17 +71,20 @@ export class MockStore implements IMockStore {
     schema,
     mocks,
     mockGenerationBehavior = 'random',
+    defaultListLength = 2,
     typePolicies,
   }: {
     schema: GraphQLSchema;
     mocks?: IMocks;
     mockGenerationBehavior?: MockGenerationBehavior;
+    defaultListLength?: number;
     typePolicies?: {
       [typeName: string]: TypePolicy;
     };
   }) {
     this.schema = schema;
     this.mockGenerationBehavior = mockGenerationBehavior;
+    this.defaultListLength = defaultListLength;
     this.mocks = {
       ...defaultCommonMocks,
       ...(mockGenerationBehavior === 'random' ? defaultRandomMocks : defaultDeterministicMocks),
@@ -571,17 +575,17 @@ export class MockStore implements IMockStore {
     ) as KeyT;
   }
 
-  private generateValueFromType(fieldType: GraphQLOutputType): unknown {
+  private generateValueFromType(fieldType: GraphQLOutputType, listIndex?: number): unknown {
     const nullableType = getNullableType(fieldType);
 
     if (isScalarType(nullableType)) {
       const mockFn = this.mocks[nullableType.name];
       if (typeof mockFn !== 'function')
         throw new Error(`No mock defined for type "${nullableType.name}"`);
-      return mockFn();
+      return mockFn(listIndex);
     } else if (isEnumType(nullableType)) {
       const mockFn = this.mocks[nullableType.name];
-      if (typeof mockFn === 'function') return mockFn();
+      if (typeof mockFn === 'function') return mockFn(listIndex);
 
       const values = nullableType.getValues().map(v => v.value);
       return takeOneOf(values, this.mockGenerationBehavior);
@@ -589,8 +593,8 @@ export class MockStore implements IMockStore {
       // this will create a new random ref
       return this.insert(nullableType.name, {});
     } else if (isListType(nullableType)) {
-      return [...new Array(randomListLength())].map(() =>
-        this.generateValueFromType(nullableType.ofType),
+      return [...new Array(this.defaultListLength)].map((_, index) =>
+        this.generateValueFromType(nullableType.ofType, index),
       );
     } else if (isAbstractType(nullableType)) {
       const mock = this.mocks[nullableType.name];
@@ -771,13 +775,13 @@ export function createMockStore(options: {
    * When set to `random`, then every time a value is generated for a field with
    * one of these types
    * - For Unions and Enums one of the allowed values will be picked randomly
-   * - For Arrays an array of random length will be generated
+   * - For Arrays an array of `defaultListLength` items will be generated (2 by default)
    * - For Int and Float scalars a random number will be generated
    * - For Boolean scalars either `true` or `false` will be returned randomly
    *
    * When set to `deterministic`, then
    * - For Unions and Enums the first allowed value is picked
-   * - For Arrays an array of two elements will be generated
+   * - For Arrays an array of `defaultListLength` items will be generated (2 by default)
    * - For Int and Float scalars values 1 and 1.5 will be used respectively
    * - For Boolean scalars we'll always return `true`
    * - For String scalars we'll always return "Hello World"
@@ -788,6 +792,13 @@ export function createMockStore(options: {
    * @default "random"
    */
   mockGenerationBehavior?: MockGenerationBehavior;
+
+  /**
+   * Length used when the store auto-generates a list that has no explicit mock.
+   *
+   * @default 2
+   */
+  defaultListLength?: number;
 
   typePolicies?: {
     [typeName: string]: TypePolicy;
