@@ -1,5 +1,25 @@
 # @graphql-tools/executor
 
+## 4.1.4
+
+### Patch Changes
+
+- [#8576](https://github.com/ardatan/graphql-tools/pull/8576) [`e0115d8`](https://github.com/ardatan/graphql-tools/commit/e0115d8ae8fb62e1dd43ee9691ed16b7951ab01d) Thanks [@ardatan](https://github.com/ardatan)! - Abort listeners on a request `AbortSignal` are removed when query/mutation execution finishes, not only when the signal aborts.
+  
+  `addEventListener('abort', listener, { once: true })` drops the listener only when abort fires. A successful request never aborts, so the function stayed on the signal. A new `AbortController` per request hid this. Reusing one signal (Yoga `useExecutionCancellation()` plus a stitched `buildHTTPExecutor({ fetch: yoga.fetch })` path) left one listener per finished query. Heap snapshots then grew with request count.
+  
+  ```ts
+  const signal = controller.signal;
+  
+  await execute({ schema, document, signal });
+  await execute({ schema, document, signal });
+  // the first request's abort listener is now removed
+  ```
+  
+  Subscriptions still keep the listener until abort, so cancel can close the stream.
+- Updated dependencies [[`7fbc6e7`](https://github.com/ardatan/graphql-tools/commit/7fbc6e7fc4640985e97be21d17c1f6e025e7021f), [`5ceed9d`](https://github.com/ardatan/graphql-tools/commit/5ceed9d16fc776fb5a8ec7b5cf2d585f3a0b082e)]:
+  - @graphql-tools/utils@13.1.3
+
 ## 4.1.3
 
 ### Patch Changes

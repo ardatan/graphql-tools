@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor-envelop",
-  "version": "5.0.5",
+  "version": "5.0.6",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
@@ -51,7 +51,7 @@
     "@envelop/core": "^3.0.4 || ^4.0.0 || ^5.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^13.1.2",
+    "@graphql-tools/utils": "^13.1.3",
     "@graphql-tools/wrap": "^11.0.0",
     "@whatwg-node/promise-helpers": "^2.0.0",
     "tslib": "^2.3.1"

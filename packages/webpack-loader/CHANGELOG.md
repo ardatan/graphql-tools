@@ -1,5 +1,11 @@
 # @graphql-tools/webpack-loader
 
+## 8.0.1
+
+### Patch Changes
+
+- [#8572](https://github.com/ardatan/graphql-tools/pull/8572) [`8bbb097`](https://github.com/ardatan/graphql-tools/commit/8bbb09716917acdf94218841db829b91dbb16cac) Thanks [@ardatan](https://github.com/ardatan)! - Document all webpack-loader options in the README and JSDoc.
+
 ## 8.0.0
 
 ### Major Changes

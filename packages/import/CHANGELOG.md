@@ -1,5 +1,20 @@
 # @graphql-tools/import
 
+## 8.0.6
+
+### Patch Changes
+
+- [#8577](https://github.com/ardatan/graphql-tools/pull/8577) [`f5b0a19`](https://github.com/ardatan/graphql-tools/commit/f5b0a19f31e5b2bc3618b90216b1103a2e4a48ea) Thanks [@ardatan](https://github.com/ardatan)! - `processImport` keeps the AST nodes collected from `#import` instead of printing every definition to SDL and parsing that string again.
+  
+  A type that many other types depend on is stored in each of those sets, so the same node was printed over and over. Two files can also carry identical SDL (for example the same `type Query` after a field import). Those are still de-duplicated: skip a node already seen, and skip a second node that prints to the same SDL. The first node is kept. Leading comments stay on that node (for example `# eslint-disable-next-line` above a query).
+  
+  ```ts
+  const document = processImport('./schema.graphql');
+  // document.definitions are the nodes parsed from the imported files
+  ```
+- Updated dependencies [[`7fbc6e7`](https://github.com/ardatan/graphql-tools/commit/7fbc6e7fc4640985e97be21d17c1f6e025e7021f), [`5ceed9d`](https://github.com/ardatan/graphql-tools/commit/5ceed9d16fc776fb5a8ec7b5cf2d585f3a0b082e)]:
+  - @graphql-tools/utils@13.1.3
+
 ## 8.0.5
 
 ### Patch Changes
