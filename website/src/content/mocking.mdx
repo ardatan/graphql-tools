@@ -158,8 +158,32 @@ will return a value for it.
 
 ### Using Lists in Mocks
 
-To define a mock for a list, simply return an empty array of the desired length as a mock value for
-the field:
+When a list field has no explicit mock, the store generates `defaultListLength` items (2 by
+default). Pass `defaultListLength` to `addMocksToSchema` or `createMockStore` to change that,
+including `0` for an empty list:
+
+```ts
+const schemaWithMocks = addMocksToSchema({
+  schema,
+  defaultListLength: 0
+})
+```
+
+Scalar and enum mock functions receive each item's zero-based index when they generate list items:
+
+```ts
+const schemaWithMocks = addMocksToSchema({
+  schema,
+  defaultListLength: 3,
+  mocks: {
+    Int: (index?: number) => index ?? 0
+  }
+})
+// a field of type [Int!]! resolves to [0, 1, 2]
+```
+
+To define a mock for a list yourself, return an array of the desired length as a mock value for the
+field:
 
 ```js
 {
@@ -230,6 +254,32 @@ const schemaWithMocks = addMocksToSchema({
 
 As a result, any query that queries the field `name` of the `User` referenced in `me` will get the
 updated value.
+
+### Mocking Errors
+
+To mock an error response, throw a `GraphQLError` from a resolver (or from a `mocks` function).
+Returning a `GraphQLError` as a value is not enough; GraphQL only treats it as an error if it is
+thrown during field resolution.
+
+```ts
+import { GraphQLError } from 'graphql'
+import { addMocksToSchema } from '@graphql-tools/mock'
+
+const schemaWithMocks = addMocksToSchema({
+  schema,
+  resolvers: {
+    Query: {
+      user() {
+        throw new GraphQLError('User not found', {
+          extensions: {
+            code: 'NOT_FOUND'
+          }
+        })
+      }
+    }
+  }
+})
+```
 
 Note the sugar signature of `set`:
 
@@ -413,6 +463,7 @@ const schemaWithMocks = addMocksToSchema({
   schema,
   mocks: {},
   mockGenerationBehavior: 'random',
+  defaultListLength: 2,
   preserveResolvers: false
 })
 ```
@@ -423,6 +474,9 @@ can return mock data for any valid query that is sent to the server.
 If `mocks` is not passed, the defaults will be used for each of the scalar types. By default it'll
 generate random values, if this causes flakiness and you need a more deterministic behavior, set
 `mockGenerationBehavior` to `'deterministic'`.
+
+`defaultListLength` (default `2`) is the length of lists the store auto-generates when a list field
+has no explicit mock.
 
 If `preserveResolvers` is set to `true`, existing resolvers will not be overwritten to provide mock
 data. This can be used to mock some parts of the server and not others.
@@ -486,7 +540,7 @@ or by using `createMockStore` (and use the store in `addMocksToSchema`):
 ```ts
 import { createMockStore } from '@graphql-tools/mock'
 
-const store = createMockStore({ schema })
+const store = createMockStore({ schema, defaultListLength: 2 })
 const schemaWithMocks = addMocksToSchema({ schema, store })
 ```
 
@@ -505,8 +559,9 @@ store.get('User', 'abc-737dh-djdjd', 'name')
 // 'Hello World'
 ```
 
-If the field is the key field of this type, the store key itself is returned. By default, `id` and
-`_id` fields are considered as key fields but it can be customized with option `typePolicies`.
+If the field is the key field of this type, the store key itself is returned. For object and
+interface types, `id` and `_id` are treated as that key unless you change it with `typePolicies`.
+Input object types are not keyed that way; see [storing input types](#storing-input-types).
 
 ```ts
 store.get('User', 'abc-737dh-djdjd', 'id')
@@ -592,6 +647,49 @@ store.set('Query', 'ROOT', {
   }
 })
 ```
+
+If a field takes arguments, `set` without `fieldArgs` still stores the value under the bare field
+name. A later `get` (or query) that passes arguments reuses that **explicit** override. Values the
+store generated on its own for the bare field are not reused for argumented reads.
+
+```ts
+store.set('User', '1', { membership: null })
+store.get('User', '1', 'membership', { param: 'test' })
+// null
+```
+
+The same applies to mocks on list items: `{ membership: null }` or
+`{ returnStringArgument: 'Overridden' }` is used when the field is queried with arguments.
+
+##### Storing input types
+
+GraphQL input objects are argument values, not queryable entities. The spec keeps them as a separate
+type kind from object types
+([Input Objects](https://spec.graphql.org/October2021/#sec-Input-Objects)). They have no identity in
+the type system: there is no "the `UpdateUserInput` with this id", only a payload you pass into a
+field.
+
+`MockStore` still lets you `get` / `set` an input so a mock mutation can remember what was sent
+(create, then update). You choose the store key. It is not inferred from an `id` field:
+
+```ts
+store.set('CreateUserInput', 'draft', { name: 'Ada', age: 36 })
+store.get('CreateUserInput', 'draft', 'name')
+// 'Ada'
+```
+
+Object types default to `id` / `_id` as the store key because that is how this store models entities
+(the same convention most schemas use for object identity). That default is a `MockStore` rule, not
+a GraphQL spec rule, and it is not applied to inputs. On `UpdateUserInput`, `id` is usually "which
+`User` to update", not "which stored input row":
+
+```ts
+store.set('UpdateUserInput', 'draft', { id: 'user-1', name: 'Ada' })
+store.get('UpdateUserInput', 'draft', 'id')
+// 'user-1'
+```
+
+If you do want an input type keyed by one of its fields, set `typePolicies` for that type.
 
 #### `reset`
 
@@ -785,7 +883,16 @@ const schemaWithMocks = addMocksToSchema({ schema, mocks })
 ### Deprecated: MockList
 
 `MockList` is deprecated, use plain arrays instead. See
-[_Using lists in mocks_](#using-lists-in-mocks).
+[_Using lists in mocks_](#using-lists-in-mocks). If you still return a `MockList`, its callback
+receives each item's zero-based index:
+
+```js
+{
+  Person: () => ({
+    friends: () => new MockList(3, index => `Friend ${index}`)
+  })
+}
+```
 
 ```js filename="Example"
 // Previously:
