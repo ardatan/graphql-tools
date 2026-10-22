@@ -6,7 +6,7 @@
     "target": "es2022",
     "module": "esnext",
     "moduleResolution": "bundler",
-    "lib": ["esnext"],
+    "lib": ["es2024"],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "importHelpers": true,
