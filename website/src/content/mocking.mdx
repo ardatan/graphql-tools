@@ -668,6 +668,9 @@ store.get('CreateUserInput', 'draft', 'name')
 // 'Ada'
 ```
 
+An `id` or `_id` field on an input is just data, not the store key. You pick the key (`draft`
+above). Use `typePolicies` if you want an input type to use a key field.
+
 #### `reset`
 
 This method will reset `MockStore`.
