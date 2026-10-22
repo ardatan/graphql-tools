@@ -558,17 +558,17 @@ export class MockStore implements IMockStore {
     ) as KeyT;
   }
 
-  private generateValueFromType(fieldType: GraphQLOutputType): unknown {
+  private generateValueFromType(fieldType: GraphQLOutputType, listIndex?: number): unknown {
     const nullableType = getNullableType(fieldType);
 
     if (isScalarType(nullableType)) {
       const mockFn = this.mocks[nullableType.name];
       if (typeof mockFn !== 'function')
         throw new Error(`No mock defined for type "${nullableType.name}"`);
-      return mockFn();
+      return mockFn(listIndex);
     } else if (isEnumType(nullableType)) {
       const mockFn = this.mocks[nullableType.name];
-      if (typeof mockFn === 'function') return mockFn();
+      if (typeof mockFn === 'function') return mockFn(listIndex);
 
       const values = nullableType.getValues().map(v => v.value);
       return takeOneOf(values, this.mockGenerationBehavior);
@@ -576,8 +576,8 @@ export class MockStore implements IMockStore {
       // this will create a new random ref
       return this.insert(nullableType.name, {});
     } else if (isListType(nullableType)) {
-      return [...new Array(this.defaultListLength)].map(() =>
-        this.generateValueFromType(nullableType.ofType),
+      return [...new Array(this.defaultListLength)].map((_, index) =>
+        this.generateValueFromType(nullableType.ofType, index),
       );
     } else if (isAbstractType(nullableType)) {
       const mock = this.mocks[nullableType.name];
@@ -761,7 +761,7 @@ export function createMockStore(options: {
    *
    * When set to `deterministic`, then
    * - For Unions and Enums the first allowed value is picked
-   * - For Arrays an array of two elements will be generated
+   * - For Arrays an array of `defaultListLength` items will be generated (2 by default)
    * - For Int and Float scalars values 1 and 1.5 will be used respectively
    * - For Boolean scalars we'll always return `true`
    * - For String scalars we'll always return "Hello World"
