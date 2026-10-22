@@ -234,12 +234,12 @@ export class MockStore implements IMockStore {
     assertIsDefined(key, 'key argument should be given when fieldName is given');
 
     const fieldNameInStore: string = getFieldNameInStore(fieldName, fieldArgs);
+    const entity = this.store[typeName]?.[key];
+    const hasExactValue = entity !== undefined && entity[fieldNameInStore] !== undefined;
+    const hasUnarguedValue =
+      fieldNameInStore !== fieldName && entity !== undefined && entity[fieldName] !== undefined;
 
-    if (
-      this.store[typeName] === undefined ||
-      this.store[typeName][key] === undefined ||
-      this.store[typeName][key][fieldNameInStore] === undefined
-    ) {
+    if (!hasExactValue && !hasUnarguedValue) {
       let value;
       if (defaultValue !== undefined) {
         value = defaultValue;
@@ -268,7 +268,8 @@ export class MockStore implements IMockStore {
       this.set({ typeName, key, fieldName, fieldArgs, value, noOverride: true });
     }
 
-    return this.store[typeName][key][fieldNameInStore];
+    const stored = this.store[typeName][key];
+    return stored[fieldNameInStore] !== undefined ? stored[fieldNameInStore] : stored[fieldName];
   }
 
   private setImpl<KeyT extends KeyTypeConstraints>(args: SetArgs<KeyT>) {

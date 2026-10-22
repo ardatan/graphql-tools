@@ -539,3 +539,167 @@ describe('addMocksToSchema', () => {
     ).toBe(false);
   });
 });
+
+describe('list and nested mock overrides', () => {
+  it('respects mocked values for argumented fields on list items', async () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type UserGroup {
+        id: ID!
+        users: [User!]!
+      }
+
+      type User {
+        id: ID!
+        membership(param: String!): Membership
+        name(param: String!): String
+      }
+
+      type Membership {
+        id: ID!
+      }
+
+      type Query {
+        getUserGroup: UserGroup
+      }
+    `);
+
+    const mockedSchema = addMocksToSchema({
+      schema,
+      mocks: {
+        UserGroup: () => ({
+          users: [
+            { membership: null, name: 'Ada' },
+            { membership: { id: 'mock-membership-id' }, name: 'Grace' },
+          ],
+        }),
+      },
+    });
+
+    const { data, errors } = await graphql({
+      schema: mockedSchema,
+      source: /* GraphQL */ `
+        {
+          getUserGroup {
+            users {
+              membership(param: "test") {
+                id
+              }
+              name(param: "test")
+            }
+          }
+        }
+      `,
+    });
+
+    expect(errors).toBeFalsy();
+    expect(data).toEqual({
+      getUserGroup: {
+        users: [
+          { membership: null, name: 'Ada' },
+          { membership: { id: 'mock-membership-id' }, name: 'Grace' },
+        ],
+      },
+    });
+  });
+
+  it('respects mocked values for argumented fields on nested union list items', async () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type Bird {
+        returnInt: Int
+        returnStringArgument(s: String): String
+      }
+
+      union BirdsAndBees = Bird
+
+      type Query {
+        returnBirdsAndBees: [BirdsAndBees]
+      }
+    `);
+
+    const mockedSchema = addMocksToSchema({
+      schema,
+      mocks: {
+        Query: () => ({
+          returnBirdsAndBees: [
+            { __typename: 'Bird', returnInt: 42, returnStringArgument: 'Overridden' },
+            { __typename: 'Bird', returnInt: 42, returnStringArgument: 'Overridden' },
+          ],
+        }),
+      },
+    });
+
+    const { data, errors } = await graphql({
+      schema: mockedSchema,
+      source: /* GraphQL */ `
+        {
+          returnBirdsAndBees {
+            ... on Bird {
+              returnInt
+              returnStringArgument(s: "Hello")
+            }
+          }
+        }
+      `,
+    });
+
+    expect(errors).toBeFalsy();
+    expect(data).toEqual({
+      returnBirdsAndBees: [
+        { returnInt: 42, returnStringArgument: 'Overridden' },
+        { returnInt: 42, returnStringArgument: 'Overridden' },
+      ],
+    });
+  });
+
+  it('uses type mocks for list items returned by a preserved resolver', async () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type User {
+        id: ID!
+        username: String
+        nickname: String
+      }
+
+      type Query {
+        user(id: ID!): User
+        users: [User]
+      }
+    `);
+
+    const mockedSchema = addMocksToSchema({
+      schema,
+      mocks: {
+        User: () => ({
+          nickname: 'John',
+        }),
+        String: () => 'Bob',
+      },
+      resolvers: {
+        Query: {
+          user: () => ({ id: '1', username: 'ada' }),
+          users: () => [{ id: '1', username: 'ada' }],
+        },
+      },
+      preserveResolvers: true,
+    });
+
+    const { data, errors } = await graphql({
+      schema: mockedSchema,
+      source: /* GraphQL */ `
+        {
+          user(id: "1") {
+            nickname
+          }
+          users {
+            nickname
+          }
+        }
+      `,
+    });
+
+    expect(errors).toBeFalsy();
+    expect(data).toEqual({
+      user: { nickname: 'John' },
+      users: [{ nickname: 'John' }],
+    });
+  });
+});
