@@ -2,41 +2,24 @@
 '@graphql-tools/utils': patch
 ---
 
-`mapSchema` and `forEachDefaultValue` now walk directive argument defaults, so a remapped enum default (`@auth(role: UserRole = USER)`) becomes the internal value — the same path field argument defaults already used.
+`mapSchema` now remaps directive argument defaults the same way it already remaps field argument defaults.
 
-Use case: an `@auth` transformer that reads the role from each field via `mapSchema` + `getDirective`, after enum resolvers mapped GraphQL names to internal ids.
+Use case: `UserRole` is remapped to internal ids, and `@auth` defaults to `USER`.
 
 ```ts
-const schema = makeExecutableSchema({
-  typeDefs: /* GraphQL */ `
-    enum UserRole {
-      ADMIN
-      USER
+const schema = mapSchema(originalSchema, {
+  [MapperKind.ENUM_VALUE]: (valueConfig, typeName, _schema, externalValue) => {
+    if (typeName === 'UserRole' && externalValue === 'USER') {
+      return { ...valueConfig, value: '3user' };
     }
-
-    directive @auth(role: UserRole = USER) on FIELD_DEFINITION
-
-    type Query {
-      usersList: [User] @auth
-      adminsList: [User] @auth(role: ADMIN)
-    }
-  `,
-  resolvers: {
-    UserRole: {
-      ADMIN: '0admin',
-      USER: '3user',
-    },
+    return valueConfig;
   },
 });
 
-mapSchema(schema, {
-  [MapperKind.OBJECT_FIELD]: fieldConfig => {
-    const role = getDirective(schema, fieldConfig, 'auth')?.[0]?.['role'];
-    // usersList: was "USER", now "3user"
-    // adminsList: already "0admin"
-    return fieldConfig;
-  },
-});
+// directive @auth(role: UserRole = USER)
+schema.getDirective('auth').args.find(arg => arg.name === 'role').defaultValue;
+// before: "USER"
+// after:  "3user"
 ```
 
-Introspection of that default also sees the internal value.
+`forEachDefaultValue` walks directive arguments too, so `makeExecutableSchema` enum resolvers get the same result.
