@@ -1,4 +1,4 @@
-/// <reference lib="esnext.disposable" />
+/// <reference lib="esnext.disposable" preserve="true" />
 import type { MaybePromise } from '@whatwg-node/promise-helpers';
 import { ExecutionRequest, ExecutionResult } from './Interfaces.js';
 
