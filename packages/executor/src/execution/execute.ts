@@ -262,6 +262,7 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
     track: (maybePromises: ReadonlyArray<unknown>) => void;
   };
   onSignalAbort?(handler: () => void): void;
+  detachSignalListener?(): void;
   signalPromise?: Promise<never>;
   schemaCoordinateInErrors?: boolean;
 }
@@ -488,6 +489,7 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
         };
       }
 
+      exeContext.detachSignalListener?.();
       return initialResult;
     },
     (error: any) => {
@@ -506,6 +508,7 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
       } else {
         exeContext.errors.push(error);
       }
+      exeContext.detachSignalListener?.();
       return buildResponse<TData>(null, exeContext.errors);
     },
   );
@@ -724,9 +727,17 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
   let onSignalAbort: ExecutionContext['onSignalAbort'];
   let signalPromise: Promise<never> | undefined;
   let ensureSignalPlumbing: (() => void) | undefined;
+  let detachSignalListener: (() => void) | undefined;
 
   if (signal) {
     let listeners: Set<() => void> | undefined;
+    let sharedListener: (() => void) | undefined;
+    const removeAbortListener = () => {
+      if (sharedListener) {
+        signal.removeEventListener('abort', sharedListener);
+        sharedListener = undefined;
+      }
+    };
     ensureSignalPlumbing = () => {
       if (listeners) {
         return;
@@ -746,9 +757,9 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
         signalDeferred.reject(signal.reason);
         return;
       }
-      const sharedListener = () => {
+      sharedListener = () => {
         signalDeferred.reject(signal.reason);
-        signal.removeEventListener('abort', sharedListener);
+        removeAbortListener();
       };
       signal.addEventListener('abort', sharedListener, { once: true });
     };
@@ -760,6 +771,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
         listeners!.add(handler);
       }
     };
+    detachSignalListener = removeAbortListener;
   }
 
   const exeContext: ExecutionContext = {
@@ -781,6 +793,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     getAbortSignal,
     getAsyncHelpers,
     onSignalAbort,
+    detachSignalListener,
     schemaCoordinateInErrors,
   };
 

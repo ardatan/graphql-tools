@@ -41,6 +41,7 @@ export interface IncrementalPublisherContext {
   incrementalSpec: IncrementalSpec;
   publisher?: IncrementalPublisherState;
   signalPromise?: Promise<never>;
+  detachSignalListener?(): void;
   /**
    * Paths that were set to null by error bubbling. Present only on the
    * incremental collect path so default execution does not allocate.
@@ -656,6 +657,10 @@ export function yieldSubsequentPayloads(
 ): AsyncGenerator<SubsequentIncrementalExecutionResult, void, void> {
   let isDone = false;
   const isV02 = exeContext.incrementalSpec === 'v0.2';
+  const markDone = () => {
+    isDone = true;
+    exeContext.detachSignalListener?.();
+  };
 
   async function next(): Promise<IteratorResult<SubsequentIncrementalExecutionResult, void>> {
     if (isDone) {
@@ -667,7 +672,7 @@ export function yieldSubsequentPayloads(
     );
 
     if (subSequentPayloadPromises.length === 0) {
-      isDone = true;
+      markDone();
       return { value: { hasNext: false }, done: false };
     }
 
@@ -707,7 +712,7 @@ export function yieldSubsequentPayloads(
       }
 
       if (!result.hasNext) {
-        isDone = true;
+        markDone();
       }
 
       return { value: result, done: false };
@@ -721,7 +726,7 @@ export function yieldSubsequentPayloads(
     }
 
     if (!hasNext) {
-      isDone = true;
+      markDone();
     }
 
     return {
@@ -746,18 +751,18 @@ export function yieldSubsequentPayloads(
     },
     next,
     async return(): Promise<IteratorResult<SubsequentIncrementalExecutionResult, void>> {
+      markDone();
       await returnStreamIterators();
-      isDone = true;
       return { value: undefined, done: true };
     },
     async throw(error?: unknown): Promise<IteratorResult<never, void>> {
+      markDone();
       await returnStreamIterators();
-      isDone = true;
       throw error;
     },
     async [DisposableSymbols.asyncDispose]() {
+      markDone();
       await returnStreamIterators();
-      isDone = true;
     },
   };
 }

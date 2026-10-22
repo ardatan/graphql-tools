@@ -1,4 +1,6 @@
+import { getEventListeners } from 'node:events';
 import { parse } from 'graphql';
+import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { isAsyncIterable } from '@graphql-tools/utils';
 import { Repeater } from '@repeaterjs/repeater';
@@ -545,5 +547,185 @@ describe('Abort Signal', () => {
 
     await expect(result$).rejects.toThrow(/operation was aborted/);
     expect(returnCalled).toBe(true);
+  });
+});
+
+describe('Abort Signal listener cleanup', () => {
+  it('does not keep abort listeners on a reused signal after queries finish', async () => {
+    const controller = new AbortController();
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          n: Int
+        }
+      `,
+      resolvers: {
+        Query: {
+          n: async () => 1,
+        },
+      },
+    });
+    const document = parse(/* GraphQL */ `
+      {
+        n
+      }
+    `);
+
+    for (let i = 0; i < 5; i++) {
+      await expect(
+        normalizedExecutor({
+          schema,
+          document,
+          signal: controller.signal,
+        }),
+      ).resolves.toEqual({ data: { n: 1 } });
+    }
+
+    expect(getEventListeners(controller.signal, 'abort')).toHaveLength(0);
+  });
+
+  it('does not keep abort listeners on a reused signal after deferred queries finish', async () => {
+    const controller = new AbortController();
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          a: String
+          b: String
+        }
+      `,
+      resolvers: {
+        Query: {
+          a: () => 'a',
+          b: async () => 'b',
+        },
+      },
+    });
+    const document = parse(/* GraphQL */ `
+      query {
+        a
+        ... @defer {
+          b
+        }
+      }
+    `);
+
+    for (let i = 0; i < 3; i++) {
+      const result = await normalizedExecutor({
+        schema,
+        document,
+        signal: controller.signal,
+      });
+      if (isAsyncIterable(result)) {
+        for await (const _chunk of result) {
+          // drain @defer payloads
+        }
+      }
+    }
+
+    expect(getEventListeners(controller.signal, 'abort')).toHaveLength(0);
+  });
+
+  it('does not keep abort listeners if incremental cleanup never settles', async () => {
+    const controller = new AbortController();
+    const cleanupStarted = Promise.withResolvers<void>();
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          counter: [Int!]!
+        }
+      `,
+      resolvers: {
+        Query: {
+          counter: () => ({
+            [Symbol.asyncIterator]() {
+              return this;
+            },
+            next() {
+              return new Promise(() => {
+                // stay pending so @stream has an open iterator
+              });
+            },
+            return() {
+              cleanupStarted.resolve();
+              return new Promise(() => {
+                // never settle
+              });
+            },
+          }),
+        },
+      },
+    });
+
+    const result = await normalizedExecutor({
+      schema,
+      document: parse(/* GraphQL */ `
+        query {
+          counter @stream
+        }
+      `),
+      signal: controller.signal,
+    });
+
+    if (!isAsyncIterable(result)) {
+      throw new Error('Result is not an async iterable');
+    }
+
+    const iter = result[Symbol.asyncIterator]();
+    await iter.next();
+    if (!iter.return) {
+      throw new Error('Iterator has no return');
+    }
+    const pendingReturn = iter.return();
+    await cleanupStarted.promise;
+    expect(getEventListeners(controller.signal, 'abort')).toHaveLength(0);
+    expect(pendingReturn).toBeInstanceOf(Promise);
+  });
+
+  it('does not keep abort listeners when HTTP executor reuses disposeCtrl (#7563)', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          hello: String
+        }
+      `,
+      resolvers: {
+        Query: {
+          hello: async () => 'world',
+        },
+      },
+    });
+    const document = parse(/* GraphQL */ `
+      {
+        hello
+      }
+    `);
+    const seen = new Set<AbortSignal>();
+    let lastSignal: AbortSignal | undefined;
+    const executor = buildHTTPExecutor({
+      endpoint: 'http://127.0.0.1/graphql',
+      fetch: async (_url, init) => {
+        lastSignal = init?.signal as AbortSignal | undefined;
+        if (lastSignal) {
+          seen.add(lastSignal);
+        }
+        const result = await normalizedExecutor({
+          schema,
+          document,
+          signal: lastSignal,
+        });
+        return new Response(JSON.stringify(result), {
+          headers: { 'content-type': 'application/json' },
+        });
+      },
+    });
+
+    for (let i = 0; i < 20; i++) {
+      const result = await executor({ document });
+      expect(result).toEqual({ data: { hello: 'world' } });
+    }
+
+    expect(seen.size).toBe(1);
+    expect(lastSignal).toBeDefined();
+    expect(getEventListeners(lastSignal!, 'abort')).toHaveLength(0);
   });
 });
