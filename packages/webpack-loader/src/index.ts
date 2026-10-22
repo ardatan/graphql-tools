@@ -15,11 +15,34 @@ function isSDL(doc: DocumentNode) {
 }
 
 interface Options {
+  /**
+   * Strip descriptions from SDL documents. Has no effect on operations or
+   * fragments. Defaults to `false`.
+   */
   noDescription?: boolean;
+  /**
+   * Strip empty `arguments`, `directives`, and `variableDefinitions` from SDL
+   * documents. Has no effect on operations or fragments. Defaults to `false`.
+   */
   noEmptyNodes?: boolean;
+  /**
+   * Accepted for compatibility. The loader always parses with `noLocation: true`.
+   */
   noLoc?: boolean;
+  /**
+   * Replace `"kind": "Document"` strings in the emitted AST with `Kind.DOCUMENT`
+   * references from `graphql/language/kinds`. Defaults to `false`.
+   */
   replaceKinds?: boolean;
+  /**
+   * Emit `export default` instead of `module.exports`. `#import` then reads the
+   * default export of the imported document. Defaults to `false`.
+   */
   esModule?: boolean;
+  /**
+   * `require` `useUnique` from `@graphql-tools/webpack-loader-runtime` instead of
+   * inlining the helper. Defaults to `false`.
+   */
   importHelpers?: boolean;
 }
 
