@@ -8,7 +8,7 @@ import {
   GraphQLSchema,
   GraphQLString,
 } from 'graphql';
-import { PruneSchemaFilter } from '../src/index.js';
+import { printSchemaWithDirectives, PruneSchemaFilter } from '../src/index.js';
 import { pruneSchema } from '../src/prune.js';
 
 describe('pruneSchema', () => {
@@ -586,5 +586,53 @@ describe('pruneSchema', () => {
     const constraintDirective = result.getDirective('constraint');
     expect(constraintDirective?.args).toHaveLength(1);
     expect(String(constraintDirective?.args[0].type)).toBe('ConstraintRules!');
+  });
+
+  test('keeps unused federation directive arguments after the #4998 wrap/print path', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      extend schema
+        @link(import: ["@composeDirective"], url: "https://specs.apollo.dev/federation/v2.3")
+        @link(url: "https://myspecs.dev/customDirective/v1.0", import: ["@customDirective"])
+        @composeDirective(name: "@customDirective") {
+        query: Query
+      }
+
+      directive @customDirective(strings: [String!]!) on FIELD_DEFINITION
+
+      directive @composeDirective(name: String!) repeatable on SCHEMA
+
+      directive @link(import: [String], url: String!) repeatable on SCHEMA
+
+      directive @requires(fields: _FieldSet) on FIELD_DEFINITION
+
+      directive @provides(fields: _FieldSet) on FIELD_DEFINITION
+
+      directive @key(fields: _FieldSet!) on OBJECT | INTERFACE
+
+      directive @extends on OBJECT | INTERFACE
+
+      type Query {
+        helllo: String!
+      }
+
+      scalar _FieldSet
+    `);
+
+    const skipPruning: PruneSchemaFilter = type =>
+      ['extends', 'key', 'requires', 'provides'].some(directiveName =>
+        Boolean(
+          type.astNode?.directives?.some(directive => directive.name.value === directiveName),
+        ),
+      );
+
+    const pruned = pruneSchema(schema, { skipPruning });
+    const config = pruned.toConfig();
+    config.astNode = undefined;
+    const printed = printSchemaWithDirectives(new GraphQLSchema(config));
+
+    expect(printed).toContain('directive @requires(fields: _FieldSet) on FIELD_DEFINITION');
+    expect(printed).toContain('directive @provides(fields: _FieldSet) on FIELD_DEFINITION');
+    expect(printed).toContain('directive @key(fields: _FieldSet!) on OBJECT | INTERFACE');
+    expect(printed).toContain('scalar _FieldSet');
   });
 });
