@@ -2,7 +2,8 @@
 '@graphql-tools/mock': minor
 ---
 
-Query, Mutation, and Subscription mocks now receive the field's resolved arguments.
+Query and Mutation mocks now receive the field's resolved arguments. Subscription mocks receive
+the same map when resolve runs (an event is yielded); the default subscriber does not yield.
 
 A mock is a type factory, not a resolver. The value that identifies an operation field is its
 argument map after GraphQL coercion: `user(id: ID!)` always has `id`, whether the client sent a

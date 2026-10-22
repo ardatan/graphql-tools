@@ -95,8 +95,11 @@ planning to use the data for testing.
 
 ### Field arguments on Query, Mutation, and Subscription
 
-`Query`, `Mutation`, and `Subscription` mocks receive the **resolved field arguments** of the field
-being resolved. Nested type mocks such as `User` stay factories with no arguments.
+`Query` and `Mutation` mocks receive the **resolved field arguments** of the field being resolved.
+`Subscription` mocks receive the same map when the field's `resolve` runs — that is, when an event
+is yielded. The default `addMocksToSchema` subscriber completes without yielding, so a subscription
+does not reach that mock unless you provide a `subscribe` that produces events. Nested type mocks
+such as `User` stay factories with no arguments.
 
 A mock is a type factory, not a GraphQL resolver. A resolver is called as
 `(source, args, context, info)`. The mock library only passes `args`:
@@ -819,9 +822,10 @@ store.has('User', '1') // true
 
 ### Breaking Change: Mock Functions Signature
 
-Mock functions do not receive resolvers' source, context, or `info` anymore. Query, Mutation, and
-Subscription mocks get the resolved **field arguments** of the field being mocked (see
-[Field arguments on Query, Mutation, and Subscription](#field-arguments-on-query-mutation-and-subscription)).
+Mock functions do not receive resolvers' source, context, or `info` anymore. Query and Mutation
+mocks get the resolved **field arguments** of the field being mocked. Subscription mocks get them
+when resolve runs (an event is yielded); see
+[Field arguments on Query, Mutation, and Subscription](#field-arguments-on-query-mutation-and-subscription).
 Use the `resolvers` option of `addMocksToSchema` when you need a real resolver that can interact
 with [`MockStore`](#mockstore).
 

@@ -523,10 +523,15 @@ export class MockStore implements IMockStore {
           throw new Error(`Value returned by the mock for ${typeName} is not an object`);
         }
 
-        for (const otherFieldName in values) {
-          if (otherFieldName === fieldName) continue;
-          if (typeof (values as any)[otherFieldName] === 'function') continue;
-          onOtherFieldsGenerated?.(otherFieldName, (values as any)[otherFieldName]);
+        // Operation mocks are called with the current field's args. Sibling
+        // values can depend on those args and must not be stored under a bare
+        // field name for a later, differently-argumented read.
+        if (!isOperationType) {
+          for (const otherFieldName in values) {
+            if (otherFieldName === fieldName) continue;
+            if (typeof (values as any)[otherFieldName] === 'function') continue;
+            onOtherFieldsGenerated?.(otherFieldName, (values as any)[otherFieldName]);
+          }
         }
 
         value = (values as any)[fieldName];
