@@ -13,16 +13,16 @@ custom scenarios.
 
 ## Options
 
-- `noDescription` (_default: `false`_) — strips descriptions from SDL documents. Has no effect on
+- `noDescription` (_default: `false`_) - strips descriptions from SDL documents. Has no effect on
   operations or fragments.
-- `noEmptyNodes` (_default: `false`_) — strips empty `arguments`, `directives`, and
+- `noEmptyNodes` (_default: `false`_) - strips empty `arguments`, `directives`, and
   `variableDefinitions` from SDL documents. Has no effect on operations or fragments.
-- `noLoc` — accepted for compatibility. Location information is always stripped.
-- `replaceKinds` (_default: `false`_) — replaces `"kind": "Document"` strings in the emitted AST
+- `noLoc` - accepted for compatibility. Location information is always stripped.
+- `replaceKinds` (_default: `false`_) - replaces `"kind": "Document"` strings in the emitted AST
   with `Kind.DOCUMENT` references from `graphql/language/kinds`.
-- `esModule` (_default: `false`_) — emit `export default` instead of `module.exports`. `#import`
+- `esModule` (_default: `false`_) - emit `export default` instead of `module.exports`. `#import`
   then reads the default export of the imported document.
-- `importHelpers` (_default: `false`_) — `require` `useUnique` from
+- `importHelpers` (_default: `false`_) - `require` `useUnique` from
   `@graphql-tools/webpack-loader-runtime` instead of inlining the helper.
 
 ## Importing GraphQL files
