@@ -1,5 +1,6 @@
 import { getEventListeners } from 'node:events';
 import { parse } from 'graphql';
+import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { isAsyncIterable } from '@graphql-tools/utils';
 import { Repeater } from '@repeaterjs/repeater';
@@ -678,5 +679,53 @@ describe('Abort Signal listener cleanup', () => {
     await cleanupStarted.promise;
     expect(getEventListeners(controller.signal, 'abort')).toHaveLength(0);
     expect(pendingReturn).toBeInstanceOf(Promise);
+  });
+
+  it('does not keep abort listeners when HTTP executor reuses disposeCtrl (#7563)', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          hello: String
+        }
+      `,
+      resolvers: {
+        Query: {
+          hello: async () => 'world',
+        },
+      },
+    });
+    const document = parse(/* GraphQL */ `
+      {
+        hello
+      }
+    `);
+    const seen = new Set<AbortSignal>();
+    let lastSignal: AbortSignal | undefined;
+    const executor = buildHTTPExecutor({
+      endpoint: 'http://127.0.0.1/graphql',
+      fetch: async (_url, init) => {
+        lastSignal = init?.signal as AbortSignal | undefined;
+        if (lastSignal) {
+          seen.add(lastSignal);
+        }
+        const result = await normalizedExecutor({
+          schema,
+          document,
+          signal: lastSignal,
+        });
+        return new Response(JSON.stringify(result), {
+          headers: { 'content-type': 'application/json' },
+        });
+      },
+    });
+
+    for (let i = 0; i < 20; i++) {
+      const result = await executor({ document });
+      expect(result).toEqual({ data: { hello: 'world' } });
+    }
+
+    expect(seen.size).toBe(1);
+    expect(lastSignal).toBeDefined();
+    expect(getEventListeners(lastSignal!, 'abort')).toHaveLength(0);
   });
 });
