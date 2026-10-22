@@ -2567,4 +2567,35 @@ describe('unions', () => {
       resolverValidationOptions: { requireResolversForResolveType: 'warn' },
     });
   });
+
+  test('does not warn for a QueryResponse union when requireResolversForResolveType is ignore', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    try {
+      makeExecutableSchema({
+        typeDefs: /* GraphQL */ `
+          type Ok {
+            ok: Boolean
+          }
+          type Fail {
+            message: String
+          }
+          union QueryResponse = Ok | Fail
+          type Query {
+            result: QueryResponse
+          }
+        `,
+        resolvers: {
+          Query: {
+            result: () => ({ ok: true }),
+          },
+        },
+        resolverValidationOptions: {
+          requireResolversForResolveType: 'ignore',
+        },
+      });
+      expect(warn).not.toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+    }
+  });
 });
