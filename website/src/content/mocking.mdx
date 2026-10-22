@@ -231,6 +231,31 @@ const schemaWithMocks = addMocksToSchema({
 As a result, any query that queries the field `name` of the `User` referenced in `me` will get the
 updated value.
 
+### Mocking Errors
+
+To mock an error response, use a resolver that throws a `GraphQLError`. `mocks` functions only
+return values; they cannot produce GraphQL errors.
+
+```ts
+import { GraphQLError } from 'graphql'
+import { addMocksToSchema } from '@graphql-tools/mock'
+
+const schemaWithMocks = addMocksToSchema({
+  schema,
+  resolvers: {
+    Query: {
+      user() {
+        throw new GraphQLError('User not found', {
+          extensions: {
+            code: 'NOT_FOUND'
+          }
+        })
+      }
+    }
+  }
+})
+```
+
 Note the sugar signature of `set`:
 
 ```ts
