@@ -223,7 +223,7 @@ export class MockStore implements IMockStore {
   }
 
   private getImpl<KeyT extends KeyTypeConstraints>(args: GetArgs<KeyT>) {
-    const { typeName, key, fieldName, fieldArgs, defaultValue } = args;
+    const { typeName, key, fieldName, fieldArgs, variableValues, defaultValue } = args;
 
     if (!fieldName) {
       if (defaultValue !== undefined && !isRecord(defaultValue)) {
@@ -272,6 +272,7 @@ export class MockStore implements IMockStore {
               noOverride: true,
             });
           },
+          variableValues,
         );
       }
 
@@ -493,12 +494,14 @@ export class MockStore implements IMockStore {
     fieldName: string,
     fieldArgs: string | { [argName: string]: any } | undefined,
     onOtherFieldsGenerated?: (fieldName: string, value: unknown) => void,
+    variableValues?: { [variableName: string]: unknown },
   ): unknown | undefined {
     const mockedValue = this.generateFieldValueFromMocks(
       typeName,
       fieldName,
       fieldArgs,
       onOtherFieldsGenerated,
+      variableValues,
     );
     if (mockedValue !== undefined) return mockedValue;
 
@@ -511,6 +514,7 @@ export class MockStore implements IMockStore {
     fieldName: string,
     fieldArgs: string | { [argName: string]: any } | undefined,
     onOtherFieldsGenerated?: (fieldName: string, value: unknown) => void,
+    variableValues?: { [variableName: string]: unknown },
   ): unknown | undefined {
     let value;
 
@@ -529,13 +533,13 @@ export class MockStore implements IMockStore {
         }
 
         value = (values as any)[fieldName];
-        if (typeof value === 'function') value = value(fieldArgs);
+        if (typeof value === 'function') value = value(fieldArgs, variableValues);
       } else if (
         typeof mock === 'object' &&
         mock != null &&
         typeof mock[fieldName] === 'function'
       ) {
-        value = mock[fieldName](fieldArgs);
+        value = mock[fieldName](fieldArgs, variableValues);
       }
     }
 
@@ -553,6 +557,7 @@ export class MockStore implements IMockStore {
           fieldName,
           fieldArgs,
           onOtherFieldsGenerated,
+          variableValues,
         );
       }
     }

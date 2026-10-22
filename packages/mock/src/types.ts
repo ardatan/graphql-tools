@@ -55,6 +55,11 @@ export type GetArgs<KeyT extends KeyTypeConstraints = string> = {
    */
   fieldArgs?: string | { [argName: string]: any };
   /**
+   * Operation variable values (`info.variableValues`) forwarded to type-field
+   * mock functions as their second argument.
+   */
+  variableValues?: { [variableName: string]: unknown };
+  /**
    * If no value found, insert the `defaultValue`.
    */
   defaultValue?: unknown | { [fieldName: string]: any };

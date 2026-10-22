@@ -577,6 +577,41 @@ describe('addMocksToSchema', () => {
     expect(errors).toBeFalsy();
     expect(data).toEqual({ nums: [0, 1, 2] });
   });
+
+  it('passes field args and operation variables to type-field mocks', async () => {
+    const calls: Array<{
+      args: unknown;
+      variables: unknown;
+    }> = [];
+    const schema = buildSchema(/* GraphQL */ `
+      type User {
+        id: ID!
+        name: String!
+      }
+      type Query {
+        user(id: ID!): User
+      }
+    `);
+    const mockedSchema = addMocksToSchema({
+      schema,
+      mocks: {
+        Query: () => ({
+          user: (args: { id: string }, variables?: { userId: string }) => {
+            calls.push({ args, variables });
+            return { id: args.id, name: 'Ada' };
+          },
+        }),
+      },
+    });
+    const { data, errors } = await graphql({
+      schema: mockedSchema,
+      source: 'query ($userId: ID!) { user(id: $userId) { id name } }',
+      variableValues: { userId: 'user-1' },
+    });
+    expect(errors).toBeFalsy();
+    expect(data).toEqual({ user: { id: 'user-1', name: 'Ada' } });
+    expect(calls).toEqual([{ args: { id: 'user-1' }, variables: { userId: 'user-1' } }]);
+  });
 });
 
 describe('list and nested mock overrides', () => {
