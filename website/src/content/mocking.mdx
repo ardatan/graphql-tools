@@ -88,9 +88,8 @@ You can also use this to describe object types, and the fields can be functions 
 }
 ```
 
-`Query` / `Mutation` / `Subscription` mocks receive the **field arguments** of the field being
-resolved, not the operation's variable names. `$userId` vs `$id` is up to the client; `user(id:)` is
-in the schema. Assert `args.id`. Nested type mocks such as `User` are not called with those args.
+`Query` / `Mutation` / `Subscription` mocks receive the field arguments of the field being resolved.
+Nested type mocks such as `User` do not.
 
 ```ts
 const query = jest.fn(() => ({
@@ -104,12 +103,12 @@ const schemaWithMocks = addMocksToSchema({
 
 await graphql({
   schema: schemaWithMocks,
-  source: 'query ($userId: ID!) { user(id: $userId) { name } }',
-  variableValues: { userId: 'user-1' }
+  source: 'query ($id: ID!) { user(id: $id) { name } }',
+  variableValues: { id: 'user-1' }
 })
 
 query.mock.calls[0][0]
-// { id: 'user-1' }  — schema argument name, not $userId
+// { id: 'user-1' }
 ```
 
 An operation field function gets the same map. Other fields on `User` keep the default mocks.

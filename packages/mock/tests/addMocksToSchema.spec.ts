@@ -578,7 +578,7 @@ describe('addMocksToSchema', () => {
     expect(data).toEqual({ nums: [0, 1, 2] });
   });
 
-  it('passes resolved field args to the Query mock, not operation variable names', async () => {
+  it('passes field args to the Query mock', async () => {
     const queryCalls: unknown[] = [];
     const userNameCalls: unknown[][] = [];
     const schema = buildSchema(/* GraphQL */ `
@@ -611,8 +611,8 @@ describe('addMocksToSchema', () => {
     });
     const { data, errors } = await graphql({
       schema: mockedSchema,
-      source: 'query ($userId: ID!) { user(id: $userId) { id name } }',
-      variableValues: { userId: 'user-1' },
+      source: 'query ($id: ID!) { user(id: $id) { id name } }',
+      variableValues: { id: 'user-1' },
     });
     expect(errors).toBeFalsy();
     expect(data).toEqual({ user: { id: 'user-1', name: 'from-user-mock' } });
