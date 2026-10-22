@@ -21,6 +21,7 @@ import {
   InterfaceTypeExtensionNode,
   Kind,
   ListTypeNode,
+  Location,
   NamedTypeNode,
   NameNode,
   NonNullTypeNode,
@@ -28,20 +29,18 @@ import {
   ObjectTypeExtensionNode,
   OperationDefinitionNode,
   OperationTypeDefinitionNode,
-  parse,
   print,
   ScalarTypeDefinitionNode,
   ScalarTypeExtensionNode,
   SchemaDefinitionNode,
   SchemaExtensionNode,
   SelectionNode,
-  Source,
   TypeNode,
   UnionTypeDefinitionNode,
   UnionTypeExtensionNode,
 } from 'graphql';
 import resolveFrom from 'resolve-from';
-import { getLeadingCommentBlock, parseGraphQLSDL } from '@graphql-tools/utils';
+import { parseGraphQLSDL } from '@graphql-tools/utils';
 import { extractLinkImplementations } from './link/index.js';
 
 const builtinTypes = ['String', 'Float', 'Int', 'Boolean', 'ID', 'Upload'];
@@ -151,32 +150,48 @@ export function processImport(
     predefinedImports,
     pathAliases,
   );
-  const definitionStrSet = new Set<string>();
-  let definitionsStr = '';
-  const printCache = new Map<DefinitionNode, { identity: string; withComments: string }>();
+  // The same DefinitionNode is added to many per-name sets (every type that
+  // depends on it). Skip those by object identity so `print` runs once per node.
+  // Separately parsed files can still carry identical SDL; collapse those by
+  // printed identity and keep the first AST node (no re-parse).
+  const seenNodes = new Set<DefinitionNode>();
+  const seenIdentity = new Set<string>();
+  const definitions: DefinitionNode[] = [];
   for (const defs of set.values()) {
     for (const def of defs) {
-      let cached = printCache.get(def);
-      if (cached === undefined) {
-        cached = {
-          identity: print(def),
-          withComments: printDefinitionWithLeadingComments(def),
-        };
-        printCache.set(def, cached);
+      if (seenNodes.has(def)) {
+        continue;
       }
-      if (!definitionStrSet.has(cached.identity)) {
-        definitionStrSet.add(cached.identity);
-        definitionsStr += cached.withComments + '\n';
+      seenNodes.add(def);
+      const identity = print(def);
+      if (seenIdentity.has(identity)) {
+        continue;
       }
+      seenIdentity.add(identity);
+      definitions.push(def);
     }
   }
 
-  return definitionsStr?.length
-    ? parse(new Source(definitionsStr, filePath))
-    : {
-        kind: Kind.DOCUMENT,
-        definitions: [],
-      };
+  const entrySourceName = visitedFiles.keys().next().value;
+  const loc =
+    definitions.find(def => def.loc?.source.name === entrySourceName)?.loc ??
+    definitions.find(def => def.loc)?.loc;
+
+  return {
+    kind: Kind.DOCUMENT,
+    definitions,
+    loc: loc ? documentLocationFrom(loc) : undefined,
+  };
+}
+
+function documentLocationFrom(loc: Location): Location {
+  return {
+    start: 0,
+    end: loc.source.body.length,
+    startToken: loc.startToken,
+    endToken: loc.endToken,
+    source: loc.source,
+  };
 }
 
 /**
@@ -939,18 +954,6 @@ export function parseImportLine(importLine: string): { imports: string[]; from: 
     # import * from "[File]"
     # import "[File]"
   `);
-}
-
-function printDefinitionWithLeadingComments(def: DefinitionNode): string {
-  const printed = print(def);
-  const commentBlock = getLeadingCommentBlock(def);
-  if (commentBlock == null || commentBlock.length === 0) {
-    return printed;
-  }
-  return `${commentBlock
-    .split('\n')
-    .map(line => (line.startsWith(' ') ? `#${line}` : `# ${line}`))
-    .join('\n')}\n${printed}`;
 }
 
 function resolveFilePath(filePath: string, importFrom: string): string {
