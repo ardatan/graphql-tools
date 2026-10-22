@@ -63,7 +63,7 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "graphql-yoga": "^5.24.6"
+    "graphql-yoga": "^6.0.0"
   },
   "publishConfig": {
     "directory": "dist",
