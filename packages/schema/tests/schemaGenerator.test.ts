@@ -1544,6 +1544,31 @@ describe('generating schema from shorthand', () => {
     ).not.toThrow();
   });
 
+  test('does not accept resolve alone on a subscription field with args', () => {
+    expect(() =>
+      makeExecutableSchema({
+        typeDefs: /* GraphQL */ `
+          type Query {
+            _: Boolean
+          }
+          type Subscription {
+            numberIncremented(id: Int): Int
+          }
+        `,
+        resolvers: {
+          Subscription: {
+            numberIncremented: {
+              resolve: () => 1,
+            },
+          },
+        },
+        resolverValidationOptions: {
+          requireResolversForArgs: 'error',
+        },
+      }),
+    ).toThrow('Resolver missing for "Subscription.numberIncremented"');
+  });
+
   test('still requires resolve on query fields with args even if subscribe is present', () => {
     expect(() =>
       makeExecutableSchema({

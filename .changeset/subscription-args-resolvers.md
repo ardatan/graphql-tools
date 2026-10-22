@@ -2,6 +2,6 @@
 '@graphql-tools/schema': patch
 ---
 
-`requireResolversForArgs` (and the other resolver-presence checks) now treat a field `subscribe` function as a resolver on the schema's subscription type.
+`requireResolversForArgs` (and the other resolver-presence checks) now look for `subscribe` on the schema's subscription type.
 
-Subscription fields usually only define `subscribe`, not `resolve`. The validator used to look only at `field.resolve`, so a subscription with arguments was reported as missing even when `subscribe` was present. Query and mutation fields still require `resolve`.
+On subscriptions, `subscribe` is required and `resolve` is optional. The validator used to look only at `field.resolve`, so a subscription with arguments was reported as missing even when `subscribe` was present. Query and mutation fields still require `resolve`.

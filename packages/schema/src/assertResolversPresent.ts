@@ -19,7 +19,7 @@ export function assertResolversPresent(
   const subscriptionTypeName = schema.getSubscriptionType()?.name;
 
   forEachField(schema, (field, typeName, fieldName) => {
-    const acceptSubscribe = typeName === subscriptionTypeName;
+    const isSubscriptionField = typeName === subscriptionTypeName;
 
     // requires a resolver for *every* field.
     if (requireResolversForAllFields) {
@@ -29,7 +29,7 @@ export function assertResolversPresent(
         field,
         typeName,
         fieldName,
-        acceptSubscribe,
+        isSubscriptionField,
       );
     }
 
@@ -41,7 +41,7 @@ export function assertResolversPresent(
         field,
         typeName,
         fieldName,
-        acceptSubscribe,
+        isSubscriptionField,
       );
     }
 
@@ -53,7 +53,7 @@ export function assertResolversPresent(
         field,
         typeName,
         fieldName,
-        acceptSubscribe,
+        isSubscriptionField,
       );
     }
   });
@@ -65,9 +65,9 @@ function expectResolver(
   field: GraphQLField<any, any>,
   typeName: string,
   fieldName: string,
-  acceptSubscribe = false,
+  isSubscriptionField = false,
 ) {
-  const resolverFn = field.resolve ?? (acceptSubscribe ? field.subscribe : undefined);
+  const resolverFn = isSubscriptionField ? field.subscribe : field.resolve;
   if (!resolverFn) {
     const message = `Resolver missing for "${typeName}.${fieldName}".
 To disable this validator, use:
