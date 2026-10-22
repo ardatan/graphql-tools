@@ -26,6 +26,18 @@ For notes on typescript, refer to [loaders](/docs/schema-loading#loaders)
   like webpack, rollup or Vite, you cannot use dynamic loaders.
 </Callout>
 
+## Installation
+
+```sh npm2yarn
+npm i @graphql-tools/load @graphql-tools/load-files
+```
+
+Install a loader for each source you use:
+
+```sh npm2yarn
+npm i @graphql-tools/graphql-file-loader @graphql-tools/json-file-loader @graphql-tools/url-loader @graphql-tools/code-file-loader
+```
+
 ## Load `typeDefs`/`DocumentNode` and `resolvers` from Files
 
 ```ts
