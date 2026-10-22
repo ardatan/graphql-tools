@@ -577,6 +577,86 @@ describe('addMocksToSchema', () => {
     expect(errors).toBeFalsy();
     expect(data).toEqual({ nums: [0, 1, 2] });
   });
+
+  it('passes field args to the Query mock', async () => {
+    const queryCalls: unknown[] = [];
+    const userNameCalls: unknown[][] = [];
+    const schema = buildSchema(/* GraphQL */ `
+      type User {
+        id: ID!
+        name: String!
+      }
+      type Query {
+        user(id: ID!): User
+      }
+    `);
+    const mockedSchema = addMocksToSchema({
+      schema,
+      mocks: {
+        Query: (args?: { id: string }) => {
+          queryCalls.push(args);
+          return {
+            user: (fieldArgs: { id: string }) => ({
+              id: fieldArgs.id,
+            }),
+          };
+        },
+        User: () => ({
+          name: (...received: unknown[]) => {
+            userNameCalls.push(received);
+            return 'from-user-mock';
+          },
+        }),
+      },
+    });
+    const { data, errors } = await graphql({
+      schema: mockedSchema,
+      source: 'query ($id: ID!) { user(id: $id) { id name } }',
+      variableValues: { id: 'user-1' },
+    });
+    expect(errors).toBeFalsy();
+    expect(data).toEqual({ user: { id: 'user-1', name: 'from-user-mock' } });
+    expect(queryCalls).toEqual([{ id: 'user-1' }]);
+    expect(userNameCalls).toEqual([[{}]]);
+  });
+
+  it("does not reuse a Query sibling generated under another field's args", async () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type User {
+        id: ID!
+        name: String!
+      }
+      type Post {
+        id: ID!
+        title: String!
+      }
+      type Query {
+        user(id: ID!): User
+        post(id: ID!): Post
+      }
+    `);
+    const mockedSchema = addMocksToSchema({
+      schema,
+      mocks: {
+        Query: (args?: { id: string }) => ({
+          user: { id: args?.id, name: `user-${args?.id}` },
+          post: { id: args?.id, title: `post-${args?.id}` },
+        }),
+      },
+    });
+    const userResult = await graphql({
+      schema: mockedSchema,
+      source: '{ user(id: "u1") { id name } }',
+    });
+    const postResult = await graphql({
+      schema: mockedSchema,
+      source: '{ post(id: "p2") { id title } }',
+    });
+    expect(userResult.errors).toBeFalsy();
+    expect(postResult.errors).toBeFalsy();
+    expect(userResult.data).toEqual({ user: { id: 'u1', name: 'user-u1' } });
+    expect(postResult.data).toEqual({ post: { id: 'p2', title: 'post-p2' } });
+  });
 });
 
 describe('list and nested mock overrides', () => {

@@ -93,6 +93,112 @@ JavaScript, so that we can get a different result every time the field is called
 use a collection of fake objects, or a generator that always uses a consistent seed, if you are
 planning to use the data for testing.
 
+### Field arguments on Query, Mutation, and Subscription
+
+`Query` and `Mutation` mocks receive the **resolved field arguments** of the field being resolved.
+`Subscription` mocks receive the same map when the field's `resolve` runs — that is, when an event
+is yielded. The default `addMocksToSchema` subscriber completes without yielding, so a subscription
+does not reach that mock unless you provide a `subscribe` that produces events. Nested type mocks
+such as `User` stay factories with no arguments.
+
+A mock is a type factory, not a GraphQL resolver. A resolver is called as
+`(source, args, context, info)`. The mock library only passes `args`:
+
+- **Field arguments** are the schema contract for that invocation. `user(id: ID!)` always has `id`,
+  after GraphQL has coerced whatever the client sent (a literal or a variable) into that map. That
+  is what identifies this call and what you key mock data by.
+- **`context`** is the same request-wide bag (auth, loaders, locale) for every field. It does not
+  distinguish `user(id: "1")` from `user(id: "2")`.
+- **`info`** is execution metadata.
+
+When you need `context`, `info`, or the [`MockStore`](#mockstore), use the `resolvers` option of
+`addMocksToSchema` so the rest of the fields can still come from mocks.
+
+Field functions on the object an operation mock returns get the same argument map:
+
+```ts
+{
+  Query: () => ({
+    user: args => ({
+      id: args.id,
+      name: 'Ada'
+    })
+  })
+}
+```
+
+### Testing with Jest
+
+`addMocksToSchema` is meant for tests: you write a schema, stub the few fields you care about, and
+let the store fill the rest. Jest spies work on the mock functions themselves.
+
+```ts
+import { graphql } from 'graphql'
+import { addMocksToSchema } from '@graphql-tools/mock'
+import { makeExecutableSchema } from '@graphql-tools/schema'
+
+const schema = makeExecutableSchema({
+  typeDefs: /* GraphQL */ `
+    type User {
+      id: ID!
+      name: String!
+      email: String!
+    }
+
+    type Query {
+      user(id: ID!): User
+    }
+  `
+})
+
+it('returns a mocked user for the requested id', async () => {
+  const Query = jest.fn(() => ({
+    user: ({ id }) => ({
+      id,
+      name: 'Ada Lovelace'
+    })
+  }))
+
+  const schemaWithMocks = addMocksToSchema({
+    schema,
+    mocks: {
+      Query,
+      User: () => ({
+        email: 'ada@example.com'
+      })
+    }
+  })
+
+  const { data, errors } = await graphql({
+    schema: schemaWithMocks,
+    source: /* GraphQL */ `
+      query GetUser($id: ID!) {
+        user(id: $id) {
+          id
+          name
+          email
+        }
+      }
+    `,
+    variableValues: { id: 'user-1' }
+  })
+
+  expect(errors).toBeFalsy()
+  expect(data).toEqual({
+    user: {
+      id: 'user-1',
+      name: 'Ada Lovelace',
+      email: 'ada@example.com'
+    }
+  })
+  expect(Query).toHaveBeenCalledWith({ id: 'user-1' })
+})
+```
+
+`Query` is called with `{ id: 'user-1' }` because that is `user(id:)`'s argument map. `User` only
+supplies `email`; `id` and `name` come from the `user` field function. The default mocks would have
+filled any other `User` field you selected.
+
 ### Mocking Custom Scalar Types
 
 To Mock Custom Scalar Types, you need to declare them in your Schema. Let's look at an example for
@@ -716,9 +822,12 @@ store.has('User', '1') // true
 
 ### Breaking Change: Mock Functions Signature
 
-Mock functions do not receive resolvers' source, arguments and context anymore. Use `resolvers`
-option of `addMocksToSchema` to define "true" resolvers that can interact with
-[`MockStore`](#mockstore).
+Mock functions do not receive resolvers' source, context, or `info` anymore. Query and Mutation
+mocks get the resolved **field arguments** of the field being mocked. Subscription mocks get them
+when resolve runs (an event is yielded); see
+[Field arguments on Query, Mutation, and Subscription](#field-arguments-on-query-mutation-and-subscription).
+Use the `resolvers` option of `addMocksToSchema` when you need a real resolver that can interact
+with [`MockStore`](#mockstore).
 
 ```js filename="Example"
 // Previously:
