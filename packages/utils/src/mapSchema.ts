@@ -1,6 +1,7 @@
 import {
   EnumValueDefinitionNode,
   FieldDefinitionNode,
+  getNamedType,
   GraphQLDirective,
   GraphQLEnumType,
   GraphQLFieldConfig,
@@ -204,15 +205,27 @@ function mapDirectiveDefaultValues(
       }
       const maybeNewType = getNewType(typeMap, arg.type);
       if (maybeNewType != null) {
+        const parsed = fn(maybeNewType, serializeInputValue(arg.type, arg.defaultValue));
         config.args[argName] = {
           ...arg,
-          defaultValue: fn(maybeNewType, serializeInputValue(arg.type, arg.defaultValue)),
+          defaultValue: isValidMappedEnumDefault(maybeNewType, parsed) ? parsed : arg.defaultValue,
         };
         changed = true;
       }
     }
     return changed ? new GraphQLDirective(config) : directive;
   });
+}
+
+function isValidMappedEnumDefault(type: GraphQLType, value: unknown): boolean {
+  if (value == null) {
+    return true;
+  }
+  const named = getNamedType(type);
+  if (!isEnumType(named)) {
+    return true;
+  }
+  return named.getValues().some(enumValue => enumValue.value === value);
 }
 
 function mapDefaultValues(
