@@ -1,3 +1,4 @@
+import { getEventListeners } from 'node:events';
 import { parse } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { isAsyncIterable } from '@graphql-tools/utils';
@@ -545,5 +546,81 @@ describe('Abort Signal', () => {
 
     await expect(result$).rejects.toThrow(/operation was aborted/);
     expect(returnCalled).toBe(true);
+  });
+});
+
+describe('Abort Signal listener cleanup', () => {
+  it('does not keep abort listeners on a reused signal after queries finish', async () => {
+    const controller = new AbortController();
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          n: Int
+        }
+      `,
+      resolvers: {
+        Query: {
+          n: async () => 1,
+        },
+      },
+    });
+    const document = parse(/* GraphQL */ `
+      {
+        n
+      }
+    `);
+
+    for (let i = 0; i < 5; i++) {
+      await expect(
+        normalizedExecutor({
+          schema,
+          document,
+          signal: controller.signal,
+        }),
+      ).resolves.toEqual({ data: { n: 1 } });
+    }
+
+    expect(getEventListeners(controller.signal, 'abort')).toHaveLength(0);
+  });
+
+  it('does not keep abort listeners on a reused signal after deferred queries finish', async () => {
+    const controller = new AbortController();
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          a: String
+          b: String
+        }
+      `,
+      resolvers: {
+        Query: {
+          a: () => 'a',
+          b: async () => 'b',
+        },
+      },
+    });
+    const document = parse(/* GraphQL */ `
+      query {
+        a
+        ... @defer {
+          b
+        }
+      }
+    `);
+
+    for (let i = 0; i < 3; i++) {
+      const result = await normalizedExecutor({
+        schema,
+        document,
+        signal: controller.signal,
+      });
+      if (isAsyncIterable(result)) {
+        for await (const _chunk of result) {
+          // drain @defer payloads
+        }
+      }
+    }
+
+    expect(getEventListeners(controller.signal, 'abort')).toHaveLength(0);
   });
 });
