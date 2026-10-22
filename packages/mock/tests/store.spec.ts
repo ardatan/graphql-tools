@@ -904,5 +904,31 @@ describe('MockStore', () => {
       });
       expect(store.get('CreateUserInput', 'draft', ['address', 'city'])).toEqual('London');
     });
+
+    it('does not treat an input id field as the store key', () => {
+      const updateSchema = buildSchema(/* GraphQL */ `
+        input UpdateUserInput {
+          id: ID!
+          name: String
+        }
+
+        type User {
+          id: ID!
+          name: String
+        }
+
+        type Query {
+          user(id: ID!): User
+        }
+
+        type Mutation {
+          updateUser(input: UpdateUserInput!): User
+        }
+      `);
+      const store = createMockStore({ schema: updateSchema });
+      store.set('UpdateUserInput', 'draft', { id: 'user-1', name: 'Ada' });
+      expect(store.get('UpdateUserInput', 'draft', 'id')).toEqual('user-1');
+      expect(store.get('UpdateUserInput', 'draft', 'name')).toEqual('Ada');
+    });
   });
 });

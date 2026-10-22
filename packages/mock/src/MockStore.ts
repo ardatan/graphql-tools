@@ -688,9 +688,13 @@ export class MockStore implements IMockStore {
       return typePolicyKeyField;
     }
 
-    // How about common key field names?
-
     const gqlType = this.getType(typeName);
+    // Input fields are argument data, not entity identity. An `id` on
+    // UpdateUserInput is the target user's id, not this store entry's key.
+    if (isInputObjectType(gqlType)) {
+      return null;
+    }
+
     for (const fieldName in gqlType.getFields()) {
       if (defaultKeyFieldNames.includes(fieldName)) {
         return fieldName;
