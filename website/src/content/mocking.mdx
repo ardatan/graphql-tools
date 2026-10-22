@@ -88,9 +88,9 @@ You can also use this to describe object types, and the fields can be functions 
 }
 ```
 
-`Query` / `Mutation` / `Subscription` mocks receive the operation's variable map. That is what you
-assert in tests (v7 `mock.calls` on the operation mock). Nested type mocks such as `User` do not get
-those variables; they are not the operation.
+`Query` / `Mutation` / `Subscription` mocks receive the **field arguments** of the field being
+resolved, not the operation's variable names. `$userId` vs `$id` is up to the client; `user(id:)` is
+in the schema. Assert `args.id`. Nested type mocks such as `User` are not called with those args.
 
 ```ts
 const query = jest.fn(() => ({
@@ -109,18 +109,17 @@ await graphql({
 })
 
 query.mock.calls[0][0]
-// { userId: 'user-1' }
+// { id: 'user-1' }  — schema argument name, not $userId
 ```
 
-An operation field function still gets resolved field arguments, then the same variable map. Other
-fields on `User` keep the default mocks; you do not have to implement the whole type.
+An operation field function gets the same map. Other fields on `User` keep the default mocks.
 
 ```ts
 {
   Query: () => ({
-    user: (args, variables) => ({
+    user: args => ({
       id: args.id,
-      name: variables.userId
+      name: 'Ada'
     })
   })
 }
@@ -755,9 +754,9 @@ store.has('User', '1') // true
 ### Breaking Change: Mock Functions Signature
 
 Mock functions do not receive resolvers' source, context, or `info` anymore. Query, Mutation, and
-Subscription mocks get the operation `variableValues` (see [Customizing Mocks](#customizing-mocks)).
-Use the `resolvers` option of `addMocksToSchema` when you need a real resolver that can interact
-with [`MockStore`](#mockstore).
+Subscription mocks get the resolved **field arguments** of the field being mocked (see
+[Customizing Mocks](#customizing-mocks)). Use the `resolvers` option of `addMocksToSchema` when you
+need a real resolver that can interact with [`MockStore`](#mockstore).
 
 ```js filename="Example"
 // Previously:

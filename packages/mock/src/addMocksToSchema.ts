@@ -142,7 +142,6 @@ export function addMocksToSchema<TResolvers = IResolvers>({
       : resolversOrFnResolvers;
 
   const mockResolver: GraphQLFieldResolver<any, any> = (source, args, contex, info) => {
-    const variableValues = getOperationVariableValues(info.variableValues);
     const defaultResolvedValue = defaultFieldResolver(source, args, contex, info);
 
     // priority to default resolved value
@@ -154,7 +153,6 @@ export function addMocksToSchema<TResolvers = IResolvers>({
         key: source.$ref.key,
         fieldName: info.fieldName,
         fieldArgs: args,
-        variableValues,
       });
     }
 
@@ -166,19 +164,12 @@ export function addMocksToSchema<TResolvers = IResolvers>({
         key: 'ROOT',
         fieldName: info.fieldName,
         fieldArgs: args,
-        variableValues,
       });
     }
 
     if (defaultResolvedValue === undefined) {
       // any is used here because generateFieldValue is a private method at time of writing
-      return (store as any).generateFieldValue(
-        info.parentType.name,
-        info.fieldName,
-        args,
-        undefined,
-        variableValues,
-      );
+      return (store as any).generateFieldValue(info.parentType.name, info.fieldName, args);
     }
 
     return undefined;
@@ -288,18 +279,4 @@ export function addMocksToSchema<TResolvers = IResolvers>({
         resolverValidationOptions,
       })
     : schemaWithMocks;
-}
-
-function getOperationVariableValues(
-  variableValues: unknown,
-): { [variableName: string]: unknown } | undefined {
-  if (variableValues == null || typeof variableValues !== 'object') {
-    return undefined;
-  }
-  // GraphQL v17 stores coerced values under `coerced`
-  const maybeCoerced = (variableValues as { coerced?: unknown }).coerced;
-  if (maybeCoerced != null && typeof maybeCoerced === 'object') {
-    return maybeCoerced as { [variableName: string]: unknown };
-  }
-  return variableValues as { [variableName: string]: unknown };
 }

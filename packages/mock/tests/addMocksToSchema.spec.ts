@@ -578,7 +578,7 @@ describe('addMocksToSchema', () => {
     expect(data).toEqual({ nums: [0, 1, 2] });
   });
 
-  it('passes operation variables to the Query mock, not to nested type mocks', async () => {
+  it('passes resolved field args to the Query mock, not operation variable names', async () => {
     const queryCalls: unknown[] = [];
     const userNameCalls: unknown[][] = [];
     const schema = buildSchema(/* GraphQL */ `
@@ -593,11 +593,11 @@ describe('addMocksToSchema', () => {
     const mockedSchema = addMocksToSchema({
       schema,
       mocks: {
-        Query: (variables?: { userId: string }) => {
-          queryCalls.push(variables);
+        Query: (args?: { id: string }) => {
+          queryCalls.push(args);
           return {
-            user: (args: { id: string }) => ({
-              id: args.id,
+            user: (fieldArgs: { id: string }) => ({
+              id: fieldArgs.id,
             }),
           };
         },
@@ -616,7 +616,7 @@ describe('addMocksToSchema', () => {
     });
     expect(errors).toBeFalsy();
     expect(data).toEqual({ user: { id: 'user-1', name: 'from-user-mock' } });
-    expect(queryCalls).toEqual([{ userId: 'user-1' }]);
+    expect(queryCalls).toEqual([{ id: 'user-1' }]);
     expect(userNameCalls).toEqual([[{}]]);
   });
 });

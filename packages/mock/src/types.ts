@@ -3,9 +3,9 @@ import { ExecutionResult, IResolvers } from '@graphql-tools/utils';
 
 export type IMockFn = (index?: number) => unknown;
 export type IScalarMock = unknown | IMockFn;
-export type ITypeMock = (variableValues?: {
-  [variableName: string]: unknown;
-}) => { [fieldName: string]: unknown | IMockFn } | { [fieldName: string]: IMockFn };
+export type ITypeMock = (
+  fieldArgs?: string | { [argName: string]: any },
+) => { [fieldName: string]: unknown | IMockFn } | { [fieldName: string]: IMockFn };
 
 export type IMocks<TResolvers = IResolvers> = {
   [TTypeName in keyof TResolvers]?: {
@@ -55,11 +55,6 @@ export type GetArgs<KeyT extends KeyTypeConstraints = string> = {
    * arbitrary string.
    */
   fieldArgs?: string | { [argName: string]: any };
-  /**
-   * Operation variable values (`info.variableValues`) forwarded to type-field
-   * mock functions as their second argument.
-   */
-  variableValues?: { [variableName: string]: unknown };
   /**
    * If no value found, insert the `defaultValue`.
    */
