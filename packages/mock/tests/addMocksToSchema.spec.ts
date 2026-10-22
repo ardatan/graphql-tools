@@ -1,6 +1,6 @@
 import { buildSchema, graphql } from 'graphql';
 import { addResolversToSchema } from '@graphql-tools/schema';
-import { addMocksToSchema, assertIsRef, createMockStore, isRef } from '../src/index.js';
+import { addMocksToSchema, assertIsRef, createMockStore, IMocks, isRef } from '../src/index.js';
 
 const typeDefs = /* GraphQL */ `
   type User {
@@ -672,7 +672,7 @@ describe('list and nested mock overrides', () => {
           nickname: 'John',
         }),
         String: () => 'Bob',
-      },
+      } as IMocks,
       resolvers: {
         Query: {
           user: () => ({ id: '1', username: 'ada' }),
@@ -701,5 +701,38 @@ describe('list and nested mock overrides', () => {
       user: { nickname: 'John' },
       users: [{ nickname: 'John' }],
     });
+  });
+
+  it('does not reuse a generated bare value for a later argumented read', async () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type Query {
+        user: User
+      }
+      type User {
+        id: ID!
+        name(param: String): String
+      }
+    `);
+
+    const mockedSchema = addMocksToSchema({
+      schema,
+      mocks: {
+        User: () => ({
+          name: (args?: { param?: string }) => (args?.param ? `arg-${args.param}` : 'no-args'),
+        }),
+      },
+    });
+
+    const { data: first } = await graphql({
+      schema: mockedSchema,
+      source: '{ user { name } }',
+    });
+    const { data: second } = await graphql({
+      schema: mockedSchema,
+      source: '{ user { name(param: "test") } }',
+    });
+
+    expect(first).toEqual({ user: { name: 'no-args' } });
+    expect(second).toEqual({ user: { name: 'arg-test' } });
   });
 });
