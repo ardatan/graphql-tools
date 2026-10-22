@@ -22,4 +22,6 @@ schema.getDirective('auth').args.find(arg => arg.name === 'role').defaultValue;
 // after:  "3user"
 ```
 
+`mapSchema` serializes the stored default with the source type before parsing with the remapped type, so an internal value that matches another enum name (`USER` → `"ADMIN"`) stays `"ADMIN"` instead of being parsed as that name.
+
 `forEachDefaultValue` walks directive arguments too, so `makeExecutableSchema` enum resolvers get the same result.

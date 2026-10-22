@@ -1,4 +1,13 @@
-import { GraphQLSchema } from 'graphql';
+import {
+  DirectiveLocation,
+  GraphQLDirective,
+  GraphQLEnumType,
+  GraphQLID,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLSchema,
+} from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { getDirective, MapperKind, mapSchema } from '../src/index.js';
 
@@ -113,6 +122,46 @@ describe('mapSchema - directives with defaults', () => {
       moderatorsList: '1moderator',
       adminsList: '0admin',
     });
+  });
+
+  it('keeps a remapped directive enum default when the internal value matches another name', () => {
+    const UserRole = new GraphQLEnumType({
+      name: 'UserRole',
+      values: {
+        ADMIN: { value: '1admin' },
+        USER: { value: 'ADMIN' },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          usersList: {
+            type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLID))),
+          },
+        },
+      }),
+      directives: [
+        new GraphQLDirective({
+          name: 'auth',
+          locations: [DirectiveLocation.FIELD_DEFINITION],
+          args: {
+            role: {
+              type: UserRole,
+              defaultValue: 'ADMIN',
+            },
+          },
+        }),
+      ],
+      types: [UserRole],
+    });
+
+    const mapped = mapSchema(schema);
+    const roleDefault = mapped
+      .getDirective('auth')
+      ?.args.find(arg => arg.name === 'role')?.defaultValue;
+
+    expect(roleDefault).toBe('ADMIN');
   });
 
   it('handles Enum with default correctly', () => {

@@ -206,7 +206,7 @@ function mapDirectiveDefaultValues(
       if (maybeNewType != null) {
         config.args[argName] = {
           ...arg,
-          defaultValue: fn(maybeNewType, arg.defaultValue),
+          defaultValue: fn(maybeNewType, serializeInputValue(arg.type, arg.defaultValue)),
         };
         changed = true;
       }
