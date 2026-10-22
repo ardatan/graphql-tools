@@ -64,6 +64,7 @@ export class MockStore implements IMockStore {
   };
 
   private store: { [typeName: string]: { [key: string]: Entity } } = {};
+  private implicitBareFields = new Set<string>();
 
   constructor({
     schema,
@@ -203,6 +204,7 @@ export class MockStore implements IMockStore {
 
   reset() {
     this.store = {};
+    this.implicitBareFields.clear();
   }
 
   filter(key: string, predicate: (val: Entity) => boolean) {
@@ -234,12 +236,15 @@ export class MockStore implements IMockStore {
     assertIsDefined(key, 'key argument should be given when fieldName is given');
 
     const fieldNameInStore: string = getFieldNameInStore(fieldName, fieldArgs);
+    const entity = this.store[typeName]?.[key];
+    const hasExactValue = entity !== undefined && entity[fieldNameInStore] !== undefined;
+    const hasExplicitUnarguedValue =
+      fieldNameInStore !== fieldName &&
+      entity !== undefined &&
+      entity[fieldName] !== undefined &&
+      !this.implicitBareFields.has(bareFieldId(typeName, key, fieldName));
 
-    if (
-      this.store[typeName] === undefined ||
-      this.store[typeName][key] === undefined ||
-      this.store[typeName][key][fieldNameInStore] === undefined
-    ) {
+    if (!hasExactValue && !hasExplicitUnarguedValue) {
       let value;
       if (defaultValue !== undefined) {
         value = defaultValue;
@@ -266,9 +271,17 @@ export class MockStore implements IMockStore {
       }
 
       this.set({ typeName, key, fieldName, fieldArgs, value, noOverride: true });
+      if (
+        fieldNameInStore === fieldName &&
+        defaultValue === undefined &&
+        !this.isKeyField(typeName, fieldName)
+      ) {
+        this.implicitBareFields.add(bareFieldId(typeName, key, fieldName));
+      }
     }
 
-    return this.store[typeName][key][fieldNameInStore];
+    const stored = this.store[typeName][key];
+    return stored[fieldNameInStore] !== undefined ? stored[fieldNameInStore] : stored[fieldName];
   }
 
   private setImpl<KeyT extends KeyTypeConstraints>(args: SetArgs<KeyT>) {
@@ -345,6 +358,10 @@ export class MockStore implements IMockStore {
       ...this.store[typeName][key],
       [fieldNameInStore]: valueToStore,
     };
+
+    if (fieldNameInStore === fieldName) {
+      this.implicitBareFields.delete(bareFieldId(typeName, key, fieldName));
+    }
   }
 
   private normalizeValueToStore(
@@ -676,6 +693,9 @@ export class MockStore implements IMockStore {
     return null;
   }
 }
+
+const bareFieldId = (typeName: string, key: string | number, fieldName: string) =>
+  `${typeName}:${String(key)}:${fieldName}`;
 
 const getFieldNameInStore = (
   fieldName: string,
