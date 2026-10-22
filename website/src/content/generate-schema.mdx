@@ -265,10 +265,10 @@ const jsSchema = makeExecutableSchema({
   - `requireResolversForAllFields` asserts that _all_ fields have valid resolvers. This option
     cannot be set in combination with the previous two validators. Default is `ignore`.
 
-  - `requireResolversForResolveType` will require a `resolveType()` / `__resolveType()` method for
-    Interface and Union types. The default is `ignore`, causing this validator to be skipped. In
-    that mode `makeExecutableSchema` does not throw or `console.warn` when an abstract type such as
-    a `QueryResponse` union has no `__resolveType`.
+  - `requireResolversForResolveType` will require a `resolveType()` method for Interface and Union
+    types. Provide this method in the resolver map as `__resolveType()`. The default is `ignore`,
+    causing this validator to be skipped. In that mode `makeExecutableSchema` does not throw or
+    `console.warn` when an abstract type such as a `QueryResponse` union has no `__resolveType`.
 
   - `requireResolversToMatchSchema` requires every resolver within the resolver map to correspond to
     a GraphQL entity within the schema. Defaults to `error`, to help catch common errors.
