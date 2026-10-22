@@ -623,4 +623,57 @@ describe('Abort Signal listener cleanup', () => {
 
     expect(getEventListeners(controller.signal, 'abort')).toHaveLength(0);
   });
+
+  it('does not keep abort listeners if incremental cleanup never settles', async () => {
+    const controller = new AbortController();
+    const cleanupStarted = Promise.withResolvers<void>();
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          counter: [Int!]!
+        }
+      `,
+      resolvers: {
+        Query: {
+          counter: () => ({
+            [Symbol.asyncIterator]() {
+              return this;
+            },
+            next() {
+              return new Promise(() => {
+                // stay pending so @stream has an open iterator
+              });
+            },
+            return() {
+              cleanupStarted.resolve();
+              return new Promise(() => {
+                // never settle
+              });
+            },
+          }),
+        },
+      },
+    });
+
+    const result = await normalizedExecutor({
+      schema,
+      document: parse(/* GraphQL */ `
+        query {
+          counter @stream
+        }
+      `),
+      signal: controller.signal,
+    });
+
+    if (!isAsyncIterable(result)) {
+      throw new Error('Result is not an async iterable');
+    }
+
+    const iter = result[Symbol.asyncIterator]();
+    await iter.next();
+    const pendingReturn = iter.return();
+    await cleanupStarted.promise;
+    expect(getEventListeners(controller.signal, 'abort')).toHaveLength(0);
+    expect(pendingReturn).toBeInstanceOf(Promise);
+  });
 });

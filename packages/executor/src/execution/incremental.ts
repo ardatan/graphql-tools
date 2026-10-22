@@ -751,18 +751,18 @@ export function yieldSubsequentPayloads(
     },
     next,
     async return(): Promise<IteratorResult<SubsequentIncrementalExecutionResult, void>> {
-      await returnStreamIterators();
       markDone();
+      await returnStreamIterators();
       return { value: undefined, done: true };
     },
     async throw(error?: unknown): Promise<IteratorResult<never, void>> {
-      await returnStreamIterators();
       markDone();
+      await returnStreamIterators();
       throw error;
     },
     async [DisposableSymbols.asyncDispose]() {
-      await returnStreamIterators();
       markDone();
+      await returnStreamIterators();
     },
   };
 }
