@@ -88,28 +88,43 @@ You can also use this to describe object types, and the fields can be functions 
 }
 ```
 
-A field function receives the field's resolved arguments, then the operation's `variableValues`.
-That is enough to assert how a query or mutation was called without writing a full resolver:
+`Query` / `Mutation` / `Subscription` mocks receive the operation's variable map. That is what you
+assert in tests (v7 `mock.calls` on the operation mock). Nested type mocks such as `User` do not get
+those variables; they are not the operation.
 
 ```ts
-const mocks = {
-  Query: () => ({
-    user: (args: { id: string }, variables?: { userId: string }) => {
-      // args.id === 'user-1'
-      // variables.userId === 'user-1'
-      return { id: args.id, name: 'Ada' }
-    }
-  })
-}
+const query = jest.fn(() => ({
+  user: { name: 'Ada' }
+}))
 
-graphql({
-  schema: addMocksToSchema({ schema, mocks }),
+const schemaWithMocks = addMocksToSchema({
+  schema,
+  mocks: { Query: query }
+})
+
+await graphql({
+  schema: schemaWithMocks,
   source: 'query ($userId: ID!) { user(id: $userId) { name } }',
   variableValues: { userId: 'user-1' }
 })
+
+query.mock.calls[0][0]
+// { userId: 'user-1' }
 ```
 
-You do not have to mock every field. Other fields still use the default mocking strategy.
+An operation field function still gets resolved field arguments, then the same variable map. Other
+fields on `User` keep the default mocks; you do not have to implement the whole type.
+
+```ts
+{
+  Query: () => ({
+    user: (args, variables) => ({
+      id: args.id,
+      name: variables.userId
+    })
+  })
+}
+```
 
 In this example, we are using [casual](https://github.com/boo1ean/casual), a fake data generator for
 JavaScript, so that we can get a different result every time the field is called. You might want to
@@ -739,10 +754,10 @@ store.has('User', '1') // true
 
 ### Breaking Change: Mock Functions Signature
 
-Mock functions do not receive resolvers' source, context, or `info` anymore. Type-field mocks still
-get the field's resolved arguments and the operation `variableValues` (see
-[Customizing Mocks](#customizing-mocks)). Use the `resolvers` option of `addMocksToSchema` when you
-need a real resolver that can interact with [`MockStore`](#mockstore).
+Mock functions do not receive resolvers' source, context, or `info` anymore. Query, Mutation, and
+Subscription mocks get the operation `variableValues` (see [Customizing Mocks](#customizing-mocks)).
+Use the `resolvers` option of `addMocksToSchema` when you need a real resolver that can interact
+with [`MockStore`](#mockstore).
 
 ```js filename="Example"
 // Previously:

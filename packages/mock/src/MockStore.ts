@@ -14,7 +14,7 @@ import {
   isObjectType,
   isScalarType,
 } from 'graphql';
-import { isDangerousObjectKey } from '@graphql-tools/utils';
+import { getRootTypeNames, isDangerousObjectKey } from '@graphql-tools/utils';
 import { deepResolveMockList, isMockList } from './MockList.js';
 import {
   assertIsRef,
@@ -519,9 +519,10 @@ export class MockStore implements IMockStore {
     let value;
 
     const mock: IScalarMock | ITypeMock | undefined = this.mocks ? this.mocks[typeName] : undefined;
+    const isOperationType = this.isRootTypeName(typeName);
     if (mock) {
       if (typeof mock === 'function') {
-        const values = mock();
+        const values = isOperationType ? mock(variableValues) : mock();
         if (typeof values !== 'object' || values == null) {
           throw new Error(`Value returned by the mock for ${typeName} is not an object`);
         }
@@ -533,13 +534,17 @@ export class MockStore implements IMockStore {
         }
 
         value = (values as any)[fieldName];
-        if (typeof value === 'function') value = value(fieldArgs, variableValues);
+        if (typeof value === 'function') {
+          value = isOperationType ? value(fieldArgs, variableValues) : value(fieldArgs);
+        }
       } else if (
         typeof mock === 'object' &&
         mock != null &&
         typeof mock[fieldName] === 'function'
       ) {
-        value = mock[fieldName](fieldArgs, variableValues);
+        value = isOperationType
+          ? mock[fieldName](fieldArgs, variableValues)
+          : mock[fieldName](fieldArgs);
       }
     }
 
@@ -680,6 +685,10 @@ export class MockStore implements IMockStore {
     }
 
     return type;
+  }
+
+  private isRootTypeName(typeName: string) {
+    return getRootTypeNames(this.schema).has(typeName);
   }
 
   private isKeyField(typeName: string, fieldName: string) {

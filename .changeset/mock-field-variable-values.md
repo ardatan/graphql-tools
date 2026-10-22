@@ -2,6 +2,6 @@
 '@graphql-tools/mock': minor
 ---
 
-Type-field mock functions now receive the operation's variable values as a second argument.
+Query, Mutation, and Subscription mocks now receive the operation's variable values.
 
-`Query: () => ({ user: (args, variables) => ... })` already got the field's resolved arguments. The second argument is `info.variableValues`, so a mock can assert how the operation was called without replacing every field with a resolver.
+`mocks.Query = jest.fn(() => ({ ... }))` is called with `{ userId: '...' }`, so `mock.calls` can assert the request variables the way v7 did. Operation field functions get `(fieldArgs, variables)`. Nested type mocks such as `User` are unchanged.
