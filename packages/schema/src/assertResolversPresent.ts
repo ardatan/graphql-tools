@@ -59,7 +59,8 @@ function expectResolver(
   typeName: string,
   fieldName: string,
 ) {
-  if (!field.resolve) {
+  const resolverFn = field.resolve ?? field.subscribe;
+  if (!resolverFn) {
     const message = `Resolver missing for "${typeName}.${fieldName}".
 To disable this validator, use:
   resolverValidationOptions: {
@@ -76,7 +77,7 @@ To disable this validator, use:
 
     return;
   }
-  if (typeof field.resolve !== 'function') {
+  if (typeof resolverFn !== 'function') {
     throw new Error(`Resolver "${typeName}.${fieldName}" must be a function`);
   }
 }

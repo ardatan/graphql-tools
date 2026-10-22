@@ -1517,6 +1517,33 @@ describe('generating schema from shorthand', () => {
     }, 'Resolver missing for "Query.bird"');
   });
 
+  test('does not throw if a subscription field with args has a subscribe function', () => {
+    expect(() =>
+      makeExecutableSchema({
+        typeDefs: /* GraphQL */ `
+          type Query {
+            _: Boolean
+          }
+          type Subscription {
+            numberIncremented(id: Int): Int
+          }
+        `,
+        resolvers: {
+          Subscription: {
+            numberIncremented: {
+              subscribe: async function* () {
+                yield { numberIncremented: 1 };
+              },
+            },
+          },
+        },
+        resolverValidationOptions: {
+          requireResolversForArgs: 'error',
+        },
+      }),
+    ).not.toThrow();
+  });
+
   test('does not throw an error if `resolverValidationOptions.requireResolversForArgs` is false', () => {
     const short = `
       type Query{
