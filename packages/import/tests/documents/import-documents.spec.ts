@@ -1,6 +1,8 @@
 import '../../../testing/to-be-similar-gql-doc';
-import { relative } from 'path';
-import { print } from 'graphql';
+import { mkdtempSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
+import { join, relative } from 'path';
+import { parse, print, Source } from 'graphql';
 import { processImport, VisitedFilesMap } from '../../src/index.js';
 
 const importDocuments = (documentPath: string) => print(processImport(documentPath, __dirname));
@@ -62,6 +64,45 @@ describe('import in documents', () => {
         baz
       }
     `);
+  });
+
+  it('does not reprint and re-parse the assembled document (#5616 Clinic path)', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'import-5616-'));
+    const types = Array.from({ length: 40 }, (_, i) => `type T${i} { id: ID }`).join('\n');
+    writeFileSync(join(dir, 'types.graphql'), `${types}\n`);
+    writeFileSync(
+      join(dir, 'root.graphql'),
+      `# import * from "./types.graphql"\n\ntype Query { x: T0 }\n`,
+    );
+
+    const visitedFiles: VisitedFilesMap = new Map();
+    const document = processImport(join(dir, 'root.graphql'), dir, undefined, visitedFiles);
+
+    const collected: Array<(typeof document.definitions)[number]> = [];
+    const seen = new Set();
+    for (const fileDefs of visitedFiles.values()) {
+      for (const defs of fileDefs.values()) {
+        for (const def of defs) {
+          if (!seen.has(def)) {
+            seen.add(def);
+            collected.push(def);
+          }
+        }
+      }
+    }
+
+    // The issue profile: print every definition, concatenate, parse again.
+    let sdl = '';
+    for (const def of collected) {
+      sdl += print(def) + '\n';
+    }
+    const reprinted = parse(new Source(sdl, join(dir, 'root.graphql')));
+
+    expect(document.definitions.length).toBeGreaterThan(1);
+    for (const def of document.definitions) {
+      expect(seen.has(def)).toBe(true);
+    }
+    expect(reprinted.definitions.some(def => seen.has(def))).toBe(false);
   });
 
   it('keeps original definition nodes instead of reprinting them', () => {
