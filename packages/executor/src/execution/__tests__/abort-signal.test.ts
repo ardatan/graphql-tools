@@ -671,6 +671,9 @@ describe('Abort Signal listener cleanup', () => {
 
     const iter = result[Symbol.asyncIterator]();
     await iter.next();
+    if (!iter.return) {
+      throw new Error('Iterator has no return');
+    }
     const pendingReturn = iter.return();
     await cleanupStarted.promise;
     expect(getEventListeners(controller.signal, 'abort')).toHaveLength(0);
