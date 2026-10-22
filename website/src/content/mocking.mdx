@@ -558,8 +558,9 @@ store.get('User', 'abc-737dh-djdjd', 'name')
 // 'Hello World'
 ```
 
-If the field is the key field of this type, the store key itself is returned. By default, `id` and
-`_id` fields are considered as key fields but it can be customized with option `typePolicies`.
+If the field is the key field of this type, the store key itself is returned. For object and
+interface types, `id` and `_id` are treated as that key unless you change it with `typePolicies`.
+Input object types are not keyed that way; see [storing input types](#storing-input-types).
 
 ```ts
 store.get('User', 'abc-737dh-djdjd', 'id')
@@ -659,8 +660,16 @@ store.get('User', '1', 'membership', { param: 'test' })
 The same applies to mocks on list items: `{ membership: null }` or
 `{ returnStringArgument: 'Overridden' }` is used when the field is queried with arguments.
 
-Input object types work the same way as object types. That lets you store a mutation input and read
-it back later:
+##### Storing input types
+
+GraphQL input objects are argument values, not queryable entities. The spec keeps them as a separate
+type kind from object types
+([Input Objects](https://spec.graphql.org/October2021/#sec-Input-Objects)). They have no identity in
+the type system: there is no "the `UpdateUserInput` with this id", only a payload you pass into a
+field.
+
+`MockStore` still lets you `get` / `set` an input so a mock mutation can remember what was sent
+(create, then update). You choose the store key. It is not inferred from an `id` field:
 
 ```ts
 store.set('CreateUserInput', 'draft', { name: 'Ada', age: 36 })
@@ -668,8 +677,18 @@ store.get('CreateUserInput', 'draft', 'name')
 // 'Ada'
 ```
 
-An `id` or `_id` field on an input is just data, not the store key. You pick the key (`draft`
-above). Use `typePolicies` if you want an input type to use a key field.
+Object types default to `id` / `_id` as the store key because that is how this store models entities
+(the same convention most schemas use for object identity). That default is a `MockStore` rule, not
+a GraphQL spec rule, and it is not applied to inputs. On `UpdateUserInput`, `id` is usually "which
+`User` to update", not "which stored input row":
+
+```ts
+store.set('UpdateUserInput', 'draft', { id: 'user-1', name: 'Ada' })
+store.get('UpdateUserInput', 'draft', 'id')
+// 'user-1'
+```
+
+If you do want an input type keyed by one of its fields, set `typePolicies` for that type.
 
 #### `reset`
 
