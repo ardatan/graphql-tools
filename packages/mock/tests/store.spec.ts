@@ -842,4 +842,24 @@ describe('MockStore', () => {
       expect(userNames).toEqual(new Array(100).fill('Hello World'));
     });
   });
+
+  describe('defaultListLength', () => {
+    it('generates lists of length 2 by default', () => {
+      const store = new MockStore({ schema });
+      const surnames = store.get('User', '1', 'surnames') as string[];
+      expect(surnames).toHaveLength(2);
+    });
+
+    it('can generate empty lists', () => {
+      const store = new MockStore({ schema, defaultListLength: 0 });
+      const surnames = store.get('User', '1', 'surnames') as string[];
+      expect(surnames).toEqual([]);
+    });
+
+    it('can generate lists of a configured length', () => {
+      const store = new MockStore({ schema, defaultListLength: 5 });
+      const surnames = store.get('User', '1', 'surnames') as string[];
+      expect(surnames).toHaveLength(5);
+    });
+  });
 });

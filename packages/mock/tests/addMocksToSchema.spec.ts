@@ -538,4 +538,22 @@ describe('addMocksToSchema', () => {
       ),
     ).toBe(false);
   });
+
+  it('honors defaultListLength when auto-generating lists', async () => {
+    const listSchema = buildSchema(/* GraphQL */ `
+      type Query {
+        tags: [String!]!
+      }
+    `);
+    const mockedSchema = addMocksToSchema({
+      schema: listSchema,
+      defaultListLength: 0,
+    });
+    const { data, errors } = await graphql({
+      schema: mockedSchema,
+      source: '{ tags }',
+    });
+    expect(errors).toBeFalsy();
+    expect(data).toEqual({ tags: [] });
+  });
 });
