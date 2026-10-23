@@ -70,7 +70,7 @@ export function rewireTypes(
   }
 
   const newDirectives = directives.map(directive =>
-    directiveNeedsRewire(directive, referenceTypeMap, typesToRewire)
+    directiveNeedsRewire(directive, newTypeMap, referenceTypeMap, typesToRewire)
       ? rewireDirective(directive)
       : directive,
   );
@@ -223,7 +223,7 @@ function typesThatNeedRewire(
       if (needsRewire.has(typeName)) {
         continue;
       }
-      if (typeNeedsRewire(typeMap[typeName], referenceTypeMap, needsRewire)) {
+      if (typeNeedsRewire(typeMap[typeName], typeMap, referenceTypeMap, needsRewire)) {
         needsRewire.add(typeName);
         added = true;
       }
@@ -235,6 +235,7 @@ function typesThatNeedRewire(
 
 function typeNeedsRewire(
   type: GraphQLNamedType,
+  typeMap: Record<string, GraphQLNamedType>,
   referenceTypeMap: Record<string, GraphQLNamedType | null>,
   needsRewire: Set<string>,
   visiting: Set<GraphQLNamedType> = new Set(),
@@ -245,15 +246,18 @@ function typeNeedsRewire(
   visiting.add(type);
 
   for (const ref of namedTypeReferences(type)) {
-    if (isNamedStub(ref) || needsRewire.has(ref.name)) {
+    if (isNamedStub(ref) && !(ref.name in referenceTypeMap)) {
       return true;
     }
-    if (replacementFor(ref, referenceTypeMap) !== ref) {
+    if (needsRewire.has(ref.name)) {
+      return true;
+    }
+    if (replacementFor(ref, referenceTypeMap, typeMap) !== ref) {
       return true;
     }
     if (
       !(ref.name in referenceTypeMap) &&
-      typeNeedsRewire(ref, referenceTypeMap, needsRewire, visiting)
+      typeNeedsRewire(ref, typeMap, referenceTypeMap, needsRewire, visiting)
     ) {
       return true;
     }
@@ -263,6 +267,7 @@ function typeNeedsRewire(
 
 function directiveNeedsRewire(
   directive: GraphQLDirective,
+  typeMap: Record<string, GraphQLNamedType>,
   referenceTypeMap: Record<string, GraphQLNamedType | null>,
   needsRewire: Set<string>,
 ): boolean {
@@ -272,9 +277,11 @@ function directiveNeedsRewire(
   for (const arg of directive.args) {
     const ref = getNamedType(arg.type);
     if (
-      isNamedStub(ref) ||
+      (isNamedStub(ref) && !(ref.name in referenceTypeMap)) ||
       needsRewire.has(ref.name) ||
-      replacementFor(ref, referenceTypeMap) !== ref
+      replacementFor(ref, referenceTypeMap, typeMap) !== ref ||
+      (!(ref.name in referenceTypeMap) &&
+        typeNeedsRewire(ref, typeMap, referenceTypeMap, needsRewire))
     ) {
       return true;
     }
@@ -285,11 +292,16 @@ function directiveNeedsRewire(
 function replacementFor(
   ref: GraphQLNamedType,
   referenceTypeMap: Record<string, GraphQLNamedType | null>,
+  typeMap: Record<string, GraphQLNamedType>,
 ): GraphQLNamedType | null {
-  if (ref.name in referenceTypeMap) {
-    return referenceTypeMap[ref.name];
+  if (!(ref.name in referenceTypeMap)) {
+    return ref;
   }
-  return ref;
+  const replacement = referenceTypeMap[ref.name];
+  if (replacement == null) {
+    return null;
+  }
+  return typeMap[replacement.name] ?? replacement;
 }
 
 function namedTypeReferences(type: GraphQLNamedType): GraphQLNamedType[] {

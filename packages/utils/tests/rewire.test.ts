@@ -1,9 +1,14 @@
 import {
   buildSchema,
+  DirectiveLocation,
   getNamedType,
+  GraphQLDirective,
+  GraphQLInputObjectType,
   GraphQLNamedType,
   GraphQLObjectType,
+  GraphQLSchema,
   GraphQLString,
+  isInputObjectType,
   isObjectType,
 } from 'graphql';
 import { MapperKind, mapSchema } from '../src/index.js';
@@ -75,6 +80,106 @@ describe('rewireTypes', () => {
     expect(typeMap['Query']).not.toBe(query);
     expect(isObjectType(typeMap['Query']) && typeMap['Query'].getFields()['foo'].type).toBe(
       GraphQLString,
+    );
+  });
+
+  test('keeps parents of a registered type whose first field is _fake', () => {
+    const fake = new GraphQLObjectType({
+      name: 'Fake',
+      fields: {
+        _fake: { type: GraphQLString },
+      },
+    });
+    const query = new GraphQLObjectType({
+      name: 'Query',
+      fields: {
+        fake: { type: fake },
+      },
+    });
+
+    const { typeMap } = rewireTypes({ Query: query, Fake: fake }, []);
+
+    expect(typeMap['Fake']).toBe(fake);
+    expect(typeMap['Query']).toBe(query);
+  });
+
+  test('rewires fields that still point at the discarded type when names collide', () => {
+    const discardedBar = new GraphQLObjectType({
+      name: 'Bar',
+      fields: {
+        name: { type: GraphQLString },
+      },
+    });
+    const keptBar = new GraphQLObjectType({
+      name: 'Bar',
+      fields: {
+        name: { type: GraphQLString },
+        extra: { type: GraphQLString },
+      },
+    });
+    const query = new GraphQLObjectType({
+      name: 'Query',
+      fields: {
+        bar: { type: discardedBar },
+      },
+    });
+
+    const typeMap: Record<string, GraphQLNamedType> = Object.create(null);
+    typeMap['Foo'] = keptBar;
+    typeMap['Bar'] = discardedBar;
+    typeMap['Query'] = query;
+
+    const { typeMap: rewired } = rewireTypes(typeMap, []);
+
+    expect(rewired['Bar']).toBe(keptBar);
+    expect(rewired['Query']).not.toBe(query);
+    expect(isObjectType(rewired['Query']) && rewired['Query'].getFields()['bar'].type).toBe(
+      rewired['Bar'],
+    );
+    expect(
+      () =>
+        new GraphQLSchema({
+          query: rewired['Query'] as GraphQLObjectType,
+          types: Object.values(rewired),
+        }),
+    ).not.toThrow();
+  });
+
+  test('rewires directives whose unmapped argument types reference a replaced type', () => {
+    const originalBar = new GraphQLInputObjectType({
+      name: 'Bar',
+      fields: {
+        name: { type: GraphQLString },
+      },
+    });
+    const replacedBar = new GraphQLInputObjectType({
+      name: 'Bar',
+      fields: {
+        name: { type: GraphQLString },
+        extra: { type: GraphQLString },
+      },
+    });
+    const wrapper = new GraphQLInputObjectType({
+      name: 'Wrapper',
+      fields: {
+        bar: { type: originalBar },
+      },
+    });
+    const directive = new GraphQLDirective({
+      name: 'example',
+      locations: [DirectiveLocation.OBJECT],
+      args: {
+        input: { type: wrapper },
+      },
+    });
+
+    const { typeMap: rewired, directives } = rewireTypes({ Bar: replacedBar }, [directive]);
+    const rewiredDirective = directives[0];
+    const rewiredWrapper = getNamedType(rewiredDirective.args[0].type);
+
+    expect(rewiredDirective).not.toBe(directive);
+    expect(isInputObjectType(rewiredWrapper) && rewiredWrapper.getFields()['bar'].type).toBe(
+      rewired['Bar'],
     );
   });
 });
