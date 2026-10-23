@@ -26,12 +26,8 @@ export function useExecutor(
   }
   return {
     ...envelopPlugin,
-    onYogaInit({ yoga }) {
-      logWarn = (message?: any, ...args: any[]) => {
-        yoga.log.warn(typeof message === 'string' ? message : String(message), ...args);
-      };
-    },
     onRequestParse({ serverContext }) {
+      // Prefer the request-scoped logger (carries requestId). See yoga v5→v6 migration.
       logWarn = (message?: any, ...args: any[]) => {
         serverContext.log.warn(typeof message === 'string' ? message : String(message), ...args);
       };
