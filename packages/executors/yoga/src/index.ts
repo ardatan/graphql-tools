@@ -10,20 +10,10 @@ export function useExecutor(
   executor: Executor,
   opts?: ExecutorPluginOpts,
 ): Plugin & ExecutorPluginExtras {
-  let logWarn = opts?.logWarn || ((message: any) => console.warn(message));
-  const envelopPlugin = useEnvelopExecutor<YogaInitialContext>(executor, {
-    ...opts,
-    logWarn(...args) {
-      return logWarn(...args);
-    },
-  });
+  const envelopPlugin = useEnvelopExecutor<YogaInitialContext>(executor, opts);
   return {
     ...envelopPlugin,
     onRequestParse({ serverContext }) {
-      // Prefer the request-scoped logger (carries requestId). See yoga v5→v6 migration.
-      logWarn = (message?: any, ...args: any[]) => {
-        serverContext.log.warn(typeof message === 'string' ? message : String(message), ...args);
-      };
       return {
         onRequestParseDone() {
           envelopPlugin.ensureSchema(serverContext);
