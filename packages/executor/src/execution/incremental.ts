@@ -742,14 +742,18 @@ export function yieldSubsequentPayloads(
 
   function returnStreamIterators(): MaybePromise<void> {
     const promises: Array<Promise<unknown>> = [];
-    exeContext.subsequentPayloads.forEach(asyncPayloadRecord => {
-      if (isStreamPayload(asyncPayloadRecord) && asyncPayloadRecord.iterator?.return) {
-        const result = asyncPayloadRecord.iterator.return();
-        if (isPromise(result)) {
-          promises.push(fakePromise(result));
+    try {
+      exeContext.subsequentPayloads.forEach(asyncPayloadRecord => {
+        if (isStreamPayload(asyncPayloadRecord) && asyncPayloadRecord.iterator?.return) {
+          const result = asyncPayloadRecord.iterator.return();
+          if (isPromise(result)) {
+            promises.push(fakePromise(result));
+          }
         }
-      }
-    });
+      });
+    } catch (err) {
+      return fakeRejectPromise(err);
+    }
     if (promises.length === 0) {
       return;
     }

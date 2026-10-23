@@ -103,27 +103,39 @@ export function flattenAsyncIterable<T>(
     next,
     return() {
       done = true;
-      return fakePromise(
-        awaitAllMaybe([currentNestedIterator?.return?.(), topIterator.return?.()]),
-      ).then(() => ({ value: undefined, done: true as const }));
+      try {
+        return fakePromise(
+          awaitAllMaybe([currentNestedIterator?.return?.(), topIterator.return?.()]),
+        ).then(() => ({ value: undefined, done: true as const }));
+      } catch (err) {
+        return fakeRejectPromise(err);
+      }
     },
     throw(error?: unknown): Promise<IteratorResult<T>> {
       done = true;
-      return fakePromise(
-        awaitAllMaybe([currentNestedIterator?.throw?.(error), topIterator.throw?.(error)]),
-      ).then(() => fakeRejectPromise(error));
+      try {
+        return fakePromise(
+          awaitAllMaybe([currentNestedIterator?.throw?.(error), topIterator.throw?.(error)]),
+        ).then(() => fakeRejectPromise(error));
+      } catch (err) {
+        return fakeRejectPromise(err);
+      }
     },
     [Symbol.asyncIterator]() {
       return this;
     },
     [DisposableSymbols.asyncDispose]() {
       done = true;
-      return fakePromise(
-        awaitAllMaybe([
-          currentNestedIterator?.[DisposableSymbols.asyncDispose]?.(),
-          topIterator?.[DisposableSymbols.asyncDispose]?.(),
-        ]),
-      );
+      try {
+        return fakePromise(
+          awaitAllMaybe([
+            currentNestedIterator?.[DisposableSymbols.asyncDispose]?.(),
+            topIterator?.[DisposableSymbols.asyncDispose]?.(),
+          ]),
+        );
+      } catch (err) {
+        return fakeRejectPromise(err);
+      }
     },
   };
 }
