@@ -1,10 +1,11 @@
-import { DisposableSymbols, YogaInitialContext, type Plugin } from 'graphql-yoga';
+import { LegacyLogger, YogaInitialContext, type Plugin } from 'graphql-yoga';
 import {
   ExecutorPluginExtras,
   ExecutorPluginOpts,
   useExecutor as useEnvelopExecutor,
 } from '@graphql-tools/executor-envelop';
 import { Executor } from '@graphql-tools/utils';
+import { DisposableSymbols } from '@whatwg-node/disposablestack';
 
 export function useExecutor(
   executor: Executor,
@@ -26,7 +27,8 @@ export function useExecutor(
   return {
     ...envelopPlugin,
     onYogaInit({ yoga }) {
-      logWarn = (...args) => yoga.logger.warn(...args);
+      const legacyLogger = LegacyLogger.from(yoga.log);
+      logWarn = (...args) => legacyLogger.warn(...args);
     },
     onRequestParse({ serverContext }) {
       return {
