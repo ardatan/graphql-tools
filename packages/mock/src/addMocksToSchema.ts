@@ -15,6 +15,7 @@ import {
   MapperKind,
   mapSchema,
 } from '@graphql-tools/utils';
+import { fakePromise } from '@whatwg-node/promise-helpers';
 import { createMockStore } from './MockStore.js';
 import { IMocks, IMockStore, isRef, MockGenerationBehavior, TypePolicy } from './types.js';
 import { copyOwnProps, isObject, isRootType } from './utils.js';
@@ -188,11 +189,11 @@ export function addMocksToSchema<TResolvers = IResolvers>({
   const mockSubscriber: GraphQLFieldResolver<any, any> = () => ({
     [Symbol.asyncIterator]() {
       return {
-        async next() {
-          return {
+        next() {
+          return fakePromise({
             done: true,
             value: {},
-          };
+          });
         },
       };
     },

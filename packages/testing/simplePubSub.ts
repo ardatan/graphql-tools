@@ -1,5 +1,5 @@
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
-import { fakePromise } from '@whatwg-node/promise-helpers';
+import { fakePromise, fakeRejectPromise } from '@whatwg-node/promise-helpers';
 
 /**
  * Create an AsyncIterator from an EventEmitter. Useful for mocking a
@@ -38,23 +38,23 @@ export class SimplePubSub<T> {
     return {
       next(): Promise<IteratorResult<R, void>> {
         if (!listening) {
-          return Promise.resolve({ value: undefined, done: true });
+          return fakePromise({ value: undefined, done: true });
         }
 
         if (pushQueue.length > 0) {
           const value = pushQueue[0];
           pushQueue.shift();
-          return Promise.resolve({ value, done: false });
+          return fakePromise({ value, done: false });
         }
         return new Promise(resolve => pullQueue.push(resolve));
       },
       return(): Promise<IteratorResult<R, void>> {
         emptyQueue();
-        return Promise.resolve({ value: undefined, done: true });
+        return fakePromise({ value: undefined, done: true });
       },
       throw(error: unknown) {
         emptyQueue();
-        return Promise.reject(error);
+        return fakeRejectPromise(error);
       },
       [Symbol.asyncIterator]() {
         return this;

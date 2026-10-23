@@ -1,6 +1,23 @@
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
+import { fakePromise, isPromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 
 type AsyncIterableOrGenerator<T> = AsyncGenerator<T, void, void> | AsyncIterable<T>;
+
+function awaitAllMaybe(promises: Array<MaybePromise<unknown> | undefined | void>): Promise<void> {
+  const pending: Array<Promise<unknown>> = [];
+  for (const p of promises) {
+    if (isPromise(p)) {
+      pending.push(p as Promise<unknown>);
+    }
+  }
+  if (pending.length === 0) {
+    return fakePromise();
+  }
+  if (pending.length === 1) {
+    return pending[0].then((): void => {});
+  }
+  return Promise.all(pending).then((): void => {});
+}
 
 /**
  * Given an AsyncIterable of AsyncIterables, flatten all yielded results into a
@@ -77,23 +94,27 @@ export function flattenAsyncIterable<T>(
   }
   return {
     next,
-    async return() {
+    return() {
       done = true;
-      await Promise.all([currentNestedIterator?.return?.(), topIterator.return?.()]);
-      return { value: undefined, done: true };
+      return awaitAllMaybe([currentNestedIterator?.return?.(), topIterator.return?.()]).then(
+        () => ({ value: undefined, done: true as const }),
+      );
     },
-    async throw(error?: unknown): Promise<IteratorResult<T>> {
+    throw(error?: unknown): Promise<IteratorResult<T>> {
       done = true;
-      await Promise.all([currentNestedIterator?.throw?.(error), topIterator.throw?.(error)]);
-      /* c8 ignore next */
-      throw error;
+      return awaitAllMaybe([
+        currentNestedIterator?.throw?.(error),
+        topIterator.throw?.(error),
+      ]).then(() => {
+        throw error;
+      });
     },
     [Symbol.asyncIterator]() {
       return this;
     },
-    async [DisposableSymbols.asyncDispose]() {
+    [DisposableSymbols.asyncDispose]() {
       done = true;
-      await Promise.all([
+      return awaitAllMaybe([
         currentNestedIterator?.[DisposableSymbols.asyncDispose]?.(),
         topIterator?.[DisposableSymbols.asyncDispose]?.(),
       ]);
