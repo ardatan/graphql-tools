@@ -11,19 +11,19 @@ type AsyncIterableOrGenerator<T> = AsyncGenerator<T, void, void> | AsyncIterable
 function awaitAllMaybe(
   promises: Array<MaybePromise<unknown> | undefined | void>,
 ): MaybePromise<void> {
-  const pending: Array<PromiseLike<unknown>> = [];
+  const pending: Array<Promise<unknown>> = [];
   for (const p of promises) {
     if (isPromise(p)) {
-      pending.push(p);
+      pending.push(fakePromise(p));
     }
   }
   if (pending.length === 0) {
     return;
   }
   if (pending.length === 1) {
-    return pending[0].then(() => undefined);
+    return pending[0].then((): void => {});
   }
-  return Promise.all(pending).then(() => undefined);
+  return Promise.all(pending).then((): void => {});
 }
 
 /**

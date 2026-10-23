@@ -741,12 +741,12 @@ export function yieldSubsequentPayloads(
   }
 
   function returnStreamIterators(): MaybePromise<void> {
-    const promises: Array<PromiseLike<unknown>> = [];
+    const promises: Array<Promise<unknown>> = [];
     exeContext.subsequentPayloads.forEach(asyncPayloadRecord => {
       if (isStreamPayload(asyncPayloadRecord) && asyncPayloadRecord.iterator?.return) {
         const result = asyncPayloadRecord.iterator.return();
         if (isPromise(result)) {
-          promises.push(result);
+          promises.push(fakePromise(result));
         }
       }
     });
@@ -754,9 +754,9 @@ export function yieldSubsequentPayloads(
       return;
     }
     if (promises.length === 1) {
-      return promises[0].then(() => undefined);
+      return promises[0].then((): void => {});
     }
-    return Promise.all(promises).then(() => undefined);
+    return Promise.all(promises).then((): void => {});
   }
 
   return {
