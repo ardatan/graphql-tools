@@ -1,5 +1,12 @@
 # @graphql-tools/executor-envelop
 
+## 5.0.7
+
+### Patch Changes
+
+- [#8583](https://github.com/ardatan/graphql-tools/pull/8583) [`59399c3`](https://github.com/ardatan/graphql-tools/commit/59399c30df075a0915ce8b0c8f84c42bf9499f9e) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+    - Updated dependency [`@envelop/core@^3.0.4 || ^4.0.0 || ^5.0.0 || ^6.0.0` ↗︎](https://www.npmjs.com/package/@envelop/core/v/3.0.4) (from `^3.0.4 || ^4.0.0 || ^5.0.0`, in `peerDependencies`)
+
 ## 5.0.6
 
 ### Patch Changes

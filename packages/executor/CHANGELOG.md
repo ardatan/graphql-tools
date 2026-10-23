@@ -1,5 +1,11 @@
 # @graphql-tools/executor
 
+## 4.1.5
+
+### Patch Changes
+
+- [#8586](https://github.com/ardatan/graphql-tools/pull/8586) [`0554a7f`](https://github.com/ardatan/graphql-tools/commit/0554a7f293bcc52e8ab0b7c28fc3b8ae8962a0d0) Thanks [@ardatan](https://github.com/ardatan)! - Use `fakePromise` / `fakeRejectPromise` for iterator `return` / `throw` / `asyncDispose` instead of unnecessary `async`
+
 ## 4.1.4
 
 ### Patch Changes

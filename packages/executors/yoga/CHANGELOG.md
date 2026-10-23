@@ -1,5 +1,18 @@
 # @graphql-tools/executor-yoga
 
+## 5.0.0
+
+### Major Changes
+
+- [#8583](https://github.com/ardatan/graphql-tools/pull/8583) [`59399c3`](https://github.com/ardatan/graphql-tools/commit/59399c30df075a0915ce8b0c8f84c42bf9499f9e) Thanks [@ardatan](https://github.com/ardatan)! - Requires `graphql-yoga` v6. Disposes the executor via the `onDispose` plugin hook instead of `DisposableSymbols` on the plugin object.
+
+### Patch Changes
+
+- [#8583](https://github.com/ardatan/graphql-tools/pull/8583) [`59399c3`](https://github.com/ardatan/graphql-tools/commit/59399c30df075a0915ce8b0c8f84c42bf9499f9e) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+    - Updated dependency [`graphql-yoga@^6.0.0` ↗︎](https://www.npmjs.com/package/graphql-yoga/v/6.0.0) (from `^3.5.1 || ^4.0.0 || ^5.0.0`, in `peerDependencies`)
+- Updated dependencies [[`59399c3`](https://github.com/ardatan/graphql-tools/commit/59399c30df075a0915ce8b0c8f84c42bf9499f9e)]:
+  - @graphql-tools/executor-envelop@5.0.7
+
 ## 4.0.6
 
 ### Patch Changes

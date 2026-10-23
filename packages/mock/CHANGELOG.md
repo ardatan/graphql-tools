@@ -1,5 +1,14 @@
 # @graphql-tools/mock
 
+## 10.1.1
+
+### Patch Changes
+
+- [#8586](https://github.com/ardatan/graphql-tools/pull/8586) [`0554a7f`](https://github.com/ardatan/graphql-tools/commit/0554a7f293bcc52e8ab0b7c28fc3b8ae8962a0d0) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+    - Added dependency [`@whatwg-node/promise-helpers@^2.0.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/promise-helpers/v/2.0.0) (to `dependencies`)
+
+- [#8586](https://github.com/ardatan/graphql-tools/pull/8586) [`0554a7f`](https://github.com/ardatan/graphql-tools/commit/0554a7f293bcc52e8ab0b7c28fc3b8ae8962a0d0) Thanks [@ardatan](https://github.com/ardatan)! - Use `fakePromise` / `fakeRejectPromise` for iterator `return` / `throw` / `asyncDispose` instead of unnecessary `async`
+
 ## 10.1.0
 
 ### Minor Changes
