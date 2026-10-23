@@ -5,7 +5,6 @@ import {
   useExecutor as useEnvelopExecutor,
 } from '@graphql-tools/executor-envelop';
 import { Executor } from '@graphql-tools/utils';
-import { DisposableSymbols } from '@whatwg-node/disposablestack';
 
 export function useExecutor(
   executor: Executor,
@@ -18,12 +17,6 @@ export function useExecutor(
       return logWarn(...args);
     },
   });
-  let disposableSymbol: typeof DisposableSymbols.asyncDispose | typeof DisposableSymbols.dispose;
-  if (executor[DisposableSymbols.asyncDispose]) {
-    disposableSymbol = DisposableSymbols.asyncDispose;
-  } else if (executor[DisposableSymbols.dispose]) {
-    disposableSymbol = DisposableSymbols.dispose;
-  }
   return {
     ...envelopPlugin,
     onRequestParse({ serverContext }) {
@@ -40,8 +33,15 @@ export function useExecutor(
         },
       };
     },
-    [disposableSymbol]() {
-      return executor[disposableSymbol]();
+    onDispose() {
+      const asyncDispose = executor[Symbol.asyncDispose];
+      if (typeof asyncDispose === 'function') {
+        return asyncDispose.call(executor);
+      }
+      const dispose = executor[Symbol.dispose];
+      if (typeof dispose === 'function') {
+        return dispose.call(executor);
+      }
     },
   };
 }
