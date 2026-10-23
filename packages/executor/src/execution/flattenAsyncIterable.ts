@@ -1,10 +1,5 @@
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
-import {
-  fakePromise,
-  fakeRejectPromise,
-  isPromise,
-  type MaybePromise,
-} from '@whatwg-node/promise-helpers';
+import { fakePromise, isPromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 
 type AsyncIterableOrGenerator<T> = AsyncGenerator<T, void, void> | AsyncIterable<T>;
 
@@ -20,14 +15,10 @@ function awaitAllMaybe(
   if (pending.length === 0) {
     return;
   }
-  try {
-    if (pending.length === 1) {
-      return pending[0].then((): void => {});
-    }
-    return Promise.all(pending).then((): void => {});
-  } catch (err) {
-    return fakeRejectPromise(err);
+  if (pending.length === 1) {
+    return pending[0].then((): void => {});
   }
+  return Promise.all(pending).then((): void => {});
 }
 
 /**
@@ -107,39 +98,29 @@ export function flattenAsyncIterable<T>(
     next,
     return() {
       done = true;
-      try {
-        return fakePromise(
-          awaitAllMaybe([currentNestedIterator?.return?.(), topIterator.return?.()]),
-        ).then(() => ({ value: undefined, done: true as const }));
-      } catch (err) {
-        return fakeRejectPromise(err);
-      }
+      return fakePromise(
+        awaitAllMaybe([currentNestedIterator?.return?.(), topIterator.return?.()]),
+      ).then(() => ({ value: undefined, done: true as const }));
     },
     throw(error?: unknown): Promise<IteratorResult<T>> {
       done = true;
-      try {
-        return fakePromise(
-          awaitAllMaybe([currentNestedIterator?.throw?.(error), topIterator.throw?.(error)]),
-        ).then(() => fakeRejectPromise(error));
-      } catch (err) {
-        return fakeRejectPromise(err);
-      }
+      return fakePromise(
+        awaitAllMaybe([currentNestedIterator?.throw?.(error), topIterator.throw?.(error)]),
+      ).then(() => {
+        throw error;
+      });
     },
     [Symbol.asyncIterator]() {
       return this;
     },
     [DisposableSymbols.asyncDispose]() {
       done = true;
-      try {
-        return fakePromise(
-          awaitAllMaybe([
-            currentNestedIterator?.[DisposableSymbols.asyncDispose]?.(),
-            topIterator?.[DisposableSymbols.asyncDispose]?.(),
-          ]),
-        );
-      } catch (err) {
-        return fakeRejectPromise(err);
-      }
+      return fakePromise(
+        awaitAllMaybe([
+          currentNestedIterator?.[DisposableSymbols.asyncDispose]?.(),
+          topIterator?.[DisposableSymbols.asyncDispose]?.(),
+        ]),
+      );
     },
   };
 }

@@ -1,12 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { Path, pathToArray, type IncrementalSpec } from '@graphql-tools/utils';
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
-import {
-  fakePromise,
-  fakeRejectPromise,
-  isPromise,
-  type MaybePromise,
-} from '@whatwg-node/promise-helpers';
+import { fakePromise, isPromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 import type {
   IncrementalDeferResult,
   IncrementalResult,
@@ -742,25 +737,21 @@ export function yieldSubsequentPayloads(
 
   function returnStreamIterators(): MaybePromise<void> {
     const promises: Array<Promise<unknown>> = [];
-    try {
-      exeContext.subsequentPayloads.forEach(asyncPayloadRecord => {
-        if (isStreamPayload(asyncPayloadRecord) && asyncPayloadRecord.iterator?.return) {
-          const result = asyncPayloadRecord.iterator.return();
-          if (isPromise(result)) {
-            promises.push(result as Promise<unknown>);
-          }
+    exeContext.subsequentPayloads.forEach(asyncPayloadRecord => {
+      if (isStreamPayload(asyncPayloadRecord) && asyncPayloadRecord.iterator?.return) {
+        const result = asyncPayloadRecord.iterator.return();
+        if (isPromise(result)) {
+          promises.push(result as Promise<unknown>);
         }
-      });
-      if (promises.length === 0) {
-        return;
       }
-      if (promises.length === 1) {
-        return promises[0].then((): void => {});
-      }
-      return Promise.all(promises).then((): void => {});
-    } catch (err) {
-      return fakeRejectPromise(err);
+    });
+    if (promises.length === 0) {
+      return;
     }
+    if (promises.length === 1) {
+      return promises[0].then((): void => {});
+    }
+    return Promise.all(promises).then((): void => {});
   }
 
   return {
@@ -777,7 +768,9 @@ export function yieldSubsequentPayloads(
     },
     throw(error?: unknown): Promise<IteratorResult<never, void>> {
       markDone();
-      return fakePromise(returnStreamIterators()).then(() => fakeRejectPromise(error));
+      return fakePromise(returnStreamIterators()).then(() => {
+        throw error;
+      });
     },
     [DisposableSymbols.asyncDispose]() {
       markDone();
