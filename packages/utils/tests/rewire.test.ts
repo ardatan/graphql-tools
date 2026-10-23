@@ -3,10 +3,12 @@ import {
   getNamedType,
   GraphQLNamedType,
   GraphQLObjectType,
+  GraphQLString,
   isObjectType,
 } from 'graphql';
 import { MapperKind, mapSchema } from '../src/index.js';
 import { rewireTypes } from '../src/rewire.js';
+import { createNamedStub } from '../src/stub.js';
 
 function userTypeMap(schema: ReturnType<typeof buildSchema>) {
   const typeMap: Record<string, GraphQLNamedType> = Object.create(null);
@@ -36,9 +38,9 @@ describe('rewireTypes', () => {
     `);
 
     const typeMap = userTypeMap(schema);
-    const originalBar = typeMap['Bar'];
-    const originalFoo = typeMap['Foo'];
-    const originalQuery = typeMap['Query'];
+    const originalBar = typeMap['Bar'] as GraphQLObjectType;
+    const originalFoo = typeMap['Foo'] as GraphQLObjectType;
+    const originalQuery = typeMap['Query'] as GraphQLObjectType;
 
     typeMap['Foo'] = new GraphQLObjectType({
       ...originalFoo.toConfig(),
@@ -55,6 +57,24 @@ describe('rewireTypes', () => {
     );
     expect(isObjectType(rewired['Query']) && rewired['Query'].getFields()['bar'].type).toBe(
       originalBar,
+    );
+  });
+
+  test('rewires types whose fields still point at named stubs', () => {
+    const query = new GraphQLObjectType({
+      name: 'Query',
+      fields: {
+        foo: {
+          type: createNamedStub('String', 'object'),
+        },
+      },
+    });
+
+    const { typeMap } = rewireTypes({ Query: query }, []);
+
+    expect(typeMap['Query']).not.toBe(query);
+    expect(isObjectType(typeMap['Query']) && typeMap['Query'].getFields()['foo'].type).toBe(
+      GraphQLString,
     );
   });
 });

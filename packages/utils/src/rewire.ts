@@ -245,7 +245,7 @@ function typeNeedsRewire(
   visiting.add(type);
 
   for (const ref of namedTypeReferences(type)) {
-    if (needsRewire.has(ref.name)) {
+    if (isNamedStub(ref) || needsRewire.has(ref.name)) {
       return true;
     }
     if (replacementFor(ref, referenceTypeMap) !== ref) {
@@ -271,7 +271,11 @@ function directiveNeedsRewire(
   }
   for (const arg of directive.args) {
     const ref = getNamedType(arg.type);
-    if (needsRewire.has(ref.name) || replacementFor(ref, referenceTypeMap) !== ref) {
+    if (
+      isNamedStub(ref) ||
+      needsRewire.has(ref.name) ||
+      replacementFor(ref, referenceTypeMap) !== ref
+    ) {
       return true;
     }
   }
