@@ -746,16 +746,16 @@ export function yieldSubsequentPayloads(
           }
         }
       });
+      if (promises.length === 0) {
+        return;
+      }
+      if (promises.length === 1) {
+        return promises[0].then((): void => {});
+      }
+      return Promise.all(promises).then((): void => {});
     } catch (err) {
       return Promise.reject(err);
     }
-    if (promises.length === 0) {
-      return;
-    }
-    if (promises.length === 1) {
-      return promises[0].then((): void => {});
-    }
-    return Promise.all(promises).then((): void => {});
   }
 
   return {

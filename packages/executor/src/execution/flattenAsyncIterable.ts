@@ -15,10 +15,14 @@ function awaitAllMaybe(
   if (pending.length === 0) {
     return;
   }
-  if (pending.length === 1) {
-    return pending[0].then((): void => {});
+  try {
+    if (pending.length === 1) {
+      return pending[0].then((): void => {});
+    }
+    return Promise.all(pending).then((): void => {});
+  } catch (err) {
+    return Promise.reject(err);
   }
-  return Promise.all(pending).then((): void => {});
 }
 
 /**
