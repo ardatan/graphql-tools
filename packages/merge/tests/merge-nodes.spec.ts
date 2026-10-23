@@ -384,6 +384,44 @@ describe('Merge Nodes', () => {
       expect(result.directives.length).toBe(1);
       expect(result.directives[0].name.value).toBe('test');
     });
+
+    it('should take enum value settings from the same candidate as the enum type', () => {
+      const type1 = parse(/* GraphQL */ `
+        """
+        first type
+        """
+        enum Color @a {
+          """
+          first value
+          """
+          RED @a
+        }
+      `);
+      const type2 = parse(/* GraphQL */ `
+        """
+        second type
+        """
+        enum Color @b {
+          """
+          second value
+          """
+          RED @b
+        }
+      `);
+      const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
+      const result = merged['Color'];
+      assertEnumTypeDefinitionNode(result);
+      assertSome(result.description);
+      assertSome(result.values);
+      assertSome(result.values[0].description);
+      assertSome(result.values[0].directives);
+      assertSome(result.directives);
+
+      expect(result.description.value).toBe('second type');
+      expect(result.values[0].description.value).toBe('second value');
+      expect(result.directives.map(d => d.name.value)).toEqual(['a', 'b']);
+      expect(result.values[0].directives.map(d => d.name.value)).toEqual(['a', 'b']);
+    });
   });
 
   describe('union', () => {
