@@ -1,10 +1,6 @@
 import {
-  GraphQLBoolean,
-  GraphQLFloat,
-  GraphQLID,
   GraphQLInputObjectType,
   GraphQLInputType,
-  GraphQLInt,
   GraphQLInterfaceType,
   GraphQLList,
   GraphQLNamedType,
@@ -14,6 +10,7 @@ import {
   GraphQLString,
   GraphQLType,
   Kind,
+  specifiedScalarTypes,
   TypeNode,
 } from 'graphql';
 
@@ -44,20 +41,7 @@ export function createNamedStub(
 }
 
 function getSpecifiedScalar(name: string) {
-  switch (name) {
-    case GraphQLInt.name:
-      return GraphQLInt;
-    case GraphQLFloat.name:
-      return GraphQLFloat;
-    case GraphQLString.name:
-      return GraphQLString;
-    case GraphQLBoolean.name:
-      return GraphQLBoolean;
-    case GraphQLID.name:
-      return GraphQLID;
-    default:
-      return undefined;
-  }
+  return specifiedScalarTypes.find(type => type.name === name);
 }
 
 export function createStub(node: TypeNode, type: 'output'): GraphQLOutputType;
