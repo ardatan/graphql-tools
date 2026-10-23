@@ -14,7 +14,7 @@ function awaitAllMaybe(
   const pending: Array<Promise<unknown>> = [];
   for (const p of promises) {
     if (isPromise(p)) {
-      pending.push(fakePromise(p));
+      pending.push(p as Promise<unknown>);
     }
   }
   if (pending.length === 0) {

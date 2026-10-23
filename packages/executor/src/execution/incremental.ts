@@ -747,7 +747,7 @@ export function yieldSubsequentPayloads(
         if (isStreamPayload(asyncPayloadRecord) && asyncPayloadRecord.iterator?.return) {
           const result = asyncPayloadRecord.iterator.return();
           if (isPromise(result)) {
-            promises.push(fakePromise(result));
+            promises.push(result as Promise<unknown>);
           }
         }
       });
