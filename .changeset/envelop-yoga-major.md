@@ -2,4 +2,4 @@
 '@graphql-tools/executor-yoga': major
 ---
 
-Requires `graphql-yoga` v6: request logging uses `serverContext.log`, and the executor is disposed via the `onDispose` plugin hook.
+Requires `graphql-yoga` v6. Disposes the executor via the `onDispose` plugin hook instead of `DisposableSymbols` on the plugin object.
