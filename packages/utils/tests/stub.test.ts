@@ -2,7 +2,9 @@ import {
   GraphQLBoolean,
   GraphQLFloat,
   GraphQLID,
+  GraphQLInputObjectType,
   GraphQLInt,
+  GraphQLObjectType,
   GraphQLString,
   parseType,
 } from 'graphql';
@@ -28,8 +30,8 @@ describe('createStub', () => {
   });
 
   test('still stubs unknown names', () => {
-    const output = createStub(parseType('User'), 'output');
-    const input = createStub(parseType('UserInput'), 'input');
+    const output = createStub(parseType('User'), 'output') as GraphQLObjectType;
+    const input = createStub(parseType('UserInput'), 'input') as GraphQLInputObjectType;
 
     expect(isNamedStub(output)).toBe(true);
     expect(isNamedStub(input)).toBe(true);
