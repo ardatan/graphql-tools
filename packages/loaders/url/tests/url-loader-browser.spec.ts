@@ -5,13 +5,14 @@ import { platform, tmpdir } from 'os';
 import path, { join } from 'path';
 import { setTimeout } from 'timers/promises';
 import { parse } from 'graphql';
-import { createSchema, createYoga, Repeater } from 'graphql-yoga';
+import { createSchema, createYoga } from 'graphql-yoga';
 import type { Browser, Page } from 'puppeteer';
 import webpack, { Stats } from 'webpack';
 import { useEngine } from '@envelop/core';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import { ExecutionResult } from '@graphql-tools/utils';
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
+import { Repeater } from '@repeaterjs/repeater';
 import { describeIf, testIf } from '../../../testing/utils.js';
 import type * as UrlLoaderModule from '../src/index.js';
 

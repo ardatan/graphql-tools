@@ -1,8 +1,10 @@
 import { setTimeout } from 'timers/promises';
 import { parse } from 'graphql';
-import { createSchema, createYoga, DisposableSymbols, Repeater } from 'graphql-yoga';
+import { createSchema, createYoga } from 'graphql-yoga';
 import { ApolloClient, InMemoryCache } from '@apollo/client/core';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
+import { Repeater } from '@repeaterjs/repeater';
+import { DisposableSymbols } from '@whatwg-node/disposablestack';
 import { testIf } from '../../../testing/utils.js';
 import { ExecutorLink } from '../src/index.js';
 
