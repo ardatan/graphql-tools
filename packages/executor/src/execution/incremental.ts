@@ -735,7 +735,7 @@ export function yieldSubsequentPayloads(
     };
   }
 
-  function returnStreamIterators(): MaybePromise<void> {
+  function returnStreamIterators(): Promise<void> {
     const promises: Array<Promise<unknown>> = [];
     exeContext.subsequentPayloads.forEach(asyncPayloadRecord => {
       if (isStreamPayload(asyncPayloadRecord) && asyncPayloadRecord.iterator?.return) {
@@ -746,7 +746,7 @@ export function yieldSubsequentPayloads(
       }
     });
     if (promises.length === 0) {
-      return;
+      return fakePromise();
     }
     if (promises.length === 1) {
       return promises[0].then((): void => {});
@@ -761,20 +761,20 @@ export function yieldSubsequentPayloads(
     next,
     return(): Promise<IteratorResult<SubsequentIncrementalExecutionResult, void>> {
       markDone();
-      return fakePromise(returnStreamIterators()).then(() => ({
+      return returnStreamIterators().then(() => ({
         value: undefined,
         done: true as const,
       }));
     },
     throw(error?: unknown): Promise<IteratorResult<never, void>> {
       markDone();
-      return fakePromise(returnStreamIterators()).then(() => {
+      return returnStreamIterators().then(() => {
         throw error;
       });
     },
     [DisposableSymbols.asyncDispose]() {
       markDone();
-      return fakePromise(returnStreamIterators());
+      return returnStreamIterators();
     },
   };
 }

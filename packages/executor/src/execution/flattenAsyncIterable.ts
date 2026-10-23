@@ -3,9 +3,7 @@ import { fakePromise, isPromise, type MaybePromise } from '@whatwg-node/promise-
 
 type AsyncIterableOrGenerator<T> = AsyncGenerator<T, void, void> | AsyncIterable<T>;
 
-function awaitAllMaybe(
-  promises: Array<MaybePromise<unknown> | undefined | void>,
-): MaybePromise<void> {
+function awaitAllMaybe(promises: Array<MaybePromise<unknown> | undefined | void>): Promise<void> {
   const pending: Array<Promise<unknown>> = [];
   for (const p of promises) {
     if (isPromise(p)) {
@@ -13,7 +11,7 @@ function awaitAllMaybe(
     }
   }
   if (pending.length === 0) {
-    return;
+    return fakePromise();
   }
   if (pending.length === 1) {
     return pending[0].then((): void => {});
@@ -98,15 +96,16 @@ export function flattenAsyncIterable<T>(
     next,
     return() {
       done = true;
-      return fakePromise(
-        awaitAllMaybe([currentNestedIterator?.return?.(), topIterator.return?.()]),
-      ).then(() => ({ value: undefined, done: true as const }));
+      return awaitAllMaybe([currentNestedIterator?.return?.(), topIterator.return?.()]).then(
+        () => ({ value: undefined, done: true as const }),
+      );
     },
     throw(error?: unknown): Promise<IteratorResult<T>> {
       done = true;
-      return fakePromise(
-        awaitAllMaybe([currentNestedIterator?.throw?.(error), topIterator.throw?.(error)]),
-      ).then(() => {
+      return awaitAllMaybe([
+        currentNestedIterator?.throw?.(error),
+        topIterator.throw?.(error),
+      ]).then(() => {
         throw error;
       });
     },
@@ -115,12 +114,10 @@ export function flattenAsyncIterable<T>(
     },
     [DisposableSymbols.asyncDispose]() {
       done = true;
-      return fakePromise(
-        awaitAllMaybe([
-          currentNestedIterator?.[DisposableSymbols.asyncDispose]?.(),
-          topIterator?.[DisposableSymbols.asyncDispose]?.(),
-        ]),
-      );
+      return awaitAllMaybe([
+        currentNestedIterator?.[DisposableSymbols.asyncDispose]?.(),
+        topIterator?.[DisposableSymbols.asyncDispose]?.(),
+      ]);
     },
   };
 }
