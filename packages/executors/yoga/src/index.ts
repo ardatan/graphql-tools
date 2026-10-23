@@ -1,4 +1,4 @@
-import { LegacyLogger, YogaInitialContext, type Plugin } from 'graphql-yoga';
+import { YogaInitialContext, type Plugin } from 'graphql-yoga';
 import {
   ExecutorPluginExtras,
   ExecutorPluginOpts,
@@ -27,10 +27,14 @@ export function useExecutor(
   return {
     ...envelopPlugin,
     onYogaInit({ yoga }) {
-      const legacyLogger = LegacyLogger.from(yoga.log);
-      logWarn = (...args) => legacyLogger.warn(...args);
+      logWarn = (message?: any, ...args: any[]) => {
+        yoga.log.warn(typeof message === 'string' ? message : String(message), ...args);
+      };
     },
     onRequestParse({ serverContext }) {
+      logWarn = (message?: any, ...args: any[]) => {
+        serverContext.log.warn(typeof message === 'string' ? message : String(message), ...args);
+      };
       return {
         onRequestParseDone() {
           envelopPlugin.ensureSchema(serverContext);
