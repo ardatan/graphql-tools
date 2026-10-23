@@ -43,6 +43,23 @@ export function createNamedStub(
   });
 }
 
+function getSpecifiedScalar(name: string) {
+  switch (name) {
+    case GraphQLInt.name:
+      return GraphQLInt;
+    case GraphQLFloat.name:
+      return GraphQLFloat;
+    case GraphQLString.name:
+      return GraphQLString;
+    case GraphQLBoolean.name:
+      return GraphQLBoolean;
+    case GraphQLID.name:
+      return GraphQLID;
+    default:
+      return undefined;
+  }
+}
+
 export function createStub(node: TypeNode, type: 'output'): GraphQLOutputType;
 export function createStub(node: TypeNode, type: 'input'): GraphQLInputType;
 export function createStub(node: TypeNode, type: 'output' | 'input'): GraphQLType;
@@ -53,11 +70,16 @@ export function createStub(node: TypeNode, type: any): any {
     case Kind.NON_NULL_TYPE:
       // FIXME: graphql@17 type issue
       return new GraphQLNonNull(createStub(node.type, type) as any);
-    default:
+    default: {
+      const specified = getSpecifiedScalar(node.name.value);
+      if (specified) {
+        return specified;
+      }
       if (type === 'output') {
         return createNamedStub(node.name.value, 'object');
       }
       return createNamedStub(node.name.value, 'input');
+    }
   }
 }
 
@@ -75,18 +97,5 @@ export function isNamedStub(type: GraphQLNamedType): boolean {
 }
 
 export function getBuiltInForStub(type: GraphQLNamedType): GraphQLNamedType {
-  switch (type.name) {
-    case GraphQLInt.name:
-      return GraphQLInt;
-    case GraphQLFloat.name:
-      return GraphQLFloat;
-    case GraphQLString.name:
-      return GraphQLString;
-    case GraphQLBoolean.name:
-      return GraphQLBoolean;
-    case GraphQLID.name:
-      return GraphQLID;
-    default:
-      return type;
-  }
+  return getSpecifiedScalar(type.name) ?? type;
 }

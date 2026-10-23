@@ -8,6 +8,8 @@
 
 The crawl now finds types whose field, argument, interface, or union members point at a different object than the type map (including wrapper types created during mapping), then rebuilds only that set. Specified directives stay as-is. Types that do not reach a replacement keep the same JavaScript object.
 
+`createStub` no longer builds an object/input named `String` / `ID` / `Int` / `Float` / `Boolean`. Those AST names are specified scalars, so the graphql-js singletons are returned instead. Callers such as stitch `typeFromAST` used `createStub` for every field type; the old placeholder was an illegal object type that `rewireTypes` later had to swap. `rewireTypes` still replaces leftover stubs from older callers.
+
 ```ts
 const schema = buildSchema(/* GraphQL */ `
   scalar Unused
