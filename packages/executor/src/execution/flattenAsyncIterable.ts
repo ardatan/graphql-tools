@@ -1,10 +1,5 @@
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
-import {
-  fakePromise,
-  fakeRejectPromise,
-  isPromise,
-  type MaybePromise,
-} from '@whatwg-node/promise-helpers';
+import { fakePromise, isPromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 
 type AsyncIterableOrGenerator<T> = AsyncGenerator<T, void, void> | AsyncIterable<T>;
 
@@ -108,7 +103,7 @@ export function flattenAsyncIterable<T>(
           awaitAllMaybe([currentNestedIterator?.return?.(), topIterator.return?.()]),
         ).then(() => ({ value: undefined, done: true as const }));
       } catch (err) {
-        return fakeRejectPromise(err);
+        return Promise.reject(err);
       }
     },
     throw(error?: unknown): Promise<IteratorResult<T>> {
@@ -116,9 +111,9 @@ export function flattenAsyncIterable<T>(
       try {
         return fakePromise(
           awaitAllMaybe([currentNestedIterator?.throw?.(error), topIterator.throw?.(error)]),
-        ).then(() => fakeRejectPromise(error));
+        ).then(() => Promise.reject(error));
       } catch (err) {
-        return fakeRejectPromise(err);
+        return Promise.reject(err);
       }
     },
     [Symbol.asyncIterator]() {
@@ -134,7 +129,7 @@ export function flattenAsyncIterable<T>(
           ]),
         );
       } catch (err) {
-        return fakeRejectPromise(err);
+        return Promise.reject(err);
       }
     },
   };

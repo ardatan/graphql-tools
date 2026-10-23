@@ -1,12 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { Path, pathToArray, type IncrementalSpec } from '@graphql-tools/utils';
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
-import {
-  fakePromise,
-  fakeRejectPromise,
-  isPromise,
-  type MaybePromise,
-} from '@whatwg-node/promise-helpers';
+import { fakePromise, isPromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 import type {
   IncrementalDeferResult,
   IncrementalResult,
@@ -752,7 +747,7 @@ export function yieldSubsequentPayloads(
         }
       });
     } catch (err) {
-      return fakeRejectPromise(err);
+      return Promise.reject(err);
     }
     if (promises.length === 0) {
       return;
@@ -777,7 +772,7 @@ export function yieldSubsequentPayloads(
     },
     throw(error?: unknown): Promise<IteratorResult<never, void>> {
       markDone();
-      return fakePromise(returnStreamIterators()).then(() => fakeRejectPromise(error));
+      return fakePromise(returnStreamIterators()).then(() => Promise.reject(error));
     },
     [DisposableSymbols.asyncDispose]() {
       markDone();
