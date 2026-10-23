@@ -246,7 +246,9 @@ function typeNeedsRewire(
   visiting.add(type);
 
   for (const ref of namedTypeReferences(type)) {
-    if (isNamedStub(ref) && !(ref.name in referenceTypeMap)) {
+    // isSpecifiedScalarType is name-only: a String stub also matches.
+    // getBuiltInForStub === ref means we already have the graphql-js singleton.
+    if (!(ref.name in referenceTypeMap) && getBuiltInForStub(ref) !== ref) {
       return true;
     }
     if (needsRewire.has(ref.name)) {
@@ -277,7 +279,7 @@ function directiveNeedsRewire(
   for (const arg of directive.args) {
     const ref = getNamedType(arg.type);
     if (
-      (isNamedStub(ref) && !(ref.name in referenceTypeMap)) ||
+      (!(ref.name in referenceTypeMap) && getBuiltInForStub(ref) !== ref) ||
       needsRewire.has(ref.name) ||
       replacementFor(ref, referenceTypeMap, typeMap) !== ref ||
       (!(ref.name in referenceTypeMap) &&

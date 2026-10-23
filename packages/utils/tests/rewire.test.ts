@@ -65,6 +65,19 @@ describe('rewireTypes', () => {
     );
   });
 
+  test('does not rewire a type whose field is already a specified scalar', () => {
+    const query = new GraphQLObjectType({
+      name: 'Query',
+      fields: {
+        foo: { type: GraphQLString },
+      },
+    });
+
+    const { typeMap } = rewireTypes({ Query: query }, []);
+
+    expect(typeMap['Query']).toBe(query);
+  });
+
   test('rewires types whose fields still point at named stubs', () => {
     const query = new GraphQLObjectType({
       name: 'Query',
