@@ -9,14 +9,6 @@ export function mergeEnumValues(
   config?: Config,
   directives?: Record<string, DirectiveDefinitionNode>,
 ): EnumValueDefinitionNode[] {
-  if (config?.consistentEnumMerge) {
-    const reversed: Array<EnumValueDefinitionNode> = [];
-    if (first) {
-      reversed.push(...first);
-    }
-    first = second;
-    second = reversed;
-  }
   const enumValueMap = new Map<string, EnumValueDefinitionNode>();
   if (first) {
     for (const firstValue of first) {
@@ -28,10 +20,11 @@ export function mergeEnumValues(
       const enumValue = secondValue.name.value;
       if (enumValueMap.has(enumValue)) {
         const firstValue: any = enumValueMap.get(enumValue);
-        firstValue.description = secondValue.description || firstValue.description;
+        firstValue.description = firstValue.description || secondValue.description;
         firstValue.directives = mergeDirectives(
-          secondValue.directives,
           firstValue.directives,
+          secondValue.directives,
+          config,
           directives,
         );
       } else {
