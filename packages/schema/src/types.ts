@@ -1,4 +1,5 @@
 import { BuildSchemaOptions, GraphQLFieldResolver, GraphQLSchema } from 'graphql';
+import { OnFieldTypeConflict } from '@graphql-tools/merge';
 import {
   GraphQLParseOptions,
   IResolvers,
@@ -45,4 +46,19 @@ export interface IExecutableSchemaDefinition<TContext = any>
    * Default field resolver
    */
   defaultFieldResolver?: GraphQLFieldResolver<any, TContext>;
+  /**
+   * Called when two fields share a name but have different types or nullability.
+   * Return the field node that should win. `makeExecutableSchema` and `mergeSchemas`
+   * forward this to `mergeTypeDefs`.
+   *
+   * @example
+   * Given:
+   * ```graphql
+   * type Post { content: String! }
+   * type Post { content: String }
+   * ```
+   *
+   * `onFieldTypeConflict: (_existing, incoming) => incoming` keeps `content: String`.
+   */
+  onFieldTypeConflict?: OnFieldTypeConflict;
 }

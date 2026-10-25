@@ -639,4 +639,46 @@ type City {
     const printedSchema = printSchemaWithDirectives(mergedSchema);
     expect(printedSchema.trim()).toMatchSnapshot();
   });
+
+  it('lets onFieldTypeConflict pick the incoming field type', () => {
+    const previous = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Post {
+          content: String!
+        }
+
+        type Query {
+          post: Post
+        }
+      `,
+    });
+    const current = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Post {
+          content: String
+        }
+
+        type Query {
+          post: Post
+        }
+      `,
+    });
+
+    const defaultMerged = mergeSchemas({
+      schemas: [previous, current],
+    });
+    const defaultPost = defaultMerged.getType('Post');
+    assertSome(defaultPost);
+    expect((defaultPost as GraphQLObjectType).getFields()['content'].type.toString()).toBe(
+      'String!',
+    );
+
+    const merged = mergeSchemas({
+      schemas: [previous, current],
+      onFieldTypeConflict: (_existing, incoming) => incoming,
+    });
+    const post = merged.getType('Post');
+    assertSome(post);
+    expect((post as GraphQLObjectType).getFields()['content'].type.toString()).toBe('String');
+  });
 });
