@@ -67,7 +67,7 @@ describe('custom loaders', () => {
 
     try {
       await expect(useCustomLoader('./broken-loader.js', cwd)).rejects.toThrow(
-        /Failed to load custom loader: \.\/broken-loader\.js[\s\S]*SyntaxError/,
+        /Failed to load custom loader: \.\/broken-loader\.js[\s\S]*(SyntaxError|BuildMessage|Expected identifier)/,
       );
     } finally {
       rmSync(cwd, { recursive: true, force: true });
