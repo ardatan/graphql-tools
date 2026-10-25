@@ -51,8 +51,17 @@ export type LoadSchemaOptions = BuildSchemaOptions &
      * type Query { d: String z: String a: String day: DayOfWeek }
      * ```
      *
-     * `sort: true` reorders Query fields to `a d day z` and DayOfWeek to FRIDAY, MONDAY, SATURDAY, SUNDAY, THURSDAY, TUESDAY, WEDNESDAY.
-     * `sort: true, sortMode: 'typesOnly'` keeps Query fields `d z a day` and DayOfWeek SUNDAY through SATURDAY.
+     * `sort: true`:
+     * ```graphql
+     * enum DayOfWeek { FRIDAY MONDAY SATURDAY SUNDAY THURSDAY TUESDAY WEDNESDAY }
+     * type Query { a: String d: String day: DayOfWeek z: String }
+     * ```
+     *
+     * `sort: true, sortMode: 'typesOnly'`:
+     * ```graphql
+     * enum DayOfWeek { SUNDAY MONDAY TUESDAY WEDNESDAY THURSDAY FRIDAY SATURDAY }
+     * type Query { d: String z: String a: String day: DayOfWeek }
+     * ```
      *
      * `sort: false` ignores `sortMode`.
      */

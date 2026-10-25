@@ -2,11 +2,9 @@
 '@graphql-tools/load': minor
 ---
 
-`loadSchema` and `loadSchemaSync` now accept `sortMode` when `sort` is true.
+`loadSchema` and `loadSchemaSync` now accept `sortMode`.
 
-`sort: true` still sorts the loaded schema. The default is `lexicographic`, which uses GraphQL's `lexicographicSortSchema` and reorders types, fields, and enum values.
-
-`sortMode: 'typesOnly'` sorts only the type list. Field and enum value order stay as they were loaded.
+`sort: true` still sorts the loaded schema. The default is `lexicographic`, which reorders types, fields, and enum values.
 
 ```graphql
 # loaded schema
@@ -38,6 +36,36 @@ type A {
 }
 ```
 
+```graphql
+# sort: true
+type A {
+  b: String
+  s: String
+}
+
+enum DayOfWeek {
+  FRIDAY
+  MONDAY
+  SATURDAY
+  SUNDAY
+  THURSDAY
+  TUESDAY
+  WEDNESDAY
+}
+
+type Query {
+  a: String
+  d: String
+  day: DayOfWeek
+  z: String
+}
+
+type User {
+  a: String
+  aa: String
+}
+```
+
 ```ts
 loadSchema('schema.graphql', {
   loaders: [new GraphQLFileLoader()],
@@ -46,6 +74,34 @@ loadSchema('schema.graphql', {
 });
 ```
 
-DayOfWeek stays SUNDAY through SATURDAY. Query fields stay `d`, `z`, `a`, `day`.
+```graphql
+# sort: true, sortMode: 'typesOnly'
+type A {
+  s: String
+  b: String
+}
+
+enum DayOfWeek {
+  SUNDAY
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+}
+
+type Query {
+  d: String
+  z: String
+  a: String
+  day: DayOfWeek
+}
+
+type User {
+  aa: String
+  a: String
+}
+```
 
 `sort: false` (or omitted) ignores `sortMode`.
