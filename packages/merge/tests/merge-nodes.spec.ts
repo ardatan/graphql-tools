@@ -423,7 +423,7 @@ describe('Merge Nodes', () => {
       expect(result.values[0].directives.map(d => d.name.value)).toEqual(['a', 'b']);
     });
 
-    it('keeps consistentEnumMerge value order', () => {
+    it('keeps existing enum values first and takes incoming settings', () => {
       const type1 = parse(/* GraphQL */ `
         enum Color {
           """
@@ -442,9 +442,7 @@ describe('Merge Nodes', () => {
           BLUE
         }
       `);
-      const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions], {
-        consistentEnumMerge: true,
-      });
+      const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const result = merged['Color'];
       assertEnumTypeDefinitionNode(result);
       assertSome(result.values);
