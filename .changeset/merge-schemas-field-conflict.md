@@ -4,10 +4,10 @@
 
 `mergeSchemas` and `makeExecutableSchema` now accept `onFieldTypeConflict`, the same callback `mergeTypeDefs` already had.
 
-A visual schema diff merges the previous schema with the current one so added fields stay, removed fields stay, and changed fields can be marked. Default merge does not do that for types:
+When two schemas define the same field with different types, default merge throws. When only nullability differs, it keeps the earlier type.
 
 ```graphql
-# previous
+# first schema
 type Post {
   id: ID!
   title: String!
@@ -15,11 +15,7 @@ type Post {
   published: Boolean!
 }
 
-type User {
-  id: ID!
-}
-
-# current
+# second schema
 type Post {
   id: ID!
   title: String
@@ -29,15 +25,15 @@ type Post {
 }
 ```
 
-Without a callback, `content: String!` vs `content: Int` throws. Nullability-only changes such as `title: String!` vs `title: String` silently keep the earlier `String!`.
+`content: String!` vs `content: Int` throws. `title: String!` vs `title: String` keeps `String!`.
 
 ```ts
 mergeSchemas({
-  schemas: [previousSchema, currentSchema],
+  schemas: [firstSchema, secondSchema],
   onFieldTypeConflict: (_existing, incoming) => incoming,
 });
 ```
 
-Now the merged `Post` has `title: String` and `content: Int` from the current schema, `published: Boolean!` from the previous schema, `fieldA` / `fieldB` from the current schema, and `User` is still present.
+The merged `Post` takes `title: String` and `content: Int` from the second schema, keeps `published` from the first, and adds `fieldA` / `fieldB`. Types that exist on only one schema, such as `User` on the first, stay.
 
-The same callback applies to mutation arguments. Returning the incoming field keeps current argument types and still unions arguments that exist on only one side (`argE` from previous, `argF` from current). Returning the existing field with `reverseArguments: true` keeps the earlier argument types and still appends new arguments.
+The same callback applies to field arguments. Returning the incoming field uses the second schema's argument types and still keeps arguments that exist on only one side. Returning the existing field with `reverseArguments: true` keeps the first schema's argument types and still appends new arguments.

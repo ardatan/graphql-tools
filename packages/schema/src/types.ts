@@ -59,8 +59,7 @@ export interface IExecutableSchemaDefinition<TContext = any>
    * ```
    *
    * `onFieldTypeConflict: (_existing, incoming) => incoming` keeps `content: String`.
-   * Fields that exist on only one schema are still kept, so a previous-vs-current
-   * merge can show added, removed, and changed fields together.
+   * Fields that exist on only one schema are still kept.
    */
   onFieldTypeConflict?: OnFieldTypeConflict;
   /**
