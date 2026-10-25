@@ -1,4 +1,5 @@
 import {
+  getNamedType,
   GraphQLDirective,
   GraphQLEnumType,
   GraphQLFieldConfigArgumentMap,
@@ -62,11 +63,17 @@ export function rewireTypes(
     newTypeMap[newName] = namedType;
   }
 
-  for (const typeName in newTypeMap) {
+  const typesToRewire = typesThatNeedRewire(newTypeMap, referenceTypeMap);
+
+  for (const typeName of typesToRewire) {
     newTypeMap[typeName] = rewireNamedType(newTypeMap[typeName]);
   }
 
-  const newDirectives = directives.map(directive => rewireDirective(directive));
+  const newDirectives = directives.map(directive =>
+    directiveNeedsRewire(directive, referenceTypeMap, typesToRewire)
+      ? rewireDirective(directive)
+      : directive,
+  );
 
   return {
     typeMap: newTypeMap,
@@ -201,4 +208,106 @@ export function rewireTypes(
 
     return null;
   }
+}
+
+function typesThatNeedRewire(
+  typeMap: Record<string, GraphQLNamedType>,
+  referenceTypeMap: Record<string, GraphQLNamedType | null>,
+): Set<string> {
+  const needsRewire = new Set<string>();
+  let added = true;
+
+  while (added) {
+    added = false;
+    for (const typeName in typeMap) {
+      if (needsRewire.has(typeName)) {
+        continue;
+      }
+      if (typeNeedsRewire(typeMap[typeName], referenceTypeMap, needsRewire)) {
+        needsRewire.add(typeName);
+        added = true;
+      }
+    }
+  }
+
+  return needsRewire;
+}
+
+function typeNeedsRewire(
+  type: GraphQLNamedType,
+  referenceTypeMap: Record<string, GraphQLNamedType | null>,
+  needsRewire: Set<string>,
+  visiting: Set<GraphQLNamedType> = new Set(),
+): boolean {
+  if (visiting.has(type)) {
+    return false;
+  }
+  visiting.add(type);
+
+  for (const ref of namedTypeReferences(type)) {
+    if (needsRewire.has(ref.name)) {
+      return true;
+    }
+    if (replacementFor(ref, referenceTypeMap) !== ref) {
+      return true;
+    }
+    if (
+      !(ref.name in referenceTypeMap) &&
+      typeNeedsRewire(ref, referenceTypeMap, needsRewire, visiting)
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function directiveNeedsRewire(
+  directive: GraphQLDirective,
+  referenceTypeMap: Record<string, GraphQLNamedType | null>,
+  needsRewire: Set<string>,
+): boolean {
+  if (isSpecifiedDirective(directive)) {
+    return false;
+  }
+  for (const arg of directive.args) {
+    const ref = getNamedType(arg.type);
+    if (needsRewire.has(ref.name) || replacementFor(ref, referenceTypeMap) !== ref) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function replacementFor(
+  ref: GraphQLNamedType,
+  referenceTypeMap: Record<string, GraphQLNamedType | null>,
+): GraphQLNamedType | null {
+  if (ref.name in referenceTypeMap) {
+    return referenceTypeMap[ref.name];
+  }
+  return ref;
+}
+
+function namedTypeReferences(type: GraphQLNamedType): GraphQLNamedType[] {
+  const refs: GraphQLNamedType[] = [];
+
+  if (isObjectType(type) || isInterfaceType(type)) {
+    for (const iface of type.getInterfaces()) {
+      refs.push(iface);
+    }
+    for (const field of Object.values(type.getFields())) {
+      refs.push(getNamedType(field.type));
+      for (const arg of field.args) {
+        refs.push(getNamedType(arg.type));
+      }
+    }
+  } else if (isUnionType(type)) {
+    refs.push(...type.getTypes());
+  } else if (isInputObjectType(type)) {
+    for (const field of Object.values(type.getFields())) {
+      refs.push(getNamedType(field.type));
+    }
+  }
+
+  return refs;
 }
