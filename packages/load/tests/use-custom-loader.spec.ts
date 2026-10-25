@@ -14,7 +14,9 @@ import {
 describe('custom loaders', () => {
   it('can load a CommonJS loader from a relative file path', async () => {
     const loader = await getCustomLoaderByPath('./custom-loader.js', __dirname);
-    expect(loader).toBeDefined();
+    if (loader == null) {
+      throw new Error('expected a loader function');
+    }
     expect(loader('some-name', { customLoaderContext: {} })).toEqual('I like turtles');
   });
 

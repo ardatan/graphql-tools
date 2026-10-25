@@ -166,13 +166,11 @@ function loadCustomLoaderByPathSync(path: string, cwd: string): CustomLoaderResu
   }
 }
 
-export async function getCustomLoaderByPath(path: string, cwd: string) {
+export async function getCustomLoaderByPath(
+  path: string,
+  cwd: string,
+): Promise<CustomLoaderFn | null> {
   const result = await loadCustomLoaderByPath(path, cwd);
-  return 'loader' in result ? result.loader : null;
-}
-
-function getCustomLoaderByPathSync(path: string, cwd: string) {
-  const result = loadCustomLoaderByPathSync(path, cwd);
   return 'loader' in result ? result.loader : null;
 }
 
