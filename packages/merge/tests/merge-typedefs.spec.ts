@@ -622,7 +622,9 @@ describe('Merge TypeDefs', () => {
           definition.kind === Kind.DIRECTIVE_DEFINITION && definition.name.value === 'vendorLink',
       );
       assertSome(vendorLink);
-      expect(vendorLink.kind).toBe(Kind.DIRECTIVE_DEFINITION);
+      if (vendorLink.kind !== Kind.DIRECTIVE_DEFINITION) {
+        throw new Error('expected @vendorLink directive definition');
+      }
       expect(vendorLink.arguments).toHaveLength(1);
       expect(vendorLink.arguments?.[0].name.value).toBe('href');
     });
