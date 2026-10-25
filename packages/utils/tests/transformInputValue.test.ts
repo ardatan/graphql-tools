@@ -3,9 +3,16 @@ import {
   GraphQLInputObjectType,
   GraphQLInt,
   GraphQLList,
+  GraphQLObjectType,
+  GraphQLSchema,
   GraphQLString,
 } from 'graphql';
-import { parseInputValue, serializeInputValue, transformInputValue } from '../src/index.js';
+import {
+  mapSchema,
+  parseInputValue,
+  serializeInputValue,
+  transformInputValue,
+} from '../src/index.js';
 
 describe('transformInputValue list coercion', () => {
   const listOfString = new GraphQLList(GraphQLString);
@@ -40,5 +47,40 @@ describe('transformInputValue list coercion', () => {
     expect(parseInputValue(SomeInput, { fieldX: 'valueY' })).toEqual({
       fieldX: ['valueY'],
     });
+  });
+
+  it('mapSchema keeps list argument and input-field defaults that were given as a singleton', () => {
+    const Input = new GraphQLInputObjectType({
+      name: 'SomeInput',
+      fields: {
+        fieldX: { type: listOfString, defaultValue: '' },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          foo: {
+            type: GraphQLString,
+            args: {
+              ids: { type: listOfString, defaultValue: 'valueY' },
+              flags: { type: new GraphQLList(GraphQLBoolean), defaultValue: false },
+              counts: { type: new GraphQLList(GraphQLInt), defaultValue: 0 },
+            },
+          },
+        },
+      }),
+      types: [Input],
+    });
+
+    const mapped = mapSchema(schema, {});
+    const foo = mapped.getQueryType()!.getFields()['foo'];
+
+    expect(foo.args.find(arg => arg.name === 'ids')?.defaultValue).toEqual(['valueY']);
+    expect(foo.args.find(arg => arg.name === 'flags')?.defaultValue).toEqual([false]);
+    expect(foo.args.find(arg => arg.name === 'counts')?.defaultValue).toEqual([0]);
+    expect(
+      (mapped.getType('SomeInput') as GraphQLInputObjectType).getFields()['fieldX'].defaultValue,
+    ).toEqual(['']);
   });
 });
