@@ -191,7 +191,12 @@ function collectCustomLoader<T>(
         return;
       }
 
-      addResultOfCustomLoader({ pointer, result, addSource });
+      for (const item of asArray(result)) {
+        if (item == null) {
+          continue;
+        }
+        addResultOfCustomLoader({ pointer, result: item, addSource });
+      }
     });
   }
 
@@ -214,7 +219,12 @@ function collectCustomLoaderSync<T>(
       const result = loader(pointer, { ...options, ...pointerOptions }, pointerOptionMap);
 
       if (result) {
-        addResultOfCustomLoader({ pointer, result, addSource });
+        for (const item of asArray(result)) {
+          if (item == null) {
+            continue;
+          }
+          addResultOfCustomLoader({ pointer, result: item, addSource });
+        }
       }
     });
   }

@@ -194,6 +194,67 @@ describe('documentsFromGlob', () => {
       expect(result).toHaveLength(1);
       expect(result[0].rawSDL).toContain(pointerOptions.fooFieldName);
     });
+    test('should load an array of documents from a custom loader (#6133)', async () => {
+      const result = await load(
+        {
+          'src/**/*.{ts,tsx}': {
+            loader: join(__dirname, '../../custom-loader-array.js'),
+          },
+        },
+        {
+          loaders: [],
+        },
+      );
+      expect(result).toHaveLength(2);
+      expect(result.map(source => source.location).sort()).toEqual([
+        'orders.graphql',
+        'users.graphql',
+      ]);
+      expect(
+        result.flatMap(source => Object.keys(separateOperations(source.document!))).sort(),
+      ).toEqual(['Orders', 'Users']);
+    });
+
+    test('should load an array of DocumentNodes from a custom loader function (#6133)', async () => {
+      const result = await load(
+        {
+          'src/**/*.{ts,tsx}': {
+            loader() {
+              return [
+                parse('query Users { users { id } }'),
+                parse('query Orders { orders { id } }'),
+              ];
+            },
+          },
+        },
+        {
+          loaders: [],
+        },
+      );
+      expect(result).toHaveLength(2);
+      expect(result.every(source => source.location === 'src/**/*.{ts,tsx}')).toBe(true);
+      expect(
+        result.flatMap(source => Object.keys(separateOperations(source.document!))).sort(),
+      ).toEqual(['Orders', 'Users']);
+    });
+
+    test('should skip nullish items in a custom loader array (#6133)', async () => {
+      const result = await load(
+        {
+          'src/**/*.{ts,tsx}': {
+            loader() {
+              return [parse('query Users { users { id } }'), null, undefined];
+            },
+          },
+        },
+        {
+          loaders: [],
+        },
+      );
+      expect(result).toHaveLength(1);
+      expect(Object.keys(separateOperations(result[0].document!))).toEqual(['Users']);
+    });
+
     test('should load documents from an ESM custom loader (#6656)', async () => {
       const result = await load(
         {
