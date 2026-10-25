@@ -113,15 +113,42 @@ function prepareResult({
   pointerOptionMap: any;
   validSources: Source[];
 }) {
-  const pointerList = Object.keys(pointerOptionMap);
+  const failedSources = validSources.filter(source => source.error != null);
+  if (failedSources.length > 0) {
+    if (options.errorHandling === 'aggregate') {
+      const errors = failedSources.map(source => source.error!);
+      throw new AggregateError(errors, errors.map(error => error.message).join('\n'));
+    }
+    if (options.errorHandling === 'throw') {
+      throw failedSources[0].error;
+    }
+  }
 
-  if (pointerList.length > 0 && validSources.length === 0) {
+  const resultSources =
+    options.errorHandling === 'return'
+      ? validSources
+      : validSources.filter(source => source.error == null);
+
+  const pointerList = Object.keys(pointerOptionMap);
+  const loadedDocuments = resultSources.filter(
+    source => source.document?.definitions && source.document.definitions.length > 0,
+  );
+
+  if (
+    pointerList.length > 0 &&
+    loadedDocuments.length === 0 &&
+    options.errorHandling !== 'return'
+  ) {
+    throw new NoTypeDefinitionsFound(pointerList);
+  }
+
+  if (pointerList.length > 0 && resultSources.length === 0) {
     throw new NoTypeDefinitionsFound(pointerList);
   }
 
   return options.sort
-    ? validSources.sort((left, right) => compareStrings(left.location, right.location))
-    : validSources;
+    ? resultSources.sort((left, right) => compareStrings(left.location, right.location))
+    : resultSources;
 }
 
 export class NoTypeDefinitionsFound extends Error {

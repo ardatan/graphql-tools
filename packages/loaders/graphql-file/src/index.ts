@@ -10,7 +10,9 @@ import {
   isValidPath,
   Loader,
   parseGraphQLSDL,
+  shouldCollectLoadErrors,
   Source,
+  toLoadError,
 } from '@graphql-tools/utils';
 
 const { readFile, access } = fsPromises;
@@ -137,27 +139,39 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
     const resolvedPaths = await this.resolveGlobs(pointer, options);
     const finalResult: Source[] = [];
     const errors: Error[] = [];
+    const failures: Array<{ location: string; error: Error }> = [];
 
     await Promise.all(
       resolvedPaths.map(async path => {
         if (await this.canLoad(path, options)) {
+          const normalizedFilePath = isAbsolute(path)
+            ? path
+            : resolve(options.cwd || processCwd(), path);
           try {
-            const normalizedFilePath = isAbsolute(path)
-              ? path
-              : resolve(options.cwd || processCwd(), path);
             const rawSDL: string = await readFile(normalizedFilePath, { encoding: 'utf8' });
             finalResult.push(this.handleFileContent(rawSDL, normalizedFilePath, options));
           } catch (e: any) {
             if (env['DEBUG']) {
               console.error(e);
             }
-            errors.push(e);
+            const error = toLoadError(e);
+            errors.push(error);
+            failures.push({ location: normalizedFilePath, error });
           }
         }
       }),
     );
 
     if (errors.length > 0) {
+      if (shouldCollectLoadErrors(options.errorHandling)) {
+        for (const failure of failures) {
+          finalResult.push({
+            location: failure.location,
+            error: failure.error,
+          });
+        }
+        return finalResult;
+      }
       if (errors.length === 1) {
         throw errors[0];
       }
@@ -174,25 +188,37 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
     const resolvedPaths = this.resolveGlobsSync(pointer, options);
     const finalResult: Source[] = [];
     const errors: Error[] = [];
+    const failures: Array<{ location: string; error: Error }> = [];
 
     for (const path of resolvedPaths) {
       if (this.canLoadSync(path, options)) {
+        const normalizedFilePath = isAbsolute(path)
+          ? path
+          : resolve(options.cwd || processCwd(), path);
         try {
-          const normalizedFilePath = isAbsolute(path)
-            ? path
-            : resolve(options.cwd || processCwd(), path);
           const rawSDL = readFileSync(normalizedFilePath, { encoding: 'utf8' });
           finalResult.push(this.handleFileContent(rawSDL, normalizedFilePath, options));
         } catch (e: any) {
           if (env['DEBUG']) {
             console.error(e);
           }
-          errors.push(e);
+          const error = toLoadError(e);
+          errors.push(error);
+          failures.push({ location: normalizedFilePath, error });
         }
       }
     }
 
     if (errors.length > 0) {
+      if (shouldCollectLoadErrors(options.errorHandling)) {
+        for (const failure of failures) {
+          finalResult.push({
+            location: failure.location,
+            error: failure.error,
+          });
+        }
+        return finalResult;
+      }
       if (errors.length === 1) {
         throw errors[0];
       }

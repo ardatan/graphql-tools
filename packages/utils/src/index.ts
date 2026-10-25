@@ -1,4 +1,5 @@
 export * from './loaders.js';
+export * from './load-error-handling.js';
 export * from './helpers.js';
 export * from './get-directives.js';
 export * from './get-fields-with-directives.js';

@@ -1,5 +1,5 @@
 import { env } from 'process';
-import { Source } from '@graphql-tools/utils';
+import { shouldCollectLoadErrors, Source, toLoadError } from '@graphql-tools/utils';
 import { LoadTypedefsOptions } from '../load-typedefs.js';
 
 export async function loadFile(pointer: string, options: LoadTypedefsOptions): Promise<Source[]> {
@@ -29,6 +29,12 @@ export async function loadFile(pointer: string, options: LoadTypedefsOptions): P
     );
 
     if (results.length === 0 && errors.length > 0) {
+      if (shouldCollectLoadErrors(options.errorHandling)) {
+        return errors.map(error => ({
+          location: pointer,
+          error: toLoadError(error),
+        }));
+      }
       // Always surface the "no type definitions" context, even for a single
       // loader error — otherwise an unrelated parse/pluck failure can hide it (#7406).
       throw new AggregateError(
@@ -72,6 +78,12 @@ export function loadFileSync(pointer: string, options: LoadTypedefsOptions): Sou
     }
 
     if (results.length === 0 && errors.length > 0) {
+      if (shouldCollectLoadErrors(options.errorHandling)) {
+        return errors.map(error => ({
+          location: pointer,
+          error: toLoadError(error),
+        }));
+      }
       throw new AggregateError(
         errors,
         `Failed to find any GraphQL type definitions in: ${pointer};\n - ${errors

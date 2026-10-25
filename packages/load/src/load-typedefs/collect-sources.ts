@@ -6,7 +6,9 @@ import {
   getDocumentNodeFromSchema,
   isDocumentString,
   parseGraphQLSDL,
+  shouldCollectLoadErrors,
   Source,
+  toLoadError,
 } from '@graphql-tools/utils';
 import { LoadTypedefsOptions } from '../load-typedefs.js';
 import { useCustomLoader, useCustomLoaderSync } from '../utils/custom-loader.js';
@@ -160,15 +162,29 @@ function collectDocumentString<T>(
 ) {
   if (isDocumentString(pointer)) {
     return queue(() => {
-      const source = parseGraphQLSDL(`${stringToHash(pointer)}.graphql`, pointer, {
-        ...options,
-        ...pointerOptions,
-      });
+      try {
+        const source = parseGraphQLSDL(`${stringToHash(pointer)}.graphql`, pointer, {
+          ...options,
+          ...pointerOptions,
+        });
 
-      addSource({
-        source,
-        pointer,
-      });
+        addSource({
+          source,
+          pointer,
+        });
+      } catch (error) {
+        if (shouldCollectLoadErrors(options.errorHandling)) {
+          addSource({
+            source: {
+              location: `${stringToHash(pointer)}.graphql`,
+              error: toLoadError(error),
+            },
+            pointer,
+          });
+          return;
+        }
+        throw error;
+      }
     });
   }
 
