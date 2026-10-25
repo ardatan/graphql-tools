@@ -231,16 +231,48 @@ function parseImportPaths(source: string): string[] {
   return importPaths;
 }
 
-function readImportedSource(
+function loaderContextDir(loader: LoaderContext<Options>): string {
+  if (loader.context) {
+    return loader.context;
+  }
+  if (loader.resourcePath) {
+    return path.dirname(loader.resourcePath);
+  }
+  return '';
+}
+
+function resolveImportWithWebpack(
   loader: LoaderContext<Options>,
+  contextDir: string,
   importPath: string,
+): Promise<string | undefined> {
+  return new Promise(resolve => {
+    loader.resolve(contextDir, importPath, (error, result) => {
+      if (error || result == null) {
+        resolve(undefined);
+        return;
+      }
+      resolve(String(result));
+    });
+  });
+}
+
+function resolveImportPath(contextDir: string, importPath: string): string | undefined {
+  if (!contextDir) {
+    return undefined;
+  }
+  return path.resolve(contextDir, importPath);
+}
+
+function readResolvedSource(
+  loader: LoaderContext<Options>,
+  resolved: string,
   seenFiles: Set<string>,
 ): string | undefined {
   const fs = loader.fs as { readFileSync?: (filePath: string) => string | Buffer } | undefined;
-  if (fs?.readFileSync == null || loader.context == null) {
+  if (fs?.readFileSync == null) {
     return undefined;
   }
-  const resolved = path.resolve(loader.context, importPath);
   if (seenFiles.has(resolved)) {
     return undefined;
   }
@@ -254,28 +286,66 @@ function readImportedSource(
   }
 }
 
-function collectImportedNamedDefinitions(
+async function collectImportedNamedDefinitions(
   source: string,
   loader: LoaderContext<Options>,
+  contextDir: string,
   seenFiles: Set<string>,
-): NamedExecutableDefinition[] {
+): Promise<NamedExecutableDefinition[]> {
   const collected: NamedExecutableDefinition[] = [];
   for (const importPath of parseImportPaths(source)) {
-    const imported = readImportedSource(loader, importPath, seenFiles);
+    const resolved = await resolveImportWithWebpack(loader, contextDir, importPath);
+    if (resolved == null) {
+      continue;
+    }
+    const imported = readResolvedSource(loader, resolved, seenFiles);
     if (imported == null) {
       continue;
     }
     const importedDoc = parseDocument(imported);
     collected.push(...importedDoc.definitions.filter(isNamedExecutableDefinition));
-    collected.push(...collectImportedNamedDefinitions(imported, loader, seenFiles));
+    collected.push(
+      ...(await collectImportedNamedDefinitions(
+        imported,
+        loader,
+        path.dirname(resolved),
+        seenFiles,
+      )),
+    );
   }
   return collected;
 }
 
-export default function graphqlLoader(this: LoaderContext<Options>, source: string) {
-  this.cacheable();
-  // TODO: This should probably use this.getOptions()
-  const options = (this.query as Options) || {};
+function collectImportedNamedDefinitionsSync(
+  source: string,
+  loader: LoaderContext<Options>,
+  contextDir: string,
+  seenFiles: Set<string>,
+): NamedExecutableDefinition[] {
+  const collected: NamedExecutableDefinition[] = [];
+  for (const importPath of parseImportPaths(source)) {
+    const resolved = resolveImportPath(contextDir, importPath);
+    if (resolved == null) {
+      continue;
+    }
+    const imported = readResolvedSource(loader, resolved, seenFiles);
+    if (imported == null) {
+      continue;
+    }
+    const importedDoc = parseDocument(imported);
+    collected.push(...importedDoc.definitions.filter(isNamedExecutableDefinition));
+    collected.push(
+      ...collectImportedNamedDefinitionsSync(imported, loader, path.dirname(resolved), seenFiles),
+    );
+  }
+  return collected;
+}
+
+function emitLoaderCode(
+  source: string,
+  options: Options,
+  importedNamedDefinitions: NamedExecutableDefinition[],
+): string {
   let doc = parseDocument(source);
 
   const optimizers: DocumentOptimizer[] = [];
@@ -316,7 +386,7 @@ export default function graphqlLoader(this: LoaderContext<Options>, source: stri
   );
   const namedDefinitions = [
     ...doc.definitions.filter(isNamedExecutableDefinition),
-    ...collectImportedNamedDefinitions(source, this, new Set()),
+    ...importedNamedDefinitions,
   ];
 
   if (operations.length > 1 && operations.some(op => op.name == null)) {
@@ -409,4 +479,37 @@ export default function graphqlLoader(this: LoaderContext<Options>, source: stri
   const allCode = [headerCode, importOutputCode, outputCode, ''].join(os.EOL);
 
   return allCode;
+}
+
+export default function graphqlLoader(this: LoaderContext<Options>, source: string) {
+  this.cacheable();
+  // TODO: This should probably use this.getOptions()
+  const options = (this.query as Options) || {};
+  const contextDir = loaderContextDir(this);
+  const needsImportedNames = Boolean(options.esModule) && parseImportPaths(source).length > 0;
+
+  if (!needsImportedNames) {
+    return emitLoaderCode(source, options, []);
+  }
+
+  if (typeof this.resolve === 'function') {
+    const callback = typeof this.async === 'function' ? this.async() : undefined;
+    const pending = collectImportedNamedDefinitions(source, this, contextDir, new Set()).then(
+      imported => emitLoaderCode(source, options, imported),
+    );
+    if (callback) {
+      pending.then(
+        code => callback(null, code),
+        error => callback(error),
+      );
+      return;
+    }
+    return pending;
+  }
+
+  return emitLoaderCode(
+    source,
+    options,
+    collectImportedNamedDefinitionsSync(source, this, contextDir, new Set()),
+  );
 }

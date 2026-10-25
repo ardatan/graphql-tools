@@ -243,6 +243,45 @@ mutation upsertMenuMutation {
   );
 });
 
+async function useLoaderAsync(
+  source: string,
+  options: any,
+  loaderThis: Record<string, unknown> = {},
+): Promise<string> {
+  return await new Promise((resolve, reject) => {
+    let settled = false;
+    const finish = (err: Error | null | undefined, code?: string) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(code as string);
+    };
+
+    const result = loader.call(
+      {
+        cacheable() {},
+        query: options,
+        async() {
+          return finish;
+        },
+        ...loaderThis,
+      } as any,
+      source,
+    );
+
+    if (typeof result === 'string') {
+      finish(null, result);
+    } else if (result && typeof (result as Promise<string>).then === 'function') {
+      (result as Promise<string>).then(code => finish(null, code), finish);
+    }
+  });
+}
+
 test('esModule exports fragments introduced by #import', () => {
   const fragmentSource = /* GraphQL */ `
     fragment MenuFields on Menu {
@@ -275,6 +314,75 @@ query Foo {
 
   expect(doc).toContain('export { $gql_exp_0 as Foo }');
   expect(doc).toContain('export { $gql_exp_1 as MenuFields }');
+});
+
+test('esModule #import uses webpack resolve relative to the importing file', async () => {
+  const extraSource = /* GraphQL */ `
+    fragment ExtraFields on Menu {
+      extra
+    }
+  `;
+  const fragmentSource = `#import "./extra.graphql"
+fragment MenuFields on Menu {
+  id
+  ...ExtraFields
+}`;
+  const docStr = `#import "@menu/fields.graphql"
+query Foo {
+  foo {
+    ...MenuFields
+  }
+}`;
+  const files: Record<string, string> = {
+    '/src/fragments/fields.graphql': fragmentSource,
+    '/src/fragments/extra.graphql': extraSource,
+  };
+  const resolveCalls: Array<[string, string]> = [];
+
+  const doc = await useLoaderAsync(
+    docStr,
+    {
+      esModule: true,
+    },
+    {
+      context: '/src/queries',
+      resourcePath: '/src/queries/foo.graphql',
+      addDependency() {},
+      resolve(
+        contextDir: string,
+        request: string,
+        callback: (err: Error | null, result?: string) => void,
+      ) {
+        resolveCalls.push([contextDir, request]);
+        if (request === '@menu/fields.graphql') {
+          callback(null, '/src/fragments/fields.graphql');
+          return;
+        }
+        if (request === './extra.graphql' && contextDir === '/src/fragments') {
+          callback(null, '/src/fragments/extra.graphql');
+          return;
+        }
+        callback(new Error(`unexpected resolve ${contextDir} ${request}`));
+      },
+      fs: {
+        readFileSync(filePath: string) {
+          const contents = files[filePath];
+          if (contents == null) {
+            throw new Error(`missing ${filePath}`);
+          }
+          return contents;
+        },
+      },
+    },
+  );
+
+  expect(resolveCalls).toEqual([
+    ['/src/queries', '@menu/fields.graphql'],
+    ['/src/fragments', './extra.graphql'],
+  ]);
+  expect(doc).toContain('export { $gql_exp_0 as Foo }');
+  expect(doc).toContain('export { $gql_exp_1 as MenuFields }');
+  expect(doc).toContain('export { $gql_exp_2 as ExtraFields }');
 });
 
 test('single unnamed operation still default-exports the document', () => {
