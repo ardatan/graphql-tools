@@ -1,5 +1,5 @@
 ---
-'@graphql-tools/load': patch
+'@graphql-tools/load': minor
 ---
 
 `loadSchema` and `loadSchemaSync` now accept `sortMode` when `sort` is true.
