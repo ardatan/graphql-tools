@@ -1,0 +1,14 @@
+type Query {
+  z: String
+  day: DayOfWeek
+}
+
+enum DayOfWeek {
+  SUNDAY
+  MONDAY
+}
+
+type User {
+  aa: String
+  a: String
+}
