@@ -64,7 +64,7 @@ const oneQueryCode = `
       }
     }
 
-    var $gqlDefinitionRefs = {};
+    var $gqlDefinitionRefs = Object.create(null);
     (function $gqlExtractReferences() {
       doc.definitions.forEach(function (def) {
         if (def.name) {
@@ -127,7 +127,7 @@ const oneQueryCode = `
     }
 
     function $gqlEachNamedDefinition(callback) {
-      var seen = {};
+      var seen = Object.create(null);
       doc.definitions.forEach(function (def) {
         if (
           (def.kind !== "OperationDefinition" && def.kind !== "FragmentDefinition") ||
