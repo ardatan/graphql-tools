@@ -682,11 +682,27 @@ describe('mapSchema', () => {
               },
 
               parseValue(value) {
-                return type.parseValue(value) as string;
+                const newValue = type.parseValue(value) as string;
+                if (newValue.length > maxLength) {
+                  throw new Error(
+                    `expected ${newValue.length.toString(10)} to be at most ${maxLength.toString(
+                      10,
+                    )}`,
+                  );
+                }
+                return newValue;
               },
 
               parseLiteral(ast) {
-                return type.parseLiteral(ast, {});
+                const newValue = type.parseLiteral(ast, {}) as string;
+                if (newValue.length > maxLength) {
+                  throw new Error(
+                    `expected ${newValue.length.toString(10)} to be at most ${maxLength.toString(
+                      10,
+                    )}`,
+                  );
+                }
+                return newValue;
               },
             });
           }
@@ -818,6 +834,37 @@ describe('mapSchema', () => {
           title: 'safe title',
         },
       });
+
+      const tooLongLiteral = await graphql({
+        schema,
+        source: `
+        mutation {
+          createBook(book: { title: "abcdefghijklmnopqrstuvwxyz" }) {
+            title
+          }
+        }
+      `,
+      });
+      expect(tooLongLiteral.errors?.length).toBe(1);
+      expect(tooLongLiteral.errors?.[0].message).toContain('expected 26 to be at most 10');
+
+      const tooLongVariable = await graphql({
+        schema,
+        source: `
+        mutation ($book: BookInput!) {
+          createBook(book: $book) {
+            title
+          }
+        }
+      `,
+        variableValues: {
+          book: {
+            title: 'abcdefghijklmnopqrstuvwxyz',
+          },
+        },
+      });
+      expect(tooLongVariable.errors?.length).toBe(1);
+      expect(tooLongVariable.errors?.[0].message).toContain('expected 26 to be at most 10');
     });
 
     test('can be used to implement the @uniqueID example', () => {
