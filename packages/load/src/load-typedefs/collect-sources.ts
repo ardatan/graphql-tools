@@ -6,6 +6,7 @@ import {
   createFailedSource,
   getDocumentNodeFromSchema,
   isDocumentString,
+  LoadErrorHandling,
   parseGraphQLSDL,
   shouldCollectLoadErrors,
   Source,
@@ -157,9 +158,9 @@ function addResultOfCustomLoader({
 }
 
 function errorHandlingOf(
-  options: { errorHandling?: unknown },
-  pointerOptions: { errorHandling?: unknown },
-) {
+  options: { errorHandling?: LoadErrorHandling },
+  pointerOptions: { errorHandling?: LoadErrorHandling },
+): LoadErrorHandling | undefined {
   return pointerOptions.errorHandling ?? options.errorHandling;
 }
 
