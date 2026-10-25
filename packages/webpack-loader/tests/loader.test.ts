@@ -5,7 +5,11 @@ import { testIf } from '../../testing/utils';
 import loader from '../src/index.js';
 
 function useLoader(source: string, options: any, loaderThis: Record<string, unknown> = {}): string {
-  return loader.call({ cacheable() {}, query: options, ...loaderThis } as any, source);
+  const code = loader.call({ cacheable() {}, query: options, ...loaderThis } as any, source);
+  if (typeof code !== 'string') {
+    throw new Error('webpack-loader must return source synchronously in this test');
+  }
+  return code;
 }
 
 function evaluateLoader(
