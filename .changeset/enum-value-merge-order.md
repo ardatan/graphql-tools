@@ -22,5 +22,3 @@ enum Color {
 
 Previously: type `second type`, value `first value`, value directives `@b` then `@a`.
 Now: type `second type`, value `second value`, value directives `@a` then `@b`, same as the enum type and as object field merges.
-
-`consistentEnumMerge` is ignored. It only swapped the value arrays to paper over this; the default path matches that intent.

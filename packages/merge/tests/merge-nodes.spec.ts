@@ -422,6 +422,36 @@ describe('Merge Nodes', () => {
       expect(result.directives.map(d => d.name.value)).toEqual(['a', 'b']);
       expect(result.values[0].directives.map(d => d.name.value)).toEqual(['a', 'b']);
     });
+
+    it('keeps consistentEnumMerge value order', () => {
+      const type1 = parse(/* GraphQL */ `
+        enum Color {
+          """
+          first value
+          """
+          RED
+          GREEN
+        }
+      `);
+      const type2 = parse(/* GraphQL */ `
+        enum Color {
+          """
+          second value
+          """
+          RED
+          BLUE
+        }
+      `);
+      const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions], {
+        consistentEnumMerge: true,
+      });
+      const result = merged['Color'];
+      assertEnumTypeDefinitionNode(result);
+      assertSome(result.values);
+
+      expect(result.values.map(v => v.name.value)).toEqual(['RED', 'GREEN', 'BLUE']);
+      expect(result.values[0].description?.value).toBe('second value');
+    });
   });
 
   describe('union', () => {

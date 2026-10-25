@@ -76,10 +76,6 @@ export interface Config extends ParseOptions, GetDocumentNodeFromSchemaOptions {
   exclusions?: string[];
   sort?: boolean | CompareFn<string>;
   convertExtensions?: boolean;
-  /**
-   * @deprecated Enum type and value mergers already use the same candidate
-   * order (`e1` then `e2`). This flag is ignored.
-   */
   consistentEnumMerge?: boolean;
   ignoreFieldConflicts?: boolean;
   /**
