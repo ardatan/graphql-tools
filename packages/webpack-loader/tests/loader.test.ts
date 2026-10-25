@@ -247,6 +247,40 @@ mutation upsertMenuMutation {
   );
 });
 
+test('CommonJS exports a fragment that exists only via #import', () => {
+  const docStr = `#import "./menuFields.graphql"
+{
+  foo {
+    ...MenuFields
+  }
+}`;
+  const fragmentDoc = parse(
+    /* GraphQL */ `
+      fragment MenuFields on Menu {
+        id
+        name
+      }
+    `,
+    { noLocation: true },
+  );
+
+  const exported = evaluateLoader(docStr, {}, (id: string) => {
+    expect(id).toBe('./menuFields.graphql');
+    return fragmentDoc;
+  });
+
+  expect(print(exported.MenuFields)).toBe(
+    print(
+      parse(/* GraphQL */ `
+        fragment MenuFields on Menu {
+          id
+          name
+        }
+      `),
+    ),
+  );
+});
+
 async function useLoaderAsync(
   source: string,
   options: any,

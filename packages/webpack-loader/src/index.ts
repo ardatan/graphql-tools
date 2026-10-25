@@ -409,7 +409,8 @@ function emitLoaderCode(
   `;
   }
 
-  if (namedDefinitions.length > 0) {
+  const hasImports = parseImportPaths(source).length > 0;
+  if (namedDefinitions.length > 0 || (!options.esModule && hasImports)) {
     const seenNames = new Map<string, string>();
     for (const def of namedDefinitions) {
       const opName = def.name.value;
@@ -486,7 +487,7 @@ export default function graphqlLoader(this: LoaderContext<Options>, source: stri
   // TODO: This should probably use this.getOptions()
   const options = (this.query as Options) || {};
   const contextDir = loaderContextDir(this);
-  const needsImportedNames = Boolean(options.esModule) && parseImportPaths(source).length > 0;
+  const needsImportedNames = parseImportPaths(source).length > 0;
 
   if (!needsImportedNames) {
     return emitLoaderCode(source, options, []);
