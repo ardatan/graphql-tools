@@ -104,6 +104,36 @@ let schema = makeExecutableSchema({ typeDefs })
 schema = directiveTransformers.reduce((curSchema, transformer) => transformer(curSchema), schema)
 ```
 
+Each transformer wraps the field resolver when it runs. The last transformer you apply is the
+outermost wrapper.
+
+If the wrapper runs work _before_ calling the previous resolver (auth, then the next check):
+
+```js
+schema = authTransformer(schema)
+schema = roleTransformer(schema)
+```
+
+execution is `role` then `auth` then the original resolver.
+
+If the wrapper transforms the _result_ after the previous resolver returns (`@upper` then
+`@reverse`):
+
+```js
+schema = upperTransformer(schema)
+schema = reverseTransformer(schema)
+```
+
+the raw result is uppercased first, then reversed.
+
+That order comes from the `reduce` list, not from the order of `@auth @role` on the field. Schema
+transformers do not treat the SDL list as an execution pipeline. Two fields that swap
+`@isAuthorised @authenticated` still run the same wrappers if you applied the transformers in the
+same order.
+
+Apply the transformers in the reverse of the runtime order you want. If two directives on the same
+field must follow the SDL list, wrap the resolver once and walk `fieldConfig.astNode.directives`.
+
 Everything you read below addresses some aspect of how a directive like `@rename(to: ...)` could be
 implemented. If that's not something you care about right now, feel free to skip the rest of this
 document. When you need it, it will be here.
@@ -598,11 +628,23 @@ function lengthDirective(directiveName: string) {
         },
 
         parseValue(value: string) {
-          return type.parseValue(value)
+          const newValue: string = type.parseValue(value)
+          if (newValue.length > maxLength) {
+            throw new Error(
+              `expected ${newValue.length.toString(10)} to be at most ${maxLength.toString(10)}`
+            )
+          }
+          return newValue
         },
 
         parseLiteral(ast) {
-          return type.parseLiteral(ast, {})
+          const newValue: string = type.parseLiteral(ast, {})
+          if (newValue.length > maxLength) {
+            throw new Error(
+              `expected ${newValue.length.toString(10)} to be at most ${maxLength.toString(10)}`
+            )
+          }
+          return newValue
         }
       })
     }
@@ -691,6 +733,14 @@ let schema = makeExecutableSchema({
 })
 schema = lengthDirectiveTransformer(schema)
 ```
+
+`serialize` runs when a value leaves the schema (an output field). Input fields and arguments use
+`parseValue` for variables and `parseLiteral` for inline literals. A restriction on
+`INPUT_FIELD_DEFINITION` has to live in those two methods, not only in `serialize`.
+
+Wrapping the field type also changes the type name (`StringWithLengthAtMost10`). A variable declared
+as `$title: String!` will not match that field. Pass the parent input object (`$book: BookInput!`)
+or declare the variable with the wrapped scalar name.
 
 Note that new types can be added to the schema with ease, but that each type must be uniquely named.
 
