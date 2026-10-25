@@ -455,7 +455,12 @@ function emitLoaderCode(
             '" because it would replace the default document'
         );
       }
-      $gqlExports[opName] = $gqlOneQuery(doc, opName);
+      Object.defineProperty($gqlExports, opName, {
+        value: $gqlOneQuery(doc, opName),
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
     });
 `;
     }

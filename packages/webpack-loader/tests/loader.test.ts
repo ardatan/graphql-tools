@@ -40,11 +40,26 @@ testIf(!globalThis.Bun)('basic query', () => {
   expect(doc).toContain('module.exports = $gqlExports');
   expect(doc).toContain(uniqueCode);
   expect(doc).toContain('$gqlEachNamedDefinition');
-  expect(doc).toContain('$gqlExports[opName] = $gqlOneQuery(doc, opName)');
+  expect(doc).toContain('Object.defineProperty($gqlExports, opName');
 
   const exported = evaluateLoader(docStr);
   expect(print(exported)).toBe(print(parse(docStr)));
   expect(print(exported.Foo)).toBe(print(parse(docStr)));
+});
+
+testIf(!globalThis.Bun)('CommonJS keeps __proto__ as an own named export', () => {
+  const docStr = /* GraphQL */ `
+    query __proto__ {
+      foo
+    }
+  `;
+  const exported = evaluateLoader(docStr);
+
+  expect(Object.hasOwn(exported, '__proto__')).toBe(true);
+  expect(Object.getPrototypeOf(exported)).toBe(Object.prototype);
+  expect(print(Object.getOwnPropertyDescriptor(exported, '__proto__')?.value)).toBe(
+    print(parse(docStr)),
+  );
 });
 
 test('basic query with esModules on', () => {

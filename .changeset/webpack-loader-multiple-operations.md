@@ -41,3 +41,5 @@ import menuMutations, {
 ```
 
 A single named operation is also exported under its name. Unnamed operations are still allowed when the file has only one operation. If the file has more than one operation, each operation must be named.
+
+`jest-transform` now passes the Jest source path and filesystem into the loader, so `esModule: true` can emit named exports for operations and fragments pulled in with `#import`. CommonJS named exports use an own property so a GraphQL name of `__proto__` does not replace the export object's prototype.
