@@ -14,7 +14,9 @@ import {
 describe('custom loaders', () => {
   it('can load a CommonJS loader from a relative file path', async () => {
     const loader = await getCustomLoaderByPath('./custom-loader.js', __dirname);
-    expect(loader).toBeDefined();
+    if (loader == null) {
+      throw new Error('expected a loader function');
+    }
     expect(loader('some-name', { customLoaderContext: {} })).toEqual('I like turtles');
   });
 
@@ -45,6 +47,50 @@ describe('custom loaders', () => {
       fooFieldName: 'myFooField',
     });
     expect(print(doc)).toBe(print(parse('query TestQuery { myFooField }')));
+  });
+
+  it('keeps getCustomLoaderByPath returning null when the file cannot be loaded (#4612)', async () => {
+    await expect(
+      getCustomLoaderByPath('./missing-custom-loader.js', __dirname),
+    ).resolves.toBeNull();
+  });
+
+  it('includes the original error when useCustomLoader cannot load a missing file (#4612)', async () => {
+    await expect(useCustomLoader('./missing-custom-loader.js', __dirname)).rejects.toThrow(
+      /Failed to load custom loader: \.\/missing-custom-loader\.js[\s\S]*(Cannot find module|ERR_MODULE_NOT_FOUND)/,
+    );
+  });
+
+  it('includes the syntax error when useCustomLoader loads a broken file (#4612)', async () => {
+    const cwd = mkdtempSync(join(tmpdir(), 'broken-custom-loader-'));
+    writeFileSync(join(cwd, 'broken-loader.js'), 'module.exports = function ( {\n');
+
+    try {
+      await expect(useCustomLoader('./broken-loader.js', cwd)).rejects.toThrow(
+        /Failed to load custom loader: \.\/broken-loader\.js[\s\S]*(SyntaxError|BuildMessage|Expected identifier)/,
+      );
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
+  it('includes the original error when useCustomLoaderSync cannot load a missing file (#4612)', () => {
+    expect(() => useCustomLoaderSync('./missing-custom-loader.js', __dirname)).toThrow(
+      /Failed to load custom loader: \.\/missing-custom-loader\.js[\s\S]*Cannot find module/,
+    );
+  });
+
+  it('includes that the module did not export a function (#4612)', async () => {
+    const cwd = mkdtempSync(join(tmpdir(), 'object-custom-loader-'));
+    writeFileSync(join(cwd, 'object-loader.js'), 'module.exports = { foo: 1 };\n');
+
+    try {
+      await expect(useCustomLoader('./object-loader.js', cwd)).rejects.toThrow(
+        /Failed to load custom loader: \.\/object-loader\.js[\s\S]*did not export a function/,
+      );
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
   });
 
   it('resolves a package whose exports only define an import condition', () => {

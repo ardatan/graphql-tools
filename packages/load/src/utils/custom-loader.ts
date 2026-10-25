@@ -106,62 +106,100 @@ export function resolveLoaderModuleUrl(path: string, cwd: string, requireFn: Nod
   }
 }
 
-export async function getCustomLoaderByPath(path: string, cwd: string) {
+type CustomLoaderFn = (...args: any[]) => any;
+
+function toError(error: unknown): Error {
+  return error instanceof Error ? error : new Error(String(error));
+}
+
+function missingFunctionExportError(path: string): Error {
+  return new Error(`custom loader module did not export a function: ${path}`);
+}
+
+function combineLoadErrors(first: Error | undefined, second: Error): Error {
+  if (first != null && first.message !== second.message) {
+    return new Error(`${first}\n${second}`);
+  }
+  return first ?? second;
+}
+
+function failedToLoadCustomLoader(loaderPointer: unknown, error: Error): Error {
+  return new Error(`Failed to load custom loader: ${loaderPointer}\n${error}`);
+}
+
+async function loadCustomLoaderByPath(path: string, cwd: string): Promise<CustomLoaderFn> {
   const requireFn = createLoaderRequire(cwd);
+  let requireError: Error | undefined;
   try {
     const loader = extractLoaderFromModule(requireFn(path));
     if (typeof loader === 'function') {
       return loader;
     }
-  } catch {
+  } catch (error) {
     // createRequire cannot load ESM; fall through to import().
+    requireError = toError(error);
   }
 
   try {
     const href = resolveLoaderModuleUrl(path, cwd, requireFn);
     const importedModule = await import(href);
-    return extractLoaderFromModule(importedModule);
-  } catch {
-    return null;
+    const loader = extractLoaderFromModule(importedModule);
+    if (typeof loader === 'function') {
+      return loader;
+    }
+    throw missingFunctionExportError(path);
+  } catch (error) {
+    throw combineLoadErrors(requireError, toError(error));
   }
 }
 
-function getCustomLoaderByPathSync(path: string, cwd: string) {
+function loadCustomLoaderByPathSync(path: string, cwd: string): CustomLoaderFn {
+  const loader = extractLoaderFromModule(createLoaderRequire(cwd)(path));
+  if (typeof loader === 'function') {
+    return loader;
+  }
+  throw missingFunctionExportError(path);
+}
+
+export async function getCustomLoaderByPath(
+  path: string,
+  cwd: string,
+): Promise<CustomLoaderFn | null> {
   try {
-    return extractLoaderFromModule(createLoaderRequire(cwd)(path)) ?? null;
+    return await loadCustomLoaderByPath(path, cwd);
   } catch {
     return null;
   }
 }
 
 export async function useCustomLoader(loaderPointer: any, cwd: string) {
-  let loader;
+  if (typeof loaderPointer === 'function') {
+    return loaderPointer;
+  }
 
   if (typeof loaderPointer === 'string') {
-    loader = await getCustomLoaderByPath(loaderPointer, cwd);
-  } else if (typeof loaderPointer === 'function') {
-    loader = loaderPointer;
+    try {
+      return await loadCustomLoaderByPath(loaderPointer, cwd);
+    } catch (error) {
+      throw failedToLoadCustomLoader(loaderPointer, toError(error));
+    }
   }
 
-  if (typeof loader !== 'function') {
-    throw new Error(`Failed to load custom loader: ${loaderPointer}`);
-  }
-
-  return loader;
+  throw new Error(`Failed to load custom loader: ${loaderPointer}`);
 }
 
 export function useCustomLoaderSync(loaderPointer: any, cwd: string) {
-  let loader;
+  if (typeof loaderPointer === 'function') {
+    return loaderPointer;
+  }
 
   if (typeof loaderPointer === 'string') {
-    loader = getCustomLoaderByPathSync(loaderPointer, cwd);
-  } else if (typeof loaderPointer === 'function') {
-    loader = loaderPointer;
+    try {
+      return loadCustomLoaderByPathSync(loaderPointer, cwd);
+    } catch (error) {
+      throw failedToLoadCustomLoader(loaderPointer, toError(error));
+    }
   }
 
-  if (typeof loader !== 'function') {
-    throw new Error(`Failed to load custom loader: ${loaderPointer}`);
-  }
-
-  return loader;
+  throw new Error(`Failed to load custom loader: ${loaderPointer}`);
 }
