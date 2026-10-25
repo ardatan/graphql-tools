@@ -30,12 +30,11 @@ testIf(!globalThis.Bun)('basic query', () => {
   const doc = useLoader(docStr, {});
 
   const docLine = `var doc = ${JSON.stringify(parse(docStr, { noLocation: true }))};`;
-  const exportLine = `module.exports = doc`;
 
   expect(doc).toContain(docLine);
-  expect(doc).toContain(exportLine);
+  expect(doc).toContain('module.exports = $gqlExports');
   expect(doc).toContain(uniqueCode);
-  expect(doc).toContain('module.exports["Foo"] = oneQuery(doc, "Foo")');
+  expect(doc).toContain('$gqlExports["Foo"] = $gqlOneQuery(doc, "Foo")');
 
   const exported = evaluateLoader(docStr);
   expect(print(exported)).toBe(print(parse(docStr)));
@@ -58,7 +57,7 @@ test('basic query with esModules on', () => {
   expect(doc).toContain(docLine);
   expect(doc).toContain(exportLine);
   expect(doc).toContain(uniqueCode);
-  expect(doc).toContain('export var Foo = oneQuery(doc, "Foo")');
+  expect(doc).toContain('export { $gql_exp_0 as Foo }');
 });
 
 test('esModule #import uses the default export of the required document (#7935)', () => {
@@ -272,6 +271,123 @@ test('esModule emits a named export for each operation', () => {
   });
 
   expect(doc).toContain('export default doc');
-  expect(doc).toContain('export var deleteMenuMutation = oneQuery(doc, "deleteMenuMutation")');
-  expect(doc).toContain('export var upsertMenuMutation = oneQuery(doc, "upsertMenuMutation")');
+  expect(doc).toContain('$gqlOneQuery(doc, "deleteMenuMutation")');
+  expect(doc).toContain('export { $gql_exp_0 as deleteMenuMutation }');
+  expect(doc).toContain('$gqlOneQuery(doc, "upsertMenuMutation")');
+  expect(doc).toContain('export { $gql_exp_1 as upsertMenuMutation }');
+});
+
+test('variable type names are not treated as fragment spreads', () => {
+  const docStr = /* GraphQL */ `
+    mutation upsertMenuMutation($input: MenuFields) {
+      upsertMenu(input: $input)
+    }
+    mutation deleteMenuMutation {
+      deleteMenu {
+        ...MenuFields
+      }
+    }
+    fragment MenuFields on Menu {
+      id
+    }
+  `;
+
+  const exported = evaluateLoader(docStr);
+  expect(print(exported.upsertMenuMutation)).toBe(
+    print(
+      parse(/* GraphQL */ `
+        mutation upsertMenuMutation($input: MenuFields) {
+          upsertMenu(input: $input)
+        }
+      `),
+    ),
+  );
+  expect(print(exported.deleteMenuMutation)).toBe(
+    print(
+      parse(/* GraphQL */ `
+        mutation deleteMenuMutation {
+          deleteMenu {
+            ...MenuFields
+          }
+        }
+        fragment MenuFields on Menu {
+          id
+        }
+      `),
+    ),
+  );
+});
+
+test('operation and fragment with the same name cannot be exported', () => {
+  const docStr = /* GraphQL */ `
+    query Shared {
+      node {
+        ...Shared
+      }
+    }
+    fragment Shared on Node {
+      id
+    }
+  `;
+
+  expect(() => useLoader(docStr, {})).toThrow(
+    'GraphQL operation and fragment both named "Shared" cannot be exported from the same file',
+  );
+});
+
+test('esModule exports JavaScript keyword operation names as aliases', () => {
+  const docStr = /* GraphQL */ `
+    mutation delete {
+      deleteMenu
+    }
+  `;
+  const doc = useLoader(docStr, {
+    esModule: true,
+  });
+
+  expect(doc).toContain('$gqlOneQuery(doc, "delete")');
+  expect(doc).toContain('export { $gql_exp_0 as delete }');
+});
+
+test('CommonJS rejects operation names that would replace the document', () => {
+  const docStr = /* GraphQL */ `
+    query definitions {
+      foo
+    }
+  `;
+
+  expect(() => useLoader(docStr, {})).toThrow(
+    'Cannot export GraphQL operation or fragment named "definitions" because it would replace the default document',
+  );
+});
+
+test('operation named oneQuery still exports without replacing the helper', () => {
+  const docStr = /* GraphQL */ `
+    query oneQuery {
+      foo
+    }
+    query other {
+      bar
+    }
+  `;
+
+  const exported = evaluateLoader(docStr);
+  expect(print(exported.oneQuery)).toBe(
+    print(
+      parse(/* GraphQL */ `
+        query oneQuery {
+          foo
+        }
+      `),
+    ),
+  );
+  expect(print(exported.other)).toBe(
+    print(
+      parse(/* GraphQL */ `
+        query other {
+          bar
+        }
+      `),
+    ),
+  );
 });

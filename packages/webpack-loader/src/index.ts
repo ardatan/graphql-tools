@@ -30,104 +30,51 @@ function isNamedExecutableDefinition(
   );
 }
 
-const ESM_RESERVED_NAMES = new Set([
-  'arguments',
-  'await',
-  'break',
-  'case',
-  'catch',
-  'class',
-  'const',
-  'continue',
-  'debugger',
-  'default',
-  'delete',
-  'do',
-  'else',
-  'enum',
-  'eval',
-  'export',
-  'extends',
-  'false',
-  'finally',
-  'for',
-  'function',
-  'if',
-  'implements',
-  'import',
-  'in',
-  'instanceof',
-  'interface',
-  'let',
-  'new',
-  'null',
-  'package',
-  'private',
-  'protected',
-  'public',
-  'return',
-  'static',
-  'super',
-  'switch',
-  'this',
-  'throw',
-  'true',
-  'try',
-  'typeof',
-  'var',
-  'void',
-  'while',
-  'with',
-  'yield',
-]);
+const DOCUMENT_EXPORT_KEYS = new Set(['kind', 'definitions', 'loc']);
 
-function isExportableName(name: string) {
-  return /^[_A-Za-z][_0-9A-Za-z]*$/.test(name) && !ESM_RESERVED_NAMES.has(name);
+function isGraphQLName(name: string) {
+  return /^[_A-Za-z][_0-9A-Za-z]*$/.test(name);
 }
 
-// Runs at load time so #import can append fragments before each named export is built.
+// $ prefixes cannot appear in GraphQL names, so these bindings cannot collide
+// with operation or fragment exports.
 const oneQueryCode = `
-    function collectFragmentReferences(node, refs) {
+    function $gqlCollectFragmentReferences(node, refs) {
       if (node.kind === "FragmentSpread") {
         refs.add(node.name.value);
-      } else if (node.kind === "VariableDefinition") {
-        var type = node.type;
-        if (type.kind === "NamedType") {
-          refs.add(type.name.value);
-        }
       }
 
       if (node.selectionSet) {
         node.selectionSet.selections.forEach(function (selection) {
-          collectFragmentReferences(selection, refs);
+          $gqlCollectFragmentReferences(selection, refs);
         });
       }
 
       if (node.variableDefinitions) {
         node.variableDefinitions.forEach(function (def) {
-          collectFragmentReferences(def, refs);
+          $gqlCollectFragmentReferences(def, refs);
         });
       }
 
       if (node.definitions) {
         node.definitions.forEach(function (def) {
-          collectFragmentReferences(def, refs);
+          $gqlCollectFragmentReferences(def, refs);
         });
       }
     }
 
-    var definitionRefs = {};
-    (function extractReferences() {
+    var $gqlDefinitionRefs = {};
+    (function $gqlExtractReferences() {
       doc.definitions.forEach(function (def) {
         if (def.name) {
           var refs = new Set();
-          collectFragmentReferences(def, refs);
-          definitionRefs[def.name.value] = refs;
+          $gqlCollectFragmentReferences(def, refs);
+          $gqlDefinitionRefs[def.name.value] = refs;
         }
       });
     })();
 
-    function findOperation(doc, name) {
+    function $gqlFindDefinition(doc, name) {
       for (var i = 0; i < doc.definitions.length; i++) {
         var element = doc.definitions[i];
         if (element.name && element.name.value == name) {
@@ -136,16 +83,16 @@ const oneQueryCode = `
       }
     }
 
-    function oneQuery(doc, operationName) {
+    function $gqlOneQuery(doc, operationName) {
       var newDoc = {
         kind: doc.kind,
-        definitions: [findOperation(doc, operationName)]
+        definitions: [$gqlFindDefinition(doc, operationName)]
       };
       if (doc.hasOwnProperty("loc")) {
         newDoc.loc = doc.loc;
       }
 
-      var opRefs = definitionRefs[operationName] || new Set();
+      var opRefs = $gqlDefinitionRefs[operationName] || new Set();
       var allRefs = new Set();
       var newRefs = new Set();
 
@@ -160,7 +107,7 @@ const oneQueryCode = `
         prevRefs.forEach(function (refName) {
           if (!allRefs.has(refName)) {
             allRefs.add(refName);
-            var childRefs = definitionRefs[refName] || new Set();
+            var childRefs = $gqlDefinitionRefs[refName] || new Set();
             childRefs.forEach(function (childRef) {
               newRefs.add(childRef);
             });
@@ -169,7 +116,7 @@ const oneQueryCode = `
       }
 
       allRefs.forEach(function (refName) {
-        var op = findOperation(doc, refName);
+        var op = $gqlFindDefinition(doc, refName);
         if (op) {
           newDoc.definitions.push(op);
         }
@@ -299,26 +246,65 @@ export default function graphqlLoader(this: LoaderContext<Options>, source: stri
     return `module.exports = ${identifier}`;
   }
 
-  outputCode += `
+  if (namedDefinitions.length === 0 || options.esModule) {
+    outputCode += `
     ${exportDefaultStatement('doc')}
   `;
+  }
 
   if (namedDefinitions.length > 0) {
-    outputCode += oneQueryCode;
+    const seenNames = new Map<string, string>();
     for (const def of namedDefinitions) {
       const opName = def.name.value;
-      if (options.esModule) {
-        if (isExportableName(opName)) {
-          outputCode += `
-    export var ${opName} = oneQuery(doc, ${JSON.stringify(opName)});
-`;
-        }
-      } else {
-        outputCode += `
-    module.exports[${JSON.stringify(opName)}] = oneQuery(doc, ${JSON.stringify(opName)});
-`;
+      const previousKind = seenNames.get(opName);
+      if (previousKind && previousKind !== def.kind) {
+        throw new Error(
+          `GraphQL operation and fragment both named "${opName}" cannot be exported from the same file`,
+        );
+      }
+      seenNames.set(opName, def.kind);
+
+      if (!isGraphQLName(opName)) {
+        throw new Error(
+          `Cannot export GraphQL operation or fragment named ${JSON.stringify(opName)}`,
+        );
+      }
+      if (options.esModule && opName === 'default') {
+        throw new Error(
+          'Cannot export a GraphQL operation or fragment named "default" because the loader already emits a default export',
+        );
+      }
+      if (!options.esModule && DOCUMENT_EXPORT_KEYS.has(opName)) {
+        throw new Error(
+          `Cannot export GraphQL operation or fragment named "${opName}" because it would replace the default document`,
+        );
       }
     }
+
+    outputCode += oneQueryCode;
+    if (!options.esModule) {
+      outputCode += `
+    var $gqlExports = { kind: doc.kind, definitions: doc.definitions };
+    if (doc.hasOwnProperty("loc")) {
+      $gqlExports.loc = doc.loc;
+    }
+    module.exports = $gqlExports;
+`;
+    }
+
+    namedDefinitions.forEach((def, index) => {
+      const opName = def.name.value;
+      if (options.esModule) {
+        outputCode += `
+    var $gql_exp_${index} = $gqlOneQuery(doc, ${JSON.stringify(opName)});
+    export { $gql_exp_${index} as ${opName} };
+`;
+      } else {
+        outputCode += `
+    $gqlExports[${JSON.stringify(opName)}] = $gqlOneQuery(doc, ${JSON.stringify(opName)});
+`;
+      }
+    });
   }
 
   const importOutputCode = expandImports(source, options);
