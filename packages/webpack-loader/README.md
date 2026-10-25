@@ -43,8 +43,39 @@ If you have configured
 modules containing graphQL queries. The imported value will be the pre-built AST.
 
 ```ts
-import MyQuery from './query.graphql'
+import MyQuery, { MyQuery as NamedMyQuery } from './query.graphql'
 ```
+
+A file may contain more than one operation. The default export is the whole document. Each named
+operation and fragment is also exported under its GraphQL name, with only the fragments that
+operation uses:
+
+```graphql
+# menuMutations.graphql
+mutation deleteMenuMutation {
+  deleteMenu {
+    ...MenuFields
+  }
+}
+
+mutation upsertMenuMutation {
+  upsertMenu {
+    id
+  }
+}
+
+fragment MenuFields on Menu {
+  id
+  name
+}
+```
+
+```ts
+import { deleteMenuMutation, upsertMenuMutation } from './menuMutations.graphql'
+```
+
+`@graphql-tools/jest-transform` uses this loader, so the same named imports work in Jest. Operations
+in a multi-operation file must be named.
 
 ### Preprocessing queries and fragments
 
