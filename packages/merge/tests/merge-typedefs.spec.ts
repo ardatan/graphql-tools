@@ -593,38 +593,38 @@ describe('Merge TypeDefs', () => {
     });
 
     it('merges the same directive when only argument descriptions differ', () => {
-      const graphqlJs = /* GraphQL */ `
+      const american = /* GraphQL */ `
         """
-        Exposes a URL that specifies the behavior of this scalar.
+        Points at a vendor spec for this scalar.
         """
-        directive @specifiedBy(
+        directive @vendorLink(
           """
-          The URL that specifies the behavior of this scalar.
+          The spec URL that describes the behavior of this scalar.
           """
-          url: String!
+          href: String!
         ) on SCALAR
       `;
-      const graphqlJava = /* GraphQL */ `
+      const british = /* GraphQL */ `
         """
-        Exposes a URL that specifies the behaviour of this scalar.
+        Points at a vendor spec for this scalar.
         """
-        directive @specifiedBy(
+        directive @vendorLink(
           """
-          The URL that specifies the behaviour of this scalar.
+          The spec URL that describes the behaviour of this scalar.
           """
-          url: String!
+          href: String!
         ) on SCALAR
       `;
 
-      const merged = mergeTypeDefs([graphqlJs, graphqlJava]);
-      const specifiedBy = merged.definitions.find(
+      const merged = mergeTypeDefs([american, british]);
+      const vendorLink = merged.definitions.find(
         definition =>
-          definition.kind === Kind.DIRECTIVE_DEFINITION && definition.name.value === 'specifiedBy',
+          definition.kind === Kind.DIRECTIVE_DEFINITION && definition.name.value === 'vendorLink',
       );
-      assertSome(specifiedBy);
-      expect(specifiedBy.kind).toBe(Kind.DIRECTIVE_DEFINITION);
-      expect(specifiedBy.arguments).toHaveLength(1);
-      expect(specifiedBy.arguments?.[0].name.value).toBe('url');
+      assertSome(vendorLink);
+      expect(vendorLink.kind).toBe(Kind.DIRECTIVE_DEFINITION);
+      expect(vendorLink.arguments).toHaveLength(1);
+      expect(vendorLink.arguments?.[0].name.value).toBe('href');
     });
 
     it('should merge args if inputs of the same directive are different from each other', () => {
