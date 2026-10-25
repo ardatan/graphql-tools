@@ -4,25 +4,48 @@
 
 `mergeEnumValues` now follows the same rule as `mergeEnum` and `mergeFields`: existing values stay first, incoming description and directives win.
 
-`mergeTypeDefs` / `mergeGraphQLNodes` walk definitions left to right and call `mergeEnum(next, existing)`. The enum type already took `next.description || existing.description` and `mergeDirectives(next, existing)`. Enum values did the opposite: `existing.description || next.description`, incoming values first, and `mergeDirectives(existing, next)`. Merging two enums that both describe `RED` kept the type text from the later SDL and the value text from the earlier one.
+Two documents, merged left to right. Same enum name, different text and values:
 
 ```graphql
-"""first type"""
+# document 1
+"""Color from users"""
 enum Color {
-  """first value"""
+  """old red"""
   RED @a
   GREEN
 }
 
-"""second type"""
+# document 2
+"""Color from billing"""
 enum Color {
-  """second value"""
+  """new red"""
   RED @b
   BLUE
 }
 ```
 
-Previously: type `second type`, values `RED, BLUE, GREEN`, value text `first value`, value directives `@b` then `@a`.
-Now: type `second type`, values `RED, GREEN, BLUE`, value text `second value`, value directives `@a` then `@b`.
+Previously the merged type mixed the two documents. Type text came from document 2, `RED` text and the value list came from the opposite direction:
+
+```graphql
+"""Color from billing"""
+enum Color {
+  """old red"""
+  RED @b @a
+  BLUE
+  GREEN
+}
+```
+
+Now type and values use the same rule. Document 2 wins descriptions and directives. Document 1 keeps the value order; values that exist only in document 2 are appended:
+
+```graphql
+"""Color from billing"""
+enum Color {
+  """new red"""
+  RED @a @b
+  GREEN
+  BLUE
+}
+```
 
 `consistentEnumMerge` is removed. It was an opt-in swap that already produced this result; that behavior is now the default.
