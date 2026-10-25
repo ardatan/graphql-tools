@@ -203,6 +203,64 @@ describe('loadDocuments errorHandling', () => {
           /Syntax Error|Failed to parse the GraphQL document/,
         );
       });
+
+      test('return keeps an incomplete inline document that ends at EOF', async () => {
+        const result = await load('query Foo {', {
+          loaders: [],
+          errorHandling: 'return',
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].document).toBeUndefined();
+        expect(result[0].error?.message).toMatch(/EOF|Syntax Error/);
+      });
+    });
+
+    test('return records a custom loader failure as a failed source', async () => {
+      const result = await load(
+        {
+          custom: {
+            loader() {
+              throw new Error('custom loader exploded');
+            },
+          },
+        },
+        {
+          loaders: [],
+          errorHandling: 'return',
+        },
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].document).toBeUndefined();
+      expect(result[0].location).toBe('custom');
+      expect(result[0].error?.message).toBe('custom loader exploded');
+    });
+
+    test('return drops a custom-loader document when its rawSDL fails to parse', async () => {
+      const result = await load(
+        {
+          custom: {
+            loader() {
+              return {
+                document: {
+                  kind: 'Document',
+                  definitions: [],
+                },
+                rawSDL: 'query Foo { foo @ }',
+              };
+            },
+          },
+        },
+        {
+          loaders: [],
+          errorHandling: 'return',
+        },
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].document).toBeUndefined();
+      expect(result[0].error).toBeDefined();
     });
 
     test('return does not throw NoTypeDefinitionsFound when every file failed', async () => {

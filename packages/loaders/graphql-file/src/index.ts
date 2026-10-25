@@ -170,7 +170,7 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
         }
         return finalResult;
       }
-      if (errors.length === 1) {
+      if (options.errorHandling === 'throw' || errors.length === 1) {
         throw errors[0];
       }
       throw new AggregateError(
@@ -214,7 +214,7 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
         }
         return finalResult;
       }
-      if (errors.length === 1) {
+      if (options.errorHandling === 'throw' || errors.length === 1) {
         throw errors[0];
       }
       throw new AggregateError(

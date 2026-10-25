@@ -54,3 +54,5 @@ sources[1].error; // GraphQLError: Syntax Error
 ```
 
 `Source` now has an optional `error` field. `@graphql-tools/graphql-file-loader` and `@graphql-tools/code-file-loader` honor the same option. `CodeFileLoader`'s existing `noSilentErrors` default is unchanged unless `errorHandling` is set.
+
+Custom loader failures and incomplete inline documents (`query Foo {`) follow the same option. `errorHandling: 'throw'` raises the first failure, not `AggregateError`.

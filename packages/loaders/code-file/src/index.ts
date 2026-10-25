@@ -177,10 +177,11 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
       return finalResult;
     }
 
-    if (
-      errors.length > 0 &&
-      (options.errorHandling === 'throw' || options.noSilentErrors || finalResult.length === 0)
-    ) {
+    if (errors.length > 0 && options.errorHandling === 'throw') {
+      throw errors[0];
+    }
+
+    if (errors.length > 0 && (options.noSilentErrors || finalResult.length === 0)) {
       if (errors.length === 1) {
         throw errors[0];
       }
@@ -223,10 +224,11 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
       return finalResult;
     }
 
-    if (
-      errors.length > 0 &&
-      (options.errorHandling === 'throw' || options.noSilentErrors || finalResult.length === 0)
-    ) {
+    if (errors.length > 0 && options.errorHandling === 'throw') {
+      throw errors[0];
+    }
+
+    if (errors.length > 0 && (options.noSilentErrors || finalResult.length === 0)) {
       if (errors.length === 1) {
         throw errors[0];
       }
