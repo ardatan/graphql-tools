@@ -2,9 +2,9 @@
 '@graphql-tools/load': minor
 ---
 
-`loadSchema` and `loadSchemaSync` now accept `sortMode`.
+`loadSchema` and `loadSchemaSync` already accept `sort: true`. That always runs GraphQL's `lexicographicSortSchema`, which reorders the type list and also reorders fields, arguments, and enum values.
 
-`sort: true` still sorts the loaded schema. The default is `lexicographic`, which reorders types, fields, and enum values.
+A schema that was written with a meaningful enum or field order cannot keep that order after load:
 
 ```graphql
 # loaded schema
@@ -37,7 +37,7 @@ type A {
 ```
 
 ```graphql
-# sort: true
+# sort: true (current default)
 type A {
   b: String
   s: String
@@ -65,6 +65,12 @@ type User {
   aa: String
 }
 ```
+
+This release adds `sortMode` on `LoadSchemaOptions`.
+
+- `sort: true` with no `sortMode`, or `sortMode: 'lexicographic'`, keeps the current behavior.
+- `sort: true, sortMode: 'typesOnly'` sorts only the type list. Field and enum value order stay as they were loaded.
+- `sort: false` (or omitted) ignores `sortMode`.
 
 ```ts
 loadSchema('schema.graphql', {
@@ -103,5 +109,3 @@ type User {
   a: String
 }
 ```
-
-`sort: false` (or omitted) ignores `sortMode`.
