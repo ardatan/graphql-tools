@@ -25,6 +25,8 @@ import {
   UnnormalizedTypeDefPointer,
 } from './load-typedefs.js';
 
+export type SchemaSortMode = 'lexicographic' | 'typesOnly';
+
 export type LoadSchemaOptions = BuildSchemaOptions &
   LoadTypedefsOptions &
   Partial<IExecutableSchemaDefinition> & {
@@ -34,6 +36,27 @@ export type LoadSchemaOptions = BuildSchemaOptions &
      * Disabled by default.
      */
     includeSources?: boolean;
+    /**
+     * How to sort the schema when `sort` is true.
+     *
+     * `lexicographic` (default) uses GraphQL's `lexicographicSortSchema`.
+     * Types, fields, arguments, and enum values are all reordered.
+     *
+     * `typesOnly` sorts only the type list. Field and enum value order stay as loaded.
+     *
+     * @example
+     * Given:
+     * ```graphql
+     * enum DayOfWeek { SUNDAY MONDAY TUESDAY WEDNESDAY THURSDAY FRIDAY SATURDAY }
+     * type Query { d: String z: String a: String day: DayOfWeek }
+     * ```
+     *
+     * `sort: true` reorders Query fields to `a d day z` and DayOfWeek to FRIDAY, MONDAY, SATURDAY, SUNDAY, THURSDAY, TUESDAY, WEDNESDAY.
+     * `sort: true, sortMode: 'typesOnly'` keeps Query fields `d z a day` and DayOfWeek SUNDAY through SATURDAY.
+     *
+     * `sort: false` ignores `sortMode`.
+     */
+    sortMode?: SchemaSortMode;
   };
 
 /**
@@ -91,7 +114,7 @@ function getSchemaFromSources(sources: Source[], options: LoadSchemaOptions) {
     options.typeDefs == null &&
     options.resolvers == null
   ) {
-    return options.sort ? lexicographicSortSchema(sources[0].schema) : sources[0].schema;
+    return applySchemaSort(sources[0].schema, options);
   }
   const { typeDefs, resolvers, schemaExtensions } = collectSchemaParts(sources);
 
@@ -106,7 +129,25 @@ function getSchemaFromSources(sources: Source[], options: LoadSchemaOptions) {
     includeSources(schema, sources);
   }
 
-  return options.sort ? lexicographicSortSchema(schema) : schema;
+  return applySchemaSort(schema, options);
+}
+
+function applySchemaSort(schema: GraphQLSchema, options: LoadSchemaOptions): GraphQLSchema {
+  if (!options.sort) {
+    return schema;
+  }
+  if (options.sortMode === 'typesOnly') {
+    return sortSchemaTypesOnly(schema);
+  }
+  return lexicographicSortSchema(schema);
+}
+
+function sortSchemaTypesOnly(schema: GraphQLSchema): GraphQLSchema {
+  const schemaConfig = schema.toConfig();
+  return new GraphQLSchema({
+    ...schemaConfig,
+    types: [...schemaConfig.types].sort((typeA, typeB) => typeA.name.localeCompare(typeB.name)),
+  });
 }
 
 function collectSchemaParts(sources: Source[]) {
