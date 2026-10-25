@@ -1,4 +1,5 @@
 import { BuildSchemaOptions, GraphQLFieldResolver, GraphQLSchema } from 'graphql';
+import { OnFieldTypeConflict } from '@graphql-tools/merge';
 import {
   GraphQLParseOptions,
   IResolvers,
@@ -45,4 +46,25 @@ export interface IExecutableSchemaDefinition<TContext = any>
    * Default field resolver
    */
   defaultFieldResolver?: GraphQLFieldResolver<any, TContext>;
+  /**
+   * Called when two fields share a name and field conflicts are not ignored,
+   * even if their types already match. Return the field node that should win.
+   *
+   * @example
+   * Given:
+   * ```graphql
+   * type Post { content: String! }
+   * type Post { content: String }
+   * ```
+   *
+   * `onFieldTypeConflict: (_existing, incoming) => incoming` keeps `content: String`.
+   * Fields that exist on only one schema are still kept.
+   */
+  onFieldTypeConflict?: OnFieldTypeConflict;
+  /**
+   * Reverse argument merge order when combining field arguments.
+   * Use with `onFieldTypeConflict: (existing) => existing` to keep earlier
+   * argument types while still adding new arguments from the incoming field.
+   */
+  reverseArguments?: boolean;
 }
