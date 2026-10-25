@@ -1,3 +1,4 @@
+import fs from 'fs';
 import loader from '@graphql-tools/webpack-loader';
 import { SyncTransformer, TransformOptions } from '@jest/transform';
 
@@ -12,19 +13,26 @@ declare module '@jest/types' {
 }
 
 class GraphQLTransformer implements SyncTransformer {
-  process(input: string, _filePath: string, jestConfig: TransformOptions) {
+  process(input: string, filePath: string, jestConfig: TransformOptions) {
     const config = jestConfig.config.globals?.['graphql'] || {};
     // call directly the webpack loader with a mocked context
     // as the loader leverages `this.cacheable()`
-    return {
-      code: loader.call(
-        {
-          cacheable() {},
-          query: config,
-        } as any,
-        input,
-      ),
-    };
+    const code = loader.call(
+      {
+        cacheable() {},
+        query: config,
+        resourcePath: filePath,
+        fs,
+        addDependency() {},
+      } as any,
+      input,
+    );
+    if (typeof code !== 'string') {
+      throw new Error(
+        '@graphql-tools/jest-transform requires the webpack loader to return source synchronously',
+      );
+    }
+    return { code };
   }
 }
 

@@ -28,7 +28,8 @@ module.exports = {
 ```
 
 > How is it different from `jest-transform-graphql`? It doesn't use `graphql-tag/loader` under the
-> hood but our own, more optimized and customisable `@graphql-tools/webpack-loader`.
+> hood but our own, more optimized and customisable `@graphql-tools/webpack-loader`. A `.graphql`
+> file may export more than one named operation; see the webpack-loader README.
 
 ## Options
 
