@@ -3,7 +3,9 @@ import {
   printSchemaWithDirectives,
   printWithComments,
   resetComments,
+  shouldCollectLoadErrors,
   Source,
+  toLoadError,
 } from '@graphql-tools/utils';
 import { filterKind } from '../filter-document-kind.js';
 
@@ -12,20 +14,15 @@ type Input = {
   options: Options;
   source: Source;
 };
-type AddValidSource = (source: Source) => void;
+type AddSource = (source: Source) => void;
 type ParseOptions = {
   partialSource: Source;
   options: any;
   pointerOptionMap: any;
-  addValidSource: AddValidSource;
+  addSource: AddSource;
 };
 
-export function parseSource({
-  partialSource,
-  options,
-  pointerOptionMap,
-  addValidSource,
-}: ParseOptions) {
+export function parseSource({ partialSource, options, pointerOptionMap, addSource }: ParseOptions) {
   if (partialSource) {
     const input = prepareInput({
       source: partialSource,
@@ -36,10 +33,15 @@ export function parseSource({
     parseSchema(input);
     parseRawSDL(input);
 
+    if (input.source.error) {
+      addSource(input.source);
+      return;
+    }
+
     if (input.source.document) {
       useKindsFilter(input);
       useComments(input);
-      collectValidSources(input, addValidSource);
+      collectSource(input, addSource);
     }
   }
 }
@@ -77,11 +79,20 @@ function parseSchema(input: Input) {
 
 function parseRawSDL(input: Input) {
   if (input.source.rawSDL) {
-    input.source.document = parseGraphQLSDL(
-      input.source.location,
-      input.source.rawSDL,
-      input.options,
-    ).document;
+    try {
+      input.source.document = parseGraphQLSDL(
+        input.source.location,
+        input.source.rawSDL,
+        input.options,
+      ).document;
+    } catch (error) {
+      if (shouldCollectLoadErrors(input.options.errorHandling)) {
+        input.source.error = toLoadError(error);
+        input.source.document = undefined;
+        return;
+      }
+      throw error;
+    }
   }
 }
 
@@ -98,8 +109,8 @@ function useComments(input: Input) {
   }
 }
 
-function collectValidSources(input: Input, addValidSource: AddValidSource) {
+function collectSource(input: Input, addSource: AddSource) {
   if (input.source.document?.definitions && input.source.document.definitions.length > 0) {
-    addValidSource(input.source);
+    addSource(input.source);
   }
 }

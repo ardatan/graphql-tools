@@ -3,9 +3,12 @@ import { cwd } from 'process';
 import { isSchema, Kind } from 'graphql';
 import {
   asArray,
+  createFailedSource,
   getDocumentNodeFromSchema,
   isDocumentString,
+  LoadErrorHandling,
   parseGraphQLSDL,
+  shouldCollectLoadErrors,
   Source,
 } from '@graphql-tools/utils';
 import { LoadTypedefsOptions } from '../load-typedefs.js';
@@ -154,21 +157,63 @@ function addResultOfCustomLoader({
   }
 }
 
+function errorHandlingOf(
+  options: { errorHandling?: LoadErrorHandling },
+  pointerOptions: { errorHandling?: LoadErrorHandling },
+): LoadErrorHandling | undefined {
+  return pointerOptions.errorHandling ?? options.errorHandling;
+}
+
+function isIncompleteDocumentString(pointer: string): boolean {
+  return (
+    !/\.[a-z0-9]+$/i.test(pointer) &&
+    /(?:^|\s)(query|mutation|subscription|fragment)\b/.test(pointer) &&
+    pointer.includes('{')
+  );
+}
+
 function collectDocumentString<T>(
   { pointer, pointerOptions, options, addSource, queue }: CollectOptions<T>,
   next: StackNext,
 ) {
-  if (isDocumentString(pointer)) {
-    return queue(() => {
-      const source = parseGraphQLSDL(`${stringToHash(pointer)}.graphql`, pointer, {
-        ...options,
-        ...pointerOptions,
+  const errorHandling = errorHandlingOf(options, pointerOptions);
+  let isInlineDocument = false;
+  try {
+    isInlineDocument = isDocumentString(pointer);
+  } catch (error) {
+    if (shouldCollectLoadErrors(errorHandling)) {
+      return queue(() => {
+        addSource({
+          source: createFailedSource(`${stringToHash(pointer)}.graphql`, error),
+          pointer,
+        });
       });
+    }
+    throw error;
+  }
 
-      addSource({
-        source,
-        pointer,
-      });
+  if (isInlineDocument || isIncompleteDocumentString(pointer)) {
+    return queue(() => {
+      try {
+        const source = parseGraphQLSDL(`${stringToHash(pointer)}.graphql`, pointer, {
+          ...options,
+          ...pointerOptions,
+        });
+
+        addSource({
+          source,
+          pointer,
+        });
+      } catch (error) {
+        if (shouldCollectLoadErrors(errorHandling)) {
+          addSource({
+            source: createFailedSource(`${stringToHash(pointer)}.graphql`, error),
+            pointer,
+          });
+          return;
+        }
+        throw error;
+      }
     });
   }
 
@@ -181,21 +226,32 @@ function collectCustomLoader<T>(
 ) {
   if (pointerOptions.loader) {
     return queue(async () => {
-      await Promise.all(asArray(pointerOptions.require).map(m => import(m)));
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO options.cwd is possibly undefined, but it seems like no test covers this path
-      const loader = await useCustomLoader(pointerOptions.loader, options.cwd);
-      const result = await loader(pointer, { ...options, ...pointerOptions }, pointerOptionMap);
+      try {
+        await Promise.all(asArray(pointerOptions.require).map(m => import(m)));
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore TODO options.cwd is possibly undefined, but it seems like no test covers this path
+        const loader = await useCustomLoader(pointerOptions.loader, options.cwd);
+        const result = await loader(pointer, { ...options, ...pointerOptions }, pointerOptionMap);
 
-      if (!result) {
-        return;
-      }
-
-      for (const item of asArray(result)) {
-        if (item == null) {
-          continue;
+        if (!result) {
+          return;
         }
-        addResultOfCustomLoader({ pointer, result: item, addSource });
+
+        for (const item of asArray(result)) {
+          if (item == null) {
+            continue;
+          }
+          addResultOfCustomLoader({ pointer, result: item, addSource });
+        }
+      } catch (error) {
+        if (shouldCollectLoadErrors(errorHandlingOf(options, pointerOptions))) {
+          addSource({
+            source: createFailedSource(pointer, error),
+            pointer,
+          });
+          return;
+        }
+        throw error;
       }
     });
   }
@@ -209,22 +265,33 @@ function collectCustomLoaderSync<T>(
 ) {
   if (pointerOptions.loader) {
     return queue(() => {
-      const cwdRequire = createRequire(options.cwd || cwd());
-      for (const m of asArray(pointerOptions.require)) {
-        cwdRequire(m);
-      }
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore TODO options.cwd is possibly undefined, but it seems like no test covers this path
-      const loader = useCustomLoaderSync(pointerOptions.loader, options.cwd);
-      const result = loader(pointer, { ...options, ...pointerOptions }, pointerOptionMap);
-
-      if (result) {
-        for (const item of asArray(result)) {
-          if (item == null) {
-            continue;
-          }
-          addResultOfCustomLoader({ pointer, result: item, addSource });
+      try {
+        const cwdRequire = createRequire(options.cwd || cwd());
+        for (const m of asArray(pointerOptions.require)) {
+          cwdRequire(m);
         }
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore TODO options.cwd is possibly undefined, but it seems like no test covers this path
+        const loader = useCustomLoaderSync(pointerOptions.loader, options.cwd);
+        const result = loader(pointer, { ...options, ...pointerOptions }, pointerOptionMap);
+
+        if (result) {
+          for (const item of asArray(result)) {
+            if (item == null) {
+              continue;
+            }
+            addResultOfCustomLoader({ pointer, result: item, addSource });
+          }
+        }
+      } catch (error) {
+        if (shouldCollectLoadErrors(errorHandlingOf(options, pointerOptions))) {
+          addSource({
+            source: createFailedSource(pointer, error),
+            pointer,
+          });
+          return;
+        }
+        throw error;
       }
     });
   }

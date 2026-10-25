@@ -13,11 +13,14 @@ import { matchFiles, matchFilesSync } from '@graphql-tools/load-files';
 import {
   asArray,
   BaseLoaderOptions,
+  createFailedSource,
   isDocumentNode,
   isValidPath,
   Loader,
   parseGraphQLSDL,
+  shouldCollectLoadErrors,
   Source,
+  toLoadError,
 } from '@graphql-tools/utils';
 import { tryToLoadFromExport, tryToLoadFromExportSync } from './load-from-module.js';
 import { toImportSpecifier } from './to-import-specifier.js';
@@ -149,6 +152,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
 
     const finalResult: Source[] = [];
     const errors: Error[] = [];
+    const failures: Array<{ location: string; error: Error }> = [];
 
     await Promise.all(
       resolvedPaths.map(async path => {
@@ -159,10 +163,23 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
           if (env['DEBUG']) {
             console.error(e);
           }
-          errors.push(e);
+          const error = toLoadError(e);
+          errors.push(error);
+          failures.push({ location: path, error });
         }
       }),
     );
+
+    if (errors.length > 0 && shouldCollectLoadErrors(options.errorHandling)) {
+      for (const failure of failures) {
+        finalResult.push(createFailedSource(failure.location, failure.error));
+      }
+      return finalResult;
+    }
+
+    if (errors.length > 0 && options.errorHandling === 'throw') {
+      throw errors[0];
+    }
 
     if (errors.length > 0 && (options.noSilentErrors || finalResult.length === 0)) {
       if (errors.length === 1) {
@@ -182,6 +199,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
     const resolvedPaths = this.resolveGlobsSync(pointer, options);
     const finalResult: Source[] = [];
     const errors: Error[] = [];
+    const failures: Array<{ location: string; error: Error }> = [];
 
     for (const path of resolvedPaths) {
       if (this.canLoadSync(path, options)) {
@@ -192,9 +210,22 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
           if (env['DEBUG']) {
             console.error(e);
           }
-          errors.push(e);
+          const error = toLoadError(e);
+          errors.push(error);
+          failures.push({ location: path, error });
         }
       }
+    }
+
+    if (errors.length > 0 && shouldCollectLoadErrors(options.errorHandling)) {
+      for (const failure of failures) {
+        finalResult.push(createFailedSource(failure.location, failure.error));
+      }
+      return finalResult;
+    }
+
+    if (errors.length > 0 && options.errorHandling === 'throw') {
+      throw errors[0];
     }
 
     if (errors.length > 0 && (options.noSilentErrors || finalResult.length === 0)) {
