@@ -156,6 +156,34 @@ describe('loadSchema', () => {
         'FRIDAY',
         'SATURDAY',
       ]);
+      expect(declaredTypeNames(schema)).toEqual(['A', 'DayOfWeek', 'Query', 'User']);
+    });
+
+    test('should keep merged field and enum order when sortMode is typesOnly', async () => {
+      const schema = await load(
+        [
+          './test-files/schema-dir/split-unsorted/a.graphql',
+          './test-files/schema-dir/split-unsorted/b.graphql',
+        ],
+        {
+          cwd: __dirname,
+          loaders: [new GraphQLFileLoader()],
+          sort: true,
+          sortMode: 'typesOnly',
+        },
+      );
+
+      expect(queryFieldNames(schema)).toEqual(['z', 'day', 'd', 'a']);
+      expect(enumValueNames(schema, 'DayOfWeek')).toEqual([
+        'TUESDAY',
+        'WEDNESDAY',
+        'THURSDAY',
+        'FRIDAY',
+        'SATURDAY',
+        'SUNDAY',
+        'MONDAY',
+      ]);
+      expect(declaredTypeNames(schema)).toEqual(['A', 'DayOfWeek', 'Query', 'User']);
     });
 
     test('should ignore sortMode when sort is not enabled', async () => {
@@ -275,4 +303,12 @@ function queryFieldNames(schema: GraphQLSchema): string[] {
 
 function enumValueNames(schema: GraphQLSchema, typeName: string): string[] {
   return (schema.getType(typeName) as GraphQLEnumType).getValues().map(value => value.name);
+}
+
+function declaredTypeNames(schema: GraphQLSchema): string[] {
+  const fixtureNames = new Set(['A', 'DayOfWeek', 'Query', 'User']);
+  return schema
+    .toConfig()
+    .types.map(type => type.name)
+    .filter(name => fixtureNames.has(name));
 }

@@ -132,6 +132,8 @@ function getSchemaFromSources(sources: Source[], options: LoadSchemaOptions) {
     typeDefs,
     resolvers,
     schemaExtensions,
+    // mergeTypeDefs also honors `sort` and would reorder fields and enum values.
+    ...(options.sortMode === 'typesOnly' ? { sort: false } : {}),
   });
 
   if (options?.includeSources) {

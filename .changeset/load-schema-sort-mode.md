@@ -69,7 +69,7 @@ type User {
 This release adds `sortMode` on `LoadSchemaOptions`.
 
 - `sort: true` with no `sortMode`, or `sortMode: 'lexicographic'`, keeps the current behavior.
-- `sort: true, sortMode: 'typesOnly'` sorts only the type list. Field and enum value order stay as they were loaded.
+- `sort: true, sortMode: 'typesOnly'` sorts only the type list. Field and enum value order stay as they were loaded. If the same type is split across files, those members keep merge order instead of being sorted.
 - `sort: false` (or omitted) ignores `sortMode`.
 
 ```ts

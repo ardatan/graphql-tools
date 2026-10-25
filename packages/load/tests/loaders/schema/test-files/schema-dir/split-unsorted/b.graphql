@@ -1,0 +1,17 @@
+type Query {
+  d: String
+  a: String
+}
+
+enum DayOfWeek {
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+}
+
+type A {
+  s: String
+  b: String
+}
