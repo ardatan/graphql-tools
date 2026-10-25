@@ -281,12 +281,12 @@ test('CommonJS exports a fragment that exists only via #import', () => {
   );
 });
 
-async function useLoaderAsync(
+function useLoaderAsync(
   source: string,
   options: any,
   loaderThis: Record<string, unknown> = {},
 ): Promise<string> {
-  return await new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     let settled = false;
     const finish = (err: Error | null | undefined, code?: string) => {
       if (settled) {
