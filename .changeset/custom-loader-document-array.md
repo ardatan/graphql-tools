@@ -6,8 +6,10 @@ Custom loaders on `loadDocuments` / `loadDocumentsSync` / `loadSchema` can now r
 
 A pointer such as `src/**/*.{ts,tsx}` calls the custom loader once. Returning a single combined document kept every operation on that one pointer. Returning an array was ignored, so the load failed with `Couldn't find any GraphQL type definitions`.
 
-```ts
+```js
 // custom-loader.js
+const { parse } = require('graphql');
+
 module.exports = function () {
   return [
     {

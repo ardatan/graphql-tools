@@ -192,6 +192,9 @@ function collectCustomLoader<T>(
       }
 
       for (const item of asArray(result)) {
+        if (item == null) {
+          continue;
+        }
         addResultOfCustomLoader({ pointer, result: item, addSource });
       }
     });
@@ -217,6 +220,9 @@ function collectCustomLoaderSync<T>(
 
       if (result) {
         for (const item of asArray(result)) {
+          if (item == null) {
+            continue;
+          }
           addResultOfCustomLoader({ pointer, result: item, addSource });
         }
       }

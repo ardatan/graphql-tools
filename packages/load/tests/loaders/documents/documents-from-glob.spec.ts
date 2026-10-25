@@ -238,6 +238,23 @@ describe('documentsFromGlob', () => {
       ).toEqual(['Orders', 'Users']);
     });
 
+    test('should skip nullish items in a custom loader array (#6133)', async () => {
+      const result = await load(
+        {
+          'src/**/*.{ts,tsx}': {
+            loader() {
+              return [parse('query Users { users { id } }'), null, undefined];
+            },
+          },
+        },
+        {
+          loaders: [],
+        },
+      );
+      expect(result).toHaveLength(1);
+      expect(Object.keys(separateOperations(result[0].document!))).toEqual(['Users']);
+    });
+
     test('should load documents from an ESM custom loader (#6656)', async () => {
       const result = await load(
         {
