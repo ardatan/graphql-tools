@@ -592,6 +592,43 @@ describe('Merge TypeDefs', () => {
       ]);
     });
 
+    it('merges the same directive when only argument descriptions differ', () => {
+      const american = /* GraphQL */ `
+        """
+        Points at a vendor spec for this scalar.
+        """
+        directive @vendorLink(
+          """
+          The spec URL that describes the behavior of this scalar.
+          """
+          href: String!
+        ) on SCALAR
+      `;
+      const british = /* GraphQL */ `
+        """
+        Points at a vendor spec for this scalar.
+        """
+        directive @vendorLink(
+          """
+          The spec URL that describes the behaviour of this scalar.
+          """
+          href: String!
+        ) on SCALAR
+      `;
+
+      const merged = mergeTypeDefs([american, british]);
+      const vendorLink = merged.definitions.find(
+        definition =>
+          definition.kind === Kind.DIRECTIVE_DEFINITION && definition.name.value === 'vendorLink',
+      );
+      assertSome(vendorLink);
+      if (vendorLink.kind !== Kind.DIRECTIVE_DEFINITION) {
+        throw new Error('expected @vendorLink directive definition');
+      }
+      expect(vendorLink.arguments).toHaveLength(1);
+      expect(vendorLink.arguments?.[0].name.value).toBe('href');
+    });
+
     it('should merge args if inputs of the same directive are different from each other', () => {
       const result = mergeTypeDefs([
         `directive @id on FIELD_DEFINITION`,
