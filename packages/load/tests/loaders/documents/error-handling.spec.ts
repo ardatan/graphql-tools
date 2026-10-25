@@ -52,7 +52,7 @@ describe('loadDocuments errorHandling', () => {
         }
       });
 
-      test('return keeps the valid document and failed sources with document null', async () => {
+      test('return keeps the valid document and failed sources without a document', async () => {
         const result = await load(graphqlGlob, {
           loaders: [new GraphQLFileLoader()],
           errorHandling: 'return',
@@ -64,7 +64,7 @@ describe('loadDocuments errorHandling', () => {
         expect(operationName(valid[0])).toBe('ValidQuery');
         expect(valid).toHaveLength(1);
         expect(failed).toHaveLength(2);
-        expect(failed.every(source => source.document === null)).toBe(true);
+        expect(failed.every(source => source.document == null)).toBe(true);
         expect(failed.every(source => source.error instanceof GraphQLError)).toBe(true);
         expect(failed.some(source => source.location?.endsWith('broken-a.query.graphql'))).toBe(
           true,
@@ -121,7 +121,7 @@ describe('loadDocuments errorHandling', () => {
         expect(valid).toHaveLength(1);
         expect(operationName(valid[0])).toBe('ValidFromCode');
         expect(failed).toHaveLength(1);
-        expect(failed[0].document).toBeNull();
+        expect(failed[0].document).toBeUndefined();
         expect(failed[0].error).toBeInstanceOf(GraphQLError);
         expect(failed[0].location?.endsWith('broken.ts')).toBe(true);
       });
@@ -168,7 +168,7 @@ describe('loadDocuments errorHandling', () => {
 
         expect(names).toEqual(['ValidFromCode', 'ValidQuery']);
         expect(failed).toHaveLength(3);
-        expect(failed.every(source => source.document === null)).toBe(true);
+        expect(failed.every(source => source.document == null)).toBe(true);
         expect(failed.every(source => source.error instanceof GraphQLError)).toBe(true);
         expect(failed.map(source => source.location?.split('/').pop()).sort()).toEqual([
           'broken-a.query.graphql',
@@ -190,14 +190,14 @@ describe('loadDocuments errorHandling', () => {
         ).rejects.toThrow(/Syntax Error|Failed to parse the GraphQL document/);
       });
 
-      test('return includes the inline parse error with document null', async () => {
+      test('return includes the inline parse error without a document', async () => {
         const result = await load(brokenInline, {
           loaders: [],
           errorHandling: 'return',
         });
 
         expect(result).toHaveLength(1);
-        expect(result[0].document).toBeNull();
+        expect(result[0].document).toBeUndefined();
         expect(result[0].error).toBeDefined();
         expect(result[0].error?.message).toMatch(
           /Syntax Error|Failed to parse the GraphQL document/,
@@ -212,7 +212,7 @@ describe('loadDocuments errorHandling', () => {
       });
 
       expect(result).toHaveLength(2);
-      expect(result.every(source => source.document === null && source.error != null)).toBe(true);
+      expect(result.every(source => source.document == null && source.error != null)).toBe(true);
     });
   });
 });

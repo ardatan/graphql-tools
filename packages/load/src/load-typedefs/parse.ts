@@ -93,7 +93,6 @@ function parseRawSDL(input: Input) {
     } catch (error) {
       if (shouldCollectLoadErrors(input.options.errorHandling)) {
         input.source.error = toLoadError(error);
-        input.source.document = null;
         return;
       }
       throw error;

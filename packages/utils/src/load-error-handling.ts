@@ -13,7 +13,6 @@ export function shouldCollectLoadErrors(errorHandling?: LoadErrorHandling): bool
 export function createFailedSource(location: string | undefined, error: unknown): Source {
   return {
     location,
-    document: null,
     error: toLoadError(error),
   };
 }
