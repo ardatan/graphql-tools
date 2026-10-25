@@ -59,6 +59,14 @@ export interface IExecutableSchemaDefinition<TContext = any>
    * ```
    *
    * `onFieldTypeConflict: (_existing, incoming) => incoming` keeps `content: String`.
+   * Fields that exist on only one schema are still kept, so a previous-vs-current
+   * merge can show added, removed, and changed fields together.
    */
   onFieldTypeConflict?: OnFieldTypeConflict;
+  /**
+   * Reverse argument merge order when combining field arguments.
+   * Use with `onFieldTypeConflict: (existing) => existing` to keep earlier
+   * argument types while still adding new arguments from the incoming field.
+   */
+  reverseArguments?: boolean;
 }

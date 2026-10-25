@@ -640,45 +640,211 @@ type City {
     expect(printedSchema.trim()).toMatchSnapshot();
   });
 
-  it('lets onFieldTypeConflict pick the incoming field type', () => {
-    const previous = makeExecutableSchema({
-      typeDefs: /* GraphQL */ `
-        type Post {
-          content: String!
-        }
+  describe('onFieldTypeConflict', () => {
+    function fieldType(schema: GraphQLSchema, typeName: string, fieldName: string): string {
+      const type = schema.getType(typeName);
+      assertSome(type);
+      return (type as GraphQLObjectType).getFields()[fieldName].type.toString();
+    }
 
-        type Query {
-          post: Post
-        }
-      `,
-    });
-    const current = makeExecutableSchema({
-      typeDefs: /* GraphQL */ `
-        type Post {
-          content: String
-        }
+    function fieldArgNames(schema: GraphQLSchema, typeName: string, fieldName: string): string[] {
+      const type = schema.getType(typeName);
+      assertSome(type);
+      return (type as GraphQLObjectType).getFields()[fieldName].args.map(arg => arg.name);
+    }
 
-        type Query {
-          post: Post
-        }
-      `,
+    function fieldArgType(
+      schema: GraphQLSchema,
+      typeName: string,
+      fieldName: string,
+      argName: string,
+    ): string {
+      const type = schema.getType(typeName);
+      assertSome(type);
+      const arg = (type as GraphQLObjectType)
+        .getFields()
+        [fieldName].args.find(fieldArg => fieldArg.name === argName);
+      assertSome(arg);
+      return arg.type.toString();
+    }
+
+    it('keeps fields from both schemas and lets the current type win', () => {
+      const previous = makeExecutableSchema({
+        typeDefs: /* GraphQL */ `
+          type Post {
+            id: ID!
+            title: String!
+            content: String!
+            published: Boolean!
+          }
+
+          type User {
+            id: ID!
+          }
+
+          type Query {
+            post: Post
+          }
+        `,
+      });
+      const current = makeExecutableSchema({
+        typeDefs: /* GraphQL */ `
+          type Post {
+            id: ID!
+            title: String
+            content: Int
+            fieldA: Int
+            fieldB: String
+          }
+
+          type Query {
+            post: Post
+          }
+        `,
+      });
+
+      expect(() => mergeSchemas({ schemas: [previous, current] })).toThrow(
+        /already defined with a different type/,
+      );
+
+      const merged = mergeSchemas({
+        schemas: [previous, current],
+        onFieldTypeConflict: (_existing, incoming) => incoming,
+      });
+
+      expect(fieldType(merged, 'Post', 'id')).toBe('ID!');
+      expect(fieldType(merged, 'Post', 'title')).toBe('String');
+      expect(fieldType(merged, 'Post', 'content')).toBe('Int');
+      expect(fieldType(merged, 'Post', 'published')).toBe('Boolean!');
+      expect(fieldType(merged, 'Post', 'fieldA')).toBe('Int');
+      expect(fieldType(merged, 'Post', 'fieldB')).toBe('String');
+      expect(merged.getType('User')).toBeDefined();
+      expect(fieldType(merged, 'User', 'id')).toBe('ID!');
     });
 
-    const defaultMerged = mergeSchemas({
-      schemas: [previous, current],
-    });
-    const defaultPost = defaultMerged.getType('Post');
-    assertSome(defaultPost);
-    expect((defaultPost as GraphQLObjectType).getFields()['content'].type.toString()).toBe(
-      'String!',
-    );
+    it('keeps the earlier nullability unless the callback picks the incoming field', () => {
+      const previous = makeExecutableSchema({
+        typeDefs: /* GraphQL */ `
+          type Post {
+            content: String!
+          }
 
-    const merged = mergeSchemas({
-      schemas: [previous, current],
-      onFieldTypeConflict: (_existing, incoming) => incoming,
+          type Query {
+            post: Post
+          }
+        `,
+      });
+      const current = makeExecutableSchema({
+        typeDefs: /* GraphQL */ `
+          type Post {
+            content: String
+          }
+
+          type Query {
+            post: Post
+          }
+        `,
+      });
+
+      const defaultMerged = mergeSchemas({
+        schemas: [previous, current],
+      });
+      expect(fieldType(defaultMerged, 'Post', 'content')).toBe('String!');
+
+      const merged = mergeSchemas({
+        schemas: [previous, current],
+        onFieldTypeConflict: (_existing, incoming) => incoming,
+      });
+      expect(fieldType(merged, 'Post', 'content')).toBe('String');
     });
-    const post = merged.getType('Post');
-    assertSome(post);
-    expect((post as GraphQLObjectType).getFields()['content'].type.toString()).toBe('String');
+
+    it('merges mutation arguments when the incoming field wins', () => {
+      const previous = makeExecutableSchema({
+        typeDefs: /* GraphQL */ `
+          type Mutation {
+            doSomething(argA: Int!, argB: Int!, argC: Int, argD: Int!, argE: Int!): Boolean!
+          }
+
+          type Query {
+            _: Boolean
+          }
+        `,
+      });
+      const current = makeExecutableSchema({
+        typeDefs: /* GraphQL */ `
+          type Mutation {
+            doSomething(argA: Int!, argB: Int, argC: Int!, argD: String, argF: Boolean): Boolean!
+          }
+
+          type Query {
+            _: Boolean
+          }
+        `,
+      });
+
+      const merged = mergeSchemas({
+        schemas: [previous, current],
+        onFieldTypeConflict: (_existing, incoming) => incoming,
+      });
+
+      expect(fieldArgNames(merged, 'Mutation', 'doSomething')).toEqual([
+        'argA',
+        'argB',
+        'argC',
+        'argD',
+        'argE',
+        'argF',
+      ]);
+      expect(fieldArgType(merged, 'Mutation', 'doSomething', 'argB')).toBe('Int');
+      expect(fieldArgType(merged, 'Mutation', 'doSomething', 'argC')).toBe('Int!');
+      expect(fieldArgType(merged, 'Mutation', 'doSomething', 'argD')).toBe('String');
+      expect(fieldArgType(merged, 'Mutation', 'doSomething', 'argE')).toBe('Int!');
+      expect(fieldArgType(merged, 'Mutation', 'doSomething', 'argF')).toBe('Boolean');
+    });
+
+    it('keeps existing argument types when the earlier field wins', () => {
+      const previous = makeExecutableSchema({
+        typeDefs: /* GraphQL */ `
+          type Mutation {
+            doSomething(argA: Int!, argB: Int!, argC: Int, argD: Int!, argE: Int!): Boolean!
+          }
+
+          type Query {
+            _: Boolean
+          }
+        `,
+      });
+      const current = makeExecutableSchema({
+        typeDefs: /* GraphQL */ `
+          type Mutation {
+            doSomething(argA: Int!, argB: Int, argC: Int!, argD: String, argF: Boolean): Boolean!
+          }
+
+          type Query {
+            _: Boolean
+          }
+        `,
+      });
+
+      const merged = mergeSchemas({
+        schemas: [previous, current],
+        onFieldTypeConflict: (existing, _incoming) => existing,
+        reverseArguments: true,
+      });
+
+      expect(fieldArgNames(merged, 'Mutation', 'doSomething')).toEqual([
+        'argA',
+        'argB',
+        'argC',
+        'argD',
+        'argE',
+        'argF',
+      ]);
+      expect(fieldArgType(merged, 'Mutation', 'doSomething', 'argB')).toBe('Int!');
+      expect(fieldArgType(merged, 'Mutation', 'doSomething', 'argC')).toBe('Int');
+      expect(fieldArgType(merged, 'Mutation', 'doSomething', 'argD')).toBe('Int!');
+      expect(fieldArgType(merged, 'Mutation', 'doSomething', 'argE')).toBe('Int!');
+      expect(fieldArgType(merged, 'Mutation', 'doSomething', 'argF')).toBe('Boolean');
+    });
   });
 });
