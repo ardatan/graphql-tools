@@ -3,12 +3,12 @@ import { cwd } from 'process';
 import { isSchema, Kind } from 'graphql';
 import {
   asArray,
+  createFailedSource,
   getDocumentNodeFromSchema,
   isDocumentString,
   parseGraphQLSDL,
   shouldCollectLoadErrors,
   Source,
-  toLoadError,
 } from '@graphql-tools/utils';
 import { LoadTypedefsOptions } from '../load-typedefs.js';
 import { useCustomLoader, useCustomLoaderSync } from '../utils/custom-loader.js';
@@ -160,7 +160,22 @@ function collectDocumentString<T>(
   { pointer, pointerOptions, options, addSource, queue }: CollectOptions<T>,
   next: StackNext,
 ) {
-  if (isDocumentString(pointer)) {
+  let isInlineDocument = false;
+  try {
+    isInlineDocument = isDocumentString(pointer);
+  } catch (error) {
+    if (shouldCollectLoadErrors(options.errorHandling)) {
+      return queue(() => {
+        addSource({
+          source: createFailedSource(`${stringToHash(pointer)}.graphql`, error),
+          pointer,
+        });
+      });
+    }
+    throw error;
+  }
+
+  if (isInlineDocument) {
     return queue(() => {
       try {
         const source = parseGraphQLSDL(`${stringToHash(pointer)}.graphql`, pointer, {
@@ -175,10 +190,7 @@ function collectDocumentString<T>(
       } catch (error) {
         if (shouldCollectLoadErrors(options.errorHandling)) {
           addSource({
-            source: {
-              location: `${stringToHash(pointer)}.graphql`,
-              error: toLoadError(error),
-            },
+            source: createFailedSource(`${stringToHash(pointer)}.graphql`, error),
             pointer,
           });
           return;

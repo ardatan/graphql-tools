@@ -3,13 +3,13 @@ import { GraphQLParseOptions } from './Interfaces.js';
 import { LoadErrorHandling } from './load-error-handling.js';
 
 export interface Source {
-  document?: DocumentNode;
+  document?: DocumentNode | null;
   schema?: GraphQLSchema;
   rawSDL?: string;
   location?: string;
   /**
    * Set when `errorHandling` is `'return'` or `'aggregate'` and this source
-   * failed to parse or load. `document` is then missing.
+   * failed to parse or load. `document` is then `null`.
    */
   error?: Error;
 }

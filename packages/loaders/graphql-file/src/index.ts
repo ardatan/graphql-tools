@@ -7,6 +7,7 @@ import { matchFiles, matchFilesSync } from '@graphql-tools/load-files';
 import {
   asArray,
   BaseLoaderOptions,
+  createFailedSource,
   isValidPath,
   Loader,
   parseGraphQLSDL,
@@ -165,10 +166,7 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
     if (errors.length > 0) {
       if (shouldCollectLoadErrors(options.errorHandling)) {
         for (const failure of failures) {
-          finalResult.push({
-            location: failure.location,
-            error: failure.error,
-          });
+          finalResult.push(createFailedSource(failure.location, failure.error));
         }
         return finalResult;
       }
@@ -212,10 +210,7 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
     if (errors.length > 0) {
       if (shouldCollectLoadErrors(options.errorHandling)) {
         for (const failure of failures) {
-          finalResult.push({
-            location: failure.location,
-            error: failure.error,
-          });
+          finalResult.push(createFailedSource(failure.location, failure.error));
         }
         return finalResult;
       }

@@ -40,7 +40,7 @@ await loadDocuments('**/*.query.graphql', {
 });
 ```
 
-`return` does not throw. Failed sources stay in the result as `{ location, error }` with no `document`, next to the sources that parsed:
+`return` does not throw. Failed sources stay in the result as `{ location, document: null, error }`, next to the sources that parsed:
 
 ```ts
 const sources = await loadDocuments('**/*.query.graphql', {
@@ -49,7 +49,7 @@ const sources = await loadDocuments('**/*.query.graphql', {
 });
 
 sources[0].document; // ValidQuery
-sources[1].document; // undefined
+sources[1].document; // null
 sources[1].error; // GraphQLError: Syntax Error
 ```
 

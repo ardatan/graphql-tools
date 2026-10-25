@@ -13,6 +13,7 @@ import { matchFiles, matchFilesSync } from '@graphql-tools/load-files';
 import {
   asArray,
   BaseLoaderOptions,
+  createFailedSource,
   isDocumentNode,
   isValidPath,
   Loader,
@@ -171,15 +172,15 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
 
     if (errors.length > 0 && shouldCollectLoadErrors(options.errorHandling)) {
       for (const failure of failures) {
-        finalResult.push({
-          location: failure.location,
-          error: failure.error,
-        });
+        finalResult.push(createFailedSource(failure.location, failure.error));
       }
       return finalResult;
     }
 
-    if (errors.length > 0 && (options.noSilentErrors || finalResult.length === 0)) {
+    if (
+      errors.length > 0 &&
+      (options.errorHandling === 'throw' || options.noSilentErrors || finalResult.length === 0)
+    ) {
       if (errors.length === 1) {
         throw errors[0];
       }
@@ -217,15 +218,15 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
 
     if (errors.length > 0 && shouldCollectLoadErrors(options.errorHandling)) {
       for (const failure of failures) {
-        finalResult.push({
-          location: failure.location,
-          error: failure.error,
-        });
+        finalResult.push(createFailedSource(failure.location, failure.error));
       }
       return finalResult;
     }
 
-    if (errors.length > 0 && (options.noSilentErrors || finalResult.length === 0)) {
+    if (
+      errors.length > 0 &&
+      (options.errorHandling === 'throw' || options.noSilentErrors || finalResult.length === 0)
+    ) {
       if (errors.length === 1) {
         throw errors[0];
       }
