@@ -16,15 +16,19 @@ class GraphQLTransformer implements SyncTransformer {
     const config = jestConfig.config.globals?.['graphql'] || {};
     // call directly the webpack loader with a mocked context
     // as the loader leverages `this.cacheable()`
-    return {
-      code: loader.call(
-        {
-          cacheable() {},
-          query: config,
-        } as any,
-        input,
-      ),
-    };
+    const code = loader.call(
+      {
+        cacheable() {},
+        query: config,
+      } as any,
+      input,
+    );
+    if (typeof code !== 'string') {
+      throw new Error(
+        '@graphql-tools/jest-transform requires the webpack loader to return source synchronously',
+      );
+    }
+    return { code };
   }
 }
 
