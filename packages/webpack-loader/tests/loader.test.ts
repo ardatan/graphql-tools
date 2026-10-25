@@ -1,10 +1,11 @@
+import path from 'path';
 import { parse, print } from 'graphql';
 import { uniqueCode } from '@graphql-tools/webpack-loader-runtime';
 import { testIf } from '../../testing/utils';
 import loader from '../src/index.js';
 
-function useLoader(source: string, options: any): string {
-  return loader.call({ cacheable() {}, query: options } as any, source);
+function useLoader(source: string, options: any, loaderThis: Record<string, unknown> = {}): string {
+  return loader.call({ cacheable() {}, query: options, ...loaderThis } as any, source);
 }
 
 function evaluateLoader(
@@ -34,7 +35,8 @@ testIf(!globalThis.Bun)('basic query', () => {
   expect(doc).toContain(docLine);
   expect(doc).toContain('module.exports = $gqlExports');
   expect(doc).toContain(uniqueCode);
-  expect(doc).toContain('$gqlExports["Foo"] = $gqlOneQuery(doc, "Foo")');
+  expect(doc).toContain('$gqlEachNamedDefinition');
+  expect(doc).toContain('$gqlExports[opName] = $gqlOneQuery(doc, opName)');
 
   const exported = evaluateLoader(docStr);
   expect(print(exported)).toBe(print(parse(docStr)));
@@ -229,6 +231,50 @@ mutation upsertMenuMutation {
       `),
     ),
   );
+  expect(print(exported.MenuFields)).toBe(
+    print(
+      parse(/* GraphQL */ `
+        fragment MenuFields on Menu {
+          id
+          name
+        }
+      `),
+    ),
+  );
+});
+
+test('esModule exports fragments introduced by #import', () => {
+  const fragmentSource = /* GraphQL */ `
+    fragment MenuFields on Menu {
+      id
+      name
+    }
+  `;
+  const docStr = `#import "./menuFields.graphql"
+query Foo {
+  foo {
+    ...MenuFields
+  }
+}`;
+  const doc = useLoader(
+    docStr,
+    {
+      esModule: true,
+    },
+    {
+      context: '/graphql',
+      addDependency() {},
+      fs: {
+        readFileSync(filePath: string) {
+          expect(filePath).toBe(path.resolve('/graphql', './menuFields.graphql'));
+          return fragmentSource;
+        },
+      },
+    },
+  );
+
+  expect(doc).toContain('export { $gql_exp_0 as Foo }');
+  expect(doc).toContain('export { $gql_exp_1 as MenuFields }');
 });
 
 test('single unnamed operation still default-exports the document', () => {

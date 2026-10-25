@@ -71,8 +71,11 @@ fragment MenuFields on Menu {
 ```
 
 ```ts
-import { deleteMenuMutation, upsertMenuMutation } from './menuMutations.graphql'
+import { deleteMenuMutation, MenuFields, upsertMenuMutation } from './menuMutations.graphql'
 ```
+
+A fragment brought in with `#import` is also exported under its GraphQL name from the importing
+file, after the imported definitions are appended.
 
 `@graphql-tools/jest-transform` uses this loader, so the same named imports work in Jest. Operations
 in a multi-operation file must be named.

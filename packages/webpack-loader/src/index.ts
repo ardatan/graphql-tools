@@ -1,4 +1,5 @@
 import os from 'os';
+import path from 'path';
 import {
   DocumentNode,
   FragmentDefinitionNode,
@@ -124,6 +125,28 @@ const oneQueryCode = `
 
       return newDoc;
     }
+
+    function $gqlEachNamedDefinition(callback) {
+      var seen = {};
+      doc.definitions.forEach(function (def) {
+        if (
+          (def.kind !== "OperationDefinition" && def.kind !== "FragmentDefinition") ||
+          !def.name
+        ) {
+          return;
+        }
+        var opName = def.name.value;
+        if (seen[opName] && seen[opName] !== def.kind) {
+          throw new Error(
+            'GraphQL operation and fragment both named "' +
+              opName +
+              '" cannot be exported from the same file'
+          );
+        }
+        seen[opName] = def.kind;
+        callback(opName);
+      });
+    }
 `;
 
 function isSDL(doc: DocumentNode) {
@@ -188,6 +211,67 @@ function expandImports(source: string, options: Options) {
   return outputCode;
 }
 
+function parseImportPaths(source: string): string[] {
+  const importPaths: string[] = [];
+  const lines = source.split(/\r\n|\r|\n/);
+  for (const line of lines) {
+    if (line[0] === '#' && line.slice(1).split(' ')[0] === 'import') {
+      const raw = line.slice(1).split(' ')[1];
+      if (raw) {
+        try {
+          importPaths.push(JSON.parse(raw));
+        } catch {
+          importPaths.push(raw.replace(/^['"]|['"]$/g, ''));
+        }
+      }
+    } else if (line.length !== 0 && line[0] !== '#') {
+      break;
+    }
+  }
+  return importPaths;
+}
+
+function readImportedSource(
+  loader: LoaderContext<Options>,
+  importPath: string,
+  seenFiles: Set<string>,
+): string | undefined {
+  const fs = loader.fs as { readFileSync?: (filePath: string) => string | Buffer } | undefined;
+  if (fs?.readFileSync == null || loader.context == null) {
+    return undefined;
+  }
+  const resolved = path.resolve(loader.context, importPath);
+  if (seenFiles.has(resolved)) {
+    return undefined;
+  }
+  seenFiles.add(resolved);
+  try {
+    loader.addDependency(resolved);
+    const data = fs.readFileSync(resolved);
+    return typeof data === 'string' ? data : data.toString('utf8');
+  } catch {
+    return undefined;
+  }
+}
+
+function collectImportedNamedDefinitions(
+  source: string,
+  loader: LoaderContext<Options>,
+  seenFiles: Set<string>,
+): NamedExecutableDefinition[] {
+  const collected: NamedExecutableDefinition[] = [];
+  for (const importPath of parseImportPaths(source)) {
+    const imported = readImportedSource(loader, importPath, seenFiles);
+    if (imported == null) {
+      continue;
+    }
+    const importedDoc = parseDocument(imported);
+    collected.push(...importedDoc.definitions.filter(isNamedExecutableDefinition));
+    collected.push(...collectImportedNamedDefinitions(imported, loader, seenFiles));
+  }
+  return collected;
+}
+
 export default function graphqlLoader(this: LoaderContext<Options>, source: string) {
   this.cacheable();
   // TODO: This should probably use this.getOptions()
@@ -230,7 +314,10 @@ export default function graphqlLoader(this: LoaderContext<Options>, source: stri
   const operations = doc.definitions.filter(
     (def): def is OperationDefinitionNode => def.kind === Kind.OPERATION_DEFINITION,
   );
-  const namedDefinitions = doc.definitions.filter(isNamedExecutableDefinition);
+  const namedDefinitions = [
+    ...doc.definitions.filter(isNamedExecutableDefinition),
+    ...collectImportedNamedDefinitions(source, this, new Set()),
+  ];
 
   if (operations.length > 1 && operations.some(op => op.name == null)) {
     throw new Error(
@@ -289,22 +376,33 @@ export default function graphqlLoader(this: LoaderContext<Options>, source: stri
       $gqlExports.loc = doc.loc;
     }
     module.exports = $gqlExports;
+    $gqlEachNamedDefinition(function (opName) {
+      if (opName === "kind" || opName === "definitions" || opName === "loc") {
+        throw new Error(
+          'Cannot export GraphQL operation or fragment named "' +
+            opName +
+            '" because it would replace the default document'
+        );
+      }
+      $gqlExports[opName] = $gqlOneQuery(doc, opName);
+    });
 `;
     }
 
-    namedDefinitions.forEach((def, index) => {
-      const opName = def.name.value;
-      if (options.esModule) {
+    if (options.esModule) {
+      const emitted = new Set<string>();
+      namedDefinitions.forEach((def, index) => {
+        const opName = def.name.value;
+        if (emitted.has(opName)) {
+          return;
+        }
+        emitted.add(opName);
         outputCode += `
     var $gql_exp_${index} = $gqlOneQuery(doc, ${JSON.stringify(opName)});
     export { $gql_exp_${index} as ${opName} };
 `;
-      } else {
-        outputCode += `
-    $gqlExports[${JSON.stringify(opName)}] = $gqlOneQuery(doc, ${JSON.stringify(opName)});
-`;
-      }
-    });
+      });
+    }
   }
 
   const importOutputCode = expandImports(source, options);
