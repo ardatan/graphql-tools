@@ -47,9 +47,9 @@ export interface IExecutableSchemaDefinition<TContext = any>
    */
   defaultFieldResolver?: GraphQLFieldResolver<any, TContext>;
   /**
-   * Called when two fields share a name but have different types or nullability.
-   * Return the field node that should win. `makeExecutableSchema` and `mergeSchemas`
-   * forward this to `mergeTypeDefs`.
+   * Called when two fields share a name and field conflicts are not ignored,
+   * even if their types already match. Return the field node that should win.
+   * `makeExecutableSchema` and `mergeSchemas` forward this to `mergeTypeDefs`.
    *
    * @example
    * Given:

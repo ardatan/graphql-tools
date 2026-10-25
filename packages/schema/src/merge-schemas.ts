@@ -23,7 +23,7 @@ export type MergeSchemasConfig<T = any> = Partial<IExecutableSchemaDefinition<T>
 
 /**
  * Synchronously merges multiple schemas, typeDefinitions and/or resolvers into a single schema.
- * Pass `onFieldTypeConflict` to choose a field when types or nullability differ.
+ * Pass `onFieldTypeConflict` to choose a field when two schemas share a field name.
  * Fields that exist on only one schema are still kept.
  * @param config Configuration object
  */
