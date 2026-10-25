@@ -22,8 +22,10 @@ import {
   isListType,
   isNonNullType,
   isScalarType,
+  parse,
   printSchema,
 } from 'graphql';
+import { buildSubgraphSchema, printSubgraphSchema } from '@apollo/subgraph';
 import { addMocksToSchema } from '@graphql-tools/mock';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import {
@@ -44,6 +46,30 @@ describe('mapSchema', () => {
 
     const newSchema = mapSchema(schema, {});
     expect(newSchema).toBeInstanceOf(GraphQLSchema);
+  });
+
+  test('printSubgraphSchema is unchanged after mapping extended types', () => {
+    const schema = buildSubgraphSchema(
+      parse(/* GraphQL */ `
+        extend schema
+          @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@external"])
+
+        type Query {
+          _: Boolean
+        }
+
+        extend type User @key(fields: "id") {
+          id: ID! @external
+          name: String
+        }
+      `),
+    );
+
+    const before = printSubgraphSchema(schema);
+    const mapped = mapSchema(schema, {
+      [MapperKind.OBJECT_FIELD]: fieldConfig => fieldConfig,
+    });
+    expect(printSubgraphSchema(mapped)).toBe(before);
   });
 
   test('can add a resolver', () => {
