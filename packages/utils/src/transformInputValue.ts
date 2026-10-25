@@ -5,7 +5,6 @@ import {
   isLeafType,
   isListType,
 } from 'graphql';
-import { asArray } from './helpers.js';
 import { InputLeafValueTransformer, InputObjectValueTransformer, Maybe } from './types.js';
 
 export function transformInputValue(
@@ -25,7 +24,8 @@ export function transformInputValue(
       ? inputLeafValueTransformer(nullableType, value)
       : value;
   } else if (isListType(nullableType)) {
-    return asArray(value).map((listMember: any) =>
+    const values = Array.isArray(value) ? value : [value];
+    return values.map((listMember: any) =>
       transformInputValue(
         nullableType.ofType,
         listMember,

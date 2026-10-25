@@ -1,4 +1,10 @@
-import { GraphQLInputObjectType, GraphQLList, GraphQLString } from 'graphql';
+import {
+  GraphQLBoolean,
+  GraphQLInputObjectType,
+  GraphQLInt,
+  GraphQLList,
+  GraphQLString,
+} from 'graphql';
 import { parseInputValue, serializeInputValue, transformInputValue } from '../src/index.js';
 
 describe('transformInputValue list coercion', () => {
@@ -12,8 +18,14 @@ describe('transformInputValue list coercion', () => {
 
   it('coerces a single value for a list field instead of calling value.map', () => {
     expect(transformInputValue(listOfString, 'valueY')).toEqual(['valueY']);
+    expect(transformInputValue(listOfString, '')).toEqual(['']);
+    expect(transformInputValue(new GraphQLList(GraphQLInt), 0)).toEqual([0]);
+    expect(transformInputValue(new GraphQLList(GraphQLBoolean), false)).toEqual([false]);
     expect(transformInputValue(SomeInput, { fieldX: 'valueY' })).toEqual({
       fieldX: ['valueY'],
+    });
+    expect(transformInputValue(SomeInput, { fieldX: '' })).toEqual({
+      fieldX: [''],
     });
   });
 
