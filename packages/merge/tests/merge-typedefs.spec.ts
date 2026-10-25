@@ -592,6 +592,41 @@ describe('Merge TypeDefs', () => {
       ]);
     });
 
+    it('merges the same directive when only argument descriptions differ', () => {
+      const graphqlJs = /* GraphQL */ `
+        """
+        Exposes a URL that specifies the behavior of this scalar.
+        """
+        directive @specifiedBy(
+          """
+          The URL that specifies the behavior of this scalar.
+          """
+          url: String!
+        ) on SCALAR
+      `;
+      const graphqlJava = /* GraphQL */ `
+        """
+        Exposes a URL that specifies the behaviour of this scalar.
+        """
+        directive @specifiedBy(
+          """
+          The URL that specifies the behaviour of this scalar.
+          """
+          url: String!
+        ) on SCALAR
+      `;
+
+      const merged = mergeTypeDefs([graphqlJs, graphqlJava]);
+      const specifiedBy = merged.definitions.find(
+        definition =>
+          definition.kind === Kind.DIRECTIVE_DEFINITION && definition.name.value === 'specifiedBy',
+      );
+      assertSome(specifiedBy);
+      expect(specifiedBy.kind).toBe(Kind.DIRECTIVE_DEFINITION);
+      expect(specifiedBy.arguments).toHaveLength(1);
+      expect(specifiedBy.arguments?.[0].name.value).toBe('url');
+    });
+
     it('should merge args if inputs of the same directive are different from each other', () => {
       const result = mergeTypeDefs([
         `directive @id on FIELD_DEFINITION`,
