@@ -41,7 +41,7 @@ export async function loadTypedefs<AdditionalConfig = Record<string, unknown>>(
     options,
   });
 
-  const validSources: Source[] = [];
+  const parsedSources: Source[] = [];
 
   // If we have few k of files it may be an issue
   const limit = useLimit(CONCURRENCY_LIMIT);
@@ -53,15 +53,15 @@ export async function loadTypedefs<AdditionalConfig = Record<string, unknown>>(
           partialSource,
           options,
           pointerOptionMap,
-          addValidSource(source) {
-            validSources.push(source);
+          addSource(source) {
+            parsedSources.push(source);
           },
         }),
       ),
     ),
   );
 
-  return prepareResult({ options, pointerOptionMap, validSources });
+  return prepareResult({ options, pointerOptionMap, parsedSources });
 }
 
 /**
@@ -86,20 +86,20 @@ export function loadTypedefsSync<AdditionalConfig = Record<string, unknown>>(
     options,
   });
 
-  const validSources: Source[] = [];
+  const parsedSources: Source[] = [];
 
   for (const partialSource of sources) {
     parseSource({
       partialSource,
       options,
       pointerOptionMap,
-      addValidSource(source) {
-        validSources.push(source);
+      addSource(source) {
+        parsedSources.push(source);
       },
     });
   }
 
-  return prepareResult({ options, pointerOptionMap, validSources });
+  return prepareResult({ options, pointerOptionMap, parsedSources });
 }
 
 //
@@ -107,13 +107,13 @@ export function loadTypedefsSync<AdditionalConfig = Record<string, unknown>>(
 function prepareResult({
   options,
   pointerOptionMap,
-  validSources,
+  parsedSources,
 }: {
   options: any;
   pointerOptionMap: any;
-  validSources: Source[];
+  parsedSources: Source[];
 }) {
-  const failedSources = validSources.filter(source => source.error != null);
+  const failedSources = parsedSources.filter(source => source.error != null);
   if (failedSources.length > 0) {
     if (options.errorHandling === 'aggregate') {
       const errors = failedSources.map(source => source.error!);
@@ -126,8 +126,8 @@ function prepareResult({
 
   const resultSources =
     options.errorHandling === 'return'
-      ? validSources
-      : validSources.filter(source => source.error == null);
+      ? parsedSources
+      : parsedSources.filter(source => source.error == null);
 
   const pointerList = Object.keys(pointerOptionMap);
   const loadedDocuments = resultSources.filter(
