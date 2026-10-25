@@ -41,6 +41,7 @@ export class ApolloEngineLoader implements Loader<ApolloEngineOptions> {
             id: options.graph,
             tag: options.variant,
           },
+          operationName: 'GetSchemaByTag',
         }),
       },
     ];
