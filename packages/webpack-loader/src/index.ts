@@ -4,6 +4,7 @@ import {
   FragmentDefinitionNode,
   isExecutableDefinitionNode,
   Kind,
+  NameNode,
   OperationDefinitionNode,
 } from 'graphql';
 import type { LoaderContext } from 'webpack';
@@ -15,6 +16,19 @@ import {
 } from '@graphql-tools/optimize';
 import { uniqueCode } from '@graphql-tools/webpack-loader-runtime';
 import { parseDocument } from './parser.js';
+
+type NamedExecutableDefinition = (OperationDefinitionNode | FragmentDefinitionNode) & {
+  name: NameNode;
+};
+
+function isNamedExecutableDefinition(
+  def: DocumentNode['definitions'][number],
+): def is NamedExecutableDefinition {
+  return (
+    (def.kind === Kind.OPERATION_DEFINITION || def.kind === Kind.FRAGMENT_DEFINITION) &&
+    def.name != null
+  );
+}
 
 const ESM_RESERVED_NAMES = new Set([
   'arguments',
@@ -269,11 +283,7 @@ export default function graphqlLoader(this: LoaderContext<Options>, source: stri
   const operations = doc.definitions.filter(
     (def): def is OperationDefinitionNode => def.kind === Kind.OPERATION_DEFINITION,
   );
-  const namedDefinitions = doc.definitions.filter(
-    (def): def is OperationDefinitionNode | FragmentDefinitionNode =>
-      (def.kind === Kind.OPERATION_DEFINITION || def.kind === Kind.FRAGMENT_DEFINITION) &&
-      def.name != null,
-  );
+  const namedDefinitions = doc.definitions.filter(isNamedExecutableDefinition);
 
   if (operations.length > 1 && operations.some(op => op.name == null)) {
     throw new Error(
