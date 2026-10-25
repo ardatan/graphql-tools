@@ -49,7 +49,6 @@ export interface IExecutableSchemaDefinition<TContext = any>
   /**
    * Called when two fields share a name and field conflicts are not ignored,
    * even if their types already match. Return the field node that should win.
-   * `makeExecutableSchema` and `mergeSchemas` forward this to `mergeTypeDefs`.
    *
    * @example
    * Given:
