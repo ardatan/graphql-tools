@@ -294,7 +294,10 @@ describeIf(platform() !== 'win32' && isPuppeteerV25Supported)(
         httpAddress,
         document,
       );
-      expect(results).toEqual([{ data: {} }, { data: { foo: true } }]);
+      expect(results).toEqual([
+        { data: {}, hasNext: true },
+        { data: { foo: true }, hasNext: false },
+      ]);
     });
 
     it('handles executing a @stream operation using multipart responses', async () => {
@@ -327,11 +330,14 @@ describeIf(platform() !== 'win32' && isPuppeteerV25Supported)(
         document,
       );
 
-      expect(results[0]).toEqual({ data: { countdown: [] } });
-      expect(results[1]).toEqual({ data: { countdown: [3] } });
-      expect(results[2]).toEqual({ data: { countdown: [3, 2] } });
-      expect(results[3]).toEqual({ data: { countdown: [3, 2, 1] } });
-      expect(results[4]).toEqual({ data: { countdown: [3, 2, 1, 0] } });
+      expect(results[0]).toEqual({ data: { countdown: [] }, hasNext: true });
+      expect(results[1]).toEqual({ data: { countdown: [3] }, hasNext: true });
+      expect(results[2]).toEqual({ data: { countdown: [3, 2] }, hasNext: true });
+      expect(results[3]).toEqual({ data: { countdown: [3, 2, 1] }, hasNext: true });
+      expect(results[4]).toEqual({
+        data: { countdown: [3, 2, 1, 0] },
+        hasNext: true,
+      });
     });
 
     it('handles SSE subscription operations', async () => {
@@ -456,6 +462,7 @@ describeIf(platform() !== 'win32' && isPuppeteerV25Supported)(
         data: {
           fakeStream: [true, true],
         },
+        hasNext: true,
       });
     });
   },
