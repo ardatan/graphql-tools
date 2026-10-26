@@ -94,6 +94,9 @@ import { promiseForObject } from './promiseForObject.js';
 
 export { defaultFieldResolver, defaultTypeResolver };
 
+const CompactExecutionResultMap =
+  function CompactExecutionResultMap() {} as unknown as new () => object;
+
 export type { CompletedResult, PendingResult } from './incremental.js';
 
 const EMPTY_ARGS: { [argument: string]: unknown } = Object.freeze(Object.create(null));
@@ -1094,7 +1097,7 @@ function executeFields(
   fields: Map<string, Array<FieldNode>>,
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): MaybePromise<Record<string, unknown>> {
-  const results = Object.create(null);
+  const results = Object.setPrototypeOf(new CompactExecutionResultMap(), null);
   let containsPromise = false;
 
   try {

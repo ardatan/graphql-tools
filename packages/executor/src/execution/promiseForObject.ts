@@ -1,5 +1,8 @@
 import { handleMaybePromise, isPromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 
+const CompactExecutionResultMap =
+  function CompactExecutionResultMap() {} as unknown as new () => object;
+
 type ResolvedObject<TData> = {
   [TKey in keyof TData]: TData[TKey] extends Promise<infer TValue> ? TValue : TData[TKey];
 };
@@ -17,7 +20,7 @@ export function promiseForObject<TData>(
   signalPromise?: Promise<never>,
 ): MaybePromise<ResolvedObject<TData>> {
   signal?.throwIfAborted();
-  const resolvedObject = Object.create(null);
+  const resolvedObject = Object.setPrototypeOf(new CompactExecutionResultMap(), null);
   const promises: Promise<void>[] = [];
   for (const key in object) {
     const valueSet$ = handleMaybePromise(
