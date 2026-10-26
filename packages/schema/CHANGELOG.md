@@ -1,5 +1,48 @@
 # @graphql-tools/schema
 
+## 11.0.7
+
+### Patch Changes
+
+- [#8601](https://github.com/ardatan/graphql-tools/pull/8601) [`902d870`](https://github.com/ardatan/graphql-tools/commit/902d870a74c05f2ccc787b2eb5aa568f5c911b08) Thanks [@ardatan](https://github.com/ardatan)! - `mergeSchemas` and `makeExecutableSchema` now accept `onFieldTypeConflict`, the same callback `mergeTypeDefs` already had.
+  
+  When two schemas define the same field with different types, default merge throws. When only nullability differs, it keeps the earlier type.
+  
+  ```graphql
+  # first schema
+  type Post {
+    id: ID!
+    title: String!
+    content: String!
+    published: Boolean!
+  }
+  
+  # second schema
+  type Post {
+    id: ID!
+    title: String
+    content: Int
+    fieldA: Int
+    fieldB: String
+  }
+  ```
+  
+  `content: String!` vs `content: Int` throws. `title: String!` vs `title: String` keeps `String!`.
+  
+  ```ts
+  mergeSchemas({
+    schemas: [firstSchema, secondSchema],
+    onFieldTypeConflict: (_existing, incoming) => incoming,
+  });
+  ```
+  
+  The merged `Post` takes `title: String` and `content: Int` from the second schema, keeps `published` from the first, and adds `fieldA` / `fieldB`. Types that exist on only one schema, such as `User` on the first, stay.
+  
+  The same callback applies to field arguments. Returning the incoming field uses the second schema's argument types and still keeps arguments that exist on only one side. Returning the existing field with `reverseArguments: true` keeps the first schema's argument types and still appends new arguments.
+- Updated dependencies [[`6da2904`](https://github.com/ardatan/graphql-tools/commit/6da2904047c9f50309f3c76ce1f5a93f7c846fd3), [`7770067`](https://github.com/ardatan/graphql-tools/commit/7770067cde22f437bf5d4f30f8cf88060a45efda), [`f956bfe`](https://github.com/ardatan/graphql-tools/commit/f956bfee7871fe0ae10b95cb5ca4132739dc08de)]:
+  - @graphql-tools/utils@13.2.0
+  - @graphql-tools/merge@10.0.7
+
 ## 11.0.6
 
 ### Patch Changes

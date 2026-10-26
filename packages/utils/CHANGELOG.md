@@ -1,5 +1,94 @@
 # @graphql-tools/utils
 
+## 13.2.0
+
+### Minor Changes
+
+- [#8606](https://github.com/ardatan/graphql-tools/pull/8606) [`6da2904`](https://github.com/ardatan/graphql-tools/commit/6da2904047c9f50309f3c76ce1f5a93f7c846fd3) Thanks [@ardatan](https://github.com/ardatan)! - `loadDocuments` / `loadTypedefs` now accept `errorHandling` so a single invalid file does not have to hide the rest of the load.
+  
+  A glob that mixes a valid operation with broken SDL used to throw the first `Syntax Error` and drop every other file:
+  
+  ```graphql
+  # valid.query.graphql
+  query ValidQuery {
+    a
+  }
+  ```
+  
+  ```graphql
+  # broken-a.query.graphql
+  query {
+    a
+  ```
+  
+  ```ts
+  await loadDocuments('**/*.query.graphql', {
+    loaders: [new GraphQLFileLoader()],
+  });
+  // throws Syntax Error
+  ```
+  
+  `errorHandling` chooses what happens next. The default is unchanged (`throw` the first error).
+  
+  `aggregate` waits until every source is attempted, then throws `AggregateError` with each parse/load failure:
+  
+  ```ts
+  await loadDocuments('**/*.query.graphql', {
+    loaders: [new GraphQLFileLoader()],
+    errorHandling: 'aggregate',
+  });
+  ```
+  
+  `return` does not throw. Failed sources stay in the result as `{ location, error }` without a `document`, next to the sources that parsed:
+  
+  ```ts
+  const sources = await loadDocuments('**/*.query.graphql', {
+    loaders: [new GraphQLFileLoader(), new CodeFileLoader()],
+    errorHandling: 'return',
+  });
+  
+  sources[0].document; // ValidQuery
+  sources[1].document; // undefined
+  sources[1].error; // GraphQLError: Syntax Error
+  ```
+  
+  `Source` now has an optional `error` field. `@graphql-tools/graphql-file-loader` and `@graphql-tools/code-file-loader` honor the same option. `CodeFileLoader`'s existing `noSilentErrors` default is unchanged unless `errorHandling` is set.
+  
+  Custom loader failures and incomplete inline documents (`query Foo {`) follow the same option. `errorHandling: 'throw'` raises the first failure, not `AggregateError`.
+
+### Patch Changes
+
+- [#8588](https://github.com/ardatan/graphql-tools/pull/8588) [`7770067`](https://github.com/ardatan/graphql-tools/commit/7770067cde22f437bf5d4f30f8cf88060a45efda) Thanks [@ardatan](https://github.com/ardatan)! - `rewireTypes` (used by `mapSchema` and `addTypes`) now recreates only the types that actually reference a replaced type.
+  
+  `mapSchema` already changes just the mapped types. `rewireTypes` then walked every type and built a new `GraphQLObjectType` / enum / scalar so field pointers stayed consistent. That is correct, and it is overkill when a pipeline maps one type on a large schema: unrelated types, unused enums, and unused scalars were cloned on every pass.
+  
+  The crawl now finds types whose field, argument, interface, or union members point at a different object than the type map (including wrapper types created during mapping), then rebuilds only that set. Specified directives stay as-is. Types that do not reach a replacement keep the same JavaScript object.
+  
+  `createStub` returns the graphql-js specified scalars for `String` / `ID` / `Int` / `Float` / `Boolean` instead of building an object or input with that name. Stitch `typeFromAST` uses `createStub` for every field type.
+  
+  ```ts
+  const schema = buildSchema(/* GraphQL */ `
+    scalar Unused
+    enum Color { RED }
+    type Query { foo: Foo }
+    type Foo { id: ID }
+  `)
+  
+  const mapped = mapSchema(schema, {
+    [MapperKind.OBJECT_TYPE]: type =>
+      type.name === 'Foo'
+        ? new GraphQLObjectType({ ...type.toConfig(), description: 'mapped' })
+        : undefined,
+  })
+  
+  mapped.getType('Unused') === schema.getType('Unused')
+  mapped.getType('Color') === schema.getType('Color')
+  ```
+
+- [#8608](https://github.com/ardatan/graphql-tools/pull/8608) [`f956bfe`](https://github.com/ardatan/graphql-tools/commit/f956bfee7871fe0ae10b95cb5ca4132739dc08de) Thanks [@ardatan](https://github.com/ardatan)! - `transformInputValue` now keeps falsy list items when GraphQL coerces a singleton into a list.
+  
+  A `[String]` / `[Int]` / `[Boolean]` field can receive `""`, `0`, or `false` instead of a one-element array. The previous `asArray` helper treated those as empty and produced `[]`, so rename and other input transforms dropped a valid value. `null` is still returned as-is. A real list is still walked item by item.
+
 ## 13.1.3
 
 ### Patch Changes

@@ -1,5 +1,15 @@
 # @graphql-tools/executor
 
+## 4.1.6
+
+### Patch Changes
+
+- [#8610](https://github.com/ardatan/graphql-tools/pull/8610) [`7832344`](https://github.com/ardatan/graphql-tools/commit/78323442a11bf391030ec8f998ab2c7e270ba802) Thanks [@ardatan](https://github.com/ardatan)! - Use compact null-prototype maps for per-field execution results.
+  
+  `executeFields` and `promiseForObject` now allocate result objects with a shared empty constructor then `Object.setPrototypeOf(..., null)`, instead of `Object.create(null)`. Dense responses create many of these maps; the named constructor gives V8 a reusable shape while keeping the same null-prototype semantics.
+- Updated dependencies [[`6da2904`](https://github.com/ardatan/graphql-tools/commit/6da2904047c9f50309f3c76ce1f5a93f7c846fd3), [`7770067`](https://github.com/ardatan/graphql-tools/commit/7770067cde22f437bf5d4f30f8cf88060a45efda), [`f956bfe`](https://github.com/ardatan/graphql-tools/commit/f956bfee7871fe0ae10b95cb5ca4132739dc08de)]:
+  - @graphql-tools/utils@13.2.0
+
 ## 4.1.5
 
 ### Patch Changes

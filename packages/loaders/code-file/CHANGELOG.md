@@ -1,5 +1,68 @@
 # @graphql-tools/code-file-loader
 
+## 9.1.0
+
+### Minor Changes
+
+- [#8606](https://github.com/ardatan/graphql-tools/pull/8606) [`6da2904`](https://github.com/ardatan/graphql-tools/commit/6da2904047c9f50309f3c76ce1f5a93f7c846fd3) Thanks [@ardatan](https://github.com/ardatan)! - `loadDocuments` / `loadTypedefs` now accept `errorHandling` so a single invalid file does not have to hide the rest of the load.
+  
+  A glob that mixes a valid operation with broken SDL used to throw the first `Syntax Error` and drop every other file:
+  
+  ```graphql
+  # valid.query.graphql
+  query ValidQuery {
+    a
+  }
+  ```
+  
+  ```graphql
+  # broken-a.query.graphql
+  query {
+    a
+  ```
+  
+  ```ts
+  await loadDocuments('**/*.query.graphql', {
+    loaders: [new GraphQLFileLoader()],
+  });
+  // throws Syntax Error
+  ```
+  
+  `errorHandling` chooses what happens next. The default is unchanged (`throw` the first error).
+  
+  `aggregate` waits until every source is attempted, then throws `AggregateError` with each parse/load failure:
+  
+  ```ts
+  await loadDocuments('**/*.query.graphql', {
+    loaders: [new GraphQLFileLoader()],
+    errorHandling: 'aggregate',
+  });
+  ```
+  
+  `return` does not throw. Failed sources stay in the result as `{ location, error }` without a `document`, next to the sources that parsed:
+  
+  ```ts
+  const sources = await loadDocuments('**/*.query.graphql', {
+    loaders: [new GraphQLFileLoader(), new CodeFileLoader()],
+    errorHandling: 'return',
+  });
+  
+  sources[0].document; // ValidQuery
+  sources[1].document; // undefined
+  sources[1].error; // GraphQLError: Syntax Error
+  ```
+  
+  `Source` now has an optional `error` field. `@graphql-tools/graphql-file-loader` and `@graphql-tools/code-file-loader` honor the same option. `CodeFileLoader`'s existing `noSilentErrors` default is unchanged unless `errorHandling` is set.
+  
+  Custom loader failures and incomplete inline documents (`query Foo {`) follow the same option. `errorHandling: 'throw'` raises the first failure, not `AggregateError`.
+
+### Patch Changes
+
+- Updated dependencies [[`6da2904`](https://github.com/ardatan/graphql-tools/commit/6da2904047c9f50309f3c76ce1f5a93f7c846fd3), [`7770067`](https://github.com/ardatan/graphql-tools/commit/7770067cde22f437bf5d4f30f8cf88060a45efda), [`f956bfe`](https://github.com/ardatan/graphql-tools/commit/f956bfee7871fe0ae10b95cb5ca4132739dc08de)]:
+  - @graphql-tools/utils@13.2.0
+  - @graphql-tools/graphql-tag-pluck@9.0.8
+  - @graphql-tools/load-files@8.0.7
+
 ## 9.0.7
 
 ### Patch Changes
