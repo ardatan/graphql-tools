@@ -62,6 +62,7 @@ import {
   type MaybePromise,
 } from '@whatwg-node/promise-helpers';
 import { coerceError } from './coerceError.js';
+import { CompactExecutionResultMap } from './compactExecutionResultMap.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import {
   cancelAsyncPayload,
@@ -90,7 +91,6 @@ import {
   type GroupedFieldSet,
 } from './incrementalCollect.js';
 import { invariant } from './invariant.js';
-import { CompactExecutionResultMap } from './compactExecutionResultMap.js';
 import { promiseForObject } from './promiseForObject.js';
 
 export { defaultFieldResolver, defaultTypeResolver };
