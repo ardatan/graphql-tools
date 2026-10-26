@@ -1,5 +1,5 @@
 diff --git a/node_modules/@graphql-tools/executor-http/dist/index.cjs b/node_modules/@graphql-tools/executor-http/dist/index.cjs
-index 3127bbc..ca4c9d5 100644
+index 64d2a55..032adb0 100644
 --- a/node_modules/@graphql-tools/executor-http/dist/index.cjs
 +++ b/node_modules/@graphql-tools/executor-http/dist/index.cjs
 @@ -353,7 +353,7 @@ function createGraphQLErrorForAbort(reason, extensions) {
@@ -29,16 +29,25 @@ index 3127bbc..ca4c9d5 100644
            ]
          });
          return stop();
-@@ -497,7 +497,7 @@ async function handleMultipartMixedResponse(response) {
-   if (asyncIterator == null) {
-     return executionResult;
+@@ -498,7 +498,7 @@ async function handleMultipartMixedResponse(response, options) {
+     return {};
    }
--  const resultStream = utils.mapAsyncIterator(asyncIterator, (part) => {
-+  const resultStream = promiseHelpers.mapAsyncIterator(asyncIterator, (part) => {
+   if (!mergeIncremental) {
+-    return utils.mapAsyncIterator(asyncIterator, (part) => {
++    return promiseHelpers.mapAsyncIterator(asyncIterator, (part) => {
+       if (part.json) {
+         return part.body;
+       }
+@@ -506,7 +506,7 @@ async function handleMultipartMixedResponse(response, options) {
+     });
+   }
+   const executionResult = {};
+-  return utils.mapAsyncIterator(asyncIterator, (part) => {
++  return promiseHelpers.mapAsyncIterator(asyncIterator, (part) => {
      if (part.json) {
        const incrementalResult = part.body;
        utils.mergeIncrementalResult({
-@@ -750,7 +750,7 @@ function buildHTTPExecutor(options) {
+@@ -763,7 +763,7 @@ function buildHTTPExecutor(options) {
                        upstreamErrorExtensions.code = "RESPONSE_VALIDATION_FAILED";
                        return {
                          errors: [
@@ -47,7 +56,7 @@ index 3127bbc..ca4c9d5 100644
                              originalError: new Error(message),
                              extensions: upstreamErrorExtensions
                            })
-@@ -764,7 +764,7 @@ function buildHTTPExecutor(options) {
+@@ -777,7 +777,7 @@ function buildHTTPExecutor(options) {
                            ({
                              message,
                              ...options2
@@ -56,7 +65,7 @@ index 3127bbc..ca4c9d5 100644
                          )
                        };
                      }
-@@ -773,7 +773,7 @@ function buildHTTPExecutor(options) {
+@@ -786,7 +786,7 @@ function buildHTTPExecutor(options) {
                      upstreamErrorExtensions.code = "RESPONSE_VALIDATION_FAILED";
                      return {
                        errors: [
@@ -65,7 +74,7 @@ index 3127bbc..ca4c9d5 100644
                            `Unexpected response: ${JSON.stringify(result)}`,
                            {
                              extensions: upstreamErrorExtensions,
-@@ -788,7 +788,7 @@ function buildHTTPExecutor(options) {
+@@ -801,7 +801,7 @@ function buildHTTPExecutor(options) {
                    upstreamErrorExtensions.code = "RESPONSE_VALIDATION_FAILED";
                    return {
                      errors: [
@@ -74,7 +83,7 @@ index 3127bbc..ca4c9d5 100644
                          extensions: upstreamErrorExtensions,
                          originalError: new Error(message)
                        })
-@@ -950,7 +950,7 @@ function buildHTTPExecutor(options) {
+@@ -963,7 +963,7 @@ function buildHTTPExecutor(options) {
              return result;
            }
            return {
@@ -83,7 +92,7 @@ index 3127bbc..ca4c9d5 100644
            };
          }
          return promiseHelpers.handleMaybePromise(
-@@ -993,13 +993,13 @@ function coerceFetchError(e, {
+@@ -1006,13 +1006,13 @@ function coerceFetchError(e, {
    upstreamErrorExtensions
  }) {
    if (typeof e === "string") {
@@ -99,7 +108,7 @@ index 3127bbc..ca4c9d5 100644
        extensions: upstreamErrorExtensions,
        originalError: e
      });
-@@ -1009,12 +1009,12 @@ function coerceFetchError(e, {
+@@ -1022,12 +1022,12 @@ function coerceFetchError(e, {
        upstreamErrorExtensions
      );
    } else if (e.message) {
@@ -115,7 +124,7 @@ index 3127bbc..ca4c9d5 100644
        originalError: e
      });
 diff --git a/node_modules/@graphql-tools/executor-http/dist/index.js b/node_modules/@graphql-tools/executor-http/dist/index.js
-index 0cf6937..8fb527c 100644
+index 704e85d..b4574df 100644
 --- a/node_modules/@graphql-tools/executor-http/dist/index.js
 +++ b/node_modules/@graphql-tools/executor-http/dist/index.js
 @@ -1,9 +1,9 @@
@@ -157,7 +166,7 @@ index 0cf6937..8fb527c 100644
            ]
          });
          return stop();
-@@ -748,7 +748,7 @@ function buildHTTPExecutor(options) {
+@@ -761,7 +761,7 @@ function buildHTTPExecutor(options) {
                        upstreamErrorExtensions.code = "RESPONSE_VALIDATION_FAILED";
                        return {
                          errors: [
@@ -166,7 +175,7 @@ index 0cf6937..8fb527c 100644
                              originalError: new Error(message),
                              extensions: upstreamErrorExtensions
                            })
-@@ -762,7 +762,7 @@ function buildHTTPExecutor(options) {
+@@ -775,7 +775,7 @@ function buildHTTPExecutor(options) {
                            ({
                              message,
                              ...options2
@@ -175,7 +184,7 @@ index 0cf6937..8fb527c 100644
                          )
                        };
                      }
-@@ -771,7 +771,7 @@ function buildHTTPExecutor(options) {
+@@ -784,7 +784,7 @@ function buildHTTPExecutor(options) {
                      upstreamErrorExtensions.code = "RESPONSE_VALIDATION_FAILED";
                      return {
                        errors: [
@@ -184,7 +193,7 @@ index 0cf6937..8fb527c 100644
                            `Unexpected response: ${JSON.stringify(result)}`,
                            {
                              extensions: upstreamErrorExtensions,
-@@ -786,7 +786,7 @@ function buildHTTPExecutor(options) {
+@@ -799,7 +799,7 @@ function buildHTTPExecutor(options) {
                    upstreamErrorExtensions.code = "RESPONSE_VALIDATION_FAILED";
                    return {
                      errors: [
@@ -193,7 +202,7 @@ index 0cf6937..8fb527c 100644
                          extensions: upstreamErrorExtensions,
                          originalError: new Error(message)
                        })
-@@ -948,7 +948,7 @@ function buildHTTPExecutor(options) {
+@@ -961,7 +961,7 @@ function buildHTTPExecutor(options) {
              return result;
            }
            return {
@@ -202,7 +211,7 @@ index 0cf6937..8fb527c 100644
            };
          }
          return handleMaybePromise(
-@@ -991,13 +991,13 @@ function coerceFetchError(e, {
+@@ -1004,13 +1004,13 @@ function coerceFetchError(e, {
    upstreamErrorExtensions
  }) {
    if (typeof e === "string") {
@@ -218,7 +227,7 @@ index 0cf6937..8fb527c 100644
        extensions: upstreamErrorExtensions,
        originalError: e
      });
-@@ -1007,12 +1007,12 @@ function coerceFetchError(e, {
+@@ -1020,12 +1020,12 @@ function coerceFetchError(e, {
        upstreamErrorExtensions
      );
    } else if (e.message) {

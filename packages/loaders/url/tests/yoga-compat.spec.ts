@@ -175,6 +175,7 @@ describe('Yoga Compatibility', () => {
         data: {
           foo: {},
         },
+        hasNext: true,
       },
       {
         data: {
@@ -182,6 +183,7 @@ describe('Yoga Compatibility', () => {
             a: 1,
           },
         },
+        hasNext: true,
       },
       {
         data: {
@@ -190,6 +192,7 @@ describe('Yoga Compatibility', () => {
             b: 2,
           },
         },
+        hasNext: false,
       },
     ];
 

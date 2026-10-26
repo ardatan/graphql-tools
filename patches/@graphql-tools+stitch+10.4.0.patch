@@ -1,11 +1,12 @@
 diff --git a/node_modules/@graphql-tools/stitch/dist/index.cjs b/node_modules/@graphql-tools/stitch/dist/index.cjs
-index 888959b..b5cdad5 100644
+index e132833..1763864 100644
 --- a/node_modules/@graphql-tools/stitch/dist/index.cjs
 +++ b/node_modules/@graphql-tools/stitch/dist/index.cjs
-@@ -6,6 +6,57 @@ var schema = require('@graphql-tools/schema');
+@@ -6,6 +6,58 @@ var schema = require('@graphql-tools/schema');
  var utils = require('@graphql-tools/utils');
  var promiseHelpers = require('@whatwg-node/promise-helpers');
  var graphql = require('graphql');
++
 +function __anyValueToLiteral(value) {
 +  if (value == null) return { kind: graphql.Kind.NULL };
 +  if (typeof value === 'boolean') return { kind: graphql.Kind.BOOLEAN, value: value };
@@ -60,7 +61,7 @@ index 888959b..b5cdad5 100644
  var batchDelegate = require('@graphql-tools/batch-delegate');
  var wrap = require('@graphql-tools/wrap');
  var executor = require('@graphql-tools/executor');
-@@ -3660,10 +3711,10 @@ function createStitchingExecutor(stitchedSchema) {
+@@ -3707,10 +3759,10 @@ function createStitchingExecutor(stitchedSchema) {
          );
          return rootType2.getFields()[fieldName] != null;
        });
@@ -74,22 +75,23 @@ index 888959b..b5cdad5 100644
        const info = {
          schema: stitchedSchema,
 diff --git a/node_modules/@graphql-tools/stitch/dist/index.js b/node_modules/@graphql-tools/stitch/dist/index.js
-index 37b8d28..e111860 100644
+index a467b4c..e6f182f 100644
 --- a/node_modules/@graphql-tools/stitch/dist/index.js
 +++ b/node_modules/@graphql-tools/stitch/dist/index.js
-@@ -1,13 +1,62 @@
+@@ -1,13 +1,63 @@
  import { isExternalObject, getVariableValues, handleOverrideByDelegation, subtractSelectionSets, extractUnavailableFields, leftOverByDelegationPlan, extractUnavailableFieldsFromSelectionSet, delegateToSchema, cloneSubschemaConfig, isSubschemaConfig, defaultMergedResolver, Subschema } from '@graphql-tools/delegate';
  import { mergeType, mergeInputType, mergeInterface, mergeUnion, mergeEnum, mergeScalar, mergeTypeDefs, mergeResolvers, mergeExtensions, applyExtensions } from '@graphql-tools/merge';
  import { extendResolversFromInterfaces, addResolversToSchema, assertResolversPresent, makeExecutableSchema } from '@graphql-tools/schema';
 -import { mergeDeep, collectSubFields, memoize3, memoize2, memoize1, parseSelectionSet, collectFields, isSome, getImplementingTypes, getRootTypeNames, filterSchema, getDescription, createNamedStub, createStub, getRootTypeMap, getRootTypes, inspect, rewireTypes, getOperationASTFromRequest, getDefinedRootType, getArgumentValues } from '@graphql-tools/utils';
 +import { mergeDeep, collectSubFields, memoize3, memoize2, memoize1, parseSelectionSet, collectFields, isSome, getImplementingTypes, getRootTypeNames, filterSchema, getDescription, createNamedStub, createStub, getRootTypeMap, getRootTypes, inspect, rewireTypes, getOperationASTFromRequest, getDefinedRootType } from '@graphql-tools/utils';
  import { handleMaybePromise } from '@whatwg-node/promise-helpers';
--import { getNamedType, Kind, isAbstractType, TypeNameMetaFieldDef, isObjectType, GraphQLList, isLeafType, isInputObjectType, isUnionType, print, isInterfaceType, visit, isScalarType, isCompositeType, isNonNullType, isEnumType, isListType, getNullableType, isNullableType, GraphQLObjectType, GraphQLInputObjectType, GraphQLInterfaceType, GraphQLUnionType, GraphQLEnumType, GraphQLScalarType, GraphQLDirective, valueFromASTUntyped, getDirectiveValues, GraphQLDeprecatedDirective, DirectiveLocation, isNamedType, isIntrospectionType, isDirective, isSpecifiedScalarType, GraphQLSchema, concatAST, extendSchema, specifiedDirectives, isSpecifiedDirective } from 'graphql';
-+import { getArgumentValues, getNamedType, Kind, GraphQLScalarType, versionInfo, isAbstractType, TypeNameMetaFieldDef, isObjectType, GraphQLList, isLeafType, isInputObjectType, isUnionType, print, isInterfaceType, visit, isScalarType, isCompositeType, isNonNullType, isEnumType, isListType, getNullableType, isNullableType, GraphQLObjectType, GraphQLInputObjectType, GraphQLInterfaceType, GraphQLUnionType, GraphQLEnumType, GraphQLDirective, valueFromASTUntyped, getDirectiveValues, GraphQLDeprecatedDirective, DirectiveLocation, isNamedType, isIntrospectionType, isDirective, isSpecifiedScalarType, GraphQLSchema, concatAST, extendSchema, specifiedDirectives, isSpecifiedDirective } from 'graphql';
+-import { getNamedType, Kind, isAbstractType, isObjectType, isInterfaceType, TypeNameMetaFieldDef, isUnionType, GraphQLList, isLeafType, isInputObjectType, print, visit, isScalarType, isCompositeType, isNonNullType, isEnumType, isListType, getNullableType, isNullableType, GraphQLObjectType, GraphQLInputObjectType, GraphQLInterfaceType, GraphQLUnionType, GraphQLEnumType, GraphQLScalarType, GraphQLDirective, valueFromASTUntyped, getDirectiveValues, GraphQLDeprecatedDirective, DirectiveLocation, isNamedType, isIntrospectionType, isDirective, isSpecifiedScalarType, GraphQLSchema, concatAST, extendSchema, specifiedDirectives, isSpecifiedDirective } from 'graphql';
++import { getArgumentValues, getNamedType, Kind, versionInfo, isAbstractType, isObjectType, isInterfaceType, TypeNameMetaFieldDef, isUnionType, GraphQLList, isLeafType, isInputObjectType, print, visit, isScalarType, isCompositeType, isNonNullType, isEnumType, isListType, getNullableType, isNullableType, GraphQLObjectType, GraphQLInputObjectType, GraphQLInterfaceType, GraphQLUnionType, GraphQLEnumType, GraphQLScalarType, GraphQLDirective, valueFromASTUntyped, getDirectiveValues, GraphQLDeprecatedDirective, DirectiveLocation, isNamedType, isIntrospectionType, isDirective, isSpecifiedScalarType, GraphQLSchema, concatAST, extendSchema, specifiedDirectives, isSpecifiedDirective } from 'graphql';
  import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
  import { FilterTypes, TransformCompositeFields, wrapSchema } from '@graphql-tools/wrap';
  import { getFragmentsFromDocument } from '@graphql-tools/executor';
  
++
 +function __anyValueToLiteral(value) {
 +  if (value == null) return { kind: Kind.NULL };
 +  if (typeof value === 'boolean') return { kind: Kind.BOOLEAN, value };
@@ -142,7 +144,7 @@ index 37b8d28..e111860 100644
  function valueSatisfiesSelectionSet(value, selectionSet) {
    if (Array.isArray(value)) {
      return value.every(
-@@ -3661,7 +3710,7 @@ function createStitchingExecutor(stitchedSchema) {
+@@ -3708,7 +3758,7 @@ function createStitchingExecutor(stitchedSchema) {
        const args = getArgumentValues(
          fieldInstance,
          fieldNode,
