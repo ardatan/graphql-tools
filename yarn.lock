@@ -1525,6 +1525,11 @@
   dependencies:
     levn "^0.4.1"
 
+"@fastify/busboy@^3.2.3":
+  version "3.2.4"
+  resolved "https://registry.yarnpkg.com/@fastify/busboy/-/busboy-3.2.4.tgz#c5af797a5eeff6304144c6d3cb7cad022c0a55b0"
+  integrity sha512-lQS8xcXT54rdJb+wlG/Q7SMSdtkZEpLPHooSDUZyyZm9LJD7X1kONPhVoPaHq+dsPtWUGGLIz9gBNhs9qKbylw==
+
 "@floating-ui/core@^1.6.0":
   version "1.6.8"
   resolved "https://registry.yarnpkg.com/@floating-ui/core/-/core-1.6.8.tgz#aa43561be075815879305965020f492cdb43da12"
@@ -3679,6 +3684,14 @@
   dependencies:
     tslib "^2.6.3"
 
+"@whatwg-node/disposablestack@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/disposablestack/-/disposablestack-0.1.0.tgz#bec98b7a7002b995e5414081c8c3d396fe55c09d"
+  integrity sha512-ok0A9+D+mdeb3w1GNCpVr+2gVVLRWKo9Ywm/whNsoWSNfNg3jNxS0/wUF6NSUYbfOtFGu2wZgJnLjasbaQEfvA==
+  dependencies:
+    "@whatwg-node/promise-helpers" "^2.0.0"
+    tslib "^2.6.3"
+
 "@whatwg-node/events@^0.1.0":
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/@whatwg-node/events/-/events-0.1.2.tgz#23f7c7ad887d7fd448e9ce3261eac9ef319ddd7c"
@@ -3694,6 +3707,14 @@
     "@whatwg-node/node-fetch" "^0.7.1"
     urlpattern-polyfill "^10.0.0"
 
+"@whatwg-node/fetch@^0.12.1":
+  version "0.12.1"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.12.1.tgz#81eaba6caaf3615987be27133d1b52d5308ec7a6"
+  integrity sha512-MjSXerFVxhWwPXZMNp4b4Q3WZMEIqzinHVWuH5tF2LNGy4hHypqPJCNpaR6bEZbaGdlH+r5dRAmQ8bxowcetjQ==
+  dependencies:
+    "@whatwg-node/node-fetch" "^0.9.1"
+    urlpattern-polyfill "^10.0.0"
+
 "@whatwg-node/node-fetch@^0.7.1":
   version "0.7.5"
   resolved "https://registry.yarnpkg.com/@whatwg-node/node-fetch/-/node-fetch-0.7.5.tgz#b81e9d5f4b9032e480032c73e7bac284c4e3bdb8"
@@ -3703,6 +3724,23 @@
     "@whatwg-node/disposablestack" "^0.0.5"
     busboy "^1.6.0"
     fast-querystring "^1.1.1"
+    tslib "^2.6.3"
+
+"@whatwg-node/node-fetch@^0.9.1":
+  version "0.9.2"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/node-fetch/-/node-fetch-0.9.2.tgz#a34fb1f86317f6fc3de04b9d1254bf8b54f24237"
+  integrity sha512-KPUMuyu2u0i92mchLcvPJBHnsOd1osahvAvagHGEod4GTkFTyoXZwlbagFTWm/k4ixjEiGi7cbCLPYm0uFb2Wg==
+  dependencies:
+    "@fastify/busboy" "^3.2.3"
+    "@whatwg-node/disposablestack" "^0.1.0"
+    "@whatwg-node/promise-helpers" "^2.0.0"
+    tslib "^2.6.3"
+
+"@whatwg-node/promise-helpers@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/promise-helpers/-/promise-helpers-2.0.0.tgz#93a89655355bbd5d7e2b0d64fc93a88224d7030e"
+  integrity sha512-/i9CS0Z96o+cPwaYoAyVxAThDiUX1wV3tDmNWPJbn+vtdR+JftuCDg1NGCXBrzIYVDGkJ8uT6ctwmrBOUzOpKQ==
+  dependencies:
     tslib "^2.6.3"
 
 "@whatwg-node/server@^0.9.63":
