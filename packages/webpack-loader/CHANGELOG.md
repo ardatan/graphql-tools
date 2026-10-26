@@ -1,5 +1,50 @@
 # @graphql-tools/webpack-loader
 
+## 8.1.0
+
+### Minor Changes
+
+- [#8605](https://github.com/ardatan/graphql-tools/pull/8605) [`ea2603a`](https://github.com/ardatan/graphql-tools/commit/ea2603a6229d748cf40a1cc126123eea323aada4) Thanks [@ardatan](https://github.com/ardatan)! - `@graphql-tools/webpack-loader` (and `@graphql-tools/jest-transform`, which calls it) now accepts more than one GraphQL operation in the same file and exports each named operation, matching `graphql-tag/loader`.
+  
+  A file with two mutations used to throw `GraphQL Webpack Loader allows only for one GraphQL Operation per file`, so this import failed in webpack and Jest:
+  
+  ```graphql
+  # menuMutations.graphql
+  mutation deleteMenuMutation {
+    deleteMenu {
+      ...MenuFields
+    }
+  }
+  
+  mutation upsertMenuMutation {
+    upsertMenu {
+      id
+    }
+  }
+  
+  fragment MenuFields on Menu {
+    id
+    name
+  }
+  ```
+  
+  ```ts
+  import { deleteMenuMutation, upsertMenuMutation } from './menuMutations.graphql'
+  ```
+  
+  The default export is still the whole document. Each named export is that operation plus the fragments it uses. `deleteMenuMutation` includes `MenuFields`; `upsertMenuMutation` does not.
+  
+  ```ts
+  import menuMutations, {
+    deleteMenuMutation,
+    upsertMenuMutation,
+  } from './menuMutations.graphql'
+  ```
+  
+  A single named operation is also exported under its name. Unnamed operations are still allowed when the file has only one operation. If the file has more than one operation, each operation must be named.
+  
+  `jest-transform` now passes the Jest source path and filesystem into the loader, so `esModule: true` can emit named exports for operations and fragments pulled in with `#import`. CommonJS named exports use an own property so a GraphQL name of `__proto__` does not replace the export object's prototype.
+
 ## 8.0.1
 
 ### Patch Changes

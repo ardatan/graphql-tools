@@ -1,5 +1,247 @@
 # @graphql-tools/load
 
+## 9.1.0
+
+### Minor Changes
+
+- [#8603](https://github.com/ardatan/graphql-tools/pull/8603) [`62ef681`](https://github.com/ardatan/graphql-tools/commit/62ef681c5445934e38984a1d8a64e6b56cd61f36) Thanks [@ardatan](https://github.com/ardatan)! - Custom loaders on `loadDocuments` / `loadDocumentsSync` / `loadSchema` can now return an array. Each item is added as its own source.
+  
+  A pointer such as `src/**/*.{ts,tsx}` calls the custom loader once. Returning a single combined document kept every operation on that one pointer. Returning an array was ignored, so the load failed with `Couldn't find any GraphQL type definitions`.
+  
+  ```js
+  // custom-loader.js
+  const { parse } = require('graphql');
+  
+  module.exports = function () {
+    return [
+      {
+        document: parse(/* GraphQL */ `
+          query Users {
+            users {
+              id
+            }
+          }
+        `),
+        location: 'users.graphql',
+      },
+      {
+        document: parse(/* GraphQL */ `
+          query Orders {
+            orders {
+              id
+            }
+          }
+        `),
+        location: 'orders.graphql',
+      },
+    ];
+  };
+  ```
+  
+  ```ts
+  loadDocuments(
+    {
+      'src/**/*.{ts,tsx}': {
+        loader: './custom-loader.js',
+      },
+    },
+    { loaders: [] },
+  );
+  ```
+  
+  The result is two sources: `Users` at `users.graphql` and `Orders` at `orders.graphql`. A single `DocumentNode` or `{ document }` return value still becomes one source. An array of `DocumentNode`s uses the pointer as each item's location.
+
+- [#8606](https://github.com/ardatan/graphql-tools/pull/8606) [`6da2904`](https://github.com/ardatan/graphql-tools/commit/6da2904047c9f50309f3c76ce1f5a93f7c846fd3) Thanks [@ardatan](https://github.com/ardatan)! - `loadDocuments` / `loadTypedefs` now accept `errorHandling` so a single invalid file does not have to hide the rest of the load.
+  
+  A glob that mixes a valid operation with broken SDL used to throw the first `Syntax Error` and drop every other file:
+  
+  ```graphql
+  # valid.query.graphql
+  query ValidQuery {
+    a
+  }
+  ```
+  
+  ```graphql
+  # broken-a.query.graphql
+  query {
+    a
+  ```
+  
+  ```ts
+  await loadDocuments('**/*.query.graphql', {
+    loaders: [new GraphQLFileLoader()],
+  });
+  // throws Syntax Error
+  ```
+  
+  `errorHandling` chooses what happens next. The default is unchanged (`throw` the first error).
+  
+  `aggregate` waits until every source is attempted, then throws `AggregateError` with each parse/load failure:
+  
+  ```ts
+  await loadDocuments('**/*.query.graphql', {
+    loaders: [new GraphQLFileLoader()],
+    errorHandling: 'aggregate',
+  });
+  ```
+  
+  `return` does not throw. Failed sources stay in the result as `{ location, error }` without a `document`, next to the sources that parsed:
+  
+  ```ts
+  const sources = await loadDocuments('**/*.query.graphql', {
+    loaders: [new GraphQLFileLoader(), new CodeFileLoader()],
+    errorHandling: 'return',
+  });
+  
+  sources[0].document; // ValidQuery
+  sources[1].document; // undefined
+  sources[1].error; // GraphQLError: Syntax Error
+  ```
+  
+  `Source` now has an optional `error` field. `@graphql-tools/graphql-file-loader` and `@graphql-tools/code-file-loader` honor the same option. `CodeFileLoader`'s existing `noSilentErrors` default is unchanged unless `errorHandling` is set.
+  
+  Custom loader failures and incomplete inline documents (`query Foo {`) follow the same option. `errorHandling: 'throw'` raises the first failure, not `AggregateError`.
+
+- [#8602](https://github.com/ardatan/graphql-tools/pull/8602) [`46039a0`](https://github.com/ardatan/graphql-tools/commit/46039a072775454ddcf31a2089d248ee744b54e7) Thanks [@ardatan](https://github.com/ardatan)! - `loadSchema` and `loadSchemaSync` already accept `sort: true`. That always runs GraphQL's `lexicographicSortSchema`, which reorders the type list and also reorders fields, arguments, and enum values.
+  
+  A schema that was written with a meaningful enum or field order cannot keep that order after load:
+  
+  ```graphql
+  # loaded schema
+  enum DayOfWeek {
+    SUNDAY
+    MONDAY
+    TUESDAY
+    WEDNESDAY
+    THURSDAY
+    FRIDAY
+    SATURDAY
+  }
+  
+  type Query {
+    d: String
+    z: String
+    a: String
+    day: DayOfWeek
+  }
+  
+  type User {
+    aa: String
+    a: String
+  }
+  
+  type A {
+    s: String
+    b: String
+  }
+  ```
+  
+  ```graphql
+  # sort: true (current default)
+  type A {
+    b: String
+    s: String
+  }
+  
+  enum DayOfWeek {
+    FRIDAY
+    MONDAY
+    SATURDAY
+    SUNDAY
+    THURSDAY
+    TUESDAY
+    WEDNESDAY
+  }
+  
+  type Query {
+    a: String
+    d: String
+    day: DayOfWeek
+    z: String
+  }
+  
+  type User {
+    a: String
+    aa: String
+  }
+  ```
+  
+  This release adds `sortMode` on `LoadSchemaOptions`.
+  
+  - `sort: true` with no `sortMode`, or `sortMode: 'lexicographic'`, keeps the current behavior.
+  - `sort: true, sortMode: 'typesOnly'` sorts only the type list. Field and enum value order stay as they were loaded. If the same type is split across files, those members keep merge order instead of being sorted.
+  - `sort: false` (or omitted) ignores `sortMode`.
+  
+  ```ts
+  loadSchema('schema.graphql', {
+    loaders: [new GraphQLFileLoader()],
+    sort: true,
+    sortMode: 'typesOnly',
+  });
+  ```
+  
+  ```graphql
+  # sort: true, sortMode: 'typesOnly'
+  type A {
+    s: String
+    b: String
+  }
+  
+  enum DayOfWeek {
+    SUNDAY
+    MONDAY
+    TUESDAY
+    WEDNESDAY
+    THURSDAY
+    FRIDAY
+    SATURDAY
+  }
+  
+  type Query {
+    d: String
+    z: String
+    a: String
+    day: DayOfWeek
+  }
+  
+  type User {
+    aa: String
+    a: String
+  }
+  ```
+
+### Patch Changes
+
+- [#8604](https://github.com/ardatan/graphql-tools/pull/8604) [`9df67b4`](https://github.com/ardatan/graphql-tools/commit/9df67b48920d63bafc4e66370154cf20ac5bcc19) Thanks [@ardatan](https://github.com/ardatan)! - `useCustomLoader` and `useCustomLoaderSync` now include the original load failure in the thrown error message.
+  
+  A missing, broken, or non-function custom loader used to throw only:
+  
+  ```
+  Failed to load custom loader: ./codegen-loader.js
+  ```
+  
+  The underlying `SyntaxError`, `Cannot find module`, or "did not export a function" was swallowed, so codegen and `loadDocuments` could not show why the file failed.
+  
+  ```js
+  // broken-loader.js
+  module.exports = function ( {
+  ```
+  
+  ```ts
+  await useCustomLoader('./broken-loader.js', cwd);
+  ```
+  
+  ```
+  Failed to load custom loader: ./broken-loader.js
+  SyntaxError: Unexpected token '{'
+  ```
+  
+  `getCustomLoaderByPath` still returns `null` when the file cannot be loaded.
+- Updated dependencies [[`6da2904`](https://github.com/ardatan/graphql-tools/commit/6da2904047c9f50309f3c76ce1f5a93f7c846fd3), [`902d870`](https://github.com/ardatan/graphql-tools/commit/902d870a74c05f2ccc787b2eb5aa568f5c911b08), [`7770067`](https://github.com/ardatan/graphql-tools/commit/7770067cde22f437bf5d4f30f8cf88060a45efda), [`f956bfe`](https://github.com/ardatan/graphql-tools/commit/f956bfee7871fe0ae10b95cb5ca4132739dc08de)]:
+  - @graphql-tools/utils@13.2.0
+  - @graphql-tools/schema@11.0.7
+
 ## 9.0.6
 
 ### Patch Changes

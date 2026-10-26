@@ -1,5 +1,15 @@
 # @graphql-tools/apollo-engine-loader
 
+## 9.0.7
+
+### Patch Changes
+
+- [#8598](https://github.com/ardatan/graphql-tools/pull/8598) [`38e7800`](https://github.com/ardatan/graphql-tools/commit/38e780018b9d7769110ff1becec00b6db98d4f56) Thanks [@ardatan](https://github.com/ardatan)! - `ApolloEngineLoader` now sends `operationName: "GetSchemaByTag"` in the GraphQL request body.
+  
+  The query was already named `GetSchemaByTag`, but the POST body only had `query` and `variables`. Servers and Apollo Server plugins that require an operation name on the request (and read it from the JSON body, not the document) rejected this introspection call. The GitHub loader already sends `operationName` the same way.
+- Updated dependencies [[`6da2904`](https://github.com/ardatan/graphql-tools/commit/6da2904047c9f50309f3c76ce1f5a93f7c846fd3), [`7770067`](https://github.com/ardatan/graphql-tools/commit/7770067cde22f437bf5d4f30f8cf88060a45efda), [`f956bfe`](https://github.com/ardatan/graphql-tools/commit/f956bfee7871fe0ae10b95cb5ca4132739dc08de)]:
+  - @graphql-tools/utils@13.2.0
+
 ## 9.0.6
 
 ### Patch Changes
