@@ -62,6 +62,7 @@ import {
   type MaybePromise,
 } from '@whatwg-node/promise-helpers';
 import { coerceError } from './coerceError.js';
+import { CompactExecutionResultMap } from './compactExecutionResultMap.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import {
   cancelAsyncPayload,
@@ -1094,7 +1095,7 @@ function executeFields(
   fields: Map<string, Array<FieldNode>>,
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): MaybePromise<Record<string, unknown>> {
-  const results = Object.create(null);
+  const results = Object.setPrototypeOf(new CompactExecutionResultMap(), null);
   let containsPromise = false;
 
   try {
