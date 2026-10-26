@@ -90,12 +90,10 @@ import {
   type GroupedFieldSet,
 } from './incrementalCollect.js';
 import { invariant } from './invariant.js';
+import { CompactExecutionResultMap } from './compactExecutionResultMap.js';
 import { promiseForObject } from './promiseForObject.js';
 
 export { defaultFieldResolver, defaultTypeResolver };
-
-const CompactExecutionResultMap =
-  function CompactExecutionResultMap() {} as unknown as new () => object;
 
 export type { CompletedResult, PendingResult } from './incremental.js';
 

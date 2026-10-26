@@ -1,7 +1,5 @@
 import { handleMaybePromise, isPromise, type MaybePromise } from '@whatwg-node/promise-helpers';
-
-const CompactExecutionResultMap =
-  function CompactExecutionResultMap() {} as unknown as new () => object;
+import { CompactExecutionResultMap } from './compactExecutionResultMap.js';
 
 type ResolvedObject<TData> = {
   [TKey in keyof TData]: TData[TKey] extends Promise<infer TValue> ? TValue : TData[TKey];
