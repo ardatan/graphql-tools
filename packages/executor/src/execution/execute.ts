@@ -1639,7 +1639,18 @@ function completeListValue(
     index++;
   }
 
-  return containsPromise ? Promise.all(completedResults) : completedResults;
+  if (containsPromise) return Promise.all(completedResults);
+
+  // Push-grown backing stores dominate responses containing many tiny lists.
+  // Compact only our completed output, without observing the input's length
+  // or changing iteration, coercion, ownership, or incremental delivery.
+  const length = completedResults.length;
+  if (!stream && length > 0 && length <= 1024) {
+    const compactResults = new Array<unknown>(length);
+    for (let i = 0; i < length; i++) compactResults[i] = completedResults[i];
+    return compactResults;
+  }
+  return completedResults;
 }
 
 /**
