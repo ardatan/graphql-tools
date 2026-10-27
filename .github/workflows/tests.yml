@@ -106,6 +106,8 @@ jobs:
             ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-
       - name: Build
         run: npm run build
+      - name: Babel template lifecycle
+        run: npm run test:template-lifecycle
       - parallel:
           - name: Unit Tests
             uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
