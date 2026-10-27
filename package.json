@@ -52,7 +52,7 @@
     "@graphql-tools/batch-execute": "^10.2.0"
   },
   "optionalDependencies": {
-    "bun": "1.4.3"
+    "bun": "1.4.4"
   },
   "devDependencies": {
     "@apollo/client": "4.3.5",
@@ -70,7 +70,7 @@
     "@eslint/compat": "2.1.1",
     "@eslint/eslintrc": "3.3.7",
     "@eslint/js": "10.0.1",
-    "@graphql-tools/delegate": "12.2.1",
+    "@graphql-tools/delegate": "12.3.0",
     "@n1ru4l/in-memory-live-query-store": "0.11.0",
     "@theguild/prettier-config": "3.0.1",
     "@theguild/remark-mermaid": "0.3.0",
@@ -93,7 +93,7 @@
     "eslint-plugin-promise": "7.3.0",
     "globals": "17.13.0",
     "graphql": "17.0.2",
-    "graphql-yoga": "6.0.0",
+    "graphql-yoga": "6.0.1",
     "husky": "9.1.7",
     "jest": "30.4.2",
     "lint-staged": "17.6.0",
@@ -110,12 +110,12 @@
     "typedoc-plugin-markdown": "^4.11.0",
     "typedoc-plugin-rename-defaults": "0.7.3",
     "typescript": "7.0.2",
-    "vite": "8.3.4",
+    "vite": "8.3.5",
     "vitest": "5.0.5",
     "wonka": "6.3.6"
   },
   "overrides": {
-    "@graphql-tools/delegate": "12.2.1",
+    "@graphql-tools/delegate": "12.3.0",
     "@xmldom/xmldom": "0.9.12",
     "cookie": "2.0.1",
     "esbuild": "0.28.1",
