@@ -22,7 +22,9 @@ jobs:
       id-token: write
       pull-requests: write
     if: github.ref == 'refs/heads/master'
-    uses: the-guild-org/shared-config/.github/workflows/release-stable.yml@v1
+    # Temporary: CLI v3 publish parsing for aggregate GitHub releases until
+    # the-guild-org/shared-config#757 (stable) / #755 (snapshot) merge to v1.
+    uses: ardatan/shared-config/.github/workflows/release-stable.yml@ea2edad4cafc039fde19d0c5705cd8db338d9c23
     with:
       releaseScript: run release
       versionScript: run version
@@ -47,8 +49,8 @@ jobs:
     if:
       ${{ github.event.pull_request.head.repo.fork != true && github.event.pull_request.title !=
       'Upcoming Release Changes' }}
-    # Temporary: v3 publish output parsing until the-guild-org/shared-config#755 merges
-    uses: ardatan/shared-config/.github/workflows/release-snapshot.yml@6073226382355aa6ae65a9cee76d491f7f85233b
+    # Temporary: same shared-config pin as stable (includes snapshot v3 fix)
+    uses: ardatan/shared-config/.github/workflows/release-snapshot.yml@ea2edad4cafc039fde19d0c5705cd8db338d9c23
     with:
       npmTag: alpha
       buildScript: build
@@ -65,8 +67,8 @@ jobs:
     if:
       ${{ github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.title == 'Upcoming Release Changes' }}
-    # Temporary: v3 publish output parsing until the-guild-org/shared-config#755 merges
-    uses: ardatan/shared-config/.github/workflows/release-snapshot.yml@6073226382355aa6ae65a9cee76d491f7f85233b
+    # Temporary: same shared-config pin as stable (includes snapshot v3 fix)
+    uses: ardatan/shared-config/.github/workflows/release-snapshot.yml@ea2edad4cafc039fde19d0c5705cd8db338d9c23
     with:
       npmTag: rc
       buildScript: build
