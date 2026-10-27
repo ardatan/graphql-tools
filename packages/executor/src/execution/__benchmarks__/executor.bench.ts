@@ -2,6 +2,8 @@
  * Executor microbenchmarks modeled on graphql-js list / object / repeated-field cases.
  * Requires a prior `npm run build`. Run with: npm run test:bench
  */
+import type { HeapProfiler } from 'node:inspector';
+import { Session } from 'node:inspector/promises';
 import { buildSchema, parse } from 'graphql';
 import { test } from 'vitest';
 import { execute as executeImported } from '@graphql-tools/executor';
@@ -64,31 +66,56 @@ const matrixCases = [2, 8, 16, 1000].map(width => ({
 // Run this diagnostic separately from timings, in a fresh exposed-GC process:
 // BENCH_LIST_STORAGE=1 npm run test:bench -- executor.bench.ts --execArgv=--expose-gc -t 'completed-list retained storage'
 // BENCH_PACKAGE_ROOT can select a separately built baseline checkout as in CI.
-test.skipIf(process.env['BENCH_LIST_STORAGE'] !== '1')('completed-list retained storage', () => {
-  if (!global.gc) throw new Error('The storage diagnostic requires --expose-gc');
-  const rootValue = {
-    matrix: Array.from({ length: 500_000 }, (_, index) => [index, index % 97]),
-  };
-  global.gc();
-  global.gc();
-  const inputReadyHeap = process.memoryUsage().heapUsed;
-  const result = execute({ schema: matrixSchema, document: matrixDocument, rootValue });
-  if (result instanceof Promise || !('data' in result) || result.errors) {
-    throw new Error('Expected a successful synchronous matrix result');
-  }
-  const afterExecuteHeap = process.memoryUsage().heapUsed;
-  global.gc();
-  global.gc();
-  const retainedOutputBytes = process.memoryUsage().heapUsed - inputReadyHeap;
-  // Keep the result alive across both GCs; this measures retained output, not allocations.
-  console.info({
-    inputReadyHeap,
-    afterExecuteHeap,
-    retainedOutputBytes,
-    maxRssKiB: process.resourceUsage().maxRSS,
-    serializedBytes: JSON.stringify(result).length,
-  });
-});
+// Add BENCH_LIST_ALLOCATIONS=1 for a separate allocation-sampling run, not timings or retention.
+test.skipIf(process.env['BENCH_LIST_STORAGE'] !== '1')(
+  'completed-list retained storage',
+  async () => {
+    if (!global.gc) throw new Error('The storage diagnostic requires --expose-gc');
+    const rootValue = {
+      matrix: Array.from({ length: 500_000 }, (_, index) => [index, index % 97]),
+    };
+    global.gc();
+    global.gc();
+    const inputReadyHeap = process.memoryUsage().heapUsed;
+    const session = process.env['BENCH_LIST_ALLOCATIONS'] === '1' ? new Session() : undefined;
+    if (session) {
+      session.connect();
+      await session.post('HeapProfiler.startSampling', {
+        samplingInterval: 16_384,
+        includeObjectsCollectedByMajorGC: true,
+        includeObjectsCollectedByMinorGC: true,
+      });
+    }
+    const result = execute({ schema: matrixSchema, document: matrixDocument, rootValue });
+    if (result instanceof Promise || !('data' in result) || result.errors) {
+      throw new Error('Expected a successful synchronous matrix result');
+    }
+    const afterExecuteHeap = process.memoryUsage().heapUsed;
+    let sampledAllocationBytes: number | undefined;
+    if (session) {
+      try {
+        const { profile } = await session.post('HeapProfiler.stopSampling');
+        const total = (node: HeapProfiler.SamplingHeapProfileNode): number =>
+          node.selfSize + node.children.reduce((sum, child) => sum + total(child), 0);
+        sampledAllocationBytes = total(profile.head);
+      } finally {
+        session.disconnect();
+      }
+    }
+    global.gc();
+    global.gc();
+    const retainedOutputBytes = process.memoryUsage().heapUsed - inputReadyHeap;
+    // Keep the result alive across both GCs; this measures retained output, not allocations.
+    console.info({
+      inputReadyHeap,
+      afterExecuteHeap,
+      retainedOutputBytes: session ? undefined : retainedOutputBytes,
+      sampledAllocationBytes,
+      maxRssKiB: process.resourceUsage().maxRSS,
+      serializedBytes: JSON.stringify(result).length,
+    });
+  },
+);
 
 test('executor benchmarks', async ({ bench }) => {
   for (const { width, rootValue } of matrixCases) {
