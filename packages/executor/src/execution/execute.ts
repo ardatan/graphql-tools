@@ -1592,8 +1592,49 @@ function completeListValue(
   let containsPromise = false;
   let previousAsyncPayloadRecord = asyncPayloadRecord;
   const completedResults: Array<unknown> = [];
+  const nullableItemType = isNonNullType(itemType) ? itemType.ofType : itemType;
+  const leafItemType = !stream && isLeafType(nullableItemType) ? nullableItemType : undefined;
   let index = 0;
   for (const item of result) {
+    // Scalar serialization receives no indexed resolve info. Allocate its item
+    // path only for errors or asynchronous completion.
+    if (leafItemType && item != null && !(item instanceof Error) && !isPromise(item)) {
+      try {
+        const completed = completeLeafValue(leafItemType, item);
+        if (isPromise(completed)) {
+          const itemPath = addPath(path, index, undefined);
+          completedResults.push(
+            completed.then(undefined, rawError => {
+              const error = locatedError(
+                coerceError(rawError),
+                fieldNodes,
+                pathToArray(itemPath),
+                exeContext.schemaCoordinateInErrors && info,
+              );
+              const handledError = handleFieldError(error, itemType, errors);
+              filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
+              return handledError;
+            }),
+          );
+          containsPromise = true;
+        } else {
+          completedResults.push(completed);
+        }
+      } catch (rawError) {
+        const itemPath = addPath(path, index, undefined);
+        const error = locatedError(
+          coerceError(rawError),
+          fieldNodes,
+          pathToArray(itemPath),
+          exeContext.schemaCoordinateInErrors && info,
+        );
+        const handledError = handleFieldError(error, itemType, errors);
+        filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
+        completedResults.push(handledError);
+      }
+      index++;
+      continue;
+    }
     // No need to modify the info object containing the path,
     // since from here on it is not ever accessed by resolver functions.
     const itemPath = addPath(path, index, undefined);
