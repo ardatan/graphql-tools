@@ -50,7 +50,58 @@ const repeatedSchema = buildSchema('type Query { hello: String! }', {
 });
 const repeatedDocument = parse(`{ ${'hello '.repeat(250)}}`);
 
+const matrixSchema = buildSchema('type Query { matrix: [[Float!]!]! }');
+const matrixDocument = parse('{ matrix }');
+const matrixCases = [2, 8, 16, 1000].map(width => ({
+  width,
+  rootValue: {
+    matrix: Array.from({ length: Math.max(100, Math.floor(20_000 / width)) }, (_, row) =>
+      Array.from({ length: width }, (_, column) => row + column),
+    ),
+  },
+}));
+
+// Run this diagnostic separately from timings, in a fresh exposed-GC process:
+// BENCH_LIST_STORAGE=1 npm run test:bench -- executor.bench.ts --execArgv=--expose-gc -t 'completed-list retained storage'
+// BENCH_PACKAGE_ROOT can select a separately built baseline checkout as in CI.
+test.skipIf(process.env['BENCH_LIST_STORAGE'] !== '1')('completed-list retained storage', () => {
+  if (!global.gc) throw new Error('The storage diagnostic requires --expose-gc');
+  const rootValue = {
+    matrix: Array.from({ length: 500_000 }, (_, index) => [index, index % 97]),
+  };
+  global.gc();
+  global.gc();
+  const inputReadyHeap = process.memoryUsage().heapUsed;
+  const result = execute({ schema: matrixSchema, document: matrixDocument, rootValue });
+  if (result instanceof Promise || !('data' in result) || result.errors) {
+    throw new Error('Expected a successful synchronous matrix result');
+  }
+  const afterExecuteHeap = process.memoryUsage().heapUsed;
+  global.gc();
+  global.gc();
+  const retainedOutputBytes = process.memoryUsage().heapUsed - inputReadyHeap;
+  // Keep the result alive across both GCs; this measures retained output, not allocations.
+  console.info({
+    inputReadyHeap,
+    afterExecuteHeap,
+    retainedOutputBytes,
+    maxRssKiB: process.resourceUsage().maxRSS,
+    serializedBytes: JSON.stringify(result).length,
+  });
+});
+
 test('executor benchmarks', async ({ bench }) => {
+  for (const { width, rootValue } of matrixCases) {
+    await bench(
+      `Execute Synchronous Matrix (width ${width})`,
+      { ...writeOpts(`executor-sync-matrix-${width}`) },
+      () => {
+        const result = execute({ schema: matrixSchema, document: matrixDocument, rootValue });
+        if (result instanceof Promise) throw new Error('expected sync result');
+        return 'data' in result ? result.data : result;
+      },
+    ).run();
+  }
   await bench('Execute Synchronous List Field', { ...writeOpts('executor-sync-list') }, () => {
     const result = execute({
       schema: listSchema,

@@ -1642,10 +1642,11 @@ function completeListValue(
   if (containsPromise) return Promise.all(completedResults);
 
   // Push-grown backing stores dominate responses containing many tiny lists.
+  // Keep the copy bounded: at 16 elements its retained-storage win is small.
   // Compact only our completed output, without observing the input's length
   // or changing iteration, coercion, ownership, or incremental delivery.
   const length = completedResults.length;
-  if (!stream && length > 0 && length <= 1024) {
+  if (!stream && length > 0 && length <= 8) {
     const compactResults = new Array<unknown>(length);
     for (let i = 0; i < length; i++) compactResults[i] = completedResults[i];
     return compactResults;
