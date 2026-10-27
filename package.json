@@ -44,6 +44,7 @@
     "test:bench:ci": "node scripts/bench-ci.mjs",
     "test:bun": "bun test",
     "test:leaks": "cross-env \"LEAK_TEST=1\" jest --no-watchman --detectOpenHandles --detectLeaks --runInBand --forceExit",
+    "test:template-lifecycle": "node --expose-gc --test scripts/test-babel-template-retention.mjs",
     "ts:check": "tsc --noEmit",
     "version": "npx changeset version"
   },
