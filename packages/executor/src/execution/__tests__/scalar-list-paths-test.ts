@@ -63,6 +63,16 @@ describe('scalar list completion paths', () => {
     expect(closed).toBe(true);
   });
 
+  it('bubbles asynchronous non-null serialization failures at their original index', async () => {
+    const { schema, type, document } = setup(false);
+    type.serialize = value =>
+      value === 2 ? Promise.reject(new Error('bad scalar')) : Promise.resolve(value);
+    expect(await execute({ schema, document, rootValue: { values: [1, 2, 3] } })).toMatchObject({
+      data: { alias: null },
+      errors: [{ message: 'bad scalar', path: ['alias', 1] }],
+    });
+  });
+
   it('retains the existing null and promised input behavior', async () => {
     const { schema, type, document } = setup();
     const seen: unknown[] = [];
@@ -75,5 +85,22 @@ describe('scalar list completion paths', () => {
       data: { alias: [null, 4, null, 6] },
     });
     expect(seen).toEqual([3, 2]);
+  });
+
+  it('reads a thenable input getter only for classification and invocation', async () => {
+    const { schema, document } = setup();
+    let reads = 0;
+    const promise = Promise.resolve(2);
+    const then = promise.then.bind(promise);
+    const item = {
+      get then() {
+        reads++;
+        return then;
+      },
+    };
+    expect(await execute({ schema, document, rootValue: { values: [item] } })).toEqual({
+      data: { alias: [2] },
+    });
+    expect(reads).toBe(2);
   });
 });

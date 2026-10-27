@@ -50,6 +50,12 @@ const repeatedSchema = buildSchema('type Query { hello: String! }', {
 });
 const repeatedDocument = parse(`{ ${'hello '.repeat(250)}}`);
 
+const scalarListSchema = buildSchema('type Query { values: [Float!]! }', { assumeValid: true });
+const scalarListDocument = parse('{ values }');
+const scalarListRootValue = {
+  values: Array.from({ length: 2_000_000 }, (_, index) => index * 1.25),
+};
+
 test('executor benchmarks', async ({ bench }) => {
   await bench('Execute Synchronous List Field', { ...writeOpts('executor-sync-list') }, () => {
     const result = execute({
@@ -100,4 +106,22 @@ test('executor benchmarks', async ({ bench }) => {
     }
     return 'data' in result ? result.data : result;
   }).run();
+});
+
+test('scalar list completion benchmarks', async ({ bench }) => {
+  await bench(
+    'Execute Dense Synchronous Float List',
+    { ...writeOpts('executor-sync-float-list') },
+    () => {
+      const result = execute({
+        schema: scalarListSchema,
+        document: scalarListDocument,
+        rootValue: scalarListRootValue,
+      });
+      if (result instanceof Promise) {
+        throw new Error('expected sync result');
+      }
+      return 'data' in result ? result.data : result;
+    },
+  ).run();
 });
