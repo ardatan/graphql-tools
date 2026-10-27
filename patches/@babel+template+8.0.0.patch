@@ -1,0 +1,32 @@
+diff --git a/node_modules/@babel/template/lib/index.js b/node_modules/@babel/template/lib/index.js
+index 48b99c2..af5ff98 100644
+--- a/node_modules/@babel/template/lib/index.js
++++ b/node_modules/@babel/template/lib/index.js
+@@ -515,13 +515,25 @@ function createTemplateBuilder(formatter, defaultOpts) {
+     }
+   });
+ }
++function captureOriginStack() {
++  try {
++    const stack = new Error().stack;
++    // Custom stack formatters may return structured CallSites or throw. Retain
++    // only a string, and keep diagnostic capture from breaking valid templates.
++    return typeof stack === "string" ? stack.split("\n").slice(4).join("\n") : "";
++  } catch {
++    return "";
++  }
++}
+ function extendedTrace(fn) {
+-  const rootErr = new Error();
++  const rootStack = captureOriginStack();
+   return arg => {
+     try {
+       return fn(arg);
+     } catch (err) {
+-      err.stack += `\n    =============\n${rootErr.stack.split("\n").slice(3).join("\n")}`;
++      if (rootStack) {
++        err.stack += `\n    =============\n${rootStack}`;
++      }
+       throw err;
+     }
+   };
