@@ -1592,11 +1592,14 @@ function completeListValue(
   let containsPromise = false;
   let previousAsyncPayloadRecord = asyncPayloadRecord;
   const completedResults: Array<unknown> = [];
+  const nullableItemType = isNonNullType(itemType) ? itemType.ofType : itemType;
+  const leafItemType = !stream && isLeafType(nullableItemType) ? nullableItemType : undefined;
   let index = 0;
   for (const item of result) {
     // No need to modify the info object containing the path,
     // since from here on it is not ever accessed by resolver functions.
-    const itemPath = addPath(path, index, undefined);
+    // Leaf completion can defer the indexed path; stream payloads retain it.
+    const itemPath = leafItemType ? path : addPath(path, index, undefined);
 
     if (stream && typeof stream.initialCount === 'number' && index >= stream.initialCount) {
       streamGroup ??= createStreamGroupIfV02(exeContext, {
@@ -1631,6 +1634,8 @@ function completeListValue(
         info,
         itemPath,
         asyncPayloadRecord,
+        leafItemType,
+        leafItemType ? index : undefined,
       )
     ) {
       containsPromise = true;
@@ -1667,36 +1672,50 @@ function completeListItemValue(
   itemType: GraphQLOutputType,
   fieldNodes: Array<FieldNode>,
   info: GraphQLResolveInfo,
-  itemPath: Path,
+  path: Path,
   asyncPayloadRecord?: AsyncPayloadRecord,
+  leafItemType?: GraphQLLeafType,
+  itemIndex?: number,
 ): boolean {
+  // Scalar serialization receives no indexed resolve info. Keep one completion
+  // and error pipeline, materializing its path only when the result needs one.
+  let itemPath = itemIndex === undefined ? path : undefined;
   try {
     let completedItem;
-    if (isPromise(item)) {
-      completedItem = item.then(resolved =>
-        completeValue(
+    const itemIsPromise = isPromise(item);
+    if (leafItemType && item != null && !(item instanceof Error) && !itemIsPromise) {
+      completedItem = completeLeafValue(leafItemType, item);
+    } else {
+      itemPath ??= itemIndex === undefined ? path : addPath(path, itemIndex, undefined);
+      if (itemIsPromise) {
+        const resolvedItemPath = itemPath;
+        completedItem = item.then(resolved =>
+          completeValue(
+            exeContext,
+            itemType,
+            fieldNodes,
+            info,
+            resolvedItemPath,
+            resolved,
+            asyncPayloadRecord,
+          ),
+        );
+      } else {
+        completedItem = completeValue(
           exeContext,
           itemType,
           fieldNodes,
           info,
           itemPath,
-          resolved,
+          item,
           asyncPayloadRecord,
-        ),
-      );
-    } else {
-      completedItem = completeValue(
-        exeContext,
-        itemType,
-        fieldNodes,
-        info,
-        itemPath,
-        item,
-        asyncPayloadRecord,
-      );
+        );
+      }
     }
 
     if (isPromise(completedItem)) {
+      itemPath ??= itemIndex === undefined ? path : addPath(path, itemIndex, undefined);
+      const completedItemPath = itemPath;
       // Note: we don't rely on a `catch` method, but we do expect "thenable"
       // to take a second callback for the error case.
       completedResults.push(
@@ -1705,11 +1724,11 @@ function completeListItemValue(
           const error = locatedError(
             rawError,
             fieldNodes,
-            pathToArray(itemPath),
+            pathToArray(completedItemPath),
             exeContext.schemaCoordinateInErrors && info,
           );
           const handledError = handleFieldError(error, itemType, errors);
-          filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
+          filterSubsequentPayloads(exeContext, completedItemPath, asyncPayloadRecord);
           return handledError;
         }),
       );
@@ -1719,6 +1738,7 @@ function completeListItemValue(
 
     completedResults.push(completedItem);
   } catch (rawError) {
+    itemPath ??= itemIndex === undefined ? path : addPath(path, itemIndex, undefined);
     const coercedError = coerceError(rawError);
     const error = locatedError(
       coercedError,
