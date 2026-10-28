@@ -74,46 +74,58 @@ test.skipIf(process.env['BENCH_LIST_STORAGE'] !== '1')(
     const rootValue = {
       matrix: Array.from({ length: 500_000 }, (_, index) => [index, index % 97]),
     };
-    global.gc();
-    global.gc();
-    const inputReadyHeap = process.memoryUsage().heapUsed;
-    const session = process.env['BENCH_LIST_ALLOCATIONS'] === '1' ? new Session() : undefined;
-    if (session) {
-      session.connect();
-      await session.post('HeapProfiler.startSampling', {
-        samplingInterval: 16_384,
-        includeObjectsCollectedByMajorGC: true,
-        includeObjectsCollectedByMinorGC: true,
-      });
-    }
-    const result = execute({ schema: matrixSchema, document: matrixDocument, rootValue });
-    if (result instanceof Promise || !('data' in result) || result.errors) {
-      throw new Error('Expected a successful synchronous matrix result');
-    }
-    const afterExecuteHeap = process.memoryUsage().heapUsed;
-    let sampledAllocationBytes: number | undefined;
-    if (session) {
-      try {
-        const { profile } = await session.post('HeapProfiler.stopSampling');
-        const total = (node: HeapProfiler.SamplingHeapProfileNode): number =>
-          node.selfSize + node.children.reduce((sum, child) => sum + total(child), 0);
-        sampledAllocationBytes = total(profile.head);
-      } finally {
-        session.disconnect();
+    const retainedValues: { input: unknown; output: unknown } = {
+      input: rootValue,
+      output: undefined,
+    };
+    const lifetimeKey = Symbol('completed-list storage lifetime');
+    Object.defineProperty(globalThis, lifetimeKey, { value: retainedValues, configurable: true });
+    try {
+      global.gc();
+      global.gc();
+      const inputReadyHeap = process.memoryUsage().heapUsed;
+      const session = process.env['BENCH_LIST_ALLOCATIONS'] === '1' ? new Session() : undefined;
+      if (session) {
+        session.connect();
+        await session.post('HeapProfiler.startSampling', {
+          samplingInterval: 16_384,
+          includeObjectsCollectedByMajorGC: true,
+          includeObjectsCollectedByMinorGC: true,
+        });
       }
+      const result = execute({ schema: matrixSchema, document: matrixDocument, rootValue });
+      retainedValues.output = result;
+      if (result instanceof Promise || !('data' in result) || result.errors) {
+        throw new Error('Expected a successful synchronous matrix result');
+      }
+      const afterExecuteHeap = process.memoryUsage().heapUsed;
+      let sampledAllocationBytes: number | undefined;
+      if (session) {
+        try {
+          const { profile } = await session.post('HeapProfiler.stopSampling');
+          const total = (node: HeapProfiler.SamplingHeapProfileNode): number =>
+            node.selfSize + node.children.reduce((sum, child) => sum + total(child), 0);
+          sampledAllocationBytes = total(profile.head);
+        } finally {
+          session.disconnect();
+        }
+      }
+      global.gc();
+      global.gc();
+      const retainedOutputBytes = process.memoryUsage().heapUsed - inputReadyHeap;
+      // Both roots stay strongly reachable until after the final heap read. The
+      // input is already in the baseline and must not be collected from the delta.
+      console.info({
+        inputReadyHeap,
+        afterExecuteHeap,
+        retainedOutputBytes: session ? undefined : retainedOutputBytes,
+        sampledAllocationBytes,
+        maxRssKiB: process.resourceUsage().maxRSS,
+        serializedBytes: JSON.stringify(result).length,
+      });
+    } finally {
+      Reflect.deleteProperty(globalThis, lifetimeKey);
     }
-    global.gc();
-    global.gc();
-    const retainedOutputBytes = process.memoryUsage().heapUsed - inputReadyHeap;
-    // Keep the result alive across both GCs; this measures retained output, not allocations.
-    console.info({
-      inputReadyHeap,
-      afterExecuteHeap,
-      retainedOutputBytes: session ? undefined : retainedOutputBytes,
-      sampledAllocationBytes,
-      maxRssKiB: process.resourceUsage().maxRSS,
-      serializedBytes: JSON.stringify(result).length,
-    });
   },
 );
 const scalarListSchema = buildSchema('type Query { values: [Float!]! }', { assumeValid: true });
