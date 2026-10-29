@@ -9,33 +9,27 @@ export function mergeEnumValues(
   config?: Config,
   directives?: Record<string, DirectiveDefinitionNode>,
 ): EnumValueDefinitionNode[] {
-  if (config?.consistentEnumMerge) {
-    const reversed: Array<EnumValueDefinitionNode> = [];
-    if (first) {
-      reversed.push(...first);
-    }
-    first = second;
-    second = reversed;
-  }
   const enumValueMap = new Map<string, EnumValueDefinitionNode>();
-  if (first) {
-    for (const firstValue of first) {
-      enumValueMap.set(firstValue.name.value, firstValue);
+  if (second) {
+    for (const value of second) {
+      enumValueMap.set(value.name.value, value);
     }
   }
-  if (second) {
-    for (const secondValue of second) {
-      const enumValue = secondValue.name.value;
-      if (enumValueMap.has(enumValue)) {
-        const firstValue: any = enumValueMap.get(enumValue);
-        firstValue.description = secondValue.description || firstValue.description;
-        firstValue.directives = mergeDirectives(
-          secondValue.directives,
-          firstValue.directives,
+  if (first) {
+    for (const incomingValue of first) {
+      const existing = enumValueMap.get(incomingValue.name.value);
+      if (existing) {
+        const incoming: any = incomingValue;
+        incoming.description = incoming.description || existing.description;
+        incoming.directives = mergeDirectives(
+          incoming.directives,
+          existing.directives,
+          config,
           directives,
         );
+        enumValueMap.set(incoming.name.value, incoming);
       } else {
-        enumValueMap.set(enumValue, secondValue);
+        enumValueMap.set(incomingValue.name.value, incomingValue);
       }
     }
   }
