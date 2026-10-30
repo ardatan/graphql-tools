@@ -116,8 +116,9 @@ export interface SingularExecutionResult<TData = any, TExtensions = any> {
 
 /**
  * Cross-execution collectFields cache for documents whose `@skip` /
- * `@include` / `@defer` `if` args are not variables. Keyed by schema,
- * document fragments, runtime type and selection set — not variableValues.
+ * `@include` / `@defer` args that affect collection are not variables.
+ * Keyed by schema, document fragments, runtime type and selection set —
+ * not variableValues.
  */
 const collectFieldsStable = memoize4(function collectFieldsStable(
   schema: GraphQLSchema,
@@ -144,7 +145,7 @@ const collectSubfieldsStable = memoize4(function collectSubfieldsStable(
 
 /**
  * Per-execution collectSubfields when collected fields can change with
- * variableValues (`@skip` / `@include` / `@defer` with variable `if`).
+ * variableValues (`@skip` / `@include` / `@defer` with variable `if`/`label`).
  */
 const collectSubfieldsWithVariables = memoize3(function collectSubfieldsWithVariables(
   exeContext: ExecutionContext,
@@ -300,7 +301,8 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   variableValues: VariableValues<TVariables>;
   /**
    * True when collected field sets can change with variableValues because
-   * `@skip` / `@include` / `@defer` use a variable `if` in this document.
+   * `@skip` / `@include` / `@defer` use a variable `if` (or `@defer` `label`)
+   * in this document.
    */
   collectFieldsDependsOnVariables: boolean;
   /** Precomputed for GraphQLResolveInfo (GQL16 coerced map vs GQL17 VariableValues). */

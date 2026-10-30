@@ -24,6 +24,14 @@ describe('collectFieldsDependsOnVariables', () => {
     ).toBe(true);
   });
 
+  it('is true when @defer label is a variable', () => {
+    expect(
+      collectFieldsDependsOnVariables(
+        parse('query ($label: String) { ... @defer(label: $label) { a } }'),
+      ),
+    ).toBe(true);
+  });
+
   it('detects variable conditionals on fragments', () => {
     expect(
       collectFieldsDependsOnVariables(

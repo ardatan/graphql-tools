@@ -69,6 +69,35 @@ describe('collectFields stable cache', () => {
     expect(exeContext.collectFieldsDependsOnVariables).toBe(true);
   });
 
+  it('does not reuse collectFields results when @defer label depends on variables', () => {
+    const document = parse('query ($label: String) { a ... @defer(label: $label) { b } }');
+    const first = buildExecutionContext({
+      schema,
+      document,
+      variableValues: { label: 'one' },
+    });
+    const second = buildExecutionContext({
+      schema,
+      document,
+      variableValues: { label: 'two' },
+    });
+    assertExeContext(first);
+    assertExeContext(second);
+    expect(first.collectFieldsDependsOnVariables).toBe(true);
+
+    const rootType = schema.getQueryType()!;
+    const collectedFirst = collectFieldsFromContext(first, rootType, first.operation.selectionSet);
+    const collectedSecond = collectFieldsFromContext(
+      second,
+      rootType,
+      second.operation.selectionSet,
+    );
+
+    expect(collectedSecond).not.toBe(collectedFirst);
+    expect(collectedFirst.patches[0]?.label).toBe('one');
+    expect(collectedSecond.patches[0]?.label).toBe('two');
+  });
+
   it('reuses collectFields results across executions when variables are unused by directives', () => {
     const document = parse('query ($unused: String) { items { name } }');
     const first = buildExecutionContext({

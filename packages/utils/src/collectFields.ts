@@ -22,10 +22,11 @@ import { VariableValues } from './types.js';
 const VARIABLE_CONDITIONAL_DIRECTIVES = new Set(['skip', 'include', 'defer']);
 
 /**
- * True when `@skip` / `@include` / `@defer` use a variable `if` argument
- * somewhere in the document. In that case collected field sets depend on
- * runtime variable values; otherwise collectFields results are stable for a
- * given schema, fragments, type and selection set.
+ * True when `@skip` / `@include` / `@defer` use a variable argument that
+ * affects collected fields (`if`, and for `@defer` also `label`) somewhere in
+ * the document. In that case collected field sets depend on runtime variable
+ * values; otherwise collectFields results are stable for a given schema,
+ * fragments, type and selection set.
  */
 export function collectFieldsDependsOnVariables(document: DocumentNode): boolean {
   for (const definition of document.definitions) {
@@ -71,12 +72,19 @@ function directivesDependOnVariables(
     return false;
   }
   for (const directive of directives) {
-    if (!VARIABLE_CONDITIONAL_DIRECTIVES.has(directive.name.value)) {
+    const name = directive.name.value;
+    if (!VARIABLE_CONDITIONAL_DIRECTIVES.has(name)) {
       continue;
     }
-    const ifArg = directive.arguments?.find(arg => arg.name.value === 'if');
-    if (ifArg?.value.kind === Kind.VARIABLE) {
-      return true;
+    for (const arg of directive.arguments ?? []) {
+      if (arg.value.kind !== Kind.VARIABLE) {
+        continue;
+      }
+      // `@skip` / `@include` only expose `if`; `@defer` also resolves `label`
+      // into PatchFields, so a variable label must disable the stable cache.
+      if (arg.name.value === 'if' || (name === 'defer' && arg.name.value === 'label')) {
+        return true;
+      }
     }
   }
   return false;
