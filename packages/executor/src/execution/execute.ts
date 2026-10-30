@@ -26,14 +26,16 @@ import {
   Kind,
   OperationDefinitionNode,
   SchemaMetaFieldDef,
+  SelectionSetNode,
   TypeMetaFieldDef,
   TypeNameMetaFieldDef,
   versionInfo,
 } from 'graphql';
 import {
+  collectFields as _collectFields,
   collectSubFields as _collectSubfields,
   addPath,
-  collectFields,
+  collectFieldsDependsOnVariables,
   getDefinedRootType,
   getDirectiveValues,
   GraphQLResolveInfo,
@@ -46,10 +48,12 @@ import {
   Maybe,
   memoize2,
   memoize3,
+  memoize4,
   Path,
   pathToArray,
   promiseReduce,
   VariableValues,
+  type FieldsAndPatches,
   type IncrementalSpec,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
@@ -98,6 +102,10 @@ export { defaultFieldResolver, defaultTypeResolver };
 export type { CompletedResult, PendingResult } from './incremental.js';
 
 const EMPTY_ARGS: { [argument: string]: unknown } = Object.freeze(Object.create(null));
+const EMPTY_VARIABLE_VALUES: VariableValues = Object.freeze({
+  coerced: Object.freeze(Object.create(null)),
+  sources: Object.freeze(Object.create(null)),
+});
 const isGraphQL17 = versionInfo.major >= 17;
 
 export interface SingularExecutionResult<TData = any, TExtensions = any> {
@@ -107,17 +115,43 @@ export interface SingularExecutionResult<TData = any, TExtensions = any> {
 }
 
 /**
- * A memoized collection of relevant subfields with regard to the return
- * type. Memoizing ensures the subfields are not repeatedly calculated, which
- * saves overhead when resolving lists of values.
- *
- * Single WeakMap stack (graphql-js style) via utils `memoize3`.
+ * Cross-execution collectFields cache for documents whose `@skip` /
+ * `@include` / `@defer` args that affect collection are not variables.
+ * Keyed by schema, document fragments, runtime type and selection set —
+ * not variableValues.
  */
-const collectSubfields = memoize3(function collectSubfields(
+const collectFieldsStable = memoize4(function collectFieldsStable(
+  schema: GraphQLSchema,
+  fragments: Record<string, FragmentDefinitionNode>,
+  runtimeType: GraphQLObjectType,
+  selectionSet: SelectionSetNode,
+): FieldsAndPatches {
+  return _collectFields(schema, fragments, EMPTY_VARIABLE_VALUES, runtimeType, selectionSet);
+});
+
+/**
+ * Cross-execution collectSubfields cache for the same class of documents.
+ * Reuses results across requests when the document AST (and thus fieldNodes
+ * arrays from a cached root collect) is shared.
+ */
+const collectSubfieldsStable = memoize4(function collectSubfieldsStable(
+  schema: GraphQLSchema,
+  fragments: Record<string, FragmentDefinitionNode>,
+  returnType: GraphQLObjectType,
+  fieldNodes: Array<FieldNode>,
+): FieldsAndPatches {
+  return _collectSubfields(schema, fragments, EMPTY_VARIABLE_VALUES, returnType, fieldNodes);
+});
+
+/**
+ * Per-execution collectSubfields when collected fields can change with
+ * variableValues (`@skip` / `@include` / `@defer` with variable `if`/`label`).
+ */
+const collectSubfieldsWithVariables = memoize3(function collectSubfieldsWithVariables(
   exeContext: ExecutionContext,
   returnType: GraphQLObjectType,
   fieldNodes: Array<FieldNode>,
-) {
+): FieldsAndPatches {
   return _collectSubfields(
     exeContext.schema,
     exeContext.fragments,
@@ -126,6 +160,50 @@ const collectSubfields = memoize3(function collectSubfields(
     fieldNodes,
   );
 });
+
+/**
+ * Root/selection-set field collection with optional cross-execution memoization
+ * when the document has no variable-conditional `@skip` / `@include` / `@defer`.
+ *
+ * @internal
+ */
+export function collectFieldsFromContext(
+  exeContext: ExecutionContext,
+  runtimeType: GraphQLObjectType,
+  selectionSet: SelectionSetNode,
+): FieldsAndPatches {
+  if (exeContext.collectFieldsDependsOnVariables) {
+    return _collectFields(
+      exeContext.schema,
+      exeContext.fragments,
+      exeContext.variableValues,
+      runtimeType,
+      selectionSet,
+    );
+  }
+  return collectFieldsStable(exeContext.schema, exeContext.fragments, runtimeType, selectionSet);
+}
+
+/**
+ * A memoized collection of relevant subfields with regard to the return
+ * type. Memoizing ensures the subfields are not repeatedly calculated, which
+ * saves overhead when resolving lists of values.
+ *
+ * When the document has no variable-conditional `@skip` / `@include` /
+ * `@defer`, results are shared across executions for the same document AST.
+ *
+ * @internal
+ */
+export function collectSubfieldsFromContext(
+  exeContext: ExecutionContext,
+  returnType: GraphQLObjectType,
+  fieldNodes: Array<FieldNode>,
+): FieldsAndPatches {
+  if (exeContext.collectFieldsDependsOnVariables) {
+    return collectSubfieldsWithVariables(exeContext, returnType, fieldNodes);
+  }
+  return collectSubfieldsStable(exeContext.schema, exeContext.fragments, returnType, fieldNodes);
+}
 
 /**
  * Memoize argument coercion across list items that share the same field AST
@@ -221,6 +299,12 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   contextValue: TContext;
   operation: OperationDefinitionNode;
   variableValues: VariableValues<TVariables>;
+  /**
+   * True when collected field sets can change with variableValues because
+   * `@skip` / `@include` / `@defer` use a variable `if` (or `@defer` `label`)
+   * in this document.
+   */
+  collectFieldsDependsOnVariables: boolean;
   /** Precomputed for GraphQLResolveInfo (GQL16 coerced map vs GQL17 VariableValues). */
   resolveInfoVariableValues: GraphQLResolveInfo['variableValues'];
   fieldResolver: GraphQLFieldResolver<any, TContext>;
@@ -570,6 +654,8 @@ const fragmentsFromDocumentCache = new WeakMap<
   Record<string, FragmentDefinitionNode>
 >();
 
+const collectFieldsDependsOnVariablesCache = new WeakMap<DocumentNode, boolean>();
+
 export function getFragmentsFromDocument(
   document: DocumentNode,
 ): Record<string, FragmentDefinitionNode> {
@@ -584,6 +670,15 @@ export function getFragmentsFromDocument(
     fragmentsFromDocumentCache.set(document, fragments);
   }
   return fragments;
+}
+
+function getCollectFieldsDependsOnVariables(document: DocumentNode): boolean {
+  let depends = collectFieldsDependsOnVariablesCache.get(document);
+  if (depends === undefined) {
+    depends = collectFieldsDependsOnVariables(document);
+    collectFieldsDependsOnVariablesCache.set(document, depends);
+  }
+  return depends;
 }
 
 /**
@@ -782,6 +877,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     contextValue,
     operation,
     variableValues,
+    collectFieldsDependsOnVariables: getCollectFieldsDependsOnVariables(document),
     resolveInfoVariableValues,
     fieldResolver: fieldResolver ?? defaultFieldResolver,
     typeResolver: typeResolver ?? defaultTypeResolver,
@@ -825,6 +921,7 @@ function buildPerEventExecutionContext(
     contextValue: exeContext.contextValue,
     operation: exeContext.operation,
     variableValues: exeContext.variableValues,
+    collectFieldsDependsOnVariables: exeContext.collectFieldsDependsOnVariables,
     resolveInfoVariableValues: exeContext.resolveInfoVariableValues,
     fieldResolver: exeContext.fieldResolver,
     typeResolver: exeContext.typeResolver,
@@ -866,10 +963,8 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
     );
   }
 
-  const { fields: rootFields, patches } = collectFields(
-    schema,
-    fragments,
-    variableValues,
+  const { fields: rootFields, patches } = collectFieldsFromContext(
+    exeContext,
     rootType,
     operation.selectionSet,
   );
@@ -1944,7 +2039,7 @@ function collectAndExecuteSubfields(
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): MaybePromise<Record<string, unknown>> {
   // Collect sub-fields to execute to complete this value.
-  const { fields: subFieldNodes, patches: subPatches } = collectSubfields(
+  const { fields: subFieldNodes, patches: subPatches } = collectSubfieldsFromContext(
     exeContext,
     returnType,
     fieldNodes,
@@ -2225,7 +2320,7 @@ function createSourceEventStreamImpl(
 }
 
 function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIterable<unknown>> {
-  const { schema, fragments, operation, variableValues, rootValue } = exeContext;
+  const { schema, operation, variableValues, rootValue } = exeContext;
 
   const rootType = schema.getSubscriptionType();
   if (rootType == null) {
@@ -2234,10 +2329,8 @@ function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIt
     });
   }
 
-  const { fields: rootFields } = collectFields(
-    schema,
-    fragments,
-    variableValues,
+  const { fields: rootFields } = collectFieldsFromContext(
+    exeContext,
     rootType,
     operation.selectionSet,
   );

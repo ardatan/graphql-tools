@@ -125,3 +125,91 @@ test('scalar list completion benchmarks', async ({ bench }) => {
     },
   ).run();
 });
+
+const nestedItemCount = 200;
+const nestedSchema = buildSchema(
+  /* GraphQL */ `
+    type Friend {
+      name: String
+    }
+    type Item {
+      name: String
+      friend: Friend
+    }
+    type Query {
+      items: [Item]
+      a: String
+      b: String
+    }
+  `,
+  { assumeValid: true },
+);
+const nestedItems = Array.from({ length: nestedItemCount }, (_, index) => ({
+  name: `item-${index}`,
+  friend: { name: `friend-${index}` },
+}));
+const nestedRootValue = {
+  items: nestedItems,
+  a: 'a',
+  b: 'b',
+};
+const stableDocument = parse(/* GraphQL */ `
+  query ($unused: String) {
+    items {
+      name
+      friend {
+        name
+      }
+    }
+  }
+`);
+const skipDocument = parse(/* GraphQL */ `
+  query ($s: Boolean!) {
+    a
+    b @skip(if: $s)
+    items {
+      name
+    }
+  }
+`);
+
+test('collectFields cache benchmarks', async ({ bench }) => {
+  let unusedCounter = 0;
+  await bench(
+    'Repeated execute shared document (unused variables)',
+    { ...writeOpts('executor-collect-fields-stable') },
+    () => {
+      for (let index = 0; index < 25; index++) {
+        const result = execute({
+          schema: nestedSchema,
+          document: stableDocument,
+          rootValue: nestedRootValue,
+          variableValues: { unused: String(unusedCounter++) },
+        });
+        if (result instanceof Promise) {
+          throw new Error('expected sync result');
+        }
+      }
+    },
+  ).run();
+
+  let skipToggle = false;
+  await bench(
+    'Repeated execute shared document (@skip variable)',
+    { ...writeOpts('executor-collect-fields-skip-var') },
+    () => {
+      for (let index = 0; index < 25; index++) {
+        skipToggle = !skipToggle;
+        const result = execute({
+          schema: nestedSchema,
+          document: skipDocument,
+          rootValue: nestedRootValue,
+          variableValues: { s: skipToggle },
+        });
+        if (result instanceof Promise) {
+          throw new Error('expected sync result');
+        }
+      }
+    },
+  ).run();
+});
