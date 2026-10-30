@@ -2318,7 +2318,7 @@ function createSourceEventStreamImpl(
 }
 
 function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIterable<unknown>> {
-  const { schema, fragments, operation, variableValues, rootValue } = exeContext;
+  const { schema, operation, variableValues, rootValue } = exeContext;
 
   const rootType = schema.getSubscriptionType();
   if (rootType == null) {
