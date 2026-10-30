@@ -11,11 +11,76 @@ import {
   Kind,
   SelectionSetNode,
   typeFromAST,
+  type DirectiveNode,
+  type DocumentNode,
 } from 'graphql';
 import { AccumulatorMap } from './AccumulatorMap.js';
 import { GraphQLDeferDirective } from './directives.js';
 import { getDirectiveValues } from './getDirectiveValues.js';
 import { VariableValues } from './types.js';
+
+const VARIABLE_CONDITIONAL_DIRECTIVES = new Set(['skip', 'include', 'defer']);
+
+/**
+ * True when `@skip` / `@include` / `@defer` use a variable `if` argument
+ * somewhere in the document. In that case collected field sets depend on
+ * runtime variable values; otherwise collectFields results are stable for a
+ * given schema, fragments, type and selection set.
+ */
+export function collectFieldsDependsOnVariables(document: DocumentNode): boolean {
+  for (const definition of document.definitions) {
+    if (
+      definition.kind === Kind.OPERATION_DEFINITION ||
+      definition.kind === Kind.FRAGMENT_DEFINITION
+    ) {
+      if (selectionSetDependsOnVariables(definition.selectionSet)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function selectionSetDependsOnVariables(selectionSet: SelectionSetNode): boolean {
+  for (const selection of selectionSet.selections) {
+    if (directivesDependOnVariables(selection.directives)) {
+      return true;
+    }
+    switch (selection.kind) {
+      case Kind.FIELD:
+        if (selection.selectionSet && selectionSetDependsOnVariables(selection.selectionSet)) {
+          return true;
+        }
+        break;
+      case Kind.INLINE_FRAGMENT:
+        if (selectionSetDependsOnVariables(selection.selectionSet)) {
+          return true;
+        }
+        break;
+      case Kind.FRAGMENT_SPREAD:
+        break;
+    }
+  }
+  return false;
+}
+
+function directivesDependOnVariables(
+  directives: ReadonlyArray<DirectiveNode> | undefined,
+): boolean {
+  if (directives == null) {
+    return false;
+  }
+  for (const directive of directives) {
+    if (!VARIABLE_CONDITIONAL_DIRECTIVES.has(directive.name.value)) {
+      continue;
+    }
+    const ifArg = directive.arguments?.find(arg => arg.name.value === 'if');
+    if (ifArg?.value.kind === Kind.VARIABLE) {
+      return true;
+    }
+  }
+  return false;
+}
 
 export interface PatchFields {
   label: string | undefined;
