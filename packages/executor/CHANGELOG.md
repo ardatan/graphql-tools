@@ -1,5 +1,18 @@
 # @graphql-tools/executor
 
+## 4.1.7
+
+### Patch Changes
+
+- [#8626](https://github.com/ardatan/graphql-tools/pull/8626) [`cc144f6`](https://github.com/ardatan/graphql-tools/commit/cc144f65952233e0e1a5fc8fba56fb79d585bc1d) Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+    - Updated dependency [`@whatwg-node/promise-helpers@^2.0.1` ↗︎](https://www.npmjs.com/package/@whatwg-node/promise-helpers/v/2.0.1) (from `^2.0.0`, in `dependencies`)
+
+- [#8618](https://github.com/ardatan/graphql-tools/pull/8618) [`9f95ac4`](https://github.com/ardatan/graphql-tools/commit/9f95ac4d8a0fd2cc34793e1ce8ec76a0ebde9479) Thanks [@jhonDoe15](https://github.com/jhonDoe15)! - Avoid allocating indexed paths for successful synchronous scalar and enum list items while retaining scalar serialization, error locations, asynchronous completion and incremental delivery behavior.
+
+- [#8628](https://github.com/ardatan/graphql-tools/pull/8628) [`03f8963`](https://github.com/ardatan/graphql-tools/commit/03f8963fe2e0db3c75c679c8cf75686577fce05e) Thanks [@ardatan](https://github.com/ardatan)! - Cache `collectFields` / `collectSubfields` across executions when the document has no variable-conditional `@skip`, `@include`, or `@defer`, so `variableValues` are omitted from the cache key for those documents.
+- Updated dependencies [[`cc144f6`](https://github.com/ardatan/graphql-tools/commit/cc144f65952233e0e1a5fc8fba56fb79d585bc1d), [`03f8963`](https://github.com/ardatan/graphql-tools/commit/03f8963fe2e0db3c75c679c8cf75686577fce05e)]:
+  - @graphql-tools/utils@13.2.1
+
 ## 4.1.6
 
 ### Patch Changes

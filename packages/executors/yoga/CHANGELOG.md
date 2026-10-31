@@ -1,5 +1,15 @@
 # @graphql-tools/executor-yoga
 
+## 5.0.2
+
+### Patch Changes
+
+- [#8620](https://github.com/ardatan/graphql-tools/pull/8620) [`27e7848`](https://github.com/ardatan/graphql-tools/commit/27e78482605412fe476a39df5b182418c6314ade) Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+    - Updated dependency [`graphql-yoga@^6.0.1` ↗︎](https://www.npmjs.com/package/graphql-yoga/v/6.0.1) (from `^6.0.0`, in `peerDependencies`)
+- Updated dependencies [[`cc144f6`](https://github.com/ardatan/graphql-tools/commit/cc144f65952233e0e1a5fc8fba56fb79d585bc1d), [`cc144f6`](https://github.com/ardatan/graphql-tools/commit/cc144f65952233e0e1a5fc8fba56fb79d585bc1d), [`03f8963`](https://github.com/ardatan/graphql-tools/commit/03f8963fe2e0db3c75c679c8cf75686577fce05e)]:
+  - @graphql-tools/executor-envelop@5.0.9
+  - @graphql-tools/utils@13.2.1
+
 ## 5.0.1
 
 ### Patch Changes
