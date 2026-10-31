@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/code-file-loader",
-  "version": "9.1.0",
+  "version": "9.1.1",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
@@ -51,9 +51,9 @@
     "graphql": "^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/graphql-tag-pluck": "9.0.8",
-    "@graphql-tools/load-files": "^8.0.7",
-    "@graphql-tools/utils": "^13.2.0",
+    "@graphql-tools/graphql-tag-pluck": "9.0.9",
+    "@graphql-tools/load-files": "^8.0.8",
+    "@graphql-tools/utils": "^13.2.1",
     "tslib": "^2.4.0",
     "unixify": "^1.0.0"
   },
