@@ -2,35 +2,46 @@ function createLimit(concurrency: number) {
   let activeCount = 0;
   const queue: Array<() => void> = [];
 
+  // Drain with a loop so sync tasks do not recurse through next() and blow the stack.
   const next = () => {
-    if (activeCount >= concurrency) {
-      return;
+    while (activeCount < concurrency && queue.length > 0) {
+      const run = queue.shift()!;
+      activeCount++;
+      run();
     }
-    const run = queue.shift();
-    if (!run) {
-      return;
-    }
-    activeCount++;
-    run();
   };
 
   return function limit<T>(fn: () => Promise<T> | T): Promise<T> {
     const { promise, resolve, reject } = Promise.withResolvers<T>();
     queue.push(() => {
-      Promise.resolve()
-        .then(fn)
-        .then(
+      let result: Promise<T> | T;
+      try {
+        result = fn();
+      } catch (error) {
+        activeCount--;
+        reject(error);
+        return;
+      }
+
+      if (result != null && typeof (result as Promise<T>).then === 'function') {
+        (result as Promise<T>).then(
           value => {
             activeCount--;
-            next();
             resolve(value);
+            next();
           },
           error => {
             activeCount--;
-            next();
             reject(error);
+            next();
           },
         );
+        return;
+      }
+
+      activeCount--;
+      resolve(result as T);
+      // Sync completion: the while-loop in next() continues after run() returns.
     });
     next();
     return promise;
