@@ -59,7 +59,7 @@
     "unixify": "^1.0.0"
   },
   "devDependencies": {
-    "@graphql-tools/load": "9.1.1",
+    "@graphql-tools/load": "9.1.2",
     "@types/memoizee": "^0.4.11"
   },
   "publishConfig": {
