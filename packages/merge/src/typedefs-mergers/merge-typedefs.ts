@@ -76,7 +76,6 @@ export interface Config extends ParseOptions, GetDocumentNodeFromSchemaOptions {
   exclusions?: string[];
   sort?: boolean | CompareFn<string>;
   convertExtensions?: boolean;
-  consistentEnumMerge?: boolean;
   ignoreFieldConflicts?: boolean;
   /**
    * Allow directives that are not defined in the schema, but are imported
