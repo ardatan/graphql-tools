@@ -15,25 +15,25 @@ function createLimit(concurrency: number) {
   };
 
   return function limit<T>(fn: () => Promise<T> | T): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-      queue.push(() => {
-        Promise.resolve()
-          .then(fn)
-          .then(
-            value => {
-              activeCount--;
-              next();
-              resolve(value);
-            },
-            error => {
-              activeCount--;
-              next();
-              reject(error);
-            },
-          );
-      });
-      next();
+    const { promise, resolve, reject } = Promise.withResolvers<T>();
+    queue.push(() => {
+      Promise.resolve()
+        .then(fn)
+        .then(
+          value => {
+            activeCount--;
+            next();
+            resolve(value);
+          },
+          error => {
+            activeCount--;
+            next();
+            reject(error);
+          },
+        );
     });
+    next();
+    return promise;
   };
 }
 
