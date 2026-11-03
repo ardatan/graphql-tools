@@ -2,10 +2,7 @@ import { asArray, BaseLoaderOptions, compareStrings, Loader, Source } from '@gra
 import { collectSources, collectSourcesSync } from './load-typedefs/collect-sources.js';
 import { applyDefaultOptions } from './load-typedefs/options.js';
 import { parseSource } from './load-typedefs/parse.js';
-import { useLimit } from './utils/helpers.js';
 import { normalizePointers } from './utils/pointers.js';
-
-const CONCURRENCY_LIMIT = 100;
 
 export type LoadTypedefsOptions<ExtraConfig = { [key: string]: any }> = BaseLoaderOptions &
   ExtraConfig & {
@@ -41,25 +38,19 @@ export async function loadTypedefs<AdditionalConfig = Record<string, unknown>>(
     options,
   });
 
+  // parseSource is synchronous CPU work; a plain loop matches loadTypedefsSync
+  // and avoids an async concurrency wrapper that cannot parallelize it.
   const parsedSources: Source[] = [];
-
-  // If we have few k of files it may be an issue
-  const limit = useLimit(CONCURRENCY_LIMIT);
-
-  await Promise.all(
-    sources.map(partialSource =>
-      limit(() =>
-        parseSource({
-          partialSource,
-          options,
-          pointerOptionMap,
-          addSource(source) {
-            parsedSources.push(source);
-          },
-        }),
-      ),
-    ),
-  );
+  for (const partialSource of sources) {
+    parseSource({
+      partialSource,
+      options,
+      pointerOptionMap,
+      addSource(source) {
+        parsedSources.push(source);
+      },
+    });
+  }
 
   return prepareResult({ options, pointerOptionMap, parsedSources });
 }

@@ -1,5 +1,3 @@
-import pLimit from 'p-limit';
-
 /**
  * Converts a string to 32bit integer
  */
@@ -39,8 +37,4 @@ export function useStack<T>(...fns: Array<StackFn<T>>) {
 
     fns[0](input, createNext(1));
   };
-}
-
-export function useLimit(concurrency: number) {
-  return pLimit(concurrency);
 }
