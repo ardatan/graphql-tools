@@ -21,7 +21,6 @@ export function useQueue<T>(options?: { concurrency?: number }) {
       let activeCount = 0;
       let settledCount = 0;
       let failed = false;
-      let syncFailure: Promise<void> | undefined;
       let resolveDone: (() => void) | undefined;
       let rejectDone: ((reason?: unknown) => void) | undefined;
       let donePromise: Promise<void> | undefined;
@@ -57,12 +56,13 @@ export function useQueue<T>(options?: { concurrency?: number }) {
           } catch (error) {
             failed = true;
             activeCount--;
+            // If callers are already awaiting the completion gate, reject it.
+            // Otherwise keep the sync failure synchronous.
             if (rejectDone) {
               rejectDone(error);
-            } else {
-              syncFailure = Promise.reject(error);
+              return;
             }
-            return;
+            throw error;
           }
 
           if (isThenable(result)) {
@@ -92,9 +92,6 @@ export function useQueue<T>(options?: { concurrency?: number }) {
 
       pump();
 
-      if (syncFailure) {
-        return syncFailure;
-      }
       if (failed) {
         return donePromise;
       }
