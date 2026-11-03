@@ -1,5 +1,14 @@
 # @graphql-tools/load
 
+## 9.1.2
+
+### Patch Changes
+
+- [#8635](https://github.com/ardatan/graphql-tools/pull/8635) [`375eadf`](https://github.com/ardatan/graphql-tools/commit/375eadf4ee9592d4efe7d34d6cb19c7eb6f44ffc) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+    - Removed dependency [`p-limit@3.1.0` ↗︎](https://www.npmjs.com/package/p-limit/v/3.1.0) (from `dependencies`)
+
+- [#8635](https://github.com/ardatan/graphql-tools/pull/8635) [`375eadf`](https://github.com/ardatan/graphql-tools/commit/375eadf4ee9592d4efe7d34d6cb19c7eb6f44ffc) Thanks [@ardatan](https://github.com/ardatan)! - Replace `p-limit` with a small inline concurrency limiter for source collection, and parse loaded sources synchronously since that step is CPU-bound.
+
 ## 9.1.1
 
 ### Patch Changes
