@@ -27,8 +27,11 @@ export function useQueue<T>(options?: { concurrency?: number }) {
 
       const ensureDonePromise = () => {
         if (!donePromise) {
-          ({ promise: donePromise, resolve: resolveDone, reject: rejectDone } =
-            Promise.withResolvers<void>());
+          ({
+            promise: donePromise,
+            resolve: resolveDone,
+            reject: rejectDone,
+          } = Promise.withResolvers<void>());
         }
         return donePromise;
       };
