@@ -17,11 +17,9 @@ export const defaultValueAstFromType = (
 ): ValueNode | undefined => {
   // graphql >= v17 has `default` instead of `defaultValue`
   // So for backward compatibility with v16, we are using `arg.default as any`, otherwise, TypeScript report type error
-  if ('default' in arg) {
-    if (!arg.default) {
-      return undefined;
-    }
-
+  // graphql v17 leaves `default` undefined when the deprecated `defaultValue` config was used,
+  // so that case falls through to `defaultValue` below.
+  if ('default' in arg && arg.default) {
     if ('value' in (arg.default as any)) {
       return (astFromValueUntyped((arg.default as any).value) as any) ?? undefined;
     }
@@ -30,7 +28,7 @@ export const defaultValueAstFromType = (
     return (astFromValue(value, arg.type) as any) ?? undefined;
   }
 
-  // graphql < v17 has `defaultValue` instead of `default`
+  // graphql < v17 has `defaultValue` instead of `default`, and v17 still accepts it as deprecated config
   return (arg as any).defaultValue !== undefined
     ? ((astFromValue((arg as any).defaultValue, (arg as any).type) as any) ?? undefined)
     : undefined;

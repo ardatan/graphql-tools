@@ -203,6 +203,37 @@ describe('printSchemaWithDirectives', () => {
     expect(printedSchema).toContain(`type User @entity`);
   });
 
+  it('prints defaults configured with the deprecated defaultValue', () => {
+    const Size = new GraphQLEnumType({
+      name: 'Size',
+      values: { SMALL: { value: 's' }, LARGE: { value: 'l' } },
+    });
+    const Filter = new GraphQLInputObjectType({
+      name: 'Filter',
+      fields: { term: { type: GraphQLString, defaultValue: 'any' } },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: {
+            type: GraphQLString,
+            args: {
+              limit: { type: new GraphQLNonNull(GraphQLInt), defaultValue: 60 },
+              size: { type: Size, defaultValue: 'l' },
+              filter: { type: Filter },
+            },
+          },
+        },
+      }),
+    });
+
+    const output = printSchemaWithDirectives(schema);
+
+    expect(output).toContain('items(limit: Int! = 60, size: Size = LARGE, filter: Filter): String');
+    expect(output).toContain('term: String = "any"');
+  });
+
   it(`Should print types correctly if they don't have astNode`, () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { GraphQLJSON } = require('graphql-scalars');
