@@ -550,6 +550,255 @@ describe('Abort Signal', () => {
   });
 });
 
+describe('Abort Signal iterator cleanup failures', () => {
+  it.each(['throw', 'reject'] as const)(
+    'continues cleaning up parallel lists when the first return %s fails',
+    async failure => {
+      const controller = new AbortController();
+      const started = [Promise.withResolvers<void>(), Promise.withResolvers<void>()];
+      const pending = [
+        Promise.withResolvers<IteratorResult<number>>(),
+        Promise.withResolvers<IteratorResult<number>>(),
+      ];
+      const cleanupError = new Error('list cleanup failed');
+      const sources = pending.map((gate, index) => ({
+        [Symbol.asyncIterator]() {
+          return this;
+        },
+        next() {
+          started[index].resolve();
+          return gate.promise;
+        },
+        return: jest.fn(() => {
+          gate.resolve({ done: true, value: undefined });
+          if (index === 0) {
+            if (failure === 'throw') {
+              throw cleanupError;
+            }
+            return Promise.reject(cleanupError);
+          }
+          return Promise.resolve({ done: true, value: undefined });
+        }),
+      }));
+      const schema = makeExecutableSchema({
+        typeDefs: /* GraphQL */ `
+          type Query {
+            first: [Int!]!
+            second: [Int!]!
+          }
+        `,
+        resolvers: { Query: { first: () => sources[0], second: () => sources[1] } },
+      });
+      const result = normalizedExecutor({
+        schema,
+        document: parse('{ first second }'),
+        signal: controller.signal,
+      });
+      await Promise.all(started.map(gate => gate.promise));
+      controller.abort();
+      await expect(result).rejects.toBe(controller.signal.reason);
+      await new Promise<void>(resolve => setImmediate(resolve));
+      expect(sources[0].return).toHaveBeenCalledTimes(1);
+      expect(sources[1].return).toHaveBeenCalledTimes(1);
+      expect(sources[0].return.mock.contexts).toEqual([sources[0]]);
+      expect(sources[1].return.mock.contexts).toEqual([sources[1]]);
+    },
+  );
+
+  it.each(['throw', 'reject'] as const)(
+    'ignores %s cleanup failures when @stream is aborted before its initial result',
+    async failure => {
+      const controller = new AbortController();
+      const pending = Promise.withResolvers<void>();
+      const started = Promise.withResolvers<void>();
+      const cleanupError = new Error('stream cleanup failed');
+      const source = {
+        [Symbol.asyncIterator]() {
+          return this;
+        },
+        next: jest.fn(() => {
+          if (source.next.mock.calls.length === 1) {
+            return Promise.resolve({ done: false, value: 1 });
+          }
+          started.resolve();
+          return pending.promise.then(() => ({ done: true, value: undefined }));
+        }),
+        return: jest.fn(() => {
+          pending.resolve();
+          if (failure === 'throw') {
+            throw cleanupError;
+          }
+          return Promise.reject(cleanupError);
+        }),
+      };
+      const schema = makeExecutableSchema({
+        typeDefs: 'type Query { items: [Int!]! }',
+        resolvers: { Query: { items: () => source } },
+      });
+      const result = normalizedExecutor({
+        schema,
+        document: parse('{ items @stream(initialCount: 2) }'),
+        signal: controller.signal,
+      });
+      await started.promise;
+      controller.abort();
+      await expect(result).rejects.toBe(controller.signal.reason);
+      await new Promise<void>(resolve => setImmediate(resolve));
+      expect(source.return).toHaveBeenCalledTimes(1);
+      expect(source.return.mock.contexts).toEqual([source]);
+    },
+  );
+
+  it.each(['throw', 'reject'] as const)(
+    'ignores %s cleanup failures from a list resolved after abort',
+    async failure => {
+      const controller = new AbortController();
+      const ready = Promise.withResolvers<AsyncIterable<number>>();
+      const cleanupError = new Error('late list cleanup failed');
+      const source = {
+        [Symbol.asyncIterator]() {
+          return this;
+        },
+        next: jest.fn(async () => ({ done: false, value: 1 })),
+        return: jest.fn(() => {
+          if (failure === 'throw') {
+            throw cleanupError;
+          }
+          return Promise.reject(cleanupError);
+        }),
+      };
+      const schema = makeExecutableSchema({
+        typeDefs: 'type Query { items: [Int] }',
+        resolvers: { Query: { items: () => ready.promise } },
+      });
+      const result = normalizedExecutor({
+        schema,
+        document: parse('{ items }'),
+        signal: controller.signal,
+      });
+      controller.abort();
+      ready.resolve(source);
+      await expect(result).rejects.toBe(controller.signal.reason);
+      await new Promise<void>(resolve => setImmediate(resolve));
+      expect(source.return).toHaveBeenCalledTimes(1);
+      expect(source.return.mock.contexts).toEqual([source]);
+      expect(source.next).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['throw', 'reject'] as const)(
+    'ignores %s subscription cleanup failures after an event',
+    async failure => {
+      const controller = new AbortController();
+      const cleanupError = new Error('subscription cleanup failed');
+      const source = {
+        [Symbol.asyncIterator]() {
+          return this;
+        },
+        next: async () => ({ done: false, value: 1 }),
+        return: jest.fn(() => {
+          if (failure === 'throw') {
+            throw cleanupError;
+          }
+          return Promise.reject(cleanupError);
+        }),
+      };
+      const schema = makeExecutableSchema({
+        typeDefs: 'type Query { _: Boolean } type Subscription { counter: Int }',
+        resolvers: {
+          Subscription: {
+            counter: {
+              subscribe: () => source,
+              resolve: value => value,
+            },
+          },
+        },
+      });
+      const result = await normalizedExecutor({
+        schema,
+        document: parse('subscription { counter }'),
+        signal: controller.signal,
+      });
+      assertAsyncIterable(result);
+      await expect(result[Symbol.asyncIterator]().next()).resolves.toMatchObject({
+        done: false,
+        value: { data: { counter: 1 } },
+      });
+      controller.abort();
+      await new Promise<void>(resolve => setImmediate(resolve));
+      expect(source.return).toHaveBeenCalledTimes(1);
+      expect(source.return.mock.contexts).toEqual([source]);
+    },
+  );
+
+  it.each(['throw', 'reject'] as const)(
+    'still surfaces explicit subscription return %s errors without abort',
+    async failure => {
+      const error = new Error('explicit cleanup failed');
+      const source = {
+        [Symbol.asyncIterator]() {
+          return this;
+        },
+        next: async () => ({ done: false, value: 1 }),
+        return() {
+          if (failure === 'throw') {
+            throw error;
+          }
+          return Promise.reject(error);
+        },
+      };
+      const schema = makeExecutableSchema({
+        typeDefs: 'type Query { _: Boolean } type Subscription { counter: Int }',
+        resolvers: {
+          Subscription: { counter: { subscribe: () => source, resolve: value => value } },
+        },
+      });
+      const result = await normalizedExecutor({
+        schema,
+        document: parse('subscription { counter }'),
+        signal: new AbortController().signal,
+      });
+      assertAsyncIterable(result);
+      const iterator = result[Symbol.asyncIterator]();
+      await iterator.next();
+      await expect(Promise.resolve().then(() => iterator.return!())).rejects.toThrow(error.message);
+    },
+  );
+
+  it.each(['throw', 'reject'] as const)(
+    'still surfaces ordinary iterator %s errors without abort',
+    async failure => {
+      const error = new Error('iteration failed');
+      const source = {
+        [Symbol.asyncIterator]() {
+          return this;
+        },
+        next() {
+          if (failure === 'throw') {
+            throw error;
+          }
+          return Promise.reject(error);
+        },
+      };
+      const schema = makeExecutableSchema({
+        typeDefs: 'type Query { items: [Int!]! } type Subscription { counter: Int }',
+        resolvers: {
+          Query: { items: () => source },
+          Subscription: { counter: { subscribe: () => source, resolve: value => value } },
+        },
+      });
+      const result = await normalizedExecutor({ schema, document: parse('{ items }') });
+      expect(result).toMatchObject({ data: null, errors: [{ message: error.message }] });
+      const subscription = await normalizedExecutor({
+        schema,
+        document: parse('subscription { counter }'),
+      });
+      assertAsyncIterable(subscription);
+      await expect(subscription[Symbol.asyncIterator]().next()).rejects.toThrow(error.message);
+    },
+  );
+});
+
 describe('Abort Signal listener cleanup', () => {
   it('does not keep abort listeners on a reused signal after queries finish', async () => {
     const controller = new AbortController();

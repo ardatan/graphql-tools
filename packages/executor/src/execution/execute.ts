@@ -1571,7 +1571,13 @@ async function completeAsyncIteratorValue(
   // closes the iterator instead of skipping registration.
   if (iterator.return) {
     exeContext.onSignalAbort?.(() => {
-      iterator.return?.();
+      // Abort cleanup is best-effort: contain synchronous throws and rejected promises
+      // without waiting for cleanup or preventing other abort handlers from running.
+      handleMaybePromise(
+        () => iterator.return?.(),
+        () => {},
+        () => {},
+      );
     });
   }
   exeContext.signal?.throwIfAborted();
@@ -2412,7 +2418,13 @@ function assertEventStream(
 
         if (asyncIterator.return) {
           onSignalAbort?.(() => {
-            asyncIterator.return?.();
+            // Abort cleanup is best-effort: contain synchronous throws and rejected promises
+            // without waiting for cleanup or preventing other abort handlers from running.
+            handleMaybePromise(
+              () => asyncIterator.return?.(),
+              () => {},
+              () => {},
+            );
           });
         }
 
