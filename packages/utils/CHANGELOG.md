@@ -1,5 +1,13 @@
 # @graphql-tools/utils
 
+## 13.2.2
+
+### Patch Changes
+
+- [#8641](https://github.com/ardatan/graphql-tools/pull/8641) [`77d599f`](https://github.com/ardatan/graphql-tools/commit/77d599f3f9aea7de2f52eb574c6267d405dcfc24) Thanks [@m-sanders](https://github.com/m-sanders)! - Print argument and input field defaults configured with the deprecated `defaultValue` on graphql 17.
+  
+  graphql 17 leaves `default` undefined for those, so `printSchemaWithDirectives` dropped the default.
+
 ## 13.2.1
 
 ### Patch Changes
