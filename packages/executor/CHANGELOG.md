@@ -1,5 +1,14 @@
 # @graphql-tools/executor
 
+## 4.1.8
+
+### Patch Changes
+
+- [#8648](https://github.com/ardatan/graphql-tools/pull/8648) [`d88dcc7`](https://github.com/ardatan/graphql-tools/commit/d88dcc7499e84e72985ef38ce65c786ebfdf8ddb) Thanks [@seckardt](https://github.com/seckardt)! - Ignore synchronous throws and asynchronous rejections from iterator cleanup during abort so all
+  registered list and subscription sources can be closed without unhandled cleanup errors.
+- Updated dependencies [[`77d599f`](https://github.com/ardatan/graphql-tools/commit/77d599f3f9aea7de2f52eb574c6267d405dcfc24)]:
+  - @graphql-tools/utils@13.2.2
+
 ## 4.1.7
 
 ### Patch Changes
