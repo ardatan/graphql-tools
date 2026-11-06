@@ -26,6 +26,13 @@ export interface ExternalFragmentLoaderOptions extends BaseLoaderOptions {
   async?: boolean;
 
   /**
+   * Omit source-location metadata from parsed GraphQL nodes.
+   * Set to false to preserve locations on fragment definitions and their descendants.
+   * @default true
+   */
+  noLocation?: boolean;
+
+  /**
    * Directories within each package to scan for GraphQL fragments.
    * @default ['src']
    */

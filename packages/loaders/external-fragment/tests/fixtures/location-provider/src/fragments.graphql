@@ -1,0 +1,21 @@
+fragment Fields on Foo {
+  first: child {
+    id
+  }
+  second: child {
+    id @include(if: $condition)
+  }
+  third: child {
+    id @skip(if: $condition)
+  }
+}
+
+fragment Unused on Foo {
+  id
+}
+
+query UnusedQuery {
+  node {
+    id
+  }
+}

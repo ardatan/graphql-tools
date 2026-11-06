@@ -69,6 +69,11 @@ export interface ExternalFragmentResolverOptions {
   extensions?: string[];
   excludePatterns?: string[];
   pluckConfig?: GraphQLTagPluckOptions;
+  /**
+   * Omit GraphQL AST locations. Set to false to preserve them.
+   * @default true
+   */
+  noLocation?: boolean;
   fileContentFilter?: (content: string, filePath: string) => boolean;
   cacheTTL?: number;
   invalidateTargetPackageCache?: boolean;
@@ -89,10 +94,10 @@ function isGraphQLFile(filePath: string): boolean {
   return GQL_EXTENSIONS.some(ext => filePath.endsWith(`.${ext}`));
 }
 
-function extractFragmentsAndSpreads(rawSDLs: string[]): ExtractedFileInfo {
+function extractFragmentsAndSpreads(rawSDLs: string[], noLocation: boolean): ExtractedFileInfo {
   const sources = rawSDLs.map(rawSDL => ({
     rawSDL,
-    document: parse(rawSDL, { noLocation: true }),
+    document: parse(rawSDL, { noLocation }),
   }));
 
   const definitions: FragmentInfo[] = [];
@@ -174,11 +179,13 @@ function registerFile({
 function parseFile({
   filePath,
   content,
+  noLocation,
   pluckConfig,
   fileContentFilter,
 }: {
   filePath: string;
   content: string;
+  noLocation: boolean;
   pluckConfig?: GraphQLTagPluckOptions;
   fileContentFilter?: (content: string, filePath: string) => boolean;
 }): ExtractedFileInfo | undefined {
@@ -197,7 +204,7 @@ function parseFile({
     rawSDLs = pluckedSources.map(source => source.body);
   }
 
-  return extractFragmentsAndSpreads(rawSDLs);
+  return extractFragmentsAndSpreads(rawSDLs, noLocation);
 }
 
 // --- Memoized functions ---
@@ -250,6 +257,7 @@ function buildPackageFragmentMapRaw(
   scanInternalDirs: string[],
   extensions: string[],
   excludePatterns: string[],
+  noLocation: boolean,
   pluckConfig?: GraphQLTagPluckOptions,
   fileContentFilter?: (content: string, filePath: string) => boolean,
 ): PackageFragmentMap {
@@ -275,7 +283,7 @@ function buildPackageFragmentMapRaw(
 
   for (const filePath of allFiles) {
     const content = readFileSync(filePath, 'utf8');
-    const info = parseFile({ filePath, content, pluckConfig, fileContentFilter });
+    const info = parseFile({ filePath, content, noLocation, pluckConfig, fileContentFilter });
     if (info) registerFile({ builder, packageDir, filePath, info });
   }
 
@@ -287,6 +295,7 @@ async function buildPackageFragmentMapAsyncRaw(
   scanInternalDirs: string[],
   extensions: string[],
   excludePatterns: string[],
+  noLocation: boolean,
   pluckConfig?: GraphQLTagPluckOptions,
   fileContentFilter?: (content: string, filePath: string) => boolean,
 ): Promise<PackageFragmentMap> {
@@ -317,7 +326,7 @@ async function buildPackageFragmentMapAsyncRaw(
   await Promise.all(
     allFiles.map(async filePath => {
       const content = await readFile(filePath, 'utf8');
-      const info = parseFile({ filePath, content, pluckConfig, fileContentFilter });
+      const info = parseFile({ filePath, content, noLocation, pluckConfig, fileContentFilter });
       if (info) registerFile({ builder, packageDir, filePath, info });
     }),
   );
@@ -330,6 +339,7 @@ type PackageMapArgs = [
   scanInternalDirs: string[],
   extensions: string[],
   excludePatterns: string[],
+  noLocation: boolean,
   pluckConfig?: GraphQLTagPluckOptions,
   fileContentFilter?: (content: string, filePath: string) => boolean,
 ];
@@ -680,6 +690,7 @@ interface NormalizedOptions {
   scanInternalDirs: string[];
   extensions: string[];
   excludePatterns: string[];
+  noLocation: boolean;
   invalidateTargetPackageCache: boolean;
 }
 
@@ -691,6 +702,7 @@ function normalizeOptions(options: ExternalFragmentResolverOptions): NormalizedO
   const scanInternalDirs = options.scanInternalDirs ?? DEFAULT_SCAN_INTERNAL_DIRS;
   const extensions = options.extensions ?? DEFAULT_EXTENSIONS;
   const excludePatterns = options.excludePatterns ?? DEFAULT_EXCLUDE_PATTERNS;
+  const noLocation = options.noLocation ?? true;
   const invalidateTargetPackageCache = options.invalidateTargetPackageCache ?? false;
   return {
     externalPackagesDirs,
@@ -700,6 +712,7 @@ function normalizeOptions(options: ExternalFragmentResolverOptions): NormalizedO
     scanInternalDirs,
     extensions,
     excludePatterns,
+    noLocation,
     invalidateTargetPackageCache,
   };
 }
@@ -752,13 +765,14 @@ function toPublicResolvedFiles(
 function getPackageMapArgs(
   packageDir: string,
   options: ExternalFragmentResolverOptions,
-  { scanInternalDirs, extensions, excludePatterns }: NormalizedOptions,
+  { scanInternalDirs, extensions, excludePatterns, noLocation }: NormalizedOptions,
 ): PackageMapArgs {
   return [
     packageDir,
     scanInternalDirs,
     extensions,
     excludePatterns,
+    noLocation,
     options.pluckConfig,
     options.fileContentFilter,
   ];

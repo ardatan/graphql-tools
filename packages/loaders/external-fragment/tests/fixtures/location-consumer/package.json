@@ -1,0 +1,6 @@
+{
+  "name": "location-consumer",
+  "dependencies": {
+    "location-provider": "1.0.0"
+  }
+}
