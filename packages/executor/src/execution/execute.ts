@@ -2696,20 +2696,51 @@ async function executeStreamIterator(
   }
 }
 
+/** True when `possibleAncestor` appears in `record`'s parentContext chain. */
+function isAsyncPayloadAncestor(
+  possibleAncestor: AsyncPayloadRecord,
+  record: AsyncPayloadRecord,
+): boolean {
+  let current: AsyncPayloadRecord | undefined = record.parentContext;
+  while (current) {
+    if (current === possibleAncestor) {
+      return true;
+    }
+    current = current.parentContext;
+  }
+  return false;
+}
+
 function filterSubsequentPayloads(
   exeContext: ExecutionContext,
   nullPath: Path | undefined,
   currentAsyncRecord: AsyncPayloadRecord | undefined,
 ): void {
   const nullPathArray = pathToArray(nullPath);
+  const hasSubsequentPayloads = exeContext.subsequentPayloads.size > 0;
+  // Record nulled paths only when incremental delivery is active. Allocating
+  // `nulledPaths` on plain executions would force later object completions off
+  // the direct subfield path. When subsequent payloads already exist (including
+  // stream-only operations without @defer collect state), record the path so
+  // later @stream indexes under it are skipped.
   if (exeContext.nulledPaths) {
     exeContext.nulledPaths.push(nullPathArray);
-  } else if (exeContext.subsequentPayloads.size === 0) {
+  } else if (hasSubsequentPayloads) {
+    exeContext.nulledPaths = [nullPathArray];
+  } else {
+    return;
+  }
+  if (!hasSubsequentPayloads) {
     return;
   }
   exeContext.subsequentPayloads.forEach(asyncRecord => {
     if (asyncRecord === currentAsyncRecord || asyncRecord.cancelled) {
       // don't remove payload from where error originates
+      return;
+    }
+    // Keep earlier @stream items that are ancestors of the failed record so
+    // already-completed siblings (e.g. index 0) are still published.
+    if (currentAsyncRecord && isAsyncPayloadAncestor(asyncRecord, currentAsyncRecord)) {
       return;
     }
     if (!pathStartsWith(asyncRecord.path, nullPathArray)) {
