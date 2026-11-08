@@ -36,6 +36,9 @@ const query = new GraphQLObjectType({
     scalarList: {
       type: new GraphQLList(GraphQLString),
     },
+    nonNullStringList: {
+      type: new GraphQLList(new GraphQLNonNull(GraphQLString)),
+    },
     scalarListList: {
       type: new GraphQLList(new GraphQLList(GraphQLString)),
     },
@@ -831,6 +834,105 @@ describe('Execute: stream directive', () => {
                 message: 'Cannot return null for non-nullable field Query.nonNullFriendList.',
                 locations: [{ line: 3, column: 9 }],
                 path: ['nonNullFriendList', 1],
+              },
+            ],
+          },
+        ],
+        hasNext: false,
+      },
+    ]);
+  });
+
+  it('Keeps earlier stream items and stops later ones when a non-null item fails after initialCount 0', async () => {
+    const document = parse('{ nonNullStringList @stream(initialCount: 0) }');
+    const result = await complete(document, {
+      nonNullStringList: () => ['a0', null, 'a2'],
+    });
+
+    expectJSON(result).toDeepEqual([
+      {
+        data: { nonNullStringList: [] },
+        hasNext: true,
+      },
+      {
+        incremental: [
+          {
+            items: ['a0'],
+            path: ['nonNullStringList', 0],
+          },
+        ],
+        hasNext: true,
+      },
+      {
+        incremental: [
+          {
+            items: null,
+            path: ['nonNullStringList', 1],
+            errors: [
+              {
+                message: 'Cannot return null for non-nullable field Query.nonNullStringList.',
+                locations: [{ line: 1, column: 3 }],
+                path: ['nonNullStringList', 1],
+              },
+            ],
+          },
+        ],
+        hasNext: false,
+      },
+    ]);
+  });
+
+  it('Still delivers the enclosing @defer payload before a stream null-bubble', async () => {
+    const document = parse(/* GraphQL */ `
+      {
+        ... @defer {
+          nonNullFriendList @stream(initialCount: 0) {
+            nonNullName
+          }
+        }
+      }
+    `);
+    const result = await complete(document, {
+      nonNullFriendList: () => [
+        { nonNullName: 'ok0' },
+        { nonNullName: null },
+        { nonNullName: 'ok2' },
+      ],
+    });
+
+    expectJSON(result).toDeepEqual([
+      {
+        data: {},
+        hasNext: true,
+      },
+      {
+        incremental: [
+          {
+            data: { nonNullFriendList: [] },
+            path: [],
+          },
+        ],
+        hasNext: true,
+      },
+      {
+        incremental: [
+          {
+            items: [{ nonNullName: 'ok0' }],
+            path: ['nonNullFriendList', 0],
+          },
+        ],
+        hasNext: true,
+      },
+      {
+        incremental: [
+          {
+            items: null,
+            path: ['nonNullFriendList', 1],
+            errors: [
+              {
+                message: 'Cannot return null for non-nullable field Friend.nonNullName.',
+                locations: [{ line: 5, column: 13 }],
+                path: ['nonNullFriendList', 1, 'nonNullName'],
               },
             ],
           },
