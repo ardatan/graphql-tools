@@ -205,7 +205,13 @@ export function pruneUnmergeableIncrementalData(
     if (isExactNulledPath(childPath, nulledPaths)) {
       // Keep a null delivered by this payload; drop a non-null write into an
       // already-nulled object (Yaacov: unmergeable incremental).
+      // Keep the empty array placeholder from `@stream(initialCount: 0)` so the
+      // enclosing `@defer` can still publish `{ field: [] }` before the stream
+      // null-bubble error payload.
       if (value != null) {
+        if (Array.isArray(value) && value.length === 0) {
+          result[key] = value;
+        }
         continue;
       }
       result[key] = null;
