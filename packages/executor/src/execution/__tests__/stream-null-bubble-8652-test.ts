@@ -7,7 +7,6 @@ import {
   GraphQLString,
   parse,
 } from 'graphql';
-import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import type {
   InitialIncrementalExecutionResult,
   SubsequentIncrementalExecutionResult,
@@ -50,10 +49,14 @@ async function complete(document: DocumentNode) {
   return result;
 }
 
+function expectExactJSON(actual: unknown, expected: unknown) {
+  expect(JSON.parse(JSON.stringify(actual))).toEqual(expected);
+}
+
 describe('stream null-bubble with initialCount 0 (#8652)', () => {
   it('keeps earlier stream items and stops later ones when a non-null item fails', async () => {
     const result = await complete(parse('{ a @stream(initialCount: 0) }'));
-    expectJSON(result).toDeepEqual([
+    expectExactJSON(result, [
       {
         data: { a: [] },
         hasNext: true,
@@ -88,7 +91,7 @@ describe('stream null-bubble with initialCount 0 (#8652)', () => {
 
   it('still delivers the enclosing @defer payload before stream null-bubble', async () => {
     const result = await complete(parse('{ ... @defer { o @stream(initialCount: 0) { x } } }'));
-    expectJSON(result).toDeepEqual([
+    expectExactJSON(result, [
       {
         data: {},
         hasNext: true,

@@ -2696,6 +2696,7 @@ async function executeStreamIterator(
   }
 }
 
+/** True when `possibleAncestor` appears in `record`'s parentContext chain. */
 function isAsyncPayloadAncestor(
   possibleAncestor: AsyncPayloadRecord,
   record: AsyncPayloadRecord,
@@ -2716,11 +2717,20 @@ function filterSubsequentPayloads(
   currentAsyncRecord: AsyncPayloadRecord | undefined,
 ): void {
   const nullPathArray = pathToArray(nullPath);
-  // Always record the nulled path so later @stream items under this path are
-  // skipped even when this is a stream-only operation (no @defer collect state).
-  exeContext.nulledPaths ??= [];
-  exeContext.nulledPaths.push(nullPathArray);
-  if (exeContext.subsequentPayloads.size === 0) {
+  const hasSubsequentPayloads = exeContext.subsequentPayloads.size > 0;
+  // Record nulled paths only when incremental delivery is active. Allocating
+  // `nulledPaths` on plain executions would force later object completions off
+  // the direct subfield path. When subsequent payloads already exist (including
+  // stream-only operations without @defer collect state), record the path so
+  // later @stream indexes under it are skipped.
+  if (exeContext.nulledPaths) {
+    exeContext.nulledPaths.push(nullPathArray);
+  } else if (hasSubsequentPayloads) {
+    exeContext.nulledPaths = [nullPathArray];
+  } else {
+    return;
+  }
+  if (!hasSubsequentPayloads) {
     return;
   }
   exeContext.subsequentPayloads.forEach(asyncRecord => {
