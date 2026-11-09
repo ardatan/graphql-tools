@@ -1302,7 +1302,9 @@ function executeField(
 
     // Leaf (+ non-null leaf) completion does not need resolveInfo on the success
     // path; avoid allocating it for the common default-resolver property case.
-    if (usedDefaultPropertyFastPath && !isPromise(result)) {
+    // Error-valued properties must go through completeValue (instanceof Error →
+    // field error), matching graphql-js per-field error objects on sources.
+    if (usedDefaultPropertyFastPath && !isPromise(result) && !(result instanceof Error)) {
       const leafCompleted = tryCompleteDefaultPropertyLeafValue(
         returnType,
         result,

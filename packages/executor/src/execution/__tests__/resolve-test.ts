@@ -1,7 +1,9 @@
 import {
   GraphQLFieldConfig,
   GraphQLInt,
+  GraphQLNonNull,
   GraphQLObjectType,
+  GraphQLScalarType,
   GraphQLSchema,
   GraphQLString,
   parse,
@@ -31,6 +33,37 @@ describe('Execute: resolve function', () => {
       data: {
         test: 'testValue',
       },
+    });
+  });
+
+  it('default function treats Error-valued properties as field errors', () => {
+    const AnyScalar = new GraphQLScalarType({
+      name: 'Any',
+      serialize: value => value,
+    });
+
+    const result = executeSync({
+      schema: testSchema({ type: AnyScalar }),
+      document: parse('{ test }'),
+      rootValue: { test: new Error('per-field') },
+    });
+
+    expect(result).toEqual({
+      data: { test: null },
+      errors: [expect.objectContaining({ message: 'per-field', path: ['test'] })],
+    });
+  });
+
+  it('default function treats Error-valued NonNull properties as field errors', () => {
+    const result = executeSync({
+      schema: testSchema({ type: new GraphQLNonNull(GraphQLString) }),
+      document: parse('{ test }'),
+      rootValue: { test: new Error('per-field-non-null') },
+    });
+
+    expect(result).toEqual({
+      data: null,
+      errors: [expect.objectContaining({ message: 'per-field-non-null', path: ['test'] })],
     });
   });
 
