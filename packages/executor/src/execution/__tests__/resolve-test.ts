@@ -70,6 +70,30 @@ describe('Execute: resolve function', () => {
     });
   });
 
+  it('default function adds schema coordinate for Error-valued properties when enabled', () => {
+    const schema = testSchema({ type: GraphQLString });
+    const document = parse('{ test }');
+    const rootValue = { test: new Error('per-field') };
+
+    expect(
+      executeSync({
+        schema,
+        document,
+        rootValue,
+        schemaCoordinateInErrors: true,
+      }).errors![0].coordinate,
+    ).toBe('Query.test');
+
+    expect(
+      executeSync({
+        schema,
+        document,
+        rootValue,
+        schemaCoordinateInErrors: false,
+      }).errors![0].coordinate,
+    ).toBe(undefined);
+  });
+
   it('default function still reports missing required arguments', () => {
     const result = executeSync({
       schema: testSchema({
