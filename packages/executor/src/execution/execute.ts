@@ -99,13 +99,6 @@ import { promiseForObject } from './promiseForObject.js';
 
 export { defaultFieldResolver, defaultTypeResolver };
 
-/**
- * Default-resolver plain-property fast path (skip args + resolveInfo on leaf
- * success). Exported so microbenchmarks can A/B the optimization; leave enabled.
- * @internal
- */
-export const defaultResolverPropertyFastPath = { enabled: true };
-
 export type { CompletedResult, PendingResult } from './incremental.js';
 
 const EMPTY_ARGS: { [argument: string]: unknown } = Object.freeze(Object.create(null));
@@ -1285,7 +1278,6 @@ function executeField(
     // GraphQLResolveInfo allocation when the property is not a method (same rules
     // as graphql-js defaultFieldResolver).
     if (
-      defaultResolverPropertyFastPath.enabled &&
       fieldDef.resolve == null &&
       resolveFn === defaultFieldResolver &&
       (isObjectLike(source) || typeof source === 'function')
