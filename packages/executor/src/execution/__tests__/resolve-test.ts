@@ -9,7 +9,7 @@ import {
   parse,
   versionInfo,
 } from 'graphql';
-import { executeSync } from '../execute.js';
+import { execute, executeSync } from '../execute.js';
 
 const isGraphQL17 = versionInfo.major >= 17;
 
@@ -116,6 +116,24 @@ describe('Execute: resolve function', () => {
           path: ['test'],
         }),
       ],
+    });
+  });
+
+  it('default function handles rejected async leaf serialize as a field error', async () => {
+    const AsyncFailScalar = new GraphQLScalarType({
+      name: 'AsyncFail',
+      serialize: () => Promise.reject(new Error('async-serialize')),
+    });
+
+    const result = await execute({
+      schema: testSchema({ type: AsyncFailScalar }),
+      document: parse('{ test }'),
+      rootValue: { test: 'value' },
+    });
+
+    expect(result).toEqual({
+      data: { test: null },
+      errors: [expect.objectContaining({ message: 'async-serialize', path: ['test'] })],
     });
   });
 

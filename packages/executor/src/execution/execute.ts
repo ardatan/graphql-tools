@@ -1308,6 +1308,9 @@ function executeField(
     // path; avoid allocating it for the common default-resolver property case.
     // Error-valued properties must go through completeValue (instanceof Error →
     // field error), matching graphql-js per-field error objects on sources.
+    // If serialize returns a Promise, keep that promise and run it through the
+    // same field-error handler below (do not return the raw rejection).
+    let completed: MaybePromise<unknown> | undefined;
     if (usedDefaultPropertyFastPath && !isPromise(result) && !(result instanceof Error)) {
       const leafCompleted = tryCompleteDefaultPropertyLeafValue(
         returnType,
@@ -1316,33 +1319,37 @@ function executeField(
         fieldDef.name,
       );
       if (leafCompleted !== COMPLETE_DEFAULT_PROPERTY_FALLBACK) {
-        return leafCompleted;
+        if (!isPromise(leafCompleted)) {
+          return leafCompleted;
+        }
+        completed = leafCompleted;
       }
     }
 
-    let completed;
-    if (isPromise(result)) {
-      completed = result.then(resolved =>
-        completeValue(
+    if (completed === undefined) {
+      if (isPromise(result)) {
+        completed = result.then(resolved =>
+          completeValue(
+            exeContext,
+            returnType,
+            fieldNodes,
+            getInfo(),
+            path,
+            resolved,
+            asyncPayloadRecord,
+          ),
+        );
+      } else {
+        completed = completeValue(
           exeContext,
           returnType,
           fieldNodes,
           getInfo(),
           path,
-          resolved,
+          result,
           asyncPayloadRecord,
-        ),
-      );
-    } else {
-      completed = completeValue(
-        exeContext,
-        returnType,
-        fieldNodes,
-        getInfo(),
-        path,
-        result,
-        asyncPayloadRecord,
-      );
+        );
+      }
     }
 
     if (isPromise(completed)) {
