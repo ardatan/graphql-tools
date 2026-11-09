@@ -95,6 +95,42 @@ describe('Execute: resolve function', () => {
     });
   });
 
+  it('default function reports missing required args before getter side effects', () => {
+    let getterCalls = 0;
+    const rootValue = {};
+    Object.defineProperty(rootValue, 'test', {
+      enumerable: true,
+      get() {
+        getterCalls += 1;
+        throw new Error('getter should not run');
+      },
+    });
+
+    const result = executeSync({
+      schema: testSchema({
+        type: GraphQLString,
+        args: {
+          name: { type: new GraphQLNonNull(GraphQLString) },
+        },
+      }),
+      document: parse('{ test }'),
+      rootValue,
+    });
+
+    expect(getterCalls).toBe(0);
+    expect(result).toEqual({
+      data: { test: null },
+      errors: [
+        expect.objectContaining({
+          message: isGraphQL17
+            ? 'Argument "Query.test(name:)" of required type "String!" was not provided.'
+            : 'Argument "name" of required type "String!" was not provided.',
+          path: ['test'],
+        }),
+      ],
+    });
+  });
+
   it('default function still reports null variables for non-null arguments', () => {
     const result = executeSync({
       schema: testSchema({

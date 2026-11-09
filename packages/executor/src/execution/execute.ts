@@ -1283,16 +1283,18 @@ function executeField(
       resolveFn === defaultFieldResolver &&
       (isObjectLike(source) || typeof source === 'function')
     ) {
+      // Coerce args before reading the property so required-argument errors win
+      // over getter throws/side effects (same order as graphql-js executeField).
+      const args =
+        fieldDef.args.length > 0
+          ? getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues)
+          : EMPTY_ARGS;
       const property = (source as Record<string, unknown>)[fieldDef.name];
       if (typeof property !== 'function') {
-        if (fieldDef.args.length > 0) {
-          getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
-        }
         result = property;
         usedDefaultPropertyFastPath = true;
       } else {
         info = getInfo();
-        const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
         result = property.call(source, args, exeContext.contextValue, info);
       }
     } else {
