@@ -37,6 +37,8 @@ jobs:
           # Warn-only by default; set to 1 to hard-fail later if desired.
           BENCH_FAIL_ON_REGRESSION: '0'
           BENCH_REGRESSION_THRESHOLD: '0.10'
+          # Interleaved HEAD/base pairs; averages cut cold-start order bias.
+          BENCH_ROUNDS: '3'
         run: node scripts/bench-ci.mjs
 
       - name: Run benches on master

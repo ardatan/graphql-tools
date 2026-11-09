@@ -11,6 +11,7 @@ import { basename, join } from 'node:path';
 
 const REGRESSION_RATIO = Number(process.env.BENCH_REGRESSION_THRESHOLD || '0.10');
 const failOnRegression = process.env.BENCH_FAIL_ON_REGRESSION === '1';
+const compareRounds = Number(process.env.BENCH_COMPARE_ROUNDS || '0');
 
 const baselineDir = process.argv[2];
 const currentDir = process.argv[3];
@@ -86,6 +87,10 @@ function hz(n) {
 
 const lines = [
   '### Benchmark comparison vs base',
+  '',
+  compareRounds > 0
+    ? `Interleaved rounds averaged: **${compareRounds}** (order alternates HEAD/base each round).`
+    : 'Single-shot comparison (no interleaved rounds).',
   '',
   `Regression threshold: **${(REGRESSION_RATIO * 100).toFixed(0)}%** slower throughput (warn-only${failOnRegression ? '; fail enabled' : ''}).`,
   '',
