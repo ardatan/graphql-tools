@@ -629,4 +629,154 @@ describe('Execute: Handles execution of abstract types', () => {
       'Support for returning GraphQLObjectType from resolveType was removed in graphql-js@16.0.0 please return type name instead.',
     );
   });
+
+  it('skips resolveInfo for resolveType / isTypeOf when arity < 3', async () => {
+    const PetType = new GraphQLInterfaceType({
+      name: 'Pet',
+      fields: {
+        name: { type: GraphQLString },
+      },
+      resolveType(obj) {
+        // arity 1 — info must not be materialized for this call
+        expect(arguments.length).toBeGreaterThanOrEqual(1);
+        expect(arguments[2]).toBeUndefined();
+        return obj instanceof Dog ? 'Dog' : 'Cat';
+      },
+    });
+
+    const DogType = new GraphQLObjectType({
+      name: 'Dog',
+      interfaces: [PetType],
+      isTypeOf(obj) {
+        expect(arguments[2]).toBeUndefined();
+        return obj instanceof Dog;
+      },
+      fields: {
+        name: { type: GraphQLString },
+        woofs: { type: GraphQLBoolean },
+      },
+    });
+
+    const CatType = new GraphQLObjectType({
+      name: 'Cat',
+      interfaces: [PetType],
+      fields: {
+        name: { type: GraphQLString },
+        meows: { type: GraphQLBoolean },
+      },
+    });
+
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          pets: {
+            type: new GraphQLList(PetType),
+            resolve() {
+              return [new Dog('Odie', true), new Cat('Garfield', false)];
+            },
+          },
+        },
+      }),
+      types: [CatType, DogType],
+    });
+
+    expect(
+      await executeQuery({
+        schema,
+        query: `
+          {
+            pets {
+              name
+              ... on Dog { woofs }
+              ... on Cat { meows }
+            }
+          }
+        `,
+      }),
+    ).toEqual({
+      data: {
+        pets: [
+          { name: 'Odie', woofs: true },
+          { name: 'Garfield', meows: false },
+        ],
+      },
+    });
+  });
+
+  it('passes resolveInfo when resolveType / isTypeOf arity >= 3', async () => {
+    const seen: Array<{ kind: string; hasInfo: boolean; fieldName?: string }> = [];
+
+    const PetType = new GraphQLInterfaceType({
+      name: 'Pet',
+      fields: {
+        name: { type: GraphQLString },
+      },
+      resolveType(obj, _ctx, info) {
+        seen.push({
+          kind: 'resolveType',
+          hasInfo: info != null && typeof info.fieldName === 'string',
+          fieldName: info?.fieldName,
+        });
+        return obj instanceof Dog ? 'Dog' : 'Cat';
+      },
+    });
+
+    const DogType = new GraphQLObjectType({
+      name: 'Dog',
+      interfaces: [PetType],
+      isTypeOf(obj, _ctx, info) {
+        seen.push({
+          kind: 'isTypeOf',
+          hasInfo: info != null && typeof info.fieldName === 'string',
+          fieldName: info?.fieldName,
+        });
+        return obj instanceof Dog;
+      },
+      fields: {
+        name: { type: GraphQLString },
+        woofs: { type: GraphQLBoolean },
+      },
+    });
+
+    const CatType = new GraphQLObjectType({
+      name: 'Cat',
+      interfaces: [PetType],
+      fields: {
+        name: { type: GraphQLString },
+        meows: { type: GraphQLBoolean },
+      },
+    });
+
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          pet: {
+            type: PetType,
+            resolve() {
+              return new Dog('Odie', true);
+            },
+          },
+        },
+      }),
+      types: [CatType, DogType],
+    });
+
+    expect(
+      await executeQuery({
+        schema,
+        query: `{ pet { name ... on Dog { woofs } } }`,
+      }),
+    ).toEqual({
+      data: { pet: { name: 'Odie', woofs: true } },
+    });
+
+    expect(seen).toEqual(
+      expect.arrayContaining([
+        { kind: 'resolveType', hasInfo: true, fieldName: 'pet' },
+        { kind: 'isTypeOf', hasInfo: true, fieldName: 'pet' },
+      ]),
+    );
+  });
 });

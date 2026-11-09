@@ -1266,6 +1266,16 @@ function schemaCoordinateResolveInfo(
 }
 
 /**
+ * Spec signatures place `info` at index 2 for both `isTypeOf(value, context, info)`
+ * and `resolveType(value, context, info, abstractType)`. If the implementation
+ * declares fewer than 3 parameters it cannot observe `info`, so skip building it.
+ * Caveat: rest/`arguments` users and some bound/wrapped fns report misleading `.length`.
+ */
+function resolveInfoForArity(fn: { length: number }, info: ResolveInfoArg): GraphQLResolveInfo | undefined {
+  return fn.length >= 3 ? ensureResolveInfo(info) : undefined;
+}
+
+/**
  * Experimental lazy-info / default-property path. Set
  * GRAPHQL_TOOLS_LAZY_RESOLVE_INFO=0 to force the classic eager-info path for A/B.
  */
@@ -1550,7 +1560,7 @@ function completeValue(
 
   // If field type is an abstract type, Interface or Union, determine the
   // runtime Object type and complete for that type.
-  // resolveType needs info; keep the thunk until that call.
+  // resolveType / isTypeOf only materialize info when their arity observes it.
   if (isAbstractType(returnType)) {
     return completeAbstractValue(
       exeContext,
@@ -1945,9 +1955,25 @@ function completeAbstractValue(
 ): MaybePromise<Record<string, unknown>> {
   const resolveTypeFn = returnType.resolveType ?? exeContext.typeResolver;
   const contextValue = exeContext.contextValue;
-  // resolveType always receives info; materialize once here.
-  const resolvedInfo = ensureResolveInfo(info);
-  const runtimeType = resolveTypeFn(result, contextValue, resolvedInfo, returnType);
+  // defaultTypeResolver's __typename fast path never reads info, but its
+  // declared arity is 4 — short-circuit before materializing resolveInfo.
+  let runtimeType: MaybePromise<Maybe<string>>;
+  if (
+    resolveTypeFn === defaultTypeResolver &&
+    isObjectLike(result) &&
+    typeof (result as { __typename?: unknown }).__typename === 'string'
+  ) {
+    runtimeType = (result as { __typename: string }).__typename;
+  } else {
+    // Only materialize info when resolveType's arity observes the 3rd parameter.
+    // Cast: when arity < 3 the implementation cannot read the 3rd argument.
+    runtimeType = resolveTypeFn(
+      result,
+      contextValue,
+      resolveInfoForArity(resolveTypeFn, info) as GraphQLResolveInfo,
+      returnType,
+    );
+  }
 
   if (isPromise(runtimeType)) {
     return runtimeType.then(resolvedRuntimeType =>
@@ -1958,11 +1984,11 @@ function completeAbstractValue(
           exeContext,
           returnType,
           fieldNodes,
-          resolvedInfo,
+          info,
           result,
         ),
         fieldNodes,
-        resolvedInfo,
+        info,
         path,
         result,
         asyncPayloadRecord,
@@ -1972,16 +1998,9 @@ function completeAbstractValue(
 
   return completeObjectValue(
     exeContext,
-    ensureValidRuntimeType(
-      runtimeType,
-      exeContext,
-      returnType,
-      fieldNodes,
-      resolvedInfo,
-      result,
-    ),
+    ensureValidRuntimeType(runtimeType, exeContext, returnType, fieldNodes, info, result),
     fieldNodes,
-    resolvedInfo,
+    info,
     path,
     result,
     asyncPayloadRecord,
@@ -1993,12 +2012,13 @@ function ensureValidRuntimeType(
   exeContext: ExecutionContext,
   returnType: GraphQLAbstractType,
   fieldNodes: Array<FieldNode>,
-  info: GraphQLResolveInfo,
+  info: ResolveInfoArg,
   result: unknown,
 ): GraphQLObjectType {
   if (runtimeTypeName == null) {
+    const resolvedInfo = ensureResolveInfo(info);
     throw new GraphQLError(
-      `Abstract type "${returnType.name}" must resolve to an Object type at runtime for field "${info.parentType.name}.${info.fieldName}". Either the "${returnType.name}" type should provide a "resolveType" function or each possible type should provide an "isTypeOf" function.`,
+      `Abstract type "${returnType.name}" must resolve to an Object type at runtime for field "${resolvedInfo.parentType.name}.${resolvedInfo.fieldName}". Either the "${returnType.name}" type should provide a "resolveType" function or each possible type should provide an "isTypeOf" function.`,
       { nodes: fieldNodes },
     );
   }
@@ -2010,8 +2030,9 @@ function ensureValidRuntimeType(
   }
 
   if (typeof runtimeTypeName !== 'string') {
+    const resolvedInfo = ensureResolveInfo(info);
     throw new GraphQLError(
-      `Abstract type "${returnType.name}" must resolve to an Object type at runtime for field "${info.parentType.name}.${info.fieldName}" with ` +
+      `Abstract type "${returnType.name}" must resolve to an Object type at runtime for field "${resolvedInfo.parentType.name}.${resolvedInfo.fieldName}" with ` +
         `value ${inspect(result)}, received "${inspect(runtimeTypeName)}".`,
     );
   }
@@ -2055,10 +2076,14 @@ function completeObjectValue(
 ): MaybePromise<Record<string, unknown>> {
   // If there is an isTypeOf predicate function, call it with the
   // current result. If isTypeOf returns false, then raise an error rather
-  // than continuing execution. Without isTypeOf, parent field info is unused.
+  // than continuing execution. Skip building info when arity < 3.
   if (returnType.isTypeOf) {
-    const resolvedInfo = ensureResolveInfo(info);
-    const isTypeOf = returnType.isTypeOf(result, exeContext.contextValue, resolvedInfo);
+    // Cast: when arity < 3 the implementation cannot read the 3rd argument.
+    const isTypeOf = returnType.isTypeOf(
+      result,
+      exeContext.contextValue,
+      resolveInfoForArity(returnType.isTypeOf, info) as GraphQLResolveInfo,
+    );
 
     if (isPromise(isTypeOf)) {
       return isTypeOf.then(resolvedIsTypeOf => {
