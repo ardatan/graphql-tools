@@ -1,0 +1,5 @@
+query ConsumerQuery($condition: Boolean!) {
+  node {
+    ...Fields
+  }
+}

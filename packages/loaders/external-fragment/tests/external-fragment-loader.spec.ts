@@ -2,12 +2,14 @@ import { randomUUID } from 'crypto';
 import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import * as path from 'path';
+import { Kind, print, visit, type DocumentNode, type Location } from 'graphql';
 import { loadDocuments, loadDocumentsSync } from '@graphql-tools/load';
 import externalFragmentLoader, {
   clearCache,
   ExternalFragmentLoader,
   resolveExternalFragments,
   resolveExternalFragmentsSync,
+  type ExternalFragmentLoaderOptions,
 } from '../src/index.js';
 
 // Tests edit fixtures, so concurrent unit and leak runs need separate copies.
@@ -358,6 +360,212 @@ describe('ExternalFragmentLoader', () => {
           .filter(definition => definition.kind === 'FragmentDefinition')
           .map(definition => definition.name.value),
       ).toEqual(['UserFields', 'UserEmail']);
+    });
+  });
+
+  describe('noLocation option', () => {
+    const locationOptions = {
+      packageDir: path.join(FIXTURES_DIR, 'location-consumer'),
+      externalPackagesDirs: [FIXTURES_DIR],
+    };
+
+    const entryPoints = [
+      {
+        name: 'class async',
+        load: async (options: ExternalFragmentLoaderOptions) =>
+          (await loader.load('.', options)).map(source => source.document!),
+      },
+      {
+        name: 'class sync',
+        load: (options: ExternalFragmentLoaderOptions) =>
+          loader.loadSync('.', options).map(source => source.document!),
+      },
+      {
+        name: 'default async',
+        load: async (options: ExternalFragmentLoaderOptions) => [
+          await externalFragmentLoader('.', { ...options, async: true }),
+        ],
+      },
+      {
+        name: 'default sync',
+        load: (options: ExternalFragmentLoaderOptions) => [
+          externalFragmentLoader('.', { ...options, async: false }),
+        ],
+      },
+    ];
+
+    function expectLocations(documents: DocumentNode[], noLocation: boolean) {
+      const selectionLocations: Location[] = [];
+      expect(documents.length).toBeGreaterThan(0);
+      for (const document of documents) {
+        expect(document.definitions.length).toBeGreaterThan(0);
+        visit(document, {
+          enter(node) {
+            // Filtering and concatAST may create a synthetic document wrapper.
+            if (node.kind === Kind.DOCUMENT) return;
+            if (noLocation) {
+              expect(node.loc).toBeUndefined();
+            } else {
+              expect(node.loc).toBeDefined();
+              expect(node.loc!.end).toBeGreaterThan(node.loc!.start);
+              if (node.kind === Kind.SELECTION_SET) {
+                selectionLocations.push(node.loc!);
+                const text = node.loc!.source.body.slice(node.loc!.start, node.loc!.end);
+                expect(text.startsWith('{')).toBe(true);
+                expect(text.endsWith('}')).toBe(true);
+              }
+            }
+          },
+        });
+      }
+      if (!noLocation) {
+        expect(selectionLocations.length).toBeGreaterThan(0);
+        expect(new Set(selectionLocations).size).toBe(selectionLocations.length);
+      }
+    }
+
+    beforeEach(() => {
+      clearCache();
+    });
+
+    describe.each(entryPoints)('$name', ({ load }) => {
+      it.each([undefined, true, false])(
+        'honors noLocation: %s for GraphQL and TypeScript',
+        async noLocation => {
+          for (const options of [locationOptions, tsOpts, packageAOpts]) {
+            const documents = await load({ ...options, noLocation });
+            expectLocations(documents, noLocation ?? true);
+            expect(
+              documents
+                .flatMap(document => document.definitions)
+                .every(definition => definition.kind === Kind.FRAGMENT_DEFINITION),
+            ).toBe(true);
+            const printed = documents.map(print).join('\n');
+            expect(printed).not.toContain('Unused');
+            if (options === locationOptions) {
+              expect(documents.flatMap(document => document.definitions)).toHaveLength(1);
+              expect(printed).toContain('id @include(if: $condition)');
+              expect(printed).toContain('id @skip(if: $condition)');
+            }
+          }
+        },
+      );
+
+      it.each([true, false])(
+        'isolates warm caches starting with noLocation: %s',
+        async noLocation => {
+          const first = await load({ ...locationOptions, noLocation });
+          const opposite = await load({ ...locationOptions, noLocation: !noLocation });
+          const repeated = await load({ ...locationOptions, noLocation });
+
+          expectLocations(first, noLocation);
+          expectLocations(opposite, !noLocation);
+          expectLocations(repeated, noLocation);
+          expect(opposite.map(print)).toEqual(first.map(print));
+          expect(repeated.map(print)).toEqual(first.map(print));
+          expect(repeated[0].definitions[0]).toBe(first[0].definitions[0]);
+          expect(opposite[0].definitions[0]).not.toBe(first[0].definitions[0]);
+        },
+      );
+
+      it('reuses the provider cache for omitted, undefined and true', async () => {
+        const fileContentFilter = jest.fn((_content: string, _filePath: string) => true);
+        const options = { ...locationOptions, fileContentFilter };
+        const omitted = await load(options);
+        const explicitUndefined = await load({ ...options, noLocation: undefined });
+        const explicitTrue = await load({ ...options, noLocation: true });
+
+        expectLocations(omitted, true);
+        expect(explicitUndefined[0].definitions[0]).toBe(omitted[0].definitions[0]);
+        expect(explicitTrue[0].definitions[0]).toBe(omitted[0].definitions[0]);
+        const providerFile = path.join(FIXTURES_DIR, 'location-provider/src/fragments.graphql');
+        expect(
+          fileContentFilter.mock.calls.filter(([, file]) => file === providerFile),
+        ).toHaveLength(1);
+      });
+    });
+
+    describe.each(entryPoints.slice(0, 2))('$name provider reused as consumer', ({ load }) => {
+      it.each([true, false])(
+        'reuses and invalidates the correct cache with noLocation: %s',
+        async noLocation => {
+          const providerDir = path.join(FIXTURES_DIR, 'fragment-direct-provider');
+          const providerFile = path.join(providerDir, 'src/user-fields.graphql');
+          const packageJson = path.join(providerDir, 'package.json');
+          const originalSource = readFileSync(providerFile, 'utf8');
+          const originalPackageJson = readFileSync(packageJson, 'utf8');
+          const fileContentFilter = jest.fn((_content: string, _filePath: string) => true);
+          const options = { ...packageAOpts, noLocation, fileContentFilter };
+          const targetOptions = { ...options, packageDir: providerDir };
+
+          try {
+            await load(options);
+            await load({ ...options, noLocation: !noLocation });
+            expectLocations(await load(targetOptions), noLocation);
+            expectLocations(await load({ ...targetOptions, noLocation: !noLocation }), !noLocation);
+            expect(
+              fileContentFilter.mock.calls.filter(([, file]) => file === providerFile),
+            ).toHaveLength(2);
+
+            writeFileSync(providerFile, originalSource.replace('  ...UserEmail\n', ''));
+            expect(await load(targetOptions)).toHaveLength(1);
+            expect(await load({ ...targetOptions, invalidateTargetPackageCache: true })).toEqual(
+              [],
+            );
+
+            writeFileSync(providerFile, originalSource);
+            writeFileSync(packageJson, JSON.stringify({ name: 'fragment-direct-provider' }));
+            await expect(
+              Promise.resolve().then(() =>
+                load({
+                  ...targetOptions,
+                  invalidateTargetPackageCache: true,
+                }),
+              ),
+            ).rejects.toThrow('no transitive dependencies were found to search');
+          } finally {
+            writeFileSync(providerFile, originalSource);
+            writeFileSync(packageJson, originalPackageJson);
+            clearCache();
+          }
+        },
+      );
+    });
+
+    it('isolates concurrent async callers with different location modes', async () => {
+      const modes = [true, false, true, false];
+      const results = await Promise.all(
+        modes.map(noLocation => loader.load('.', { ...locationOptions, noLocation })),
+      );
+      results.forEach((sources, i) => {
+        expectLocations(
+          sources.map(source => source.document!),
+          modes[i],
+        );
+        expect(sources[0].location).toBe(
+          path.join(FIXTURES_DIR, 'location-provider/src/fragments.graphql'),
+        );
+        expect(sources[0].rawSDL).toBe(results[0][0].rawSDL);
+      });
+    });
+
+    it.each([
+      ['async', resolveExternalFragments],
+      ['sync', resolveExternalFragmentsSync],
+    ] as const)('preserves metadata-only results (%s)', async (_label, resolve) => {
+      const withoutLocations = await resolve(locationOptions);
+      const withLocations = await resolve({ ...locationOptions, noLocation: false });
+      expect(withLocations).toEqual(withoutLocations);
+      expect(withLocations).toEqual([
+        {
+          filePath: path.join(FIXTURES_DIR, 'location-provider/src/fragments.graphql'),
+          packageName: 'location-provider',
+          definitions: [
+            { name: 'Fields', typeCondition: 'Foo' },
+            { name: 'Unused', typeCondition: 'Foo' },
+          ],
+        },
+      ]);
     });
   });
 
