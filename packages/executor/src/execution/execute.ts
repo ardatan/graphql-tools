@@ -1336,8 +1336,16 @@ function executeField(
     // `resolveFn === defaultFieldResolver` cannot be memoized on fieldDef alone:
     // when fieldDef.resolve is unset, resolveFn is exeContext.fieldResolver
     // (per-execution). Gate it first so custom resolvers skip isObjectLike and
-    // the Symbol memo lookup. getLeafFieldMemo still records leaf shape and
-    // allows explicit `resolve: defaultFieldResolver`.
+    // the Symbol memo lookup.
+    //
+    // Method / promise / Error properties must NOT fall through to
+    // `resolveFn` after we already read `source[name]` — that double-read
+    // regresses the async-object bench (~1000 method fields) by ~15–20%.
+    // Instead: plain sync leaves serialize here; methods are invoked once with
+    // the already-read function; promises/Errors go straight to completion.
+    let result: unknown;
+    let resolvedViaDefaultProperty = false;
+
     if (
       resolveFn === defaultFieldResolver &&
       (isObjectLike(source) || typeof source === 'function')
@@ -1349,11 +1357,20 @@ function executeField(
           getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
         }
         const property = (source as Record<string, unknown>)[leafMemo.name];
-        if (
-          typeof property !== 'function' &&
-          !(property instanceof Error) &&
-          !isPromise(property)
-        ) {
+        if (typeof property === 'function') {
+          // Same calling convention as defaultFieldResolver, with `this` =
+          // source. Use .call so we do not re-read source[name].
+          info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+          const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
+          result = (property as Function).call(source, args, exeContext.contextValue, info);
+          resolvedViaDefaultProperty = true;
+        } else if (property instanceof Error) {
+          throw property;
+        } else if (isPromise(property)) {
+          info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+          result = property;
+          resolvedViaDefaultProperty = true;
+        } else {
           if (property == null) {
             if (leafMemo.nonNull) {
               throw new Error(
@@ -1372,8 +1389,10 @@ function executeField(
             throw err;
           }
           if (isPromise(serialized)) {
-            // Rare async serialize: swallow speculative rejection, fall through.
-            serialized.then(undefined, () => {});
+            // Rare async serialize: build info and complete normally.
+            info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+            result = serialized;
+            resolvedViaDefaultProperty = true;
           } else if (serialized == null) {
             throw new Error(
               `Expected \`${inspect(leafMemo.leafType)}.serialize(${inspect(property)})\` to ` +
@@ -1386,30 +1405,38 @@ function executeField(
       }
     }
 
-    info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
-    // Build a JS object of arguments from the field.arguments AST, using the
-    // variables scope to fulfill any variable references. Empty-arg fields skip
-    // coercion; list items reuse a memo keyed by fieldDef/fieldNode/variables.
-    const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
+    if (!resolvedViaDefaultProperty) {
+      info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+      // Build a JS object of arguments from the field.arguments AST, using the
+      // variables scope to fulfill any variable references. Empty-arg fields skip
+      // coercion; list items reuse a memo keyed by fieldDef/fieldNode/variables.
+      const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
 
-    // The resolve function's optional third argument is a context value that
-    // is provided to every resolve function within an execution. It is commonly
-    // used to represent an authenticated user, or request-specific caches.
-    const contextValue = exeContext.contextValue;
-
-    const result = resolveFn(source, args, contextValue, info);
+      // The resolve function's optional third argument is a context value that
+      // is provided to every resolve function within an execution. It is commonly
+      // used to represent an authenticated user, or request-specific caches.
+      result = resolveFn(source, args, exeContext.contextValue, info);
+    }
 
     let completed;
     if (isPromise(result)) {
       completed = result.then(resolved =>
-        completeValue(exeContext, returnType, fieldNodes, info!, path, resolved, asyncPayloadRecord),
+        completeValue(
+          exeContext,
+          returnType,
+          fieldNodes,
+          info!,
+          path,
+          resolved,
+          asyncPayloadRecord,
+        ),
       );
     } else {
       completed = completeValue(
         exeContext,
         returnType,
         fieldNodes,
-        info,
+        info!,
         path,
         result,
         asyncPayloadRecord,
@@ -1473,8 +1500,7 @@ function executeField(
       coercedError,
       fieldNodes,
       pathToArray(path),
-      exeContext.schemaCoordinateInErrors &&
-        (info ?? schemaCoordinateInfo(fieldDef, parentType)),
+      exeContext.schemaCoordinateInErrors && (info ?? schemaCoordinateInfo(fieldDef, parentType)),
     );
     const handledError = handleFieldError(error, returnType, errors);
     filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
