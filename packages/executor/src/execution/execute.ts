@@ -1272,19 +1272,18 @@ function executeField(
     exeContext.signal?.throwIfAborted();
 
     let result: unknown;
-    let usedDefaultPropertyFastPath = false;
 
-    // Default field resolver + plain source property: skip GraphQLResolveInfo
-    // allocation when the property is not a method (same rules as graphql-js
-    // defaultFieldResolver). Argument coercion still runs when the field declares
-    // args so missing/invalid required arguments surface like the slow path.
+    // Default field resolver + plain source property: skip calling
+    // defaultFieldResolver when the property is not a method. Argument coercion
+    // still runs before the property read when the field declares args (same
+    // order as graphql-js). Completion still goes through completeValue so
+    // Error-valued properties, async serialize, and non-leaf fields keep the
+    // existing field-error behavior.
     if (
       fieldDef.resolve == null &&
       resolveFn === defaultFieldResolver &&
       (isObjectLike(source) || typeof source === 'function')
     ) {
-      // Coerce args before reading the property so required-argument errors win
-      // over getter throws/side effects (same order as graphql-js executeField).
       const args =
         fieldDef.args.length > 0
           ? getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues)
@@ -1292,7 +1291,6 @@ function executeField(
       const property = (source as Record<string, unknown>)[fieldDef.name];
       if (typeof property !== 'function') {
         result = property;
-        usedDefaultPropertyFastPath = true;
       } else {
         info = getInfo();
         result = property.call(source, args, exeContext.contextValue, info);
@@ -1306,52 +1304,29 @@ function executeField(
       result = resolveFn(source, args, exeContext.contextValue, info);
     }
 
-    // Leaf (+ non-null leaf) completion does not need resolveInfo on the success
-    // path; avoid allocating it for the common default-resolver property case.
-    // Error-valued properties must go through completeValue (instanceof Error →
-    // field error), matching graphql-js per-field error objects on sources.
-    // If serialize returns a Promise, keep that promise and run it through the
-    // same field-error handler below (do not return the raw rejection).
-    let completed: MaybePromise<unknown> | undefined;
-    if (usedDefaultPropertyFastPath && !isPromise(result) && !(result instanceof Error)) {
-      const leafCompleted = tryCompleteDefaultPropertyLeafValue(
-        returnType,
-        result,
-        parentType,
-        fieldDef.name,
-      );
-      if (leafCompleted !== COMPLETE_DEFAULT_PROPERTY_FALLBACK) {
-        if (!isPromise(leafCompleted)) {
-          return leafCompleted;
-        }
-        completed = leafCompleted;
-      }
-    }
-
-    if (completed === undefined) {
-      if (isPromise(result)) {
-        completed = result.then(resolved =>
-          completeValue(
-            exeContext,
-            returnType,
-            fieldNodes,
-            getInfo(),
-            path,
-            resolved,
-            asyncPayloadRecord,
-          ),
-        );
-      } else {
-        completed = completeValue(
+    let completed;
+    if (isPromise(result)) {
+      completed = result.then(resolved =>
+        completeValue(
           exeContext,
           returnType,
           fieldNodes,
           getInfo(),
           path,
-          result,
+          resolved,
           asyncPayloadRecord,
-        );
-      }
+        ),
+      );
+    } else {
+      completed = completeValue(
+        exeContext,
+        returnType,
+        fieldNodes,
+        getInfo(),
+        path,
+        result,
+        asyncPayloadRecord,
+      );
     }
 
     if (isPromise(completed)) {
@@ -1413,46 +1388,6 @@ function executeField(
     filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
     return handledError;
   }
-}
-
-const COMPLETE_DEFAULT_PROPERTY_FALLBACK = Symbol('COMPLETE_DEFAULT_PROPERTY_FALLBACK');
-
-/**
- * Complete a default-resolver plain property when the field type is a leaf
- * (optional NonNull wrapper) without building GraphQLResolveInfo.
- * Returns COMPLETE_DEFAULT_PROPERTY_FALLBACK for list/object/abstract types.
- */
-function tryCompleteDefaultPropertyLeafValue(
-  returnType: GraphQLOutputType,
-  result: unknown,
-  parentType: GraphQLObjectType,
-  fieldName: string,
-): unknown {
-  if (isNonNullType(returnType)) {
-    const completed = tryCompleteDefaultPropertyLeafValue(
-      returnType.ofType,
-      result,
-      parentType,
-      fieldName,
-    );
-    if (completed === COMPLETE_DEFAULT_PROPERTY_FALLBACK) {
-      return COMPLETE_DEFAULT_PROPERTY_FALLBACK;
-    }
-    if (completed === null) {
-      throw new Error(`Cannot return null for non-nullable field ${parentType.name}.${fieldName}.`);
-    }
-    return completed;
-  }
-
-  if (result == null) {
-    return null;
-  }
-
-  if (isLeafType(returnType)) {
-    return completeLeafValue(returnType, result);
-  }
-
-  return COMPLETE_DEFAULT_PROPERTY_FALLBACK;
 }
 
 /**
