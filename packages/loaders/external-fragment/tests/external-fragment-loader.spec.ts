@@ -17,6 +17,11 @@ const FIXTURES_DIR = path.join(tmpdir(), `external-fragment-loader-${randomUUID(
 const FIXTURES_TS_DIR = FIXTURES_DIR;
 const FIXTURES_DUP_DIR = FIXTURES_DIR;
 
+// matchFiles (and therefore this loader) always emits POSIX separators, even on Windows.
+function expectedPath(...parts: string[]): string {
+  return path.join(...parts).replace(/\\/g, '/');
+}
+
 const packageAOpts = {
   packageDir: path.join(FIXTURES_DIR, 'fragment-consumer'),
   externalPackagesDirs: [FIXTURES_DIR],
@@ -478,7 +483,7 @@ describe('ExternalFragmentLoader', () => {
         expectLocations(omitted, true);
         expect(explicitUndefined[0].definitions[0]).toBe(omitted[0].definitions[0]);
         expect(explicitTrue[0].definitions[0]).toBe(omitted[0].definitions[0]);
-        const providerFile = path.join(FIXTURES_DIR, 'location-provider/src/fragments.graphql');
+        const providerFile = expectedPath(FIXTURES_DIR, 'location-provider/src/fragments.graphql');
         expect(
           fileContentFilter.mock.calls.filter(([, file]) => file === providerFile),
         ).toHaveLength(1);
@@ -490,9 +495,10 @@ describe('ExternalFragmentLoader', () => {
         'reuses and invalidates the correct cache with noLocation: %s',
         async noLocation => {
           const providerDir = path.join(FIXTURES_DIR, 'fragment-direct-provider');
-          const providerFile = path.join(providerDir, 'src/user-fields.graphql');
+          const providerFileNative = path.join(providerDir, 'src/user-fields.graphql');
+          const providerFile = expectedPath(providerFileNative);
           const packageJson = path.join(providerDir, 'package.json');
-          const originalSource = readFileSync(providerFile, 'utf8');
+          const originalSource = readFileSync(providerFileNative, 'utf8');
           const originalPackageJson = readFileSync(packageJson, 'utf8');
           const fileContentFilter = jest.fn((_content: string, _filePath: string) => true);
           const options = { ...packageAOpts, noLocation, fileContentFilter };
@@ -507,13 +513,13 @@ describe('ExternalFragmentLoader', () => {
               fileContentFilter.mock.calls.filter(([, file]) => file === providerFile),
             ).toHaveLength(2);
 
-            writeFileSync(providerFile, originalSource.replace('  ...UserEmail\n', ''));
+            writeFileSync(providerFileNative, originalSource.replace('  ...UserEmail\n', ''));
             expect(await load(targetOptions)).toHaveLength(1);
             expect(await load({ ...targetOptions, invalidateTargetPackageCache: true })).toEqual(
               [],
             );
 
-            writeFileSync(providerFile, originalSource);
+            writeFileSync(providerFileNative, originalSource);
             writeFileSync(packageJson, JSON.stringify({ name: 'fragment-direct-provider' }));
             await expect(
               Promise.resolve().then(() =>
@@ -524,7 +530,7 @@ describe('ExternalFragmentLoader', () => {
               ),
             ).rejects.toThrow('no transitive dependencies were found to search');
           } finally {
-            writeFileSync(providerFile, originalSource);
+            writeFileSync(providerFileNative, originalSource);
             writeFileSync(packageJson, originalPackageJson);
             clearCache();
           }
@@ -543,7 +549,7 @@ describe('ExternalFragmentLoader', () => {
           modes[i],
         );
         expect(sources[0].location).toBe(
-          path.join(FIXTURES_DIR, 'location-provider/src/fragments.graphql'),
+          expectedPath(FIXTURES_DIR, 'location-provider/src/fragments.graphql'),
         );
         expect(sources[0].rawSDL).toBe(results[0][0].rawSDL);
       });
@@ -558,7 +564,7 @@ describe('ExternalFragmentLoader', () => {
       expect(withLocations).toEqual(withoutLocations);
       expect(withLocations).toEqual([
         {
-          filePath: path.join(FIXTURES_DIR, 'location-provider/src/fragments.graphql'),
+          filePath: expectedPath(FIXTURES_DIR, 'location-provider/src/fragments.graphql'),
           packageName: 'location-provider',
           definitions: [
             { name: 'Fields', typeCondition: 'Foo' },
