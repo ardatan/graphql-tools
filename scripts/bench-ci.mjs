@@ -129,9 +129,7 @@ function averageResultDirs(dirs, outDir) {
     writeFileSync(join(outDir, file), `${JSON.stringify(out, null, 2)}\n`);
   }
 
-  console.log(
-    `Averaged ${acc.size} benchmark(s) across ${dirs.length} round(s) → ${outDir}`,
-  );
+  console.log(`Averaged ${acc.size} benchmark(s) across ${dirs.length} round(s) → ${outDir}`);
 }
 
 // Fetch base for PRs / local compares.
