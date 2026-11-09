@@ -99,6 +99,13 @@ import { promiseForObject } from './promiseForObject.js';
 
 export { defaultFieldResolver, defaultTypeResolver };
 
+/**
+ * Default-resolver plain-property fast path (skip args + resolveInfo on leaf
+ * success). Exported so microbenchmarks can A/B the optimization; leave enabled.
+ * @internal
+ */
+export const defaultResolverPropertyFastPath = { enabled: true };
+
 export type { CompletedResult, PendingResult } from './incremental.js';
 
 const EMPTY_ARGS: { [argument: string]: unknown } = Object.freeze(Object.create(null));
@@ -1263,35 +1270,77 @@ function executeField(
 
   const returnType = fieldDef.type;
   const resolveFn = fieldDef.resolve ?? exeContext.fieldResolver;
-
-  const info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+  let info: GraphQLResolveInfo | undefined;
+  const getInfo = (): GraphQLResolveInfo =>
+    (info ??= buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path));
 
   // Get the resolve function, regardless of if its result is normal or abrupt (error).
   try {
     exeContext.signal?.throwIfAborted();
-    // Build a JS object of arguments from the field.arguments AST, using the
-    // variables scope to fulfill any variable references. Empty-arg fields skip
-    // coercion; list items reuse a memo keyed by fieldDef/fieldNode/variables.
-    const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
 
-    // The resolve function's optional third argument is a context value that
-    // is provided to every resolve function within an execution. It is commonly
-    // used to represent an authenticated user, or request-specific caches.
-    const contextValue = exeContext.contextValue;
+    let result: unknown;
+    let usedDefaultPropertyFastPath = false;
 
-    const result = resolveFn(source, args, contextValue, info);
+    // Default field resolver + plain source property: skip argument coercion and
+    // GraphQLResolveInfo allocation when the property is not a method (same rules
+    // as graphql-js defaultFieldResolver).
+    if (
+      defaultResolverPropertyFastPath.enabled &&
+      fieldDef.resolve == null &&
+      resolveFn === defaultFieldResolver &&
+      (isObjectLike(source) || typeof source === 'function')
+    ) {
+      const property = (source as Record<string, unknown>)[fieldDef.name];
+      if (typeof property !== 'function') {
+        result = property;
+        usedDefaultPropertyFastPath = true;
+      } else {
+        info = getInfo();
+        const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
+        result = property.call(source, args, exeContext.contextValue, info);
+      }
+    } else {
+      info = getInfo();
+      // Build a JS object of arguments from the field.arguments AST, using the
+      // variables scope to fulfill any variable references. Empty-arg fields skip
+      // coercion; list items reuse a memo keyed by fieldDef/fieldNode/variables.
+      const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
+      result = resolveFn(source, args, exeContext.contextValue, info);
+    }
+
+    // Leaf (+ non-null leaf) completion does not need resolveInfo on the success
+    // path; avoid allocating it for the common default-resolver property case.
+    if (usedDefaultPropertyFastPath && !isPromise(result)) {
+      const leafCompleted = tryCompleteDefaultPropertyLeafValue(
+        returnType,
+        result,
+        parentType,
+        fieldDef.name,
+      );
+      if (leafCompleted !== COMPLETE_DEFAULT_PROPERTY_FALLBACK) {
+        return leafCompleted;
+      }
+    }
 
     let completed;
     if (isPromise(result)) {
       completed = result.then(resolved =>
-        completeValue(exeContext, returnType, fieldNodes, info, path, resolved, asyncPayloadRecord),
+        completeValue(
+          exeContext,
+          returnType,
+          fieldNodes,
+          getInfo(),
+          path,
+          resolved,
+          asyncPayloadRecord,
+        ),
       );
     } else {
       completed = completeValue(
         exeContext,
         returnType,
         fieldNodes,
-        info,
+        getInfo(),
         path,
         result,
         asyncPayloadRecord,
@@ -1303,26 +1352,26 @@ function executeField(
       // to take a second callback for the error case.
       return completed.then(undefined, rawError => {
         if (rawError instanceof AggregateError) {
-          let result: unknown;
+          let handled: unknown;
           for (let rawErrorItem of rawError.errors) {
             rawErrorItem = coerceError(rawErrorItem);
             const error = locatedError(
               rawErrorItem,
               fieldNodes,
               pathToArray(path),
-              exeContext.schemaCoordinateInErrors && info,
+              exeContext.schemaCoordinateInErrors && getInfo(),
             );
-            result = handleFieldError(error, returnType, errors);
+            handled = handleFieldError(error, returnType, errors);
             filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
           }
-          return result;
+          return handled;
         }
         rawError = coerceError(rawError);
         const error = locatedError(
           rawError,
           fieldNodes,
           pathToArray(path),
-          exeContext.schemaCoordinateInErrors && info,
+          exeContext.schemaCoordinateInErrors && getInfo(),
         );
         const handledError = handleFieldError(error, returnType, errors);
         filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
@@ -1332,31 +1381,71 @@ function executeField(
     return completed;
   } catch (rawError) {
     if (rawError instanceof AggregateError) {
-      let result: unknown;
+      let handled: unknown;
       for (let rawErrorItem of rawError.errors) {
         rawErrorItem = coerceError(rawErrorItem);
         const error = locatedError(
           rawErrorItem,
           fieldNodes,
           pathToArray(path),
-          exeContext.schemaCoordinateInErrors && info,
+          exeContext.schemaCoordinateInErrors && getInfo(),
         );
-        result = handleFieldError(error, returnType, errors);
+        handled = handleFieldError(error, returnType, errors);
         filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
       }
-      return result;
+      return handled;
     }
     const coercedError = coerceError(rawError);
     const error = locatedError(
       coercedError,
       fieldNodes,
       pathToArray(path),
-      exeContext.schemaCoordinateInErrors && info,
+      exeContext.schemaCoordinateInErrors && getInfo(),
     );
     const handledError = handleFieldError(error, returnType, errors);
     filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
     return handledError;
   }
+}
+
+const COMPLETE_DEFAULT_PROPERTY_FALLBACK = Symbol('COMPLETE_DEFAULT_PROPERTY_FALLBACK');
+
+/**
+ * Complete a default-resolver plain property when the field type is a leaf
+ * (optional NonNull wrapper) without building GraphQLResolveInfo.
+ * Returns COMPLETE_DEFAULT_PROPERTY_FALLBACK for list/object/abstract types.
+ */
+function tryCompleteDefaultPropertyLeafValue(
+  returnType: GraphQLOutputType,
+  result: unknown,
+  parentType: GraphQLObjectType,
+  fieldName: string,
+): unknown {
+  if (isNonNullType(returnType)) {
+    const completed = tryCompleteDefaultPropertyLeafValue(
+      returnType.ofType,
+      result,
+      parentType,
+      fieldName,
+    );
+    if (completed === COMPLETE_DEFAULT_PROPERTY_FALLBACK) {
+      return COMPLETE_DEFAULT_PROPERTY_FALLBACK;
+    }
+    if (completed === null) {
+      throw new Error(`Cannot return null for non-nullable field ${parentType.name}.${fieldName}.`);
+    }
+    return completed;
+  }
+
+  if (result == null) {
+    return null;
+  }
+
+  if (isLeafType(returnType)) {
+    return completeLeafValue(returnType, result);
+  }
+
+  return COMPLETE_DEFAULT_PROPERTY_FALLBACK;
 }
 
 /**

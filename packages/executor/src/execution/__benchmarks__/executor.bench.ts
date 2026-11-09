@@ -4,7 +4,10 @@
  */
 import { buildSchema, parse } from 'graphql';
 import { test } from 'vitest';
-import { execute as executeImported } from '@graphql-tools/executor';
+import {
+  defaultResolverPropertyFastPath,
+  execute as executeImported,
+} from '@graphql-tools/executor';
 
 function writeOpts(name: string): { writeResult: string } | Record<string, never> {
   return process.env['BENCH_WRITE'] ? { writeResult: `./benchmarks/results/${name}.json` } : {};
@@ -106,6 +109,43 @@ test('executor benchmarks', async ({ bench }) => {
     }
     return 'data' in result ? result.data : result;
   }).run();
+});
+
+const propertyBagFieldCount = 400;
+const propertyBagFieldNames = Array.from(
+  { length: propertyBagFieldCount },
+  (_, index) => `p${index}`,
+);
+const propertyBagSchema = buildSchema(
+  `type Query { ${propertyBagFieldNames.map(name => `${name}: Int`).join(' ')} }`,
+  { assumeValid: true },
+);
+const propertyBagDocument = parse(`{ ${propertyBagFieldNames.join(' ')} }`);
+const propertyBagRootValue = Object.fromEntries(
+  propertyBagFieldNames.map((name, index) => [name, index]),
+);
+
+test('default resolver property fast path A/B', async ({ bench }) => {
+  for (const enabled of [false, true]) {
+    const label = enabled ? 'on' : 'off';
+    await bench(
+      `Property-bag ${propertyBagFieldCount} Int fields (fast path ${label})`,
+      { ...writeOpts(`executor-default-resolver-fast-path-${label}`) },
+      () => {
+        defaultResolverPropertyFastPath.enabled = enabled;
+        const result = execute({
+          schema: propertyBagSchema,
+          document: propertyBagDocument,
+          rootValue: propertyBagRootValue,
+        });
+        if (result instanceof Promise) {
+          throw new Error('expected sync result');
+        }
+        return 'data' in result ? result.data : result;
+      },
+    ).run();
+  }
+  defaultResolverPropertyFastPath.enabled = true;
 });
 
 test('scalar list completion benchmarks', async ({ bench }) => {
