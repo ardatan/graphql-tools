@@ -58,7 +58,7 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@apollo/client": "4.3.6",
+    "@apollo/client": "4.3.7",
     "@graphql-tools/stitch": "^10.4.2",
     "@types/apollo-upload-client": "19.0.0",
     "@types/node-fetch": "^2",
