@@ -1,5 +1,18 @@
 # @graphql-tools/executor
 
+## 4.1.8
+
+### Patch Changes
+
+- [#8648](https://github.com/ardatan/graphql-tools/pull/8648) [`d88dcc7`](https://github.com/ardatan/graphql-tools/commit/d88dcc7499e84e72985ef38ce65c786ebfdf8ddb) Thanks [@seckardt](https://github.com/seckardt)! - Ignore synchronous throws and asynchronous rejections from iterator cleanup during abort so all
+  registered list and subscription sources can be closed without unhandled cleanup errors.
+
+- [#8655](https://github.com/ardatan/graphql-tools/pull/8655) [`91245b2`](https://github.com/ardatan/graphql-tools/commit/91245b289550a09892cb78b82870eb8497354806) Thanks [@ardatan](https://github.com/ardatan)! - Fields that rely on GraphQL's default field resolver no longer build argument maps or `GraphQLResolveInfo` when the source value is a plain leaf property (not a method). Leaf shape is memoized per field, the property is serialized directly (including non-null checks), and method-valued leaves are invoked once without a second property read. `schemaCoordinateInErrors` uses a slim `{ fieldName, parentType }` on that error path. Custom field resolvers and a custom `fieldResolver` override are unchanged.
+
+- [#8653](https://github.com/ardatan/graphql-tools/pull/8653) [`8e8e032`](https://github.com/ardatan/graphql-tools/commit/8e8e032556c33dedcdd3a70708942235ab941a02) Thanks [@ardatan](https://github.com/ardatan)! - When a `@stream` list item fails with a non-null error (for example `initialCount: 0` over `[String!]` where index 1 is null), the executor used to cancel earlier stream records under the list path, leave later indexes running when `nulledPaths` was uninitialized on stream-only operations, and prune an enclosing `@defer` payload's empty list placeholder (`{ field: [] }`) once that list path was recorded as nulled. Align stream null-bubble delivery with graphql-js: keep already-resolved earlier items, stop subsequent indexes, and still publish the deferred empty-list payload before the stream error payload.
+- Updated dependencies [[`77d599f`](https://github.com/ardatan/graphql-tools/commit/77d599f3f9aea7de2f52eb574c6267d405dcfc24)]:
+  - @graphql-tools/utils@13.2.2
+
 ## 4.1.7
 
 ### Patch Changes

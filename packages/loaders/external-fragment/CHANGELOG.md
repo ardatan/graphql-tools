@@ -1,5 +1,16 @@
 # @graphql-tools/external-fragment-loader
 
+## 1.0.10
+
+### Patch Changes
+
+- [#8651](https://github.com/ardatan/graphql-tools/pull/8651) [`69ec792`](https://github.com/ardatan/graphql-tools/commit/69ec792ea1cd3349531bdd6c20b50032fd3593e0) Thanks [@ikusakov2](https://github.com/ikusakov2)! - Honor `noLocation: false` to preserve GraphQL AST locations on external fragments. Keep locations
+  disabled by default and cache parsed fragments separately for each location mode.
+- Updated dependencies [[`77d599f`](https://github.com/ardatan/graphql-tools/commit/77d599f3f9aea7de2f52eb574c6267d405dcfc24)]:
+  - @graphql-tools/utils@13.2.2
+  - @graphql-tools/graphql-tag-pluck@9.0.10
+  - @graphql-tools/load-files@8.0.9
+
 ## 1.0.9
 
 ### Patch Changes
