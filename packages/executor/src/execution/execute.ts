@@ -1266,13 +1266,20 @@ function schemaCoordinateResolveInfo(
 }
 
 /**
- * Spec signatures place `info` at index 2 for both `isTypeOf(value, context, info)`
- * and `resolveType(value, context, info, abstractType)`. If the implementation
- * declares fewer than 3 parameters it cannot observe `info`, so skip building it.
+ * If `fn` declares too few parameters to observe the `info` argument at
+ * `infoIndex`, skip building GraphQLResolveInfo.
+ *
+ * Spec indices: field resolver `(source, args, context, info)` → 3;
+ * method property `(args, context, info)` → 2;
+ * `isTypeOf` / `resolveType` → 2.
  * Caveat: rest/`arguments` users and some bound/wrapped fns report misleading `.length`.
  */
-function resolveInfoForArity(fn: { length: number }, info: ResolveInfoArg): GraphQLResolveInfo | undefined {
-  return fn.length >= 3 ? ensureResolveInfo(info) : undefined;
+function resolveInfoForArity(
+  fn: { length: number },
+  info: ResolveInfoArg,
+  infoIndex: number,
+): GraphQLResolveInfo | undefined {
+  return fn.length > infoIndex ? ensureResolveInfo(info) : undefined;
 }
 
 /**
@@ -1315,17 +1322,29 @@ function executeField(
     ) {
       // Coerce before property read (graphql-js order). Skip defaultFieldResolver
       // for plain properties; completeValue receives getInfo and builds info only
-      // if a non-leaf / error path needs it.
+      // if a non-leaf / error path needs it. Method properties get info only when
+      // their arity observes the 3rd parameter (`args, context, info`).
       const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
       const property = (source as Record<string, unknown>)[fieldDef.name];
       if (typeof property !== 'function') {
         result = property;
       } else {
-        result = property.call(source, args, exeContext.contextValue, getInfo());
+        result = (property as (...callArgs: Array<unknown>) => unknown).call(
+          source,
+          args,
+          exeContext.contextValue,
+          resolveInfoForArity(property as { length: number }, getInfo, 2),
+        );
       }
     } else if (lazyResolveInfoEnabled) {
+      // Field resolvers observe info at index 3; skip build when arity < 4.
       const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
-      result = resolveFn(source, args, exeContext.contextValue, getInfo());
+      result = resolveFn(
+        source,
+        args,
+        exeContext.contextValue,
+        resolveInfoForArity(resolveFn, getInfo, 3) as GraphQLResolveInfo,
+      );
     } else {
       // Classic path: eager info (A/B baseline).
       info = getInfo();
@@ -1970,7 +1989,7 @@ function completeAbstractValue(
     runtimeType = resolveTypeFn(
       result,
       contextValue,
-      resolveInfoForArity(resolveTypeFn, info) as GraphQLResolveInfo,
+      resolveInfoForArity(resolveTypeFn, info, 2) as GraphQLResolveInfo,
       returnType,
     );
   }
@@ -2082,7 +2101,7 @@ function completeObjectValue(
     const isTypeOf = returnType.isTypeOf(
       result,
       exeContext.contextValue,
-      resolveInfoForArity(returnType.isTypeOf, info) as GraphQLResolveInfo,
+      resolveInfoForArity(returnType.isTypeOf, info, 2) as GraphQLResolveInfo,
     );
 
     if (isPromise(isTypeOf)) {
