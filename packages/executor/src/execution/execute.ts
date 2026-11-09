@@ -1362,7 +1362,14 @@ function executeField(
           // source. Use .call so we do not re-read source[name].
           info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
           const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
-          result = (property as Function).call(source, args, exeContext.contextValue, info);
+          result = (
+            property as (
+              this: unknown,
+              fieldArgs: typeof args,
+              contextValue: unknown,
+              resolveInfo: GraphQLResolveInfo,
+            ) => unknown
+          ).call(source, args, exeContext.contextValue, info);
           resolvedViaDefaultProperty = true;
         } else if (property instanceof Error) {
           throw property;
