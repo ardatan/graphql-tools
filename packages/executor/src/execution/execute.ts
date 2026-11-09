@@ -1282,12 +1282,6 @@ function resolveInfoForArity(
   return fn.length > infoIndex ? ensureResolveInfo(info) : undefined;
 }
 
-/**
- * Experimental lazy-info / default-property path. Set
- * GRAPHQL_TOOLS_LAZY_RESOLVE_INFO=0 to force the classic eager-info path for A/B.
- */
-const lazyResolveInfoEnabled = process.env['GRAPHQL_TOOLS_LAZY_RESOLVE_INFO'] !== '0';
-
 function executeField(
   exeContext: ExecutionContext,
   parentType: GraphQLObjectType,
@@ -1313,22 +1307,20 @@ function executeField(
   try {
     exeContext.signal?.throwIfAborted();
 
+    // Coerce args before resolve (graphql-js order). Build resolveInfo only when
+    // the resolver/method arity observes it; completeValue keeps getInfo lazy.
+    const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
     let result: unknown;
     if (
-      lazyResolveInfoEnabled &&
       fieldDef.resolve == null &&
       resolveFn === defaultFieldResolver &&
       (isObjectLike(source) || typeof source === 'function')
     ) {
-      // Coerce before property read (graphql-js order). Skip defaultFieldResolver
-      // for plain properties; completeValue receives getInfo and builds info only
-      // if a non-leaf / error path needs it. Method properties get info only when
-      // their arity observes the 3rd parameter (`args, context, info`).
-      const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
       const property = (source as Record<string, unknown>)[fieldDef.name];
       if (typeof property !== 'function') {
         result = property;
       } else {
+        // Method call signature: (args, context, info)
         result = (property as (...callArgs: Array<unknown>) => unknown).call(
           source,
           args,
@@ -1336,23 +1328,15 @@ function executeField(
           resolveInfoForArity(property as { length: number }, getInfo, 2),
         );
       }
-    } else if (lazyResolveInfoEnabled) {
-      // Field resolvers observe info at index 3; skip build when arity < 4.
-      const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
+    } else {
+      // Field resolver signature: (source, args, context, info)
       result = resolveFn(
         source,
         args,
         exeContext.contextValue,
         resolveInfoForArity(resolveFn, getInfo, 3) as GraphQLResolveInfo,
       );
-    } else {
-      // Classic path: eager info (A/B baseline).
-      info = getInfo();
-      const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
-      result = resolveFn(source, args, exeContext.contextValue, info);
     }
-
-    const infoArg: ResolveInfoArg = lazyResolveInfoEnabled ? getInfo : getInfo();
 
     let completed;
     if (isPromise(result)) {
@@ -1361,7 +1345,7 @@ function executeField(
           exeContext,
           returnType,
           fieldNodes,
-          infoArg,
+          getInfo,
           path,
           resolved,
           asyncPayloadRecord,
@@ -1372,7 +1356,7 @@ function executeField(
         exeContext,
         returnType,
         fieldNodes,
-        infoArg,
+        getInfo,
         path,
         result,
         asyncPayloadRecord,
