@@ -197,6 +197,26 @@ describe('Execute: resolve function', () => {
     });
   });
 
+  it('default function does not double-serialize async leaf values', async () => {
+    let serializeCalls = 0;
+    const AsyncOnceScalar = new GraphQLScalarType({
+      name: 'AsyncOnce',
+      serialize: value => {
+        serializeCalls += 1;
+        return Promise.resolve(`s:${String(value)}`);
+      },
+    });
+
+    const result = await execute({
+      schema: testSchema({ type: AsyncOnceScalar }),
+      document: parse('{ test }'),
+      rootValue: { test: 'x' },
+    });
+
+    expect(serializeCalls).toBe(1);
+    expect(result).toEqual({ data: { test: 's:x' } });
+  });
+
   it('default function calls methods', () => {
     const rootValue = {
       _secret: 'secretValue',

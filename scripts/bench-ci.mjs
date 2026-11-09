@@ -235,9 +235,8 @@ run('node', [join(root, 'scripts/compare-bench-results.mjs'), baseResults, headR
 try {
   const repoResults = join(root, 'benchmarks/results');
   ensureResultsDir(repoResults);
-  if (existsSync(join(headResults, 'executor-sync-list.json'))) {
-    cpSync(headResults, repoResults, { recursive: true });
-  }
+  // averageResultDirs already succeeded; copy whatever HEAD averaged.
+  cpSync(headResults, repoResults, { recursive: true });
   writeFileSync(
     join(repoResults, 'COMPARED_AGAINST'),
     `${baseRemoteRef} ${baseSha}\nrounds=${rounds} interleaved\n`,

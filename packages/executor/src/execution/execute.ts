@@ -1345,6 +1345,9 @@ function executeField(
     // the already-read function; promises/Errors go straight to completion.
     let result: unknown;
     let resolvedViaDefaultProperty = false;
+    // True when `result` is already the leaf serialize output (possibly a
+    // Promise). Skipping completeValue avoids a second serialize.
+    let resultAlreadySerialized = false;
 
     if (
       resolveFn === defaultFieldResolver &&
@@ -1396,10 +1399,13 @@ function executeField(
             throw err;
           }
           if (isPromise(serialized)) {
-            // Rare async serialize: build info and complete normally.
+            // Rare async serialize: same as completeLeafValue — return the
+            // serialize promise as the completed value (do not completeValue,
+            // which would serialize again on fulfillment).
             info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
             result = serialized;
             resolvedViaDefaultProperty = true;
+            resultAlreadySerialized = true;
           } else if (serialized == null) {
             throw new Error(
               `Expected \`${inspect(leafMemo.leafType)}.serialize(${inspect(property)})\` to ` +
@@ -1426,7 +1432,9 @@ function executeField(
     }
 
     let completed;
-    if (isPromise(result)) {
+    if (resultAlreadySerialized) {
+      completed = result;
+    } else if (isPromise(result)) {
       completed = result.then(resolved =>
         completeValue(
           exeContext,
