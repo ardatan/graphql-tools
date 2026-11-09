@@ -1274,9 +1274,10 @@ function executeField(
     let result: unknown;
     let usedDefaultPropertyFastPath = false;
 
-    // Default field resolver + plain source property: skip argument coercion and
-    // GraphQLResolveInfo allocation when the property is not a method (same rules
-    // as graphql-js defaultFieldResolver).
+    // Default field resolver + plain source property: skip GraphQLResolveInfo
+    // allocation when the property is not a method (same rules as graphql-js
+    // defaultFieldResolver). Argument coercion still runs when the field declares
+    // args so missing/invalid required arguments surface like the slow path.
     if (
       fieldDef.resolve == null &&
       resolveFn === defaultFieldResolver &&
@@ -1284,6 +1285,9 @@ function executeField(
     ) {
       const property = (source as Record<string, unknown>)[fieldDef.name];
       if (typeof property !== 'function') {
+        if (fieldDef.args.length > 0) {
+          getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
+        }
         result = property;
         usedDefaultPropertyFastPath = true;
       } else {

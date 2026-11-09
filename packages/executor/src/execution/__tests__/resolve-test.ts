@@ -67,6 +67,53 @@ describe('Execute: resolve function', () => {
     });
   });
 
+  it('default function still reports missing required arguments', () => {
+    const result = executeSync({
+      schema: testSchema({
+        type: GraphQLString,
+        args: {
+          name: { type: new GraphQLNonNull(GraphQLString) },
+        },
+      }),
+      document: parse('{ test }'),
+      rootValue: { test: 'should-not-appear' },
+    });
+
+    expect(result).toEqual({
+      data: { test: null },
+      errors: [
+        expect.objectContaining({
+          message: 'Argument "Query.test(name:)" of required type "String!" was not provided.',
+          path: ['test'],
+        }),
+      ],
+    });
+  });
+
+  it('default function still reports null variables for non-null arguments', () => {
+    const result = executeSync({
+      schema: testSchema({
+        type: GraphQLString,
+        args: {
+          name: { type: new GraphQLNonNull(GraphQLString) },
+        },
+      }),
+      document: parse('query ($n: String = "x") { test(name: $n) }'),
+      rootValue: { test: 'should-not-appear' },
+      variableValues: { n: null },
+    });
+
+    expect(result).toEqual({
+      data: { test: null },
+      errors: [
+        expect.objectContaining({
+          message: expect.stringMatching(/non-null|Expected variable/),
+          path: ['test'],
+        }),
+      ],
+    });
+  });
+
   it('default function calls methods', () => {
     const rootValue = {
       _secret: 'secretValue',
