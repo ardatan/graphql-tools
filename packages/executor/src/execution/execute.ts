@@ -1245,6 +1245,11 @@ function executeFields(
  * Memoized per-fieldDef leaf shape so executeField does not repeat
  * isNonNullType / isLeafType / args.length on every execution.
  * `null` means "not eligible for the default-resolver leaf fast path".
+ *
+ * Eligibility also requires the effective resolver to be defaultFieldResolver:
+ * that check is done by the caller because when `fieldDef.resolve` is unset the
+ * effective resolver is `exeContext.fieldResolver` (per-execution, not
+ * memoizable on fieldDef). Explicit `resolve: defaultFieldResolver` is allowed.
  */
 type LeafFieldMemo = {
   leafType: GraphQLLeafType;
@@ -1260,8 +1265,10 @@ function getLeafFieldMemo(fieldDef: GraphQLField<unknown, unknown>): LeafFieldMe
   if (cached !== undefined) {
     return cached;
   }
+  const fieldResolve = fieldDef.resolve;
   // Custom resolve ⇒ never take the default-property leaf path.
-  if (fieldDef.resolve != null) {
+  // Explicit `resolve: defaultFieldResolver` is still eligible.
+  if (fieldResolve != null && fieldResolve !== defaultFieldResolver) {
     (fieldDef as { [LEAF_FIELD_MEMO]?: LeafFieldMemo | null })[LEAF_FIELD_MEMO] = null;
     return null;
   }
@@ -1283,6 +1290,14 @@ function getLeafFieldMemo(fieldDef: GraphQLField<unknown, unknown>): LeafFieldMe
   };
   (fieldDef as { [LEAF_FIELD_MEMO]?: LeafFieldMemo | null })[LEAF_FIELD_MEMO] = memo;
   return memo;
+}
+
+/** `locatedError` only needs fieldName + parentType.name for schema coordinates. */
+function schemaCoordinateInfo(
+  fieldDef: GraphQLField<unknown, unknown>,
+  parentType: GraphQLObjectType,
+): { fieldName: string; parentType: GraphQLObjectType } {
+  return { fieldName: fieldDef.name, parentType };
 }
 
 /**
@@ -1317,7 +1332,12 @@ function executeField(
     // Memoized leaf + default resolver + plain property: skip buildResolveInfo,
     // defaultFieldResolver, and completeValue. completeValue stays monomorphic
     // for all other paths (always receives GraphQLResolveInfo).
-    // Check defaultFieldResolver first so custom resolvers skip the memo lookup.
+    //
+    // `resolveFn === defaultFieldResolver` cannot be memoized on fieldDef alone:
+    // when fieldDef.resolve is unset, resolveFn is exeContext.fieldResolver
+    // (per-execution). Gate it first so custom resolvers skip isObjectLike and
+    // the Symbol memo lookup. getLeafFieldMemo still records leaf shape and
+    // allows explicit `resolve: defaultFieldResolver`.
     if (
       resolveFn === defaultFieldResolver &&
       (isObjectLike(source) || typeof source === 'function')
@@ -1408,8 +1428,9 @@ function executeField(
               rawErrorItem,
               fieldNodes,
               pathToArray(path),
+              // locatedError only reads fieldName + parentType.name
               exeContext.schemaCoordinateInErrors &&
-                (info ??= buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path)),
+                (info ?? schemaCoordinateInfo(fieldDef, parentType)),
             );
             result = handleFieldError(error, returnType, errors);
             filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
@@ -1422,7 +1443,7 @@ function executeField(
           fieldNodes,
           pathToArray(path),
           exeContext.schemaCoordinateInErrors &&
-            (info ??= buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path)),
+            (info ?? schemaCoordinateInfo(fieldDef, parentType)),
         );
         const handledError = handleFieldError(error, returnType, errors);
         filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
@@ -1440,7 +1461,7 @@ function executeField(
           fieldNodes,
           pathToArray(path),
           exeContext.schemaCoordinateInErrors &&
-            (info ??= buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path)),
+            (info ?? schemaCoordinateInfo(fieldDef, parentType)),
         );
         result = handleFieldError(error, returnType, errors);
         filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
@@ -1453,7 +1474,7 @@ function executeField(
       fieldNodes,
       pathToArray(path),
       exeContext.schemaCoordinateInErrors &&
-        (info ??= buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path)),
+        (info ?? schemaCoordinateInfo(fieldDef, parentType)),
     );
     const handledError = handleFieldError(error, returnType, errors);
     filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
