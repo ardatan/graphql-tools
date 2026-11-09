@@ -7,8 +7,11 @@ import {
   GraphQLSchema,
   GraphQLString,
   parse,
+  versionInfo,
 } from 'graphql';
 import { executeSync } from '../execute.js';
+
+const isGraphQL17 = versionInfo.major >= 17;
 
 describe('Execute: resolve function', () => {
   function testSchema(testField: GraphQLFieldConfig<any, any>) {
@@ -83,7 +86,9 @@ describe('Execute: resolve function', () => {
       data: { test: null },
       errors: [
         expect.objectContaining({
-          message: 'Argument "Query.test(name:)" of required type "String!" was not provided.',
+          message: isGraphQL17
+            ? 'Argument "Query.test(name:)" of required type "String!" was not provided.'
+            : 'Argument "name" of required type "String!" was not provided.',
           path: ['test'],
         }),
       ],
@@ -107,7 +112,7 @@ describe('Execute: resolve function', () => {
       data: { test: null },
       errors: [
         expect.objectContaining({
-          message: expect.stringMatching(/non-null|Expected variable/),
+          message: expect.stringMatching(/non-null|Expected variable|Variable "\$n"/i),
           path: ['test'],
         }),
       ],
