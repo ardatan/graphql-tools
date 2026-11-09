@@ -1242,6 +1242,65 @@ function executeFields(
 }
 
 /**
+ * Memoized per-fieldDef leaf shape so executeField does not repeat
+ * isNonNullType / isLeafType / args.length on every execution.
+ * `null` means "not eligible for the default-resolver leaf fast path".
+ *
+ * Eligibility also requires the effective resolver to be defaultFieldResolver:
+ * that check is done by the caller because when `fieldDef.resolve` is unset the
+ * effective resolver is `exeContext.fieldResolver` (per-execution, not
+ * memoizable on fieldDef). Explicit `resolve: defaultFieldResolver` is allowed.
+ */
+type LeafFieldMemo = {
+  leafType: GraphQLLeafType;
+  nonNull: boolean;
+  hasArgs: boolean;
+  name: string;
+};
+
+const LEAF_FIELD_MEMO = Symbol.for('@graphql-tools/executor.leafFieldMemo');
+
+function getLeafFieldMemo(fieldDef: GraphQLField<unknown, unknown>): LeafFieldMemo | null {
+  const cached = (fieldDef as { [LEAF_FIELD_MEMO]?: LeafFieldMemo | null })[LEAF_FIELD_MEMO];
+  if (cached !== undefined) {
+    return cached;
+  }
+  const fieldResolve = fieldDef.resolve;
+  // Custom resolve ⇒ never take the default-property leaf path.
+  // Explicit `resolve: defaultFieldResolver` is still eligible.
+  if (fieldResolve != null && fieldResolve !== defaultFieldResolver) {
+    (fieldDef as { [LEAF_FIELD_MEMO]?: LeafFieldMemo | null })[LEAF_FIELD_MEMO] = null;
+    return null;
+  }
+  let type: GraphQLOutputType = fieldDef.type;
+  let nonNull = false;
+  if (isNonNullType(type)) {
+    nonNull = true;
+    type = type.ofType;
+  }
+  if (!isLeafType(type)) {
+    (fieldDef as { [LEAF_FIELD_MEMO]?: LeafFieldMemo | null })[LEAF_FIELD_MEMO] = null;
+    return null;
+  }
+  const memo: LeafFieldMemo = {
+    leafType: type,
+    nonNull,
+    hasArgs: fieldDef.args.length > 0,
+    name: fieldDef.name,
+  };
+  (fieldDef as { [LEAF_FIELD_MEMO]?: LeafFieldMemo | null })[LEAF_FIELD_MEMO] = memo;
+  return memo;
+}
+
+/** `locatedError` only needs fieldName + parentType.name for schema coordinates. */
+function schemaCoordinateInfo(
+  fieldDef: GraphQLField<unknown, unknown>,
+  parentType: GraphQLObjectType,
+): { fieldName: string; parentType: GraphQLObjectType } {
+  return { fieldName: fieldDef.name, parentType };
+}
+
+/**
  * Implements the "Executing fields" section of the spec
  * In particular, this function figures out the value that the field returns by
  * calling its resolve function, then calls completeValue to complete promises,
@@ -1264,34 +1323,135 @@ function executeField(
   const returnType = fieldDef.type;
   const resolveFn = fieldDef.resolve ?? exeContext.fieldResolver;
 
-  const info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+  let info: GraphQLResolveInfo | undefined;
 
   // Get the resolve function, regardless of if its result is normal or abrupt (error).
   try {
     exeContext.signal?.throwIfAborted();
-    // Build a JS object of arguments from the field.arguments AST, using the
-    // variables scope to fulfill any variable references. Empty-arg fields skip
-    // coercion; list items reuse a memo keyed by fieldDef/fieldNode/variables.
-    const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
 
-    // The resolve function's optional third argument is a context value that
-    // is provided to every resolve function within an execution. It is commonly
-    // used to represent an authenticated user, or request-specific caches.
-    const contextValue = exeContext.contextValue;
+    // Memoized leaf + default resolver + plain property: skip buildResolveInfo,
+    // defaultFieldResolver, and completeValue. completeValue stays monomorphic
+    // for all other paths (always receives GraphQLResolveInfo).
+    //
+    // `resolveFn === defaultFieldResolver` cannot be memoized on fieldDef alone:
+    // when fieldDef.resolve is unset, resolveFn is exeContext.fieldResolver
+    // (per-execution). Gate it first so custom resolvers skip isObjectLike and
+    // the Symbol memo lookup.
+    //
+    // Method / promise / Error properties must NOT fall through to
+    // `resolveFn` after we already read `source[name]` — that double-read
+    // regresses the async-object bench (~1000 method fields) by ~15–20%.
+    // Instead: plain sync leaves serialize here; methods are invoked once with
+    // the already-read function; promises/Errors go straight to completion.
+    let result: unknown;
+    let resolvedViaDefaultProperty = false;
+    // True when `result` is already the leaf serialize output (possibly a
+    // Promise). Skipping completeValue avoids a second serialize.
+    let resultAlreadySerialized = false;
 
-    const result = resolveFn(source, args, contextValue, info);
+    if (
+      resolveFn === defaultFieldResolver &&
+      (isObjectLike(source) || typeof source === 'function')
+    ) {
+      const leafMemo = getLeafFieldMemo(fieldDef);
+      if (leafMemo !== null) {
+        if (leafMemo.hasArgs) {
+          // Coerce before property read (graphql-js order / required-arg errors).
+          getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
+        }
+        const property = (source as Record<string, unknown>)[leafMemo.name];
+        if (typeof property === 'function') {
+          // Same calling convention as defaultFieldResolver, with `this` =
+          // source. Use .call so we do not re-read source[name].
+          info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+          const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
+          result = (
+            property as (
+              this: unknown,
+              fieldArgs: typeof args,
+              contextValue: unknown,
+              resolveInfo: GraphQLResolveInfo,
+            ) => unknown
+          ).call(source, args, exeContext.contextValue, info);
+          resolvedViaDefaultProperty = true;
+        } else if (property instanceof Error) {
+          throw property;
+        } else if (isPromise(property)) {
+          info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+          result = property;
+          resolvedViaDefaultProperty = true;
+        } else {
+          if (property == null) {
+            if (leafMemo.nonNull) {
+              throw new Error(
+                `Cannot return null for non-nullable field ${parentType.name}.${leafMemo.name}.`,
+              );
+            }
+            return null;
+          }
+          let serialized: unknown;
+          try {
+            serialized = leafMemo.leafType.serialize(property);
+          } catch (err) {
+            if (err instanceof GraphQLError) {
+              throw new Error(err.message);
+            }
+            throw err;
+          }
+          if (isPromise(serialized)) {
+            // Rare async serialize: same as completeLeafValue — return the
+            // serialize promise as the completed value (do not completeValue,
+            // which would serialize again on fulfillment).
+            info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+            result = serialized;
+            resolvedViaDefaultProperty = true;
+            resultAlreadySerialized = true;
+          } else if (serialized == null) {
+            throw new Error(
+              `Expected \`${inspect(leafMemo.leafType)}.serialize(${inspect(property)})\` to ` +
+                `return non-nullable value, returned: ${inspect(serialized)}`,
+            );
+          } else {
+            return serialized;
+          }
+        }
+      }
+    }
+
+    if (!resolvedViaDefaultProperty) {
+      info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+      // Build a JS object of arguments from the field.arguments AST, using the
+      // variables scope to fulfill any variable references. Empty-arg fields skip
+      // coercion; list items reuse a memo keyed by fieldDef/fieldNode/variables.
+      const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
+
+      // The resolve function's optional third argument is a context value that
+      // is provided to every resolve function within an execution. It is commonly
+      // used to represent an authenticated user, or request-specific caches.
+      result = resolveFn(source, args, exeContext.contextValue, info);
+    }
 
     let completed;
-    if (isPromise(result)) {
+    if (resultAlreadySerialized) {
+      completed = result;
+    } else if (isPromise(result)) {
       completed = result.then(resolved =>
-        completeValue(exeContext, returnType, fieldNodes, info, path, resolved, asyncPayloadRecord),
+        completeValue(
+          exeContext,
+          returnType,
+          fieldNodes,
+          info!,
+          path,
+          resolved,
+          asyncPayloadRecord,
+        ),
       );
     } else {
       completed = completeValue(
         exeContext,
         returnType,
         fieldNodes,
-        info,
+        info!,
         path,
         result,
         asyncPayloadRecord,
@@ -1310,7 +1470,9 @@ function executeField(
               rawErrorItem,
               fieldNodes,
               pathToArray(path),
-              exeContext.schemaCoordinateInErrors && info,
+              // locatedError only reads fieldName + parentType.name
+              exeContext.schemaCoordinateInErrors &&
+                (info ?? schemaCoordinateInfo(fieldDef, parentType)),
             );
             result = handleFieldError(error, returnType, errors);
             filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
@@ -1322,7 +1484,8 @@ function executeField(
           rawError,
           fieldNodes,
           pathToArray(path),
-          exeContext.schemaCoordinateInErrors && info,
+          exeContext.schemaCoordinateInErrors &&
+            (info ?? schemaCoordinateInfo(fieldDef, parentType)),
         );
         const handledError = handleFieldError(error, returnType, errors);
         filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
@@ -1339,7 +1502,8 @@ function executeField(
           rawErrorItem,
           fieldNodes,
           pathToArray(path),
-          exeContext.schemaCoordinateInErrors && info,
+          exeContext.schemaCoordinateInErrors &&
+            (info ?? schemaCoordinateInfo(fieldDef, parentType)),
         );
         result = handleFieldError(error, returnType, errors);
         filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
@@ -1351,7 +1515,7 @@ function executeField(
       coercedError,
       fieldNodes,
       pathToArray(path),
-      exeContext.schemaCoordinateInErrors && info,
+      exeContext.schemaCoordinateInErrors && (info ?? schemaCoordinateInfo(fieldDef, parentType)),
     );
     const handledError = handleFieldError(error, returnType, errors);
     filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);

@@ -213,3 +213,61 @@ test('collectFields cache benchmarks', async ({ bench }) => {
     },
   ).run();
 });
+
+const propertyBagWidth = 400;
+const propertyBagNames = Array.from({ length: propertyBagWidth }, (_, index) => `p${index}`);
+const propertyBagSchema = buildSchema(
+  `type Query { ${propertyBagNames.map(name => `${name}: Int`).join(' ')} }`,
+  { assumeValid: true },
+);
+const propertyBagDocument = parse(`{ ${propertyBagNames.join(' ')} }`);
+const propertyBagRootValue = Object.fromEntries(
+  propertyBagNames.map((name, index) => [name, index]),
+);
+
+const nestedDefaultDocument = parse(/* GraphQL */ `
+  {
+    items {
+      name
+      friend {
+        name
+      }
+    }
+  }
+`);
+
+test('default resolver property fast path benchmarks', async ({ bench }) => {
+  await bench(
+    `Property-bag ${propertyBagWidth} Int fields (default resolver)`,
+    { ...writeOpts('executor-default-resolver-property-bag') },
+    () => {
+      const result = execute({
+        schema: propertyBagSchema,
+        document: propertyBagDocument,
+        rootValue: propertyBagRootValue,
+      });
+      if (result instanceof Promise) {
+        throw new Error('expected sync result');
+      }
+      return 'data' in result ? result.data : result;
+    },
+  ).run();
+
+  // Same nested shape as collect-fields-stable, but a single execute so CI can
+  // attribute default-resolver leaf work separately from the 25x shared-doc loop.
+  await bench(
+    `Nested default-resolver objects (${nestedItemCount} items)`,
+    { ...writeOpts('executor-default-resolver-nested-objects') },
+    () => {
+      const result = execute({
+        schema: nestedSchema,
+        document: nestedDefaultDocument,
+        rootValue: nestedRootValue,
+      });
+      if (result instanceof Promise) {
+        throw new Error('expected sync result');
+      }
+      return 'data' in result ? result.data : result;
+    },
+  ).run();
+});
