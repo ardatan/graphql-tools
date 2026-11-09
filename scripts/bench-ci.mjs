@@ -172,6 +172,8 @@ run('git', ['worktree', 'add', '--detach', worktree, baseSha]);
 const headRoundDirs = [];
 const baseRoundDirs = [];
 
+// Base install/build failures: skip compare (cannot produce a baseline).
+// Bench/average failures: propagate — do not exit 0 and pretend success.
 try {
   console.log('\n==> Installing and building base worktree\n');
   run('npm', ['ci', '--no-audit', '--no-fund'], { cwd: worktree });
@@ -184,7 +186,19 @@ try {
       throw new Error(`Base build missing ${dist}`);
     }
   }
+} catch (error) {
+  console.warn(
+    `::warning::Could not produce interleaved baseline (${error.message}). Skipping compare.`,
+  );
+  try {
+    run('git', ['worktree', 'remove', '--force', worktree]);
+  } catch {
+    // ignore cleanup errors
+  }
+  process.exit(0);
+}
 
+try {
   console.log(
     `\n==> Interleaved bench rounds: ${rounds} (order alternates HEAD/base each round)\n`,
   );
@@ -210,11 +224,6 @@ try {
 
   averageResultDirs(headRoundDirs, headResults);
   averageResultDirs(baseRoundDirs, baseResults);
-} catch (error) {
-  console.warn(
-    `::warning::Could not produce interleaved baseline (${error.message}). Skipping compare.`,
-  );
-  process.exit(0);
 } finally {
   try {
     run('git', ['worktree', 'remove', '--force', worktree]);
@@ -232,20 +241,23 @@ run('node', [join(root, 'scripts/compare-bench-results.mjs'), baseResults, headR
 });
 
 // Keep averaged HEAD results (+ per-round dumps) for the upload-artifact step.
+const repoResults = join(root, 'benchmarks/results');
+ensureResultsDir(repoResults);
 try {
-  const repoResults = join(root, 'benchmarks/results');
-  ensureResultsDir(repoResults);
-  // averageResultDirs already succeeded; copy whatever HEAD averaged.
   cpSync(headResults, repoResults, { recursive: true });
   writeFileSync(
     join(repoResults, 'COMPARED_AGAINST'),
     `${baseRemoteRef} ${baseSha}\nrounds=${rounds} interleaved\n`,
   );
+} catch (error) {
+  console.warn(`::warning::Could not copy averaged HEAD bench results (${error.message}).`);
+}
+try {
   const roundsOut = join(repoResults, 'rounds');
   mkdirSync(roundsOut, { recursive: true });
   for (const dir of [...headRoundDirs, ...baseRoundDirs]) {
     cpSync(dir, join(roundsOut, basename(dir)), { recursive: true });
   }
-} catch {
-  // non-fatal
+} catch (error) {
+  console.warn(`::warning::Could not copy per-round bench artifacts (${error.message}).`);
 }
