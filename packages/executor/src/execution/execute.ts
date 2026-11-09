@@ -1263,66 +1263,35 @@ function executeField(
 
   const returnType = fieldDef.type;
   const resolveFn = fieldDef.resolve ?? exeContext.fieldResolver;
-  let info: GraphQLResolveInfo | undefined;
-  const getInfo = (): GraphQLResolveInfo =>
-    (info ??= buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path));
+
+  const info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
 
   // Get the resolve function, regardless of if its result is normal or abrupt (error).
   try {
     exeContext.signal?.throwIfAborted();
+    // Build a JS object of arguments from the field.arguments AST, using the
+    // variables scope to fulfill any variable references. Empty-arg fields skip
+    // coercion; list items reuse a memo keyed by fieldDef/fieldNode/variables.
+    const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
 
-    let result: unknown;
+    // The resolve function's optional third argument is a context value that
+    // is provided to every resolve function within an execution. It is commonly
+    // used to represent an authenticated user, or request-specific caches.
+    const contextValue = exeContext.contextValue;
 
-    // Default field resolver + plain source property: skip calling
-    // defaultFieldResolver when the property is not a method. Argument coercion
-    // still runs before the property read when the field declares args (same
-    // order as graphql-js). Completion still goes through completeValue so
-    // Error-valued properties, async serialize, and non-leaf fields keep the
-    // existing field-error behavior.
-    if (
-      fieldDef.resolve == null &&
-      resolveFn === defaultFieldResolver &&
-      (isObjectLike(source) || typeof source === 'function')
-    ) {
-      const args =
-        fieldDef.args.length > 0
-          ? getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues)
-          : EMPTY_ARGS;
-      const property = (source as Record<string, unknown>)[fieldDef.name];
-      if (typeof property !== 'function') {
-        result = property;
-      } else {
-        info = getInfo();
-        result = property.call(source, args, exeContext.contextValue, info);
-      }
-    } else {
-      info = getInfo();
-      // Build a JS object of arguments from the field.arguments AST, using the
-      // variables scope to fulfill any variable references. Empty-arg fields skip
-      // coercion; list items reuse a memo keyed by fieldDef/fieldNode/variables.
-      const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
-      result = resolveFn(source, args, exeContext.contextValue, info);
-    }
+    const result = resolveFn(source, args, contextValue, info);
 
     let completed;
     if (isPromise(result)) {
       completed = result.then(resolved =>
-        completeValue(
-          exeContext,
-          returnType,
-          fieldNodes,
-          getInfo(),
-          path,
-          resolved,
-          asyncPayloadRecord,
-        ),
+        completeValue(exeContext, returnType, fieldNodes, info, path, resolved, asyncPayloadRecord),
       );
     } else {
       completed = completeValue(
         exeContext,
         returnType,
         fieldNodes,
-        getInfo(),
+        info,
         path,
         result,
         asyncPayloadRecord,
@@ -1334,26 +1303,26 @@ function executeField(
       // to take a second callback for the error case.
       return completed.then(undefined, rawError => {
         if (rawError instanceof AggregateError) {
-          let handled: unknown;
+          let result: unknown;
           for (let rawErrorItem of rawError.errors) {
             rawErrorItem = coerceError(rawErrorItem);
             const error = locatedError(
               rawErrorItem,
               fieldNodes,
               pathToArray(path),
-              exeContext.schemaCoordinateInErrors && getInfo(),
+              exeContext.schemaCoordinateInErrors && info,
             );
-            handled = handleFieldError(error, returnType, errors);
+            result = handleFieldError(error, returnType, errors);
             filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
           }
-          return handled;
+          return result;
         }
         rawError = coerceError(rawError);
         const error = locatedError(
           rawError,
           fieldNodes,
           pathToArray(path),
-          exeContext.schemaCoordinateInErrors && getInfo(),
+          exeContext.schemaCoordinateInErrors && info,
         );
         const handledError = handleFieldError(error, returnType, errors);
         filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
@@ -1363,26 +1332,26 @@ function executeField(
     return completed;
   } catch (rawError) {
     if (rawError instanceof AggregateError) {
-      let handled: unknown;
+      let result: unknown;
       for (let rawErrorItem of rawError.errors) {
         rawErrorItem = coerceError(rawErrorItem);
         const error = locatedError(
           rawErrorItem,
           fieldNodes,
           pathToArray(path),
-          exeContext.schemaCoordinateInErrors && getInfo(),
+          exeContext.schemaCoordinateInErrors && info,
         );
-        handled = handleFieldError(error, returnType, errors);
+        result = handleFieldError(error, returnType, errors);
         filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
       }
-      return handled;
+      return result;
     }
     const coercedError = coerceError(rawError);
     const error = locatedError(
       coercedError,
       fieldNodes,
       pathToArray(path),
-      exeContext.schemaCoordinateInErrors && getInfo(),
+      exeContext.schemaCoordinateInErrors && info,
     );
     const handledError = handleFieldError(error, returnType, errors);
     filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
