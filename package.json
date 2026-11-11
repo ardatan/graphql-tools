@@ -57,9 +57,9 @@
   "devDependencies": {
     "@apollo/client": "4.3.7",
     "@apollo/subgraph": "^2.15.1",
-    "@babel/core": "8.1.0",
+    "@babel/core": "8.1.2",
     "@babel/plugin-transform-class-properties": "8.0.1",
-    "@babel/plugin-transform-class-static-block": "8.0.5",
+    "@babel/plugin-transform-class-static-block": "8.1.2",
     "@babel/plugin-transform-explicit-resource-management": "8.0.5",
     "@babel/plugin-transform-private-methods": "8.0.1",
     "@babel/preset-env": "8.0.7",
