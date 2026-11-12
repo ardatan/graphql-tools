@@ -49,7 +49,7 @@
     "version": "npx changeset version"
   },
   "dependencies": {
-    "@graphql-tools/batch-execute": "^10.3.1"
+    "@graphql-tools/batch-execute": "^10.3.2"
   },
   "optionalDependencies": {
     "bun": "1.4.4"
@@ -70,7 +70,7 @@
     "@eslint/compat": "2.1.1",
     "@eslint/eslintrc": "3.3.7",
     "@eslint/js": "10.0.1",
-    "@graphql-tools/delegate": "12.3.2",
+    "@graphql-tools/delegate": "12.3.3",
     "@n1ru4l/in-memory-live-query-store": "0.11.0",
     "@theguild/prettier-config": "3.0.1",
     "@theguild/remark-mermaid": "0.3.0",
@@ -110,12 +110,12 @@
     "typedoc-plugin-markdown": "^4.11.0",
     "typedoc-plugin-rename-defaults": "0.7.3",
     "typescript": "7.0.2",
-    "vite": "8.3.6",
+    "vite": "8.3.7",
     "vitest": "5.1.0",
     "wonka": "6.3.6"
   },
   "overrides": {
-    "@graphql-tools/delegate": "12.3.2",
+    "@graphql-tools/delegate": "12.3.3",
     "@xmldom/xmldom": "0.9.12",
     "cookie": "2.0.2",
     "esbuild": "0.28.1",
