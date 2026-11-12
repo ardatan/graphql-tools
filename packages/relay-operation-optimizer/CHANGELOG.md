@@ -1,5 +1,12 @@
 # @graphql-tools/relay-operation-optimizer
 
+## 8.0.10
+
+### Patch Changes
+
+- Updated dependencies [[`c42bef9`](https://github.com/ardatan/graphql-tools/commit/c42bef9d8c9495f0dcd36e6764e9d8ac6c2f9978)]:
+  - @ardatan/relay-compiler@13.0.4
+
 ## 8.0.9
 
 ### Patch Changes
