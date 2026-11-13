@@ -507,6 +507,41 @@ describe('ExternalFragmentLoader', () => {
         }
       });
 
+      it.each([
+        ['multiple GraphQL files', packageAOpts],
+        ['multiple plucked templates', tsOpts],
+      ] as const)('ignores a supplied lexer when scanning %s', async (_label, options) => {
+        const codeFile = path.join(FIXTURES_DIR, 'typescript-consumer/src/query.ts');
+        const original = readFileSync(codeFile, 'utf8');
+        const lexer = new Lexer(new Source('query GetUser { user { ...SharedUserFragment } }'));
+        const advance = jest.spyOn(lexer, 'advance');
+        try {
+          if (options === tsOpts) {
+            writeFileSync(
+              codeFile,
+              `${original}\nexport const OTHER_USER = gql\`query OtherUser { user { ...SharedUserFragment } }\`;\n`,
+            );
+          }
+          // JavaScript callers can still pass the unsupported hook at runtime.
+          const runtimeOptions = { ...options, noLocation: false, lexer };
+          const documents = await load(runtimeOptions);
+          expect(
+            documents
+              .flatMap(document =>
+                document.definitions.map(definition =>
+                  definition.kind === Kind.FRAGMENT_DEFINITION ? definition.name.value : undefined,
+                ),
+              )
+              .sort(),
+          ).toEqual(options === tsOpts ? ['SharedUserFragment'] : ['UserEmail', 'UserFields']);
+          expectLocations(documents, false);
+          expect(advance).not.toHaveBeenCalled();
+        } finally {
+          writeFileSync(codeFile, original);
+          clearCache();
+        }
+      });
+
       it.each([undefined, 1000])(
         'retains cached provider results until cleared when a token limit changes (%s)',
         async maxTokens => {
@@ -668,21 +703,6 @@ describe('ExternalFragmentLoader', () => {
           }
         },
       );
-    });
-
-    const supportsLexer = print(
-      parse('{ original }', {
-        noLocation: false,
-        ...{ lexer: new Lexer(new Source('{ replacement }')) },
-      }),
-    ).includes('replacement');
-    (supportsLexer ? it : it.skip)('forwards a custom parser lexer', async () => {
-      const lexer = new Lexer(new Source('{ id }'));
-      const advance = jest.spyOn(lexer, 'advance');
-      // The supplied lexer has no fragment spreads, unlike the consumer file.
-      const options = { ...locationOptions, lexer };
-      expect(await loader.load('.', options)).toEqual([]);
-      expect(advance).toHaveBeenCalled();
     });
 
     it('reuses cached parser settings across concurrent calls and loader instances', async () => {

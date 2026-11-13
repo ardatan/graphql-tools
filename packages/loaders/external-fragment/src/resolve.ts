@@ -59,7 +59,7 @@ interface ResolvedExternalFileWithSources extends ResolvedExternalFile {
   sources: ParsedSource[];
 }
 
-export interface ExternalFragmentResolverOptions extends ParseOptions {
+export interface ExternalFragmentResolverOptions extends Omit<ParseOptions, 'lexer'> {
   packageDir: string;
   externalPackagesDirs: string[];
   packageNameFilter?: (packageName: string) => boolean;
@@ -708,6 +708,8 @@ function normalizeOptions(options: ExternalFragmentResolverOptions): NormalizedO
   const extensions = options.extensions ?? DEFAULT_EXTENSIONS;
   const excludePatterns = options.excludePatterns ?? DEFAULT_EXCLUDE_PATTERNS;
   const invalidateTargetPackageCache = options.invalidateTargetPackageCache ?? false;
+  // A lexer is bound to one source and cannot be reused across scanned documents.
+  const parseOptions = { ...options, lexer: undefined };
   return {
     externalPackagesDirs,
     filter,
@@ -716,7 +718,7 @@ function normalizeOptions(options: ExternalFragmentResolverOptions): NormalizedO
     scanInternalDirs,
     extensions,
     excludePatterns,
-    parseOptions: options,
+    parseOptions,
     invalidateTargetPackageCache,
   };
 }

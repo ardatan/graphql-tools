@@ -2,8 +2,9 @@
 '@graphql-tools/external-fragment-loader': major
 ---
 
-Support GraphQL `ParseOptions` in the loader and direct resolver APIs, including token limits and
-syntax options available in the installed GraphQL version. Cached fragments retain their original
+Support GraphQL `ParseOptions` in the loader and direct resolver APIs, excluding the internal
+`lexer` hook so each source is parsed with its own lexer. This includes token limits and syntax
+options available in the installed GraphQL version. Cached fragments retain their original
 parser settings; call `clearCache()` before changing options, or let entries expire via `cacheTTL`.
 
 **Breaking change:** `noLocation` now defaults to `false`, matching GraphQL's parser. Fragment ASTs
