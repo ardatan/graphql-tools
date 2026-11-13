@@ -156,39 +156,14 @@ This API returns file metadata, not parsed ASTs. Passing the returned `filePath`
 `documents`/`externalDocuments` works, but Codegen will read and parse those files again. Use the
 default loader or the class-based loader when you want to reuse the parsed documents.
 
-## AST locations
-
-`noLocation` defaults to `true`. Set it to `false` to retain source locations on parsed fragments.
-
-With Codegen's
-[`extractAllFieldsToTypesCompact: true`](https://the-guild.dev/graphql/codegen/plugins/typescript/typescript-operations#extractallfieldstotypescompact),
-this can affect type reuse for identical selections. The examples below use simplified names; exact
-output depends on the Codegen version and configuration.
-
-```ts
-// noLocation: true — both fields reuse the same generated type
-type AddressFields = { street: string; city: string }
-type QueryResult = {
-  primaryAddress: AddressFields
-  secondaryAddress: AddressFields
-}
-```
-
-```ts
-// noLocation: false — separate locations can produce separate types with the same shape
-type PrimaryAddressFields = { street: string; city: string }
-type SecondaryAddressFields = { street: string; city: string }
-type QueryResult = {
-  primaryAddress: PrimaryAddressFields
-  secondaryAddress: SecondaryAddressFields
-}
-```
-
 ## Caching
 
 Package fragment maps, parsed sources, and `package.json` dependency metadata are cached between
 resolver calls. Consumer package maps are not normally retained unless the consumer package was
 previously loaded as a provider.
+
+Cached fragments retain the parser settings used when they were first loaded. Call `clearCache()`
+before changing parser options, or wait for the cached entries to expire via `cacheTTL`.
 
 When running the loader in **watch mode** — for example, to run Codegen in the background while
 using an IDE so that the package's generated GraphQL types are regenerated automatically whenever a

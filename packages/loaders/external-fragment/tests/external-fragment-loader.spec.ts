@@ -2,7 +2,17 @@ import { randomUUID } from 'crypto';
 import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import * as path from 'path';
-import { Kind, print, visit, type DocumentNode, type Location } from 'graphql';
+import {
+  Kind,
+  Lexer,
+  parse,
+  print,
+  Source,
+  versionInfo,
+  visit,
+  type DocumentNode,
+  type Location,
+} from 'graphql';
 import { loadDocuments, loadDocumentsSync } from '@graphql-tools/load';
 import externalFragmentLoader, {
   clearCache,
@@ -368,7 +378,7 @@ describe('ExternalFragmentLoader', () => {
     });
   });
 
-  describe('noLocation option', () => {
+  describe('parser options', () => {
     const locationOptions = {
       packageDir: path.join(FIXTURES_DIR, 'location-consumer'),
       externalPackagesDirs: [FIXTURES_DIR],
@@ -439,7 +449,7 @@ describe('ExternalFragmentLoader', () => {
         async noLocation => {
           for (const options of [locationOptions, tsOpts, packageAOpts]) {
             const documents = await load({ ...options, noLocation });
-            expectLocations(documents, noLocation ?? true);
+            expectLocations(documents, noLocation ?? false);
             expect(
               documents
                 .flatMap(document => document.definitions)
@@ -457,36 +467,193 @@ describe('ExternalFragmentLoader', () => {
       );
 
       it.each([true, false])(
-        'isolates warm caches starting with noLocation: %s',
+        'retains cached noLocation: %s until clearCache is called',
         async noLocation => {
           const first = await load({ ...locationOptions, noLocation });
           const opposite = await load({ ...locationOptions, noLocation: !noLocation });
-          const repeated = await load({ ...locationOptions, noLocation });
-
           expectLocations(first, noLocation);
-          expectLocations(opposite, !noLocation);
-          expectLocations(repeated, noLocation);
+          expectLocations(opposite, noLocation);
           expect(opposite.map(print)).toEqual(first.map(print));
-          expect(repeated.map(print)).toEqual(first.map(print));
-          expect(repeated[0].definitions[0]).toBe(first[0].definitions[0]);
-          expect(opposite[0].definitions[0]).not.toBe(first[0].definitions[0]);
+          expect(opposite[0].definitions[0]).toBe(first[0].definitions[0]);
+
+          clearCache();
+          const refreshed = await load({ ...locationOptions, noLocation: !noLocation });
+          expectLocations(refreshed, !noLocation);
+          expect(refreshed.map(print)).toEqual(first.map(print));
         },
       );
 
-      it('reuses the provider cache for omitted, undefined and true', async () => {
+      it('reuses the provider cache for omitted, undefined and false', async () => {
         const fileContentFilter = jest.fn((_content: string, _filePath: string) => true);
         const options = { ...locationOptions, fileContentFilter };
         const omitted = await load(options);
         const explicitUndefined = await load({ ...options, noLocation: undefined });
-        const explicitTrue = await load({ ...options, noLocation: true });
+        const explicitFalse = await load({ ...options, noLocation: false });
 
-        expectLocations(omitted, true);
+        expectLocations(omitted, false);
         expect(explicitUndefined[0].definitions[0]).toBe(omitted[0].definitions[0]);
-        expect(explicitTrue[0].definitions[0]).toBe(omitted[0].definitions[0]);
+        expect(explicitFalse[0].definitions[0]).toBe(omitted[0].definitions[0]);
         const providerFile = expectedPath(FIXTURES_DIR, 'location-provider/src/fragments.graphql');
         expect(
           fileContentFilter.mock.calls.filter(([, file]) => file === providerFile),
         ).toHaveLength(1);
+      });
+
+      it('applies token limits to consumer GraphQL and plucked TypeScript documents', async () => {
+        for (const options of [locationOptions, tsOpts]) {
+          await expect(
+            Promise.resolve().then(() => load({ ...options, maxTokens: 1 })),
+          ).rejects.toThrow(/1 (?:lexical )?tokens/);
+        }
+      });
+
+      it.each([
+        ['multiple GraphQL files', packageAOpts],
+        ['multiple plucked templates', tsOpts],
+      ] as const)('ignores a supplied lexer when scanning %s', async (_label, options) => {
+        const codeFile = path.join(FIXTURES_DIR, 'typescript-consumer/src/query.ts');
+        const original = readFileSync(codeFile, 'utf8');
+        const lexer = new Lexer(new Source('query GetUser { user { ...SharedUserFragment } }'));
+        const advance = jest.spyOn(lexer, 'advance');
+        try {
+          if (options === tsOpts) {
+            writeFileSync(
+              codeFile,
+              `${original}\nexport const OTHER_USER = gql\`query OtherUser { user { ...SharedUserFragment } }\`;\n`,
+            );
+          }
+          // JavaScript callers can still pass the unsupported hook at runtime.
+          const runtimeOptions = { ...options, noLocation: false, lexer };
+          const documents = await load(runtimeOptions);
+          expect(
+            documents
+              .flatMap(document =>
+                document.definitions.map(definition =>
+                  definition.kind === Kind.FRAGMENT_DEFINITION ? definition.name.value : undefined,
+                ),
+              )
+              .sort(),
+          ).toEqual(options === tsOpts ? ['SharedUserFragment'] : ['UserEmail', 'UserFields']);
+          expectLocations(documents, false);
+          expect(advance).not.toHaveBeenCalled();
+        } finally {
+          writeFileSync(codeFile, original);
+          clearCache();
+        }
+      });
+
+      it.each([undefined, 1000])(
+        'retains cached provider results until cleared when a token limit changes (%s)',
+        async maxTokens => {
+          const options = { ...locationOptions, cacheTTL: 1000 };
+          const first = await load({ ...options, maxTokens });
+          // The consumer fits within 30 tokens, but its provider does not.
+          const cached = await load({ ...options, maxTokens: 30 });
+          expect(cached[0].definitions[0]).toBe(first[0].definitions[0]);
+
+          clearCache();
+          await expect(
+            Promise.resolve().then(() => load({ ...options, maxTokens: 30 })),
+          ).rejects.toThrow(/30 (?:lexical )?tokens/);
+        },
+      );
+
+      it('can retry with a larger token limit after a parse error', async () => {
+        await expect(
+          Promise.resolve().then(() => load({ ...locationOptions, maxTokens: 30 })),
+        ).rejects.toThrow(/30 (?:lexical )?tokens/);
+        expectLocations(await load({ ...locationOptions, maxTokens: 1000 }), false);
+      });
+
+      it('applies new parser settings after the provider cache expires', async () => {
+        jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] });
+        try {
+          const options = { ...locationOptions, cacheTTL: 1000 };
+          expectLocations(await load({ ...options, noLocation: true }), true);
+          // memoizee starts async expiry on the next tick after promise settlement.
+          await new Promise<void>(resolve => setImmediate(resolve));
+          jest.advanceTimersByTime(1001);
+          expectLocations(await load({ ...options, noLocation: false }), false);
+          await new Promise<void>(resolve => setImmediate(resolve));
+          jest.advanceTimersByTime(1001);
+          await expect(
+            Promise.resolve().then(() => load({ ...options, maxTokens: 30 })),
+          ).rejects.toThrow(/30 (?:lexical )?tokens/);
+        } finally {
+          clearCache();
+          jest.useRealTimers();
+        }
+      });
+
+      it('applies new token limits after invalidating a provider reused as the consumer', async () => {
+        await load(packageAOpts);
+        const options = {
+          ...packageAOpts,
+          packageDir: path.join(FIXTURES_DIR, 'fragment-direct-provider'),
+          maxTokens: 1,
+        };
+        expect(await load(options)).toHaveLength(1);
+        await expect(
+          Promise.resolve().then(() => load({ ...options, invalidateTargetPackageCache: true })),
+        ).rejects.toThrow(/1 (?:lexical )?tokens/);
+      });
+
+      for (const [key, limit] of [
+        ['maxLexicalTokens', 30],
+        ['maxSourceLength', 100],
+        ['maxComments', 0],
+      ] as const) {
+        // These limits were added in newer GraphQL releases. Probe the installed
+        // parser so the same suite can cover older versions without requiring them.
+        let supported = false;
+        try {
+          parse('# comment\n{ id }', { noLocation: false, [key]: 0 });
+        } catch {
+          supported = true;
+        }
+        (supported ? it : it.skip)(`honors ${key} when parsing dependency documents`, async () => {
+          const providerFile = path.join(FIXTURES_DIR, 'location-provider/src/fragments.graphql');
+          const original = readFileSync(providerFile, 'utf8');
+          try {
+            writeFileSync(providerFile, `# provider comment\n${original}`);
+            await expect(
+              Promise.resolve().then(() => load({ ...locationOptions, [key]: limit })),
+            ).rejects.toThrow('Parsing aborted');
+          } finally {
+            writeFileSync(providerFile, original);
+            clearCache();
+          }
+        });
+      }
+
+      it('forwards fragment-variable parsing flags', async () => {
+        const providerFile = path.join(FIXTURES_DIR, 'location-provider/src/fragments.graphql');
+        const original = readFileSync(providerFile, 'utf8');
+        const flag =
+          versionInfo.major >= 17
+            ? 'experimentalFragmentArguments'
+            : 'allowLegacyFragmentVariables';
+        try {
+          writeFileSync(
+            providerFile,
+            original.replace(
+              'fragment Fields on Foo',
+              'fragment Fields($condition: Boolean!) on Foo',
+            ),
+          );
+          await expect(Promise.resolve().then(() => load(locationOptions))).rejects.toThrow(
+            'Syntax Error',
+          );
+          const documents = await load({ ...locationOptions, [flag]: true });
+          expect(print(documents[0])).toContain('fragment Fields($condition: Boolean!)');
+          clearCache();
+          await expect(
+            Promise.resolve().then(() => load({ ...locationOptions, [flag]: false })),
+          ).rejects.toThrow('Syntax Error');
+        } finally {
+          writeFileSync(providerFile, original);
+          clearCache();
+        }
       });
     });
 
@@ -501,17 +668,17 @@ describe('ExternalFragmentLoader', () => {
           const originalSource = readFileSync(providerFileNative, 'utf8');
           const originalPackageJson = readFileSync(packageJson, 'utf8');
           const fileContentFilter = jest.fn((_content: string, _filePath: string) => true);
-          const options = { ...packageAOpts, noLocation, fileContentFilter };
+          const options = { ...packageAOpts, noLocation, maxTokens: 1000, fileContentFilter };
           const targetOptions = { ...options, packageDir: providerDir };
 
           try {
             await load(options);
             await load({ ...options, noLocation: !noLocation });
             expectLocations(await load(targetOptions), noLocation);
-            expectLocations(await load({ ...targetOptions, noLocation: !noLocation }), !noLocation);
+            expectLocations(await load({ ...targetOptions, noLocation: !noLocation }), noLocation);
             expect(
               fileContentFilter.mock.calls.filter(([, file]) => file === providerFile),
-            ).toHaveLength(2);
+            ).toHaveLength(1);
 
             writeFileSync(providerFileNative, originalSource.replace('  ...UserEmail\n', ''));
             expect(await load(targetOptions)).toHaveLength(1);
@@ -538,16 +705,23 @@ describe('ExternalFragmentLoader', () => {
       );
     });
 
-    it('isolates concurrent async callers with different location modes', async () => {
-      const modes = [true, false, true, false];
+    it('reuses cached parser settings across concurrent calls and loader instances', async () => {
+      const first = await loader.load('.', { ...locationOptions, noLocation: true });
       const results = await Promise.all(
-        modes.map(noLocation => loader.load('.', { ...locationOptions, noLocation })),
+        [true, false].map(noLocation =>
+          new ExternalFragmentLoader().load('.', {
+            ...locationOptions,
+            noLocation,
+            maxTokens: 30,
+          }),
+        ),
       );
-      results.forEach((sources, i) => {
+      results.forEach(sources => {
         expectLocations(
           sources.map(source => source.document!),
-          modes[i],
+          true,
         );
+        expect(sources[0].document!.definitions[0]).toBe(first[0].document!.definitions[0]);
         expect(sources[0].location).toBe(
           expectedPath(FIXTURES_DIR, 'location-provider/src/fragments.graphql'),
         );
@@ -558,21 +732,29 @@ describe('ExternalFragmentLoader', () => {
     it.each([
       ['async', resolveExternalFragments],
       ['sync', resolveExternalFragmentsSync],
-    ] as const)('preserves metadata-only results (%s)', async (_label, resolve) => {
-      const withoutLocations = await resolve(locationOptions);
-      const withLocations = await resolve({ ...locationOptions, noLocation: false });
-      expect(withLocations).toEqual(withoutLocations);
-      expect(withLocations).toEqual([
-        {
-          filePath: expectedPath(FIXTURES_DIR, 'location-provider/src/fragments.graphql'),
-          packageName: 'location-provider',
-          definitions: [
-            { name: 'Fields', typeCondition: 'Foo' },
-            { name: 'Unused', typeCondition: 'Foo' },
-          ],
-        },
-      ]);
-    });
+    ] as const)(
+      'honors parser options while preserving metadata-only results (%s)',
+      async (_label, resolve) => {
+        const withoutLocations = await resolve({ ...locationOptions, noLocation: true });
+        clearCache();
+        const withLocations = await resolve({ ...locationOptions, noLocation: false });
+        expect(withLocations).toEqual(withoutLocations);
+        expect(withLocations).toEqual([
+          {
+            filePath: expectedPath(FIXTURES_DIR, 'location-provider/src/fragments.graphql'),
+            packageName: 'location-provider',
+            definitions: [
+              { name: 'Fields', typeCondition: 'Foo' },
+              { name: 'Unused', typeCondition: 'Foo' },
+            ],
+          },
+        ]);
+        clearCache();
+        await expect(
+          Promise.resolve().then(() => resolve({ ...locationOptions, maxTokens: 30 })),
+        ).rejects.toThrow(/30 (?:lexical )?tokens/);
+      },
+    );
   });
 
   describe('fileContentFilter option', () => {
