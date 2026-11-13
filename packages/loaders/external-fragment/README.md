@@ -156,9 +156,23 @@ This API returns file metadata, not parsed ASTs. Passing the returned `filePath`
 `documents`/`externalDocuments` works, but Codegen will read and parse those files again. Use the
 default loader or the class-based loader when you want to reuse the parsed documents.
 
-## AST locations
+## Parser options
 
-`noLocation` defaults to `true`. Set it to `false` to retain source locations on parsed fragments.
+Both loader and resolver APIs accept GraphQL's `ParseOptions`, including `maxTokens` and syntax
+options supported by the installed GraphQL version. Token limits apply to each parsed GraphQL
+source, including GraphQL plucked from code files.
+
+```ts
+const options = {
+  packageDir,
+  externalPackagesDirs: [externalPackagesDir],
+  maxTokens: 10000,
+  noLocation: false // default: retain AST source locations
+}
+```
+
+`noLocation` now defaults to `false`, matching GraphQL's parser. Set `noLocation: true` to keep the
+previous behavior and omit AST source locations.
 
 With Codegen's
 [`extractAllFieldsToTypesCompact: true`](https://the-guild.dev/graphql/codegen/plugins/typescript/typescript-operations#extractallfieldstotypescompact),
@@ -175,7 +189,7 @@ type QueryResult = {
 ```
 
 ```ts
-// noLocation: false — separate locations can produce separate types with the same shape
+// noLocation: false (default) — separate locations can produce separate types with the same shape
 type PrimaryAddressFields = { street: string; city: string }
 type SecondaryAddressFields = { street: string; city: string }
 type QueryResult = {

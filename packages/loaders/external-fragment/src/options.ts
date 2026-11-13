@@ -1,7 +1,8 @@
+import type { ParseOptions } from 'graphql';
 import type { GraphQLTagPluckOptions } from '@graphql-tools/graphql-tag-pluck';
 import type { BaseLoaderOptions } from '@graphql-tools/utils';
 
-export interface ExternalFragmentLoaderOptions extends BaseLoaderOptions {
+export interface ExternalFragmentLoaderOptions extends BaseLoaderOptions, ParseOptions {
   /**
    * Absolute path to the target package directory whose fragments we're resolving.
    * This is the package that has missing fragment spreads referencing other packages.
@@ -27,8 +28,8 @@ export interface ExternalFragmentLoaderOptions extends BaseLoaderOptions {
 
   /**
    * Omit source-location metadata from parsed GraphQL nodes.
-   * Set to false to preserve locations on fragment definitions and their descendants.
-   * @default true
+   * Locations on fragment definitions and their descendants are preserved by default.
+   * @default false
    */
   noLocation?: boolean;
 

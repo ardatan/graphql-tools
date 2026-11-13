@@ -1,6 +1,6 @@
 import { existsSync, promises as fsPromises, readFileSync } from 'fs';
 import { basename, join, resolve } from 'path';
-import { Kind, parse, print, visit, type DocumentNode } from 'graphql';
+import { Kind, parse, print, visit, type DocumentNode, type ParseOptions } from 'graphql';
 import memoizee from 'memoizee';
 import unixify from 'unixify';
 import {
@@ -59,7 +59,7 @@ interface ResolvedExternalFileWithSources extends ResolvedExternalFile {
   sources: ParsedSource[];
 }
 
-export interface ExternalFragmentResolverOptions {
+export interface ExternalFragmentResolverOptions extends ParseOptions {
   packageDir: string;
   externalPackagesDirs: string[];
   packageNameFilter?: (packageName: string) => boolean;
@@ -70,8 +70,8 @@ export interface ExternalFragmentResolverOptions {
   excludePatterns?: string[];
   pluckConfig?: GraphQLTagPluckOptions;
   /**
-   * Omit GraphQL AST locations. Set to false to preserve them.
-   * @default true
+   * Omit GraphQL AST locations. Locations are preserved by default.
+   * @default false
    */
   noLocation?: boolean;
   fileContentFilter?: (content: string, filePath: string) => boolean;
@@ -86,6 +86,20 @@ const GQL_EXTENSIONS = ['graphql', 'gql'];
 const DEFAULT_SCAN_INTERNAL_DIRS = ['src'];
 const DEFAULT_EXCLUDE_PATTERNS = ['**/__generated__/**', '**/node_modules/**'];
 
+// Cover the public options of both supported GraphQL majors. The type check also
+// catches new ParseOptions fields when the development GraphQL version is updated.
+const PARSE_OPTION_KEYS = {
+  maxTokens: true,
+  maxLexicalTokens: true,
+  maxComments: true,
+  maxSourceLength: true,
+  allowLegacyFragmentVariables: true,
+  experimentalFragmentArguments: true,
+  experimentalDirectivesOnDirectiveDefinitions: true,
+  allowEmptySelectionSets: true,
+  lexer: true,
+} satisfies Record<Exclude<keyof ParseOptions, 'noLocation'>, true> & Record<string, true>;
+
 function getSourceGlob(extensions: string[]): string {
   return extensions.length === 1 ? `**/*.${extensions[0]}` : `**/*.{${extensions.join(',')}}`;
 }
@@ -94,10 +108,13 @@ function isGraphQLFile(filePath: string): boolean {
   return GQL_EXTENSIONS.some(ext => filePath.endsWith(`.${ext}`));
 }
 
-function extractFragmentsAndSpreads(rawSDLs: string[], noLocation: boolean): ExtractedFileInfo {
+function extractFragmentsAndSpreads(
+  rawSDLs: string[],
+  parseOptions: ParseOptions,
+): ExtractedFileInfo {
   const sources = rawSDLs.map(rawSDL => ({
     rawSDL,
-    document: parse(rawSDL, { noLocation }),
+    document: parse(rawSDL, parseOptions),
   }));
 
   const definitions: FragmentInfo[] = [];
@@ -179,13 +196,13 @@ function registerFile({
 function parseFile({
   filePath,
   content,
-  noLocation,
+  parseOptions,
   pluckConfig,
   fileContentFilter,
 }: {
   filePath: string;
   content: string;
-  noLocation: boolean;
+  parseOptions: ParseOptions;
   pluckConfig?: GraphQLTagPluckOptions;
   fileContentFilter?: (content: string, filePath: string) => boolean;
 }): ExtractedFileInfo | undefined {
@@ -204,7 +221,7 @@ function parseFile({
     rawSDLs = pluckedSources.map(source => source.body);
   }
 
-  return extractFragmentsAndSpreads(rawSDLs, noLocation);
+  return extractFragmentsAndSpreads(rawSDLs, parseOptions);
 }
 
 // --- Memoized functions ---
@@ -257,7 +274,7 @@ function buildPackageFragmentMapRaw(
   scanInternalDirs: string[],
   extensions: string[],
   excludePatterns: string[],
-  noLocation: boolean,
+  parseOptions: ParseOptions,
   pluckConfig?: GraphQLTagPluckOptions,
   fileContentFilter?: (content: string, filePath: string) => boolean,
 ): PackageFragmentMap {
@@ -283,7 +300,7 @@ function buildPackageFragmentMapRaw(
 
   for (const filePath of allFiles) {
     const content = readFileSync(filePath, 'utf8');
-    const info = parseFile({ filePath, content, noLocation, pluckConfig, fileContentFilter });
+    const info = parseFile({ filePath, content, parseOptions, pluckConfig, fileContentFilter });
     if (info) registerFile({ builder, packageDir, filePath, info });
   }
 
@@ -295,7 +312,7 @@ async function buildPackageFragmentMapAsyncRaw(
   scanInternalDirs: string[],
   extensions: string[],
   excludePatterns: string[],
-  noLocation: boolean,
+  parseOptions: ParseOptions,
   pluckConfig?: GraphQLTagPluckOptions,
   fileContentFilter?: (content: string, filePath: string) => boolean,
 ): Promise<PackageFragmentMap> {
@@ -326,7 +343,7 @@ async function buildPackageFragmentMapAsyncRaw(
   await Promise.all(
     allFiles.map(async filePath => {
       const content = await readFile(filePath, 'utf8');
-      const info = parseFile({ filePath, content, noLocation, pluckConfig, fileContentFilter });
+      const info = parseFile({ filePath, content, parseOptions, pluckConfig, fileContentFilter });
       if (info) registerFile({ builder, packageDir, filePath, info });
     }),
   );
@@ -339,10 +356,36 @@ type PackageMapArgs = [
   scanInternalDirs: string[],
   extensions: string[],
   excludePatterns: string[],
-  noLocation: boolean,
+  parseOptions: ParseOptions,
   pluckConfig?: GraphQLTagPluckOptions,
   fileContentFilter?: (content: string, filePath: string) => boolean,
 ];
+
+const parserOptionObjectIds = new WeakMap<object, number>();
+let nextParserOptionObjectId = 0;
+
+function getPackageMapCacheKey(args: PackageMapArgs): string {
+  return Array.from(args, (value, index) =>
+    index === 4
+      ? JSON.stringify(value, (key, option) => {
+          // Parser hooks such as `lexer` are stateful objects, not JSON configuration.
+          if (
+            key &&
+            option != null &&
+            (typeof option === 'object' || typeof option === 'function')
+          ) {
+            let id = parserOptionObjectIds.get(option);
+            if (id === undefined) {
+              id = nextParserOptionObjectId++;
+              parserOptionObjectIds.set(option, id);
+            }
+            return { id };
+          }
+          return option;
+        })
+      : String(value),
+  ).join('\u0001');
+}
 
 type MemoizedPackageMap<Result> = ((...args: PackageMapArgs) => Result) & {
   _get(...args: PackageMapArgs): Result | undefined;
@@ -352,10 +395,10 @@ type MemoizedPackageMap<Result> = ((...args: PackageMapArgs) => Result) & {
 
 let readPackageJsonDeps = memoizee(readPackageJsonDepsRaw, { primitive: true });
 let buildPackageFragmentMap = memoizee(buildPackageFragmentMapRaw, {
-  primitive: true,
+  normalizer: getPackageMapCacheKey,
 }) as MemoizedPackageMap<PackageFragmentMap>;
 let buildPackageFragmentMapAsync = memoizee(buildPackageFragmentMapAsyncRaw, {
-  primitive: true,
+  normalizer: getPackageMapCacheKey,
   promise: true,
 }) as MemoizedPackageMap<Promise<PackageFragmentMap>>;
 
@@ -371,11 +414,11 @@ function initCache(cacheTTL?: number): void {
     ...ttlOpt,
   });
   buildPackageFragmentMap = memoizee(buildPackageFragmentMapRaw, {
-    primitive: true,
+    normalizer: getPackageMapCacheKey,
     ...ttlOpt,
   }) as MemoizedPackageMap<PackageFragmentMap>;
   buildPackageFragmentMapAsync = memoizee(buildPackageFragmentMapAsyncRaw, {
-    primitive: true,
+    normalizer: getPackageMapCacheKey,
     promise: true,
     ...ttlOpt,
   }) as MemoizedPackageMap<Promise<PackageFragmentMap>>;
@@ -690,8 +733,21 @@ interface NormalizedOptions {
   scanInternalDirs: string[];
   extensions: string[];
   excludePatterns: string[];
-  noLocation: boolean;
+  parseOptions: ParseOptions;
   invalidateTargetPackageCache: boolean;
+}
+
+function normalizeParseOptions(options: ParseOptions): ParseOptions {
+  const parseOptions: ParseOptions = { noLocation: options.noLocation ?? false };
+  // GraphQL 16 and 17 expose different parser options. Select only parser settings
+  // so unrelated loader/Codegen options do not affect parsing or cache identity.
+  for (const key of Object.keys(PARSE_OPTION_KEYS)) {
+    const value = options[key as keyof ParseOptions];
+    if (value !== undefined) {
+      Object.assign(parseOptions, { [key]: value });
+    }
+  }
+  return parseOptions;
 }
 
 function normalizeOptions(options: ExternalFragmentResolverOptions): NormalizedOptions {
@@ -702,7 +758,7 @@ function normalizeOptions(options: ExternalFragmentResolverOptions): NormalizedO
   const scanInternalDirs = options.scanInternalDirs ?? DEFAULT_SCAN_INTERNAL_DIRS;
   const extensions = options.extensions ?? DEFAULT_EXTENSIONS;
   const excludePatterns = options.excludePatterns ?? DEFAULT_EXCLUDE_PATTERNS;
-  const noLocation = options.noLocation ?? true;
+  const parseOptions = normalizeParseOptions(options);
   const invalidateTargetPackageCache = options.invalidateTargetPackageCache ?? false;
   return {
     externalPackagesDirs,
@@ -712,7 +768,7 @@ function normalizeOptions(options: ExternalFragmentResolverOptions): NormalizedO
     scanInternalDirs,
     extensions,
     excludePatterns,
-    noLocation,
+    parseOptions,
     invalidateTargetPackageCache,
   };
 }
@@ -765,14 +821,14 @@ function toPublicResolvedFiles(
 function getPackageMapArgs(
   packageDir: string,
   options: ExternalFragmentResolverOptions,
-  { scanInternalDirs, extensions, excludePatterns, noLocation }: NormalizedOptions,
+  { scanInternalDirs, extensions, excludePatterns, parseOptions }: NormalizedOptions,
 ): PackageMapArgs {
   return [
     packageDir,
     scanInternalDirs,
     extensions,
     excludePatterns,
-    noLocation,
+    parseOptions,
     options.pluckConfig,
     options.fileContentFilter,
   ];
