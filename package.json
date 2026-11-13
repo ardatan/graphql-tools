@@ -55,7 +55,7 @@
     "bun": "1.4.4"
   },
   "devDependencies": {
-    "@apollo/client": "4.3.7",
+    "@apollo/client": "4.3.8",
     "@apollo/subgraph": "^2.15.1",
     "@babel/core": "8.1.0",
     "@babel/plugin-transform-class-properties": "8.0.1",
