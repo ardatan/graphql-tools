@@ -467,19 +467,19 @@ describe('ExternalFragmentLoader', () => {
       );
 
       it.each([true, false])(
-        'isolates warm caches starting with noLocation: %s',
+        'retains cached noLocation: %s until clearCache is called',
         async noLocation => {
           const first = await load({ ...locationOptions, noLocation });
           const opposite = await load({ ...locationOptions, noLocation: !noLocation });
-          const repeated = await load({ ...locationOptions, noLocation });
-
           expectLocations(first, noLocation);
-          expectLocations(opposite, !noLocation);
-          expectLocations(repeated, noLocation);
+          expectLocations(opposite, noLocation);
           expect(opposite.map(print)).toEqual(first.map(print));
-          expect(repeated.map(print)).toEqual(first.map(print));
-          expect(repeated[0].definitions[0]).toBe(first[0].definitions[0]);
-          expect(opposite[0].definitions[0]).not.toBe(first[0].definitions[0]);
+          expect(opposite[0].definitions[0]).toBe(first[0].definitions[0]);
+
+          clearCache();
+          const refreshed = await load({ ...locationOptions, noLocation: !noLocation });
+          expectLocations(refreshed, !noLocation);
+          expect(refreshed.map(print)).toEqual(first.map(print));
         },
       );
 
@@ -508,16 +508,18 @@ describe('ExternalFragmentLoader', () => {
       });
 
       it.each([undefined, 1000])(
-        'does not reuse provider results when a token limit becomes stricter (%s)',
+        'retains cached provider results until cleared when a token limit changes (%s)',
         async maxTokens => {
           const options = { ...locationOptions, cacheTTL: 1000 };
           const first = await load({ ...options, maxTokens });
           // The consumer fits within 30 tokens, but its provider does not.
+          const cached = await load({ ...options, maxTokens: 30 });
+          expect(cached[0].definitions[0]).toBe(first[0].definitions[0]);
+
+          clearCache();
           await expect(
             Promise.resolve().then(() => load({ ...options, maxTokens: 30 })),
           ).rejects.toThrow(/30 (?:lexical )?tokens/);
-          const repeated = await load({ ...options, maxTokens });
-          expect(repeated[0].definitions[0]).toBe(first[0].definitions[0]);
         },
       );
 
@@ -528,27 +530,36 @@ describe('ExternalFragmentLoader', () => {
         expectLocations(await load({ ...locationOptions, maxTokens: 1000 }), false);
       });
 
-      it('reuses equivalent parser settings regardless of property order or loader options', async () => {
-        const first = await load({ ...locationOptions, maxTokens: 1000, noLocation: false });
-        const repeated = await load({
-          ...locationOptions,
-          noLocation: false,
-          maxTokens: 1000,
-          cwd: tmpdir(),
-        });
-        expect(repeated[0].definitions[0]).toBe(first[0].definitions[0]);
+      it('applies new parser settings after the provider cache expires', async () => {
+        jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] });
+        try {
+          const options = { ...locationOptions, cacheTTL: 1000 };
+          expectLocations(await load({ ...options, noLocation: true }), true);
+          // memoizee starts async expiry on the next tick after promise settlement.
+          await new Promise<void>(resolve => setImmediate(resolve));
+          jest.advanceTimersByTime(1001);
+          expectLocations(await load({ ...options, noLocation: false }), false);
+          await new Promise<void>(resolve => setImmediate(resolve));
+          jest.advanceTimersByTime(1001);
+          await expect(
+            Promise.resolve().then(() => load({ ...options, maxTokens: 30 })),
+          ).rejects.toThrow(/30 (?:lexical )?tokens/);
+        } finally {
+          clearCache();
+          jest.useRealTimers();
+        }
       });
 
-      it('checks token limits when a cached provider becomes the consumer', async () => {
+      it('applies new token limits after invalidating a provider reused as the consumer', async () => {
         await load(packageAOpts);
+        const options = {
+          ...packageAOpts,
+          packageDir: path.join(FIXTURES_DIR, 'fragment-direct-provider'),
+          maxTokens: 1,
+        };
+        expect(await load(options)).toHaveLength(1);
         await expect(
-          Promise.resolve().then(() =>
-            load({
-              ...packageAOpts,
-              packageDir: path.join(FIXTURES_DIR, 'fragment-direct-provider'),
-              maxTokens: 1,
-            }),
-          ),
+          Promise.resolve().then(() => load({ ...options, invalidateTargetPackageCache: true })),
         ).rejects.toThrow(/1 (?:lexical )?tokens/);
       });
 
@@ -565,17 +576,14 @@ describe('ExternalFragmentLoader', () => {
         } catch {
           supported = true;
         }
-        (supported ? it : it.skip)(`honors ${key} after warming the provider cache`, async () => {
+        (supported ? it : it.skip)(`honors ${key} when parsing dependency documents`, async () => {
           const providerFile = path.join(FIXTURES_DIR, 'location-provider/src/fragments.graphql');
           const original = readFileSync(providerFile, 'utf8');
           try {
             writeFileSync(providerFile, `# provider comment\n${original}`);
-            const first = await load(locationOptions);
             await expect(
               Promise.resolve().then(() => load({ ...locationOptions, [key]: limit })),
             ).rejects.toThrow('Parsing aborted');
-            const repeated = await load(locationOptions);
-            expect(repeated[0].definitions[0]).toBe(first[0].definitions[0]);
           } finally {
             writeFileSync(providerFile, original);
             clearCache();
@@ -583,7 +591,7 @@ describe('ExternalFragmentLoader', () => {
         });
       }
 
-      it('forwards fragment-variable parsing flags and isolates their caches', async () => {
+      it('forwards fragment-variable parsing flags', async () => {
         const providerFile = path.join(FIXTURES_DIR, 'location-provider/src/fragments.graphql');
         const original = readFileSync(providerFile, 'utf8');
         const flag =
@@ -603,11 +611,10 @@ describe('ExternalFragmentLoader', () => {
           );
           const documents = await load({ ...locationOptions, [flag]: true });
           expect(print(documents[0])).toContain('fragment Fields($condition: Boolean!)');
+          clearCache();
           await expect(
             Promise.resolve().then(() => load({ ...locationOptions, [flag]: false })),
           ).rejects.toThrow('Syntax Error');
-          const repeated = await load({ ...locationOptions, [flag]: true });
-          expect(repeated[0].definitions[0]).toBe(documents[0].definitions[0]);
         } finally {
           writeFileSync(providerFile, original);
           clearCache();
@@ -633,10 +640,10 @@ describe('ExternalFragmentLoader', () => {
             await load(options);
             await load({ ...options, noLocation: !noLocation });
             expectLocations(await load(targetOptions), noLocation);
-            expectLocations(await load({ ...targetOptions, noLocation: !noLocation }), !noLocation);
+            expectLocations(await load({ ...targetOptions, noLocation: !noLocation }), noLocation);
             expect(
               fileContentFilter.mock.calls.filter(([, file]) => file === providerFile),
-            ).toHaveLength(2);
+            ).toHaveLength(1);
 
             writeFileSync(providerFileNative, originalSource.replace('  ...UserEmail\n', ''));
             expect(await load(targetOptions)).toHaveLength(1);
@@ -678,32 +685,23 @@ describe('ExternalFragmentLoader', () => {
       expect(advance).toHaveBeenCalled();
     });
 
-    it('isolates concurrent async callers with different token limits', async () => {
-      const results = await Promise.allSettled(
-        [1000, 30, 1000, 30].map(maxTokens => loader.load('.', { ...locationOptions, maxTokens })),
-      );
-      expect(results.map(result => result.status)).toEqual([
-        'fulfilled',
-        'rejected',
-        'fulfilled',
-        'rejected',
-      ]);
-      for (const result of results) {
-        if (result.status === 'rejected')
-          expect(result.reason.message).toMatch(/30 (?:lexical )?tokens/);
-      }
-    });
-
-    it('isolates concurrent async callers with different location modes', async () => {
-      const modes = [true, false, true, false];
+    it('reuses cached parser settings across concurrent calls and loader instances', async () => {
+      const first = await loader.load('.', { ...locationOptions, noLocation: true });
       const results = await Promise.all(
-        modes.map(noLocation => loader.load('.', { ...locationOptions, noLocation })),
+        [true, false].map(noLocation =>
+          new ExternalFragmentLoader().load('.', {
+            ...locationOptions,
+            noLocation,
+            maxTokens: 30,
+          }),
+        ),
       );
-      results.forEach((sources, i) => {
+      results.forEach(sources => {
         expectLocations(
           sources.map(source => source.document!),
-          modes[i],
+          true,
         );
+        expect(sources[0].document!.definitions[0]).toBe(first[0].document!.definitions[0]);
         expect(sources[0].location).toBe(
           expectedPath(FIXTURES_DIR, 'location-provider/src/fragments.graphql'),
         );
@@ -718,6 +716,7 @@ describe('ExternalFragmentLoader', () => {
       'honors parser options while preserving metadata-only results (%s)',
       async (_label, resolve) => {
         const withoutLocations = await resolve({ ...locationOptions, noLocation: true });
+        clearCache();
         const withLocations = await resolve({ ...locationOptions, noLocation: false });
         expect(withLocations).toEqual(withoutLocations);
         expect(withLocations).toEqual([
@@ -730,6 +729,7 @@ describe('ExternalFragmentLoader', () => {
             ],
           },
         ]);
+        clearCache();
         await expect(
           Promise.resolve().then(() => resolve({ ...locationOptions, maxTokens: 30 })),
         ).rejects.toThrow(/30 (?:lexical )?tokens/);

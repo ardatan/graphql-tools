@@ -163,6 +163,9 @@ Package fragment maps, parsed sources, and `package.json` dependency metadata ar
 resolver calls. Consumer package maps are not normally retained unless the consumer package was
 previously loaded as a provider.
 
+Cached fragments retain the parser settings used when they were first loaded. Call `clearCache()`
+before changing parser options, or wait for the cached entries to expire via `cacheTTL`.
+
 When running the loader in **watch mode** — for example, to run Codegen in the background while
 using an IDE so that the package's generated GraphQL types are regenerated automatically whenever a
 file changes — consider setting the following options:
