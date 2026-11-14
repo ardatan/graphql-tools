@@ -202,6 +202,14 @@ describe('mergeDeep', () => {
     expect(mergeDeep([{ a: 'dsa' }, { a: 'dd', b: 1 }, undefined])).toEqual({ a: 'dd', b: 1 });
   });
 
+  it('correctly handles mixed sources when earlier arrays have different lengths', () => {
+    expect(mergeDeep([[1], [2, 3], undefined])).toStrictEqual([1, 2, 3]);
+    expect(mergeDeep([[1], [2, 3], 'last'])).toEqual('last');
+    expect(mergeDeep([[1], [2, 3], undefined], { respectArrayLength: true })).toStrictEqual([
+      1, 2, 3,
+    ]);
+  });
+
   it('overrides property value with null from later source', () => {
     expect(mergeDeep([{ a: 'foo' }, { a: null }])).toEqual({ a: null });
   });
