@@ -52,7 +52,7 @@
   "dependencies": {
     "@graphql-tools/schema": "^11.0.9",
     "@graphql-tools/utils": "^13.2.2",
-    "@whatwg-node/promise-helpers": "^2.0.1",
+    "@whatwg-node/promise-helpers": "^2.0.2",
     "fast-json-stable-stringify": "^2.1.0",
     "tslib": "^2.4.0"
   },
