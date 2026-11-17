@@ -449,7 +449,7 @@ describe('ExternalFragmentLoader', () => {
         async noLocation => {
           for (const options of [locationOptions, tsOpts, packageAOpts]) {
             const documents = await load({ ...options, noLocation });
-            expectLocations(documents, noLocation ?? false);
+            expectLocations(documents, noLocation ?? true);
             expect(
               documents
                 .flatMap(document => document.definitions)
@@ -467,32 +467,32 @@ describe('ExternalFragmentLoader', () => {
       );
 
       it.each([true, false])(
-        'retains cached noLocation: %s until clearCache is called',
+        'isolates warm caches starting with noLocation: %s',
         async noLocation => {
           const first = await load({ ...locationOptions, noLocation });
           const opposite = await load({ ...locationOptions, noLocation: !noLocation });
-          expectLocations(first, noLocation);
-          expectLocations(opposite, noLocation);
-          expect(opposite.map(print)).toEqual(first.map(print));
-          expect(opposite[0].definitions[0]).toBe(first[0].definitions[0]);
+          const repeated = await load({ ...locationOptions, noLocation });
 
-          clearCache();
-          const refreshed = await load({ ...locationOptions, noLocation: !noLocation });
-          expectLocations(refreshed, !noLocation);
-          expect(refreshed.map(print)).toEqual(first.map(print));
+          expectLocations(first, noLocation);
+          expectLocations(opposite, !noLocation);
+          expectLocations(repeated, noLocation);
+          expect(opposite.map(print)).toEqual(first.map(print));
+          expect(repeated.map(print)).toEqual(first.map(print));
+          expect(repeated[0].definitions[0]).toBe(first[0].definitions[0]);
+          expect(opposite[0].definitions[0]).not.toBe(first[0].definitions[0]);
         },
       );
 
-      it('reuses the provider cache for omitted, undefined and false', async () => {
+      it('reuses the provider cache for omitted, undefined and true', async () => {
         const fileContentFilter = jest.fn((_content: string, _filePath: string) => true);
         const options = { ...locationOptions, fileContentFilter };
         const omitted = await load(options);
         const explicitUndefined = await load({ ...options, noLocation: undefined });
-        const explicitFalse = await load({ ...options, noLocation: false });
+        const explicitTrue = await load({ ...options, noLocation: true });
 
-        expectLocations(omitted, false);
+        expectLocations(omitted, true);
         expect(explicitUndefined[0].definitions[0]).toBe(omitted[0].definitions[0]);
-        expect(explicitFalse[0].definitions[0]).toBe(omitted[0].definitions[0]);
+        expect(explicitTrue[0].definitions[0]).toBe(omitted[0].definitions[0]);
         const providerFile = expectedPath(FIXTURES_DIR, 'location-provider/src/fragments.graphql');
         expect(
           fileContentFilter.mock.calls.filter(([, file]) => file === providerFile),
@@ -562,18 +562,15 @@ describe('ExternalFragmentLoader', () => {
         await expect(
           Promise.resolve().then(() => load({ ...locationOptions, maxTokens: 30 })),
         ).rejects.toThrow(/30 (?:lexical )?tokens/);
-        expectLocations(await load({ ...locationOptions, maxTokens: 1000 }), false);
+        expectLocations(await load({ ...locationOptions, maxTokens: 1000 }), true);
       });
 
       it('applies new parser settings after the provider cache expires', async () => {
         jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] });
         try {
           const options = { ...locationOptions, cacheTTL: 1000 };
-          expectLocations(await load({ ...options, noLocation: true }), true);
+          expectLocations(await load({ ...options, maxTokens: 1000 }), true);
           // memoizee starts async expiry on the next tick after promise settlement.
-          await new Promise<void>(resolve => setImmediate(resolve));
-          jest.advanceTimersByTime(1001);
-          expectLocations(await load({ ...options, noLocation: false }), false);
           await new Promise<void>(resolve => setImmediate(resolve));
           jest.advanceTimersByTime(1001);
           await expect(
@@ -675,10 +672,10 @@ describe('ExternalFragmentLoader', () => {
             await load(options);
             await load({ ...options, noLocation: !noLocation });
             expectLocations(await load(targetOptions), noLocation);
-            expectLocations(await load({ ...targetOptions, noLocation: !noLocation }), noLocation);
+            expectLocations(await load({ ...targetOptions, noLocation: !noLocation }), !noLocation);
             expect(
               fileContentFilter.mock.calls.filter(([, file]) => file === providerFile),
-            ).toHaveLength(1);
+            ).toHaveLength(2);
 
             writeFileSync(providerFileNative, originalSource.replace('  ...UserEmail\n', ''));
             expect(await load(targetOptions)).toHaveLength(1);
@@ -705,23 +702,16 @@ describe('ExternalFragmentLoader', () => {
       );
     });
 
-    it('reuses cached parser settings across concurrent calls and loader instances', async () => {
-      const first = await loader.load('.', { ...locationOptions, noLocation: true });
+    it('isolates concurrent async callers with different location modes', async () => {
+      const modes = [true, false, true, false];
       const results = await Promise.all(
-        [true, false].map(noLocation =>
-          new ExternalFragmentLoader().load('.', {
-            ...locationOptions,
-            noLocation,
-            maxTokens: 30,
-          }),
-        ),
+        modes.map(noLocation => loader.load('.', { ...locationOptions, noLocation })),
       );
-      results.forEach(sources => {
+      results.forEach((sources, i) => {
         expectLocations(
           sources.map(source => source.document!),
-          true,
+          modes[i],
         );
-        expect(sources[0].document!.definitions[0]).toBe(first[0].document!.definitions[0]);
         expect(sources[0].location).toBe(
           expectedPath(FIXTURES_DIR, 'location-provider/src/fragments.graphql'),
         );

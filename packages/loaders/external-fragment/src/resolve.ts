@@ -70,8 +70,8 @@ export interface ExternalFragmentResolverOptions extends Omit<ParseOptions, 'lex
   excludePatterns?: string[];
   pluckConfig?: GraphQLTagPluckOptions;
   /**
-   * Omit GraphQL AST locations. Locations are preserved by default.
-   * @default false
+   * Omit GraphQL AST locations. Set to false to preserve them.
+   * @default true
    */
   noLocation?: boolean;
   fileContentFilter?: (content: string, filePath: string) => boolean;
@@ -260,11 +260,13 @@ function buildPackageFragmentMapRaw(
   scanInternalDirs: string[],
   extensions: string[],
   excludePatterns: string[],
-  parseOptions: ParseOptions,
+  noLocation: boolean,
+  options: ParseOptions,
   pluckConfig?: GraphQLTagPluckOptions,
   fileContentFilter?: (content: string, filePath: string) => boolean,
 ): PackageFragmentMap {
   const builder = createPackageMapBuilder();
+  const parseOptions = { ...options, noLocation };
 
   const dirs = scanInternalDirs
     .map(folder => resolve(packageDir, folder))
@@ -298,11 +300,13 @@ async function buildPackageFragmentMapAsyncRaw(
   scanInternalDirs: string[],
   extensions: string[],
   excludePatterns: string[],
-  parseOptions: ParseOptions,
+  noLocation: boolean,
+  options: ParseOptions,
   pluckConfig?: GraphQLTagPluckOptions,
   fileContentFilter?: (content: string, filePath: string) => boolean,
 ): Promise<PackageFragmentMap> {
   const builder = createPackageMapBuilder();
+  const parseOptions = { ...options, noLocation };
 
   const dirs = scanInternalDirs
     .map(folder => resolve(packageDir, folder))
@@ -342,6 +346,7 @@ type PackageMapArgs = [
   scanInternalDirs: string[],
   extensions: string[],
   excludePatterns: string[],
+  noLocation: boolean,
   parseOptions: ParseOptions,
   pluckConfig?: GraphQLTagPluckOptions,
   fileContentFilter?: (content: string, filePath: string) => boolean,
@@ -354,8 +359,8 @@ type MemoizedPackageMap<Result> = ((...args: PackageMapArgs) => Result) & {
 };
 
 let readPackageJsonDeps = memoizee(readPackageJsonDepsRaw, { primitive: true });
-// Parser options do not distinguish cache entries. Clear cached fragments before
-// changing parser settings, or let them expire via cacheTTL.
+// Preserve separate noLocation cache entries. Clear cached fragments before
+// changing other parser settings, or let them expire via cacheTTL.
 let buildPackageFragmentMap = memoizee(buildPackageFragmentMapRaw, {
   primitive: true,
 }) as MemoizedPackageMap<PackageFragmentMap>;
@@ -695,6 +700,7 @@ interface NormalizedOptions {
   scanInternalDirs: string[];
   extensions: string[];
   excludePatterns: string[];
+  noLocation: boolean;
   parseOptions: ParseOptions;
   invalidateTargetPackageCache: boolean;
 }
@@ -707,6 +713,7 @@ function normalizeOptions(options: ExternalFragmentResolverOptions): NormalizedO
   const scanInternalDirs = options.scanInternalDirs ?? DEFAULT_SCAN_INTERNAL_DIRS;
   const extensions = options.extensions ?? DEFAULT_EXTENSIONS;
   const excludePatterns = options.excludePatterns ?? DEFAULT_EXCLUDE_PATTERNS;
+  const noLocation = options.noLocation ?? true;
   const invalidateTargetPackageCache = options.invalidateTargetPackageCache ?? false;
   // A lexer is bound to one source and cannot be reused across scanned documents.
   const parseOptions = { ...options, lexer: undefined };
@@ -718,6 +725,7 @@ function normalizeOptions(options: ExternalFragmentResolverOptions): NormalizedO
     scanInternalDirs,
     extensions,
     excludePatterns,
+    noLocation,
     parseOptions,
     invalidateTargetPackageCache,
   };
@@ -771,13 +779,14 @@ function toPublicResolvedFiles(
 function getPackageMapArgs(
   packageDir: string,
   options: ExternalFragmentResolverOptions,
-  { scanInternalDirs, extensions, excludePatterns, parseOptions }: NormalizedOptions,
+  { scanInternalDirs, extensions, excludePatterns, noLocation, parseOptions }: NormalizedOptions,
 ): PackageMapArgs {
   return [
     packageDir,
     scanInternalDirs,
     extensions,
     excludePatterns,
+    noLocation,
     parseOptions,
     options.pluckConfig,
     options.fileContentFilter,

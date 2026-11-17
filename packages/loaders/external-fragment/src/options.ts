@@ -29,8 +29,8 @@ export interface ExternalFragmentLoaderOptions
 
   /**
    * Omit source-location metadata from parsed GraphQL nodes.
-   * Locations on fragment definitions and their descendants are preserved by default.
-   * @default false
+   * Set to false to preserve locations on fragment definitions and their descendants.
+   * @default true
    */
   noLocation?: boolean;
 
