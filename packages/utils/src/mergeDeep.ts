@@ -124,23 +124,23 @@ function mergeDeepWithOptions<S extends any[]>(
   if (sources.length === 1) {
     return sources[0];
   }
-  let expectedLength: number | undefined;
   let allArrays = true;
-  const areArraysInTheSameLength = sources.every(source => {
-    if (Array.isArray(source)) {
-      if (expectedLength === undefined) {
-        expectedLength = source.length;
-        return true;
-      } else if (expectedLength === source.length) {
-        return true;
-      }
-    } else {
+  let expectedLength: number | undefined;
+  let areArraysInTheSameLength = true;
+  for (const source of sources) {
+    if (!Array.isArray(source)) {
       allArrays = false;
+      areArraysInTheSameLength = false;
+      break;
     }
-    return false;
-  });
+    if (expectedLength === undefined) {
+      expectedLength = source.length;
+    } else if (expectedLength !== source.length) {
+      areArraysInTheSameLength = false;
+    }
+  }
 
-  if (respectArrayLength && areArraysInTheSameLength) {
+  if (respectArrayLength && areArraysInTheSameLength && expectedLength !== undefined) {
     return new Array(expectedLength).fill(null).map((_, index) =>
       mergeDeepWithOptions(
         sources.map(source => source[index]),
