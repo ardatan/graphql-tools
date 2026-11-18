@@ -53,11 +53,11 @@
   "dependencies": {
     "@graphql-tools/utils": "^13.2.2",
     "@graphql-tools/wrap": "^11.0.0",
-    "@whatwg-node/promise-helpers": "^2.0.1",
+    "@whatwg-node/promise-helpers": "^2.0.2",
     "tslib": "^2.3.1"
   },
   "devDependencies": {
-    "@envelop/core": "6.0.0"
+    "@envelop/core": "6.0.1"
   },
   "publishConfig": {
     "directory": "dist",
