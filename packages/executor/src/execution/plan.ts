@@ -277,8 +277,10 @@ export function getPlannedFieldPlan(
   fieldNodes: ReadonlyArray<FieldNode>,
   parentType?: GraphQLObjectType,
 ): FieldPlan | undefined {
+  // Exact array hit still requires parentType match: the same fieldNodes array
+  // must not be reused under a different concrete parent (unions / interfaces).
   const byNodes = plan.fieldPlanByNodes.get(fieldNodes);
-  if (byNodes) {
+  if (byNodes != null && (parentType == null || byNodes.parentType === parentType)) {
     return byNodes;
   }
   // Same AST FieldNode can appear under multiple concrete parents (unions /
@@ -558,6 +560,8 @@ type BuiltinLeafVariableBinding = {
   name: string;
   nonNull: boolean;
   leafType: GraphQLLeafType;
+  /** Full variable input type (including NonNull) for GQL17 sources.signature. */
+  variableType: GraphQLInputType;
   defaultValue: unknown;
   hasDefault: boolean;
 };
@@ -594,6 +598,7 @@ function tryCompileBuiltinLeafVariableBindings(
       name: def.variable.name.value,
       nonNull,
       leafType: type,
+      variableType: inputType,
       defaultValue,
       hasDefault,
     });
@@ -611,14 +616,22 @@ function tryCoerceBuiltinLeafVariables(
 ): VariableValues | undefined {
   const raw = rawVariableValues ?? EMPTY_RAW_VARIABLES;
   const coerced = Object.create(null) as Record<string, unknown>;
+  const sources = Object.create(null) as VariableValues['sources'];
   for (const binding of bindings) {
+    const signature = {
+      name: binding.name,
+      type: binding.variableType,
+      default: undefined,
+    };
     if (!Object.prototype.hasOwnProperty.call(raw, binding.name)) {
+      sources[binding.name] = { signature };
       if (binding.nonNull) {
         return undefined;
       }
       continue;
     }
     const value = raw[binding.name];
+    sources[binding.name] = { signature, value };
     if (value == null) {
       if (binding.nonNull) {
         return undefined;
@@ -637,7 +650,7 @@ function tryCoerceBuiltinLeafVariables(
     }
     coerced[binding.name] = parsed;
   }
-  return { coerced, sources: Object.create(null) } as VariableValues;
+  return { coerced, sources };
 }
 
 const EMPTY_RAW_VARIABLES: { readonly [key: string]: unknown } = Object.freeze(Object.create(null));
