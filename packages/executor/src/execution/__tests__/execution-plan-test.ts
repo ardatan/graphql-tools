@@ -190,6 +190,22 @@ describe('execution plan', () => {
     ).toEqual({ data: { hello: 'hello GraphQL' } });
   });
 
+  it('compiles resolveInfoStatic for planned fields', () => {
+    const document = parse('{ hello }');
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    const fieldPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('hello')!);
+    expect(fieldPlan?.resolveInfoStatic).toMatchObject({
+      fieldName: 'hello',
+      returnType: fieldPlan?.returnType,
+      parentType: plan.rootType,
+    });
+    expect(fieldPlan?.resolveInfoStatic.fieldNodes).toBe(plan.rootFields.get('hello'));
+  });
+
   it('records completionKind and skipIsTypeOf for object fields', () => {
     const document = parse('{ items { name friend { name } } }');
     const plan = compileExecutionPlan({ schema, document });

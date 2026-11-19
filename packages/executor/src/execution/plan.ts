@@ -120,6 +120,16 @@ export interface FieldPlan {
    * Runtime still gates on `exeContext.fieldResolver === defaultFieldResolver`.
    */
   mayUseDefaultLeafPath: boolean;
+  /**
+   * Static GraphQLResolveInfo fields compiled once (path + execution details
+   * filled at runtime by `buildPlannedResolveInfo`).
+   */
+  resolveInfoStatic: {
+    fieldName: string;
+    fieldNodes: Array<FieldNode>;
+    returnType: GraphQLOutputType;
+    parentType: GraphQLObjectType;
+  };
 }
 
 /**
@@ -375,12 +385,13 @@ function compileFieldPlan(
     hasArgs,
   );
 
+  const returnType = fieldDef.type;
   return {
     fieldDef,
     fieldNodes,
     responseName,
     parentType,
-    returnType: fieldDef.type,
+    returnType,
     nonNull,
     leafType,
     listItemLeaf,
@@ -393,6 +404,12 @@ function compileFieldPlan(
     argumentReader,
     readArguments,
     mayUseDefaultLeafPath,
+    resolveInfoStatic: {
+      fieldName: fieldDef.name,
+      fieldNodes,
+      returnType,
+      parentType,
+    },
   };
 }
 
