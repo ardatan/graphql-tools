@@ -98,6 +98,7 @@ import { invariant } from './invariant.js';
 import {
   compileExecutionPlan,
   isExecutionPlan,
+  type ArgumentReader,
   type ExecutionPlan,
   type FieldPlan,
 } from './plan.js';
@@ -107,11 +108,14 @@ export { defaultFieldResolver, defaultTypeResolver };
 export {
   clearExecutionPlanCache,
   compileExecutionPlan,
+  compileListItemLeaf,
   getExecutionPlan,
   isExecutionPlan,
+  type ArgumentReader,
   type CompileExecutionPlanArgs,
   type ExecutionPlan,
   type FieldPlan,
+  type PlannedLeafList,
 } from './plan.js';
 
 export type { CompletedResult, PendingResult } from './incremental.js';
@@ -236,10 +240,15 @@ function getFieldArgumentValues(
   fieldDef: GraphQLField<unknown, unknown>,
   fieldNode: FieldNode,
   variableValues: VariableValues,
-  staticArgs?: { [argument: string]: unknown },
+  argumentReader?: ArgumentReader,
 ): { [argument: string]: unknown } {
-  if (staticArgs !== undefined) {
-    return staticArgs;
+  if (argumentReader !== undefined) {
+    switch (argumentReader.kind) {
+      case 'empty':
+        return EMPTY_ARGS;
+      case 'static':
+        return argumentReader.args;
+    }
   }
   if (fieldDef.args.length === 0) {
     return EMPTY_ARGS;
@@ -1418,7 +1427,7 @@ function executeField(
             fieldDef,
             fieldNodes[0],
             exeContext.variableValues,
-            fieldPlan?.staticArgs,
+            fieldPlan?.argumentReader,
           );
         }
         const property = (source as Record<string, unknown>)[leafMemo.name];
@@ -1430,7 +1439,7 @@ function executeField(
             fieldDef,
             fieldNodes[0],
             exeContext.variableValues,
-            fieldPlan?.staticArgs,
+            fieldPlan?.argumentReader,
           );
           result = (
             property as (
@@ -1482,6 +1491,54 @@ function executeField(
             return serialized;
           }
         }
+      } else if (fieldPlan?.listItemLeaf) {
+        // Planned list-of-leaf: still go through completeValue so thenable
+        // detection stays a single isPromise read (see scalar-list-paths tests).
+        // completeListValue uses listItemLeaf + an indexed array loop.
+        if (fieldPlan.hasArgs) {
+          getFieldArgumentValues(
+            fieldDef,
+            fieldNodes[0],
+            exeContext.variableValues,
+            fieldPlan.argumentReader,
+          );
+        }
+        const property = (source as Record<string, unknown>)[fieldPlan.fieldDef.name];
+        if (typeof property === 'function') {
+          info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+          const args = getFieldArgumentValues(
+            fieldDef,
+            fieldNodes[0],
+            exeContext.variableValues,
+            fieldPlan.argumentReader,
+          );
+          result = (
+            property as (
+              this: unknown,
+              fieldArgs: typeof args,
+              contextValue: unknown,
+              resolveInfo: GraphQLResolveInfo,
+            ) => unknown
+          ).call(source, args, exeContext.contextValue, info);
+          resolvedViaDefaultProperty = true;
+        } else if (property instanceof Error) {
+          throw property;
+        } else if (isPromise(property)) {
+          info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+          result = property;
+          resolvedViaDefaultProperty = true;
+        } else if (property == null) {
+          if (fieldPlan.nonNull) {
+            throw new Error(
+              `Cannot return null for non-nullable field ${parentType.name}.${fieldPlan.fieldDef.name}.`,
+            );
+          }
+          return null;
+        } else {
+          info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+          result = property;
+          resolvedViaDefaultProperty = true;
+        }
       }
     }
 
@@ -1490,12 +1547,12 @@ function executeField(
       // Build a JS object of arguments from the field.arguments AST, using the
       // variables scope to fulfill any variable references. Empty-arg fields skip
       // coercion; list items reuse a memo keyed by fieldDef/fieldNode/variables.
-      // Planned static args skip coercion entirely on the warm path.
+      // Planned argument readers skip AST walks on the warm path when safe.
       const args = getFieldArgumentValues(
         fieldDef,
         fieldNodes[0],
         exeContext.variableValues,
-        fieldPlan?.staticArgs,
+        fieldPlan?.argumentReader,
       );
 
       // The resolve function's optional third argument is a context value that
@@ -1931,7 +1988,37 @@ function completeListValue(
   let previousAsyncPayloadRecord = asyncPayloadRecord;
   const completedResults: Array<unknown> = [];
   const nullableItemType = isNonNullType(itemType) ? itemType.ofType : itemType;
-  const leafItemType = !stream && isLeafType(nullableItemType) ? nullableItemType : undefined;
+  const fieldPlan = exeContext.plan?.fieldPlanByNodes.get(fieldNodes);
+  const plannedLeafList = !stream ? fieldPlan?.listItemLeaf : undefined;
+  const leafItemType =
+    plannedLeafList?.leafType ??
+    (!stream && isLeafType(nullableItemType) ? nullableItemType : undefined);
+
+  // Warm plan / dense arrays: indexed loop avoids iterator protocol; planned
+  // listItemLeaf skips repeated isLeafType classification.
+  if (Array.isArray(result) && leafItemType && !stream) {
+    for (let index = 0; index < result.length; index++) {
+      if (
+        completeListItemValue(
+          result[index],
+          completedResults,
+          errors,
+          exeContext,
+          itemType,
+          fieldNodes,
+          info,
+          path,
+          asyncPayloadRecord,
+          leafItemType,
+          index,
+        )
+      ) {
+        containsPromise = true;
+      }
+    }
+    return containsPromise ? Promise.all(completedResults) : completedResults;
+  }
+
   let index = 0;
   for (const item of result) {
     // No need to modify the info object containing the path,

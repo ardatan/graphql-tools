@@ -44,6 +44,26 @@ const EMPTY_VARIABLE_VALUES: VariableValues = Object.freeze({
 const INCREMENTAL_DIRECTIVES = new Set(['defer', 'stream']);
 
 /**
+ * When the field returns a list of scalars/enums (optionally non-null items),
+ * the warm plan path can complete arrays without re-classifying the item type.
+ */
+export interface PlannedLeafList {
+  leafType: GraphQLLeafType;
+  /** True when list items are wrapped in NonNull. */
+  itemNonNull: boolean;
+}
+
+/**
+ * Compiled argument reader for the warm plan path.
+ * - `empty` / `static`: no runtime coercion
+ * - omitted (`undefined` on FieldPlan): fall back to `getArgumentValues`
+ *   (including bare-variable args, so nullability / missing-variable errors
+ *   stay identical to graphql-js)
+ */
+export type ArgumentReader =
+  { kind: 'empty' } | { kind: 'static'; args: { [argument: string]: unknown } };
+
+/**
  * Per-field static facts compiled once for a (schema, document, operation) plan.
  * Shared across warm executions so the thin interpreter can skip field lookup,
  * type classification, and (when safe) argument coercion / resolveInfo setup.
@@ -56,12 +76,19 @@ export interface FieldPlan {
   returnType: GraphQLOutputType;
   nonNull: boolean;
   leafType: GraphQLLeafType | undefined;
+  /**
+   * Set when the field's named return type (after NonNull) is a list of leaves.
+   */
+  listItemLeaf: PlannedLeafList | undefined;
   hasArgs: boolean;
   /**
    * When all argument ASTs are variable-free, args are coerced once at compile
-   * time. `undefined` means coerce from `variableValues` at runtime.
+   * time. Prefer `argumentReader` on the warm path; kept for callers that only
+   * check static maps.
    */
   staticArgs: { [argument: string]: unknown } | undefined;
+  /** Compiled argument strategy for this field (see ArgumentReader). */
+  argumentReader: ArgumentReader | undefined;
   /**
    * True when `fieldDef.resolve` is unset or is the GraphQL default resolver.
    * Runtime still gates on `exeContext.fieldResolver === defaultFieldResolver`.
@@ -302,31 +329,15 @@ function compileFieldPlan(
   }
 
   const leafType = isLeafType(type) ? type : undefined;
+  const listItemLeaf = compileListItemLeaf(type);
   const fieldResolve = fieldDef.resolve;
   // Unset resolve or explicit `resolve: defaultFieldResolver` may take the
-  // leaf fast path when the effective runtime resolver is still default.
+  // leaf / leaf-list fast path when the effective runtime resolver is still default.
   const mayUseDefaultLeafPath =
-    leafType != null && (fieldResolve == null || fieldResolve === defaultFieldResolver);
+    (leafType != null || listItemLeaf != null) &&
+    (fieldResolve == null || fieldResolve === defaultFieldResolver);
   const hasArgs = fieldDef.args.length > 0;
-  let staticArgs: { [argument: string]: unknown } | undefined;
-  if (!hasArgs) {
-    staticArgs = EMPTY_ARGS;
-  } else if (!fieldArgumentsContainVariable(fieldNodes[0])) {
-    // Pre-coerce only when literals are valid with empty variables. Missing
-    // required args / bad literals must surface at execution time (same as
-    // the classic path), so leave `staticArgs` unset and coerce on the warm
-    // path via getArgumentValues.
-    try {
-      staticArgs = Object.freeze(
-        Object.assign(
-          Object.create(null),
-          getArgumentValuesForPlan(fieldDef, fieldNodes[0], EMPTY_VARIABLE_VALUES),
-        ),
-      );
-    } catch {
-      staticArgs = undefined;
-    }
-  }
+  const { staticArgs, argumentReader } = compileArgumentReader(fieldDef, fieldNodes[0], hasArgs);
 
   return {
     fieldDef,
@@ -336,10 +347,67 @@ function compileFieldPlan(
     returnType: fieldDef.type,
     nonNull,
     leafType,
+    listItemLeaf,
     hasArgs,
     staticArgs,
-    mayUseDefaultLeafPath: mayUseDefaultLeafPath || fieldResolve == null,
+    argumentReader,
+    mayUseDefaultLeafPath,
   };
+}
+
+/**
+ * If `type` is List or NonNull(List) of (NonNull) leaf, return leaf completion facts.
+ */
+export function compileListItemLeaf(type: GraphQLOutputType): PlannedLeafList | undefined {
+  let current: GraphQLOutputType = type;
+  if (isNonNullType(current)) {
+    current = current.ofType;
+  }
+  if (!isListType(current)) {
+    return undefined;
+  }
+  let item: GraphQLOutputType = current.ofType;
+  let itemNonNull = false;
+  if (isNonNullType(item)) {
+    itemNonNull = true;
+    item = item.ofType;
+  }
+  if (!isLeafType(item)) {
+    return undefined;
+  }
+  return { leafType: item, itemNonNull };
+}
+
+function compileArgumentReader(
+  fieldDef: GraphQLField<unknown, unknown>,
+  fieldNode: FieldNode,
+  hasArgs: boolean,
+): {
+  staticArgs: { [argument: string]: unknown } | undefined;
+  argumentReader: ArgumentReader | undefined;
+} {
+  if (!hasArgs) {
+    return { staticArgs: EMPTY_ARGS, argumentReader: { kind: 'empty' } };
+  }
+
+  if (!fieldArgumentsContainVariable(fieldNode)) {
+    // Pre-coerce only when literals are valid with empty variables. Missing
+    // required args / bad literals must surface at execution time (same as
+    // the classic path), so leave readers unset and coerce via getArgumentValues.
+    try {
+      const staticArgs = Object.freeze(
+        Object.assign(
+          Object.create(null),
+          getArgumentValuesForPlan(fieldDef, fieldNode, EMPTY_VARIABLE_VALUES),
+        ),
+      );
+      return { staticArgs, argumentReader: { kind: 'static', args: staticArgs } };
+    } catch {
+      return { staticArgs: undefined, argumentReader: undefined };
+    }
+  }
+
+  return { staticArgs: undefined, argumentReader: undefined };
 }
 
 function compileReturnTypeSubfields(plan: ExecutionPlan, fieldPlan: FieldPlan): void {

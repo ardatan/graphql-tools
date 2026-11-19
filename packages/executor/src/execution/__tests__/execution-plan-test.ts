@@ -164,9 +164,13 @@ describe('execution plan', () => {
     }
     const fieldPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('hello')!);
     expect(fieldPlan?.staticArgs).toEqual({ name: 'Ada' });
+    expect(fieldPlan?.argumentReader).toEqual({
+      kind: 'static',
+      args: { name: 'Ada' },
+    });
   });
 
-  it('leaves argument coercion to runtime when args reference variables', () => {
+  it('leaves variable argument coercion to getArgumentValues', () => {
     const document = parse('query ($name: String) { hello(name: $name) }');
     const plan = compileExecutionPlan({ schema, document });
     expect(isExecutionPlan(plan)).toBe(true);
@@ -176,6 +180,29 @@ describe('execution plan', () => {
     const fieldPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('hello')!);
     expect(fieldPlan?.hasArgs).toBe(true);
     expect(fieldPlan?.staticArgs).toBeUndefined();
+    expect(fieldPlan?.argumentReader).toBeUndefined();
+  });
+
+  it('records planned leaf-list facts for list-of-scalar fields', () => {
+    const listSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: { type: new GraphQLList(GraphQLInt) },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    const plan = compileExecutionPlan({ schema: listSchema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    const fieldPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('values')!);
+    expect(fieldPlan?.listItemLeaf).toMatchObject({
+      itemNonNull: false,
+    });
+    expect(fieldPlan?.listItemLeaf?.leafType.name).toBe('Int');
   });
 
   it('executes correctly through the planned path for nested lists', () => {
