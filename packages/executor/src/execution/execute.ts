@@ -1789,7 +1789,10 @@ function completeValue(
   // hot paths skip repeated isListType / isLeafType / isAbstractType / isObjectType.
   // Only when `returnType` is this field's planned named type — list-item
   // completion reuses the same fieldNodes but a different item returnType.
-  const fieldPlan = exeContext.plan?.fieldPlanByNodes.get(fieldNodes);
+  // Skip plan lookup for list items (`path.key` number): the WeakMap get on
+  // every promise callback regresses dense async leaf lists.
+  const fieldPlan =
+    typeof path.key === 'number' ? undefined : exeContext.plan?.fieldPlanByNodes.get(fieldNodes);
   const plannedNamedType =
     fieldPlan != null
       ? isNonNullType(fieldPlan.returnType)
@@ -2183,6 +2186,27 @@ function completeListItemValue(
     const itemIsPromise = isPromise(item);
     if (leafItemType && item != null && !(item instanceof Error) && !itemIsPromise) {
       completedItem = completeLeafValue(leafItemType, item);
+    } else if (leafItemType && itemIsPromise) {
+      // Promised leaf items: serialize in the then-callback without completeValue
+      // (avoids plan/type-dispatch overhead on dense async leaf lists).
+      itemPath ??= itemIndex === undefined ? path : addPath(path, itemIndex, undefined);
+      const itemNonNull = isNonNullType(itemType);
+      const parentFieldName = info.fieldName;
+      const parentTypeName = info.parentType.name;
+      completedItem = item.then(resolved => {
+        if (resolved instanceof Error) {
+          throw resolved;
+        }
+        if (resolved == null) {
+          if (itemNonNull) {
+            throw new Error(
+              `Cannot return null for non-nullable field ${parentTypeName}.${parentFieldName}.`,
+            );
+          }
+          return null;
+        }
+        return completeLeafValue(leafItemType, resolved);
+      });
     } else {
       itemPath ??= itemIndex === undefined ? path : addPath(path, itemIndex, undefined);
       if (itemIsPromise) {
