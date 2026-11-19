@@ -1421,6 +1421,98 @@ function schemaCoordinateInfo(
   return { fieldName: fieldDef.name, parentType };
 }
 
+type PlannedCompleter = (
+  exeContext: ExecutionContext,
+  info: GraphQLResolveInfo,
+  path: Path,
+  result: unknown,
+  asyncPayloadRecord?: AsyncPayloadRecord,
+) => MaybePromise<unknown>;
+
+function fieldPlanCompleterSkipped(exeContext: ExecutionContext): boolean {
+  return exeContext.plan?.hasIncremental === true;
+}
+
+/**
+ * Bind a per-field completer closed over plan facts (completionKind, leafType,
+ * objectType, fieldNodes, NonNull). Installed lazily on `FieldPlan.complete`.
+ */
+function ensureFieldCompleter(fieldPlan: FieldPlan): PlannedCompleter {
+  if (fieldPlan.complete) {
+    return fieldPlan.complete as PlannedCompleter;
+  }
+  const { fieldNodes, returnType, completionKind, leafType, objectType } = fieldPlan;
+  const namedType = isNonNullType(returnType) ? returnType.ofType : returnType;
+  const completeNamed: PlannedCompleter = (exeContext, info, path, result, asyncPayloadRecord) => {
+    if (result instanceof Error) {
+      throw result;
+    }
+    if (result == null) {
+      return null;
+    }
+    switch (completionKind) {
+      case 'leaf':
+        return completeLeafValue(leafType ?? (namedType as GraphQLLeafType), result);
+      case 'leafList':
+      case 'list':
+        return completeListValue(
+          exeContext,
+          namedType as GraphQLList<GraphQLOutputType>,
+          fieldNodes,
+          info,
+          path,
+          result,
+          asyncPayloadRecord,
+        );
+      case 'abstract':
+        return completeAbstractValue(
+          exeContext,
+          namedType as GraphQLAbstractType,
+          fieldNodes,
+          info,
+          path,
+          result,
+          asyncPayloadRecord,
+        );
+      case 'object':
+        return completeObjectValue(
+          exeContext,
+          objectType ?? (namedType as GraphQLObjectType),
+          fieldNodes,
+          info,
+          path,
+          result,
+          asyncPayloadRecord,
+        );
+    }
+  };
+
+  const completer: PlannedCompleter = isNonNullType(returnType)
+    ? (exeContext, info, path, result, asyncPayloadRecord) => {
+        const completed = completeNamed(exeContext, info, path, result, asyncPayloadRecord);
+        if (isPromise(completed)) {
+          return completed.then(value => {
+            if (value === null) {
+              throw new Error(
+                `Cannot return null for non-nullable field ${info.parentType.name}.${info.fieldName}.`,
+              );
+            }
+            return value;
+          });
+        }
+        if (completed === null) {
+          throw new Error(
+            `Cannot return null for non-nullable field ${info.parentType.name}.${info.fieldName}.`,
+          );
+        }
+        return completed;
+      }
+    : completeNamed;
+
+  fieldPlan.complete = completer;
+  return completer;
+}
+
 /**
  * Implements the "Executing fields" section of the spec
  * In particular, this function figures out the value that the field returns by
@@ -1446,7 +1538,7 @@ function executeField(
   }
 
   const returnType = fieldPlan?.returnType ?? fieldDef.type;
-  const resolveFn = fieldDef.resolve ?? exeContext.fieldResolver;
+  const resolveFn = fieldPlan?.boundResolve ?? fieldDef.resolve ?? exeContext.fieldResolver;
   const resolveInfoForPath = (fieldPath: Path): GraphQLResolveInfo =>
     fieldPlan != null
       ? buildPlannedResolveInfo(exeContext, fieldPlan, fieldPath)
@@ -1650,6 +1742,18 @@ function executeField(
     let completed;
     if (resultAlreadySerialized) {
       completed = result;
+    } else if (fieldPlan != null && !fieldPlanCompleterSkipped(exeContext)) {
+      // Warm non-incremental plan: bound completer closed over kind/leaf/object.
+      // Incremental docs keep completeValue so defer/stream fieldNodes + usage
+      // bookkeeping stay on the classic path.
+      const complete = ensureFieldCompleter(fieldPlan);
+      if (isPromise(result)) {
+        completed = result.then(resolved =>
+          complete(exeContext, info!, path, resolved, asyncPayloadRecord),
+        );
+      } else {
+        completed = complete(exeContext, info!, path, result, asyncPayloadRecord);
+      }
     } else if (isPromise(result)) {
       completed = result.then(resolved =>
         completeValue(

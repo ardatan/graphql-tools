@@ -120,6 +120,18 @@ export interface FieldPlan {
   /** True when `objectType` is set and has no `isTypeOf` predicate. */
   skipIsTypeOf: boolean;
   resolveKind: ResolveKind;
+  /**
+   * When `resolveKind === 'schemaResolve'`, the schema field resolve closed at
+   * compile time so the warm path can call it without re-reading `fieldDef.resolve`.
+   */
+  boundResolve:
+    | ((
+        source: unknown,
+        args: { [argument: string]: unknown },
+        context: unknown,
+        info: unknown,
+      ) => unknown)
+    | undefined;
   hasArgs: boolean;
   /**
    * When all argument ASTs are variable-free, args are coerced once at compile
@@ -157,6 +169,13 @@ export interface FieldPlan {
     | { kind: 'none' }
     | { kind: 'static'; initialCount: number | undefined; label: string | undefined }
     | { kind: 'dynamic' };
+  /**
+   * Bound field completer installed by the runtime binder (`execute.ts`) after
+   * compile. Closes over completionKind / leaf / object facts so warm
+   * `executeField` can skip the `completeValue` kind switch + plan lookup.
+   * Undefined until the plan is first bound for execution.
+   */
+  complete?: (...args: never[]) => unknown;
 }
 
 /**
@@ -728,6 +747,15 @@ function compileFieldPlan(
     fieldResolve != null && fieldResolve !== defaultFieldResolver
       ? 'schemaResolve'
       : 'defaultProperty';
+  const boundResolve =
+    resolveKind === 'schemaResolve'
+      ? (fieldResolve as (
+          source: unknown,
+          args: { [argument: string]: unknown },
+          context: unknown,
+          info: unknown,
+        ) => unknown)
+      : undefined;
   // Unset resolve or explicit `resolve: defaultFieldResolver` may take the
   // leaf / leaf-list fast path when the effective runtime resolver is still default.
   const mayUseDefaultLeafPath =
@@ -753,6 +781,7 @@ function compileFieldPlan(
     objectType,
     skipIsTypeOf,
     resolveKind,
+    boundResolve,
     hasArgs,
     staticArgs,
     argumentReader,

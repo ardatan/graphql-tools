@@ -355,6 +355,30 @@ describe('execution plan', () => {
     expect(fieldPlan?.resolveInfoStatic.fieldNodes).toBe(plan.rootFields.get('hello'));
   });
 
+  it('binds resolve/complete closures on the warm plan path', () => {
+    const document = parse('{ hello a }');
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    const helloPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('hello')!);
+    const aPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('a')!);
+    expect(helloPlan?.resolveKind).toBe('schemaResolve');
+    expect(typeof helloPlan?.boundResolve).toBe('function');
+    expect(aPlan?.resolveKind).toBe('schemaResolve');
+    expect(aPlan?.complete).toBeUndefined();
+    expect(
+      executeSync({
+        schema,
+        document,
+      }),
+    ).toEqual({ data: { hello: 'hello world', a: 'a' } });
+    // Completers are installed lazily on first warm executeField.
+    expect(typeof helloPlan?.complete).toBe('function');
+    expect(typeof aPlan?.complete).toBe('function');
+  });
+
   it('records completionKind and skipIsTypeOf for object fields', () => {
     const document = parse('{ items { name friend { name } } }');
     const plan = compileExecutionPlan({ schema, document });
