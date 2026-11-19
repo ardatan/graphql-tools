@@ -113,9 +113,11 @@ export {
   isExecutionPlan,
   type ArgumentReader,
   type CompileExecutionPlanArgs,
+  type CompletionKind,
   type ExecutionPlan,
   type FieldPlan,
   type PlannedLeafList,
+  type ResolveKind,
 } from './plan.js';
 
 export type { CompletedResult, PendingResult } from './incremental.js';
@@ -241,13 +243,19 @@ function getFieldArgumentValues(
   fieldNode: FieldNode,
   variableValues: VariableValues,
   argumentReader?: ArgumentReader,
+  readArguments?: (variableValues: VariableValues) => { [argument: string]: unknown },
 ): { [argument: string]: unknown } {
+  if (readArguments !== undefined) {
+    return readArguments(variableValues);
+  }
   if (argumentReader !== undefined) {
     switch (argumentReader.kind) {
       case 'empty':
         return EMPTY_ARGS;
       case 'static':
         return argumentReader.args;
+      case 'coercer':
+        return argumentReader.read(variableValues);
     }
   }
   if (fieldDef.args.length === 0) {
@@ -1401,7 +1409,11 @@ function executeField(
     // Promise). Skipping completeValue avoids a second serialize.
     let resultAlreadySerialized = false;
 
+    // Planned schemaResolve fields skip the default-property leaf/list probes.
+    const mayUseDefaultPropertyPath =
+      fieldPlan == null || fieldPlan.resolveKind === 'defaultProperty';
     if (
+      mayUseDefaultPropertyPath &&
       resolveFn === defaultFieldResolver &&
       (isObjectLike(source) || typeof source === 'function')
     ) {
@@ -1428,6 +1440,7 @@ function executeField(
             fieldNodes[0],
             exeContext.variableValues,
             fieldPlan?.argumentReader,
+            fieldPlan?.readArguments,
           );
         }
         const property = (source as Record<string, unknown>)[leafMemo.name];
@@ -1440,6 +1453,7 @@ function executeField(
             fieldNodes[0],
             exeContext.variableValues,
             fieldPlan?.argumentReader,
+            fieldPlan?.readArguments,
           );
           result = (
             property as (
@@ -1501,6 +1515,7 @@ function executeField(
             fieldNodes[0],
             exeContext.variableValues,
             fieldPlan.argumentReader,
+            fieldPlan.readArguments,
           );
         }
         const property = (source as Record<string, unknown>)[fieldPlan.fieldDef.name];
@@ -1511,6 +1526,7 @@ function executeField(
             fieldNodes[0],
             exeContext.variableValues,
             fieldPlan.argumentReader,
+            fieldPlan.readArguments,
           );
           result = (
             property as (
@@ -1547,12 +1563,13 @@ function executeField(
       // Build a JS object of arguments from the field.arguments AST, using the
       // variables scope to fulfill any variable references. Empty-arg fields skip
       // coercion; list items reuse a memo keyed by fieldDef/fieldNode/variables.
-      // Planned argument readers skip AST walks on the warm path when safe.
+      // Planned argument coercers skip AST walks on the warm path when safe.
       const args = getFieldArgumentValues(
         fieldDef,
         fieldNodes[0],
         exeContext.variableValues,
         fieldPlan?.argumentReader,
+        fieldPlan?.readArguments,
       );
 
       // The resolve function's optional third argument is a context value that
@@ -1766,6 +1783,57 @@ function completeValue(
   // If result value is null or undefined then return null.
   if (result == null) {
     return null;
+  }
+
+  // Warm plan: dispatch by compiled completionKind (after NonNull unwrap) so
+  // hot paths skip repeated isListType / isLeafType / isAbstractType / isObjectType.
+  // Only when `returnType` is this field's planned named type — list-item
+  // completion reuses the same fieldNodes but a different item returnType.
+  const fieldPlan = exeContext.plan?.fieldPlanByNodes.get(fieldNodes);
+  const plannedNamedType =
+    fieldPlan != null
+      ? isNonNullType(fieldPlan.returnType)
+        ? fieldPlan.returnType.ofType
+        : fieldPlan.returnType
+      : undefined;
+  const completionKind =
+    fieldPlan != null && returnType === plannedNamedType ? fieldPlan.completionKind : undefined;
+  if (completionKind !== undefined) {
+    switch (completionKind) {
+      case 'leaf':
+        return completeLeafValue(fieldPlan!.leafType ?? (returnType as GraphQLLeafType), result);
+      case 'leafList':
+      case 'list':
+        return completeListValue(
+          exeContext,
+          returnType as GraphQLList<GraphQLOutputType>,
+          fieldNodes,
+          info,
+          path,
+          result,
+          asyncPayloadRecord,
+        );
+      case 'abstract':
+        return completeAbstractValue(
+          exeContext,
+          returnType as GraphQLAbstractType,
+          fieldNodes,
+          info,
+          path,
+          result,
+          asyncPayloadRecord,
+        );
+      case 'object':
+        return completeObjectValue(
+          exeContext,
+          fieldPlan!.objectType ?? (returnType as GraphQLObjectType),
+          fieldNodes,
+          info,
+          path,
+          result,
+          asyncPayloadRecord,
+        );
+    }
   }
 
   // If field type is List, complete each item in the list with the inner type
@@ -1994,11 +2062,30 @@ function completeListValue(
     plannedLeafList?.leafType ??
     (!stream && isLeafType(nullableItemType) ? nullableItemType : undefined);
 
-  // Warm plan / dense arrays: indexed loop avoids iterator protocol; planned
-  // listItemLeaf skips repeated isLeafType classification.
-  if (Array.isArray(result) && leafItemType && !stream) {
+  // Dense arrays: indexed loop avoids iterator protocol. Planned listItemLeaf
+  // skips repeated isLeafType classification; object/abstract lists still get
+  // indexed iteration with proper item paths.
+  if (Array.isArray(result) && !stream) {
     for (let index = 0; index < result.length; index++) {
-      if (
+      if (leafItemType) {
+        if (
+          completeListItemValue(
+            result[index],
+            completedResults,
+            errors,
+            exeContext,
+            itemType,
+            fieldNodes,
+            info,
+            path,
+            asyncPayloadRecord,
+            leafItemType,
+            index,
+          )
+        ) {
+          containsPromise = true;
+        }
+      } else if (
         completeListItemValue(
           result[index],
           completedResults,
@@ -2007,10 +2094,8 @@ function completeListValue(
           itemType,
           fieldNodes,
           info,
-          path,
+          addPath(path, index, undefined),
           asyncPayloadRecord,
-          leafItemType,
-          index,
         )
       ) {
         containsPromise = true;
@@ -2310,6 +2395,23 @@ function completeObjectValue(
   result: unknown,
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): MaybePromise<Record<string, unknown>> {
+  // Warm plan path: concrete object fields without isTypeOf skip the predicate.
+  const fieldPlan = exeContext.plan?.fieldPlanByNodes.get(fieldNodes);
+  if (
+    fieldPlan?.skipIsTypeOf &&
+    fieldPlan.objectType === returnType &&
+    returnType.isTypeOf == null
+  ) {
+    return collectAndExecuteSubfields(
+      exeContext,
+      returnType,
+      fieldNodes,
+      path,
+      result,
+      asyncPayloadRecord,
+    );
+  }
+
   // If there is an isTypeOf predicate function, call it with the
   // current result. If isTypeOf returns false, then raise an error rather
   // than continuing execution.

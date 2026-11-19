@@ -54,14 +54,30 @@ export interface PlannedLeafList {
 }
 
 /**
+ * How the warm path completes this field's return value (after NonNull unwrap).
+ */
+export type CompletionKind = 'leaf' | 'leafList' | 'object' | 'abstract' | 'list';
+
+/**
+ * How the warm path obtains the field value.
+ * - `defaultProperty`: schema resolve unset or defaultFieldResolver
+ * - `schemaResolve`: explicit custom `fieldDef.resolve`
+ */
+export type ResolveKind = 'defaultProperty' | 'schemaResolve';
+
+/**
  * Compiled argument reader for the warm plan path.
  * - `empty` / `static`: no runtime coercion
- * - omitted (`undefined` on FieldPlan): fall back to `getArgumentValues`
- *   (including bare-variable args, so nullability / missing-variable errors
- *   stay identical to graphql-js)
+ * - `coercer`: bound closure (bare-variable fast path with getArgumentValues fallback,
+ *   or full getArgumentValues for embedded variables)
  */
 export type ArgumentReader =
-  { kind: 'empty' } | { kind: 'static'; args: { [argument: string]: unknown } };
+  | { kind: 'empty' }
+  | { kind: 'static'; args: { [argument: string]: unknown } }
+  | {
+      kind: 'coercer';
+      read: (variableValues: VariableValues) => { [argument: string]: unknown };
+    };
 
 /**
  * Per-field static facts compiled once for a (schema, document, operation) plan.
@@ -80,15 +96,25 @@ export interface FieldPlan {
    * Set when the field's named return type (after NonNull) is a list of leaves.
    */
   listItemLeaf: PlannedLeafList | undefined;
+  /** Completion strategy after NonNull unwrap. */
+  completionKind: CompletionKind;
+  /** Concrete object return type when `completionKind === 'object'`. */
+  objectType: GraphQLObjectType | undefined;
+  /** True when `objectType` is set and has no `isTypeOf` predicate. */
+  skipIsTypeOf: boolean;
+  resolveKind: ResolveKind;
   hasArgs: boolean;
   /**
    * When all argument ASTs are variable-free, args are coerced once at compile
-   * time. Prefer `argumentReader` on the warm path; kept for callers that only
-   * check static maps.
+   * time. Prefer `argumentReader` / `readArguments` on the warm path.
    */
   staticArgs: { [argument: string]: unknown } | undefined;
   /** Compiled argument strategy for this field (see ArgumentReader). */
   argumentReader: ArgumentReader | undefined;
+  /**
+   * Bound argument coercer: empty/static maps or a closure over variable values.
+   */
+  readArguments: (variableValues: VariableValues) => { [argument: string]: unknown };
   /**
    * True when `fieldDef.resolve` is unset or is the GraphQL default resolver.
    * Runtime still gates on `exeContext.fieldResolver === defaultFieldResolver`.
@@ -330,14 +356,24 @@ function compileFieldPlan(
 
   const leafType = isLeafType(type) ? type : undefined;
   const listItemLeaf = compileListItemLeaf(type);
+  const completionKind = classifyCompletionKind(type, listItemLeaf);
+  const objectType = completionKind === 'object' && isObjectType(type) ? type : undefined;
+  const skipIsTypeOf = objectType != null && objectType.isTypeOf == null;
   const fieldResolve = fieldDef.resolve;
+  const resolveKind: ResolveKind =
+    fieldResolve != null && fieldResolve !== defaultFieldResolver
+      ? 'schemaResolve'
+      : 'defaultProperty';
   // Unset resolve or explicit `resolve: defaultFieldResolver` may take the
   // leaf / leaf-list fast path when the effective runtime resolver is still default.
   const mayUseDefaultLeafPath =
-    (leafType != null || listItemLeaf != null) &&
-    (fieldResolve == null || fieldResolve === defaultFieldResolver);
+    (leafType != null || listItemLeaf != null) && resolveKind === 'defaultProperty';
   const hasArgs = fieldDef.args.length > 0;
-  const { staticArgs, argumentReader } = compileArgumentReader(fieldDef, fieldNodes[0], hasArgs);
+  const { staticArgs, argumentReader, readArguments } = compileArgumentReader(
+    fieldDef,
+    fieldNodes[0],
+    hasArgs,
+  );
 
   return {
     fieldDef,
@@ -348,11 +384,35 @@ function compileFieldPlan(
     nonNull,
     leafType,
     listItemLeaf,
+    completionKind,
+    objectType,
+    skipIsTypeOf,
+    resolveKind,
     hasArgs,
     staticArgs,
     argumentReader,
+    readArguments,
     mayUseDefaultLeafPath,
   };
+}
+
+function classifyCompletionKind(
+  typeAfterNonNull: GraphQLOutputType,
+  listItemLeaf: PlannedLeafList | undefined,
+): CompletionKind {
+  if (isLeafType(typeAfterNonNull)) {
+    return 'leaf';
+  }
+  if (isListType(typeAfterNonNull)) {
+    return listItemLeaf ? 'leafList' : 'list';
+  }
+  if (isObjectType(typeAfterNonNull)) {
+    return 'object';
+  }
+  if (isAbstractType(typeAfterNonNull)) {
+    return 'abstract';
+  }
+  return 'list';
 }
 
 /**
@@ -385,9 +445,15 @@ function compileArgumentReader(
 ): {
   staticArgs: { [argument: string]: unknown } | undefined;
   argumentReader: ArgumentReader | undefined;
+  readArguments: (variableValues: VariableValues) => { [argument: string]: unknown };
 } {
   if (!hasArgs) {
-    return { staticArgs: EMPTY_ARGS, argumentReader: { kind: 'empty' } };
+    const argumentReader: ArgumentReader = { kind: 'empty' };
+    return {
+      staticArgs: EMPTY_ARGS,
+      argumentReader,
+      readArguments: () => EMPTY_ARGS,
+    };
   }
 
   if (!fieldArgumentsContainVariable(fieldNode)) {
@@ -401,13 +467,106 @@ function compileArgumentReader(
           getArgumentValuesForPlan(fieldDef, fieldNode, EMPTY_VARIABLE_VALUES),
         ),
       );
-      return { staticArgs, argumentReader: { kind: 'static', args: staticArgs } };
+      const argumentReader: ArgumentReader = { kind: 'static', args: staticArgs };
+      return {
+        staticArgs,
+        argumentReader,
+        readArguments: () => staticArgs,
+      };
     } catch {
-      return { staticArgs: undefined, argumentReader: undefined };
+      const read = (variableValues: VariableValues) =>
+        getArgumentValuesForPlan(fieldDef, fieldNode, variableValues);
+      return {
+        staticArgs: undefined,
+        argumentReader: { kind: 'coercer', read },
+        readArguments: read,
+      };
     }
   }
 
-  return { staticArgs: undefined, argumentReader: undefined };
+  const bareBindings = tryBareVariableBindings(fieldNode);
+  if (bareBindings) {
+    const read = (variableValues: VariableValues) => {
+      const fast = tryReadBareVariableArguments(fieldDef, bareBindings, variableValues);
+      if (fast !== undefined) {
+        return fast;
+      }
+      // Exact GraphQLError shapes for missing / null-for-non-null variables.
+      return getArgumentValuesForPlan(fieldDef, fieldNode, variableValues);
+    };
+    return {
+      staticArgs: undefined,
+      argumentReader: { kind: 'coercer', read },
+      readArguments: read,
+    };
+  }
+
+  // Embedded variables inside literals: bound getArgumentValues closure.
+  const read = (variableValues: VariableValues) =>
+    getArgumentValuesForPlan(fieldDef, fieldNode, variableValues);
+  return {
+    staticArgs: undefined,
+    argumentReader: { kind: 'coercer', read },
+    readArguments: read,
+  };
+}
+
+/**
+ * When every argument AST value is a bare variable (`arg: $v`), return bindings.
+ */
+function tryBareVariableBindings(
+  fieldNode: FieldNode,
+): ReadonlyArray<{ argName: string; variableName: string }> | undefined {
+  const args = fieldNode.arguments;
+  if (args == null || args.length === 0) {
+    return undefined;
+  }
+  const bindings: Array<{ argName: string; variableName: string }> = [];
+  for (const arg of args) {
+    if (arg.value.kind !== Kind.VARIABLE) {
+      return undefined;
+    }
+    bindings.push({ argName: arg.name.value, variableName: arg.value.name.value });
+  }
+  return bindings;
+}
+
+/**
+ * Fast path for bare-variable args when every referenced variable is present and
+ * satisfies non-null. Returns `undefined` to fall back to getArgumentValues when
+ * error messaging must match graphql-js exactly.
+ */
+function tryReadBareVariableArguments(
+  fieldDef: GraphQLField<unknown, unknown>,
+  bindings: ReadonlyArray<{ argName: string; variableName: string }>,
+  variableValues: VariableValues,
+): { [argument: string]: unknown } | undefined {
+  const coerced = variableValues.coerced as Record<string, unknown>;
+  const byArg = new Map<string, string>();
+  for (const binding of bindings) {
+    byArg.set(binding.argName, binding.variableName);
+  }
+  const args = Object.create(null) as { [argument: string]: unknown };
+  for (const argDef of fieldDef.args) {
+    const variableName = byArg.get(argDef.name);
+    if (variableName !== undefined) {
+      if (!Object.prototype.hasOwnProperty.call(coerced, variableName)) {
+        return undefined;
+      }
+      const value = coerced[variableName];
+      if (value == null && isNonNullType(argDef.type)) {
+        return undefined;
+      }
+      args[argDef.name] = value;
+      continue;
+    }
+    if (argDef.defaultValue !== undefined) {
+      args[argDef.name] = argDef.defaultValue;
+    } else if (isNonNullType(argDef.type)) {
+      return undefined;
+    }
+  }
+  return args;
 }
 
 function compileReturnTypeSubfields(plan: ExecutionPlan, fieldPlan: FieldPlan): void {
