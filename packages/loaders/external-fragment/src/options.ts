@@ -1,7 +1,9 @@
+import type { ParseOptions } from 'graphql';
 import type { GraphQLTagPluckOptions } from '@graphql-tools/graphql-tag-pluck';
 import type { BaseLoaderOptions } from '@graphql-tools/utils';
 
-export interface ExternalFragmentLoaderOptions extends BaseLoaderOptions {
+export interface ExternalFragmentLoaderOptions
+  extends BaseLoaderOptions, Omit<ParseOptions, 'lexer'> {
   /**
    * Absolute path to the target package directory whose fragments we're resolving.
    * This is the package that has missing fragment spreads referencing other packages.
