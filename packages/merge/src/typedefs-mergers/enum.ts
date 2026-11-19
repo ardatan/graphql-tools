@@ -26,7 +26,7 @@ export function mergeEnum(
           : 'EnumTypeExtension',
       loc: e1.loc,
       directives: mergeDirectives(e1.directives, e2.directives, config, directives),
-      values: mergeEnumValues(e1.values, e2.values, config),
+      values: mergeEnumValues(e1.values, e2.values, config, directives),
     } as any;
   }
 
