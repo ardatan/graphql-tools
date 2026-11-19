@@ -206,6 +206,13 @@ export interface ExecutionPlan {
     FieldNode,
     WeakMap<GraphQLObjectType, Map<string, Array<FieldNode>>>
   >;
+  /**
+   * Subfield execution lists keyed like `subfieldsByNodes` for stable warm path.
+   */
+  subfieldExecutionsByNodes: WeakMap<
+    ReadonlyArray<FieldNode>,
+    WeakMap<GraphQLObjectType, ReadonlyArray<PlannedFieldExecution>>
+  >;
   /** VariableValues with skip/include bools set false — for union compile. */
   collectVariablesFalse: VariableValues;
   /** VariableValues with skip/include bools set true — for union compile. */
@@ -219,6 +226,21 @@ export interface ExecutionPlan {
    * a bound getVariableValues closure (input-object / list / custom scalars).
    */
   coerceVariables: CoerceVariables;
+  /**
+   * Stable root execution list (same order as `rootFields`). Warm path can
+   * walk these instead of Map entries + WeakMap field-plan lookups.
+   * Undefined when `collectionDependsOnVariables` (runtime collect differs).
+   */
+  rootExecutions: ReadonlyArray<PlannedFieldExecution> | undefined;
+}
+
+/**
+ * Bound field execution entry compiled into stable field maps.
+ */
+export interface PlannedFieldExecution {
+  responseName: string;
+  fieldNodes: Array<FieldNode>;
+  fieldPlan: FieldPlan;
 }
 
 export interface CompileExecutionPlanArgs {
@@ -449,6 +471,10 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
     FieldNode,
     WeakMap<GraphQLObjectType, Map<string, Array<FieldNode>>>
   >();
+  const subfieldExecutionsByNodes = new WeakMap<
+    ReadonlyArray<FieldNode>,
+    WeakMap<GraphQLObjectType, ReadonlyArray<PlannedFieldExecution>>
+  >();
 
   const variableDefinitions = operation.variableDefinitions ?? [];
   const coerceVariables = compileVariableCoercer(schema, variableDefinitions);
@@ -466,14 +492,33 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
     fieldPlanByFieldNode,
     subfieldsByNodes,
     subfieldsByFieldNode,
+    subfieldExecutionsByNodes,
     collectVariablesFalse,
     collectVariablesTrue,
     hasVariables: variableDefinitions.length > 0,
     coerceVariables,
+    rootExecutions: undefined,
   };
 
   compileFieldMap(plan, rootType, rootFields);
+  if (!collectionDependsOnVariables) {
+    plan.rootExecutions = buildFieldExecutions(plan, rootFields);
+  }
   return { kind: 'plan', plan };
+}
+
+function buildFieldExecutions(
+  plan: ExecutionPlan,
+  fields: Map<string, Array<FieldNode>>,
+): PlannedFieldExecution[] {
+  const executions: PlannedFieldExecution[] = [];
+  for (const [responseName, fieldNodes] of fields) {
+    const fieldPlan = plan.fieldPlanByNodes.get(fieldNodes);
+    if (fieldPlan) {
+      executions.push({ responseName, fieldNodes, fieldPlan });
+    }
+  }
+  return executions;
 }
 
 /**
@@ -889,6 +934,7 @@ function compileReturnTypeSubfields(plan: ExecutionPlan, fieldPlan: FieldPlan): 
     const subfields = collectAndStoreSubfields(plan, fieldPlan.fieldNodes, namedType);
     if (subfields) {
       compileFieldMap(plan, namedType, subfields);
+      storeSubfieldExecutions(plan, fieldPlan.fieldNodes, namedType, subfields);
     }
     return;
   }
@@ -899,9 +945,27 @@ function compileReturnTypeSubfields(plan: ExecutionPlan, fieldPlan: FieldPlan): 
       const subfields = collectAndStoreSubfields(plan, fieldPlan.fieldNodes, concrete);
       if (subfields) {
         compileFieldMap(plan, concrete, subfields);
+        storeSubfieldExecutions(plan, fieldPlan.fieldNodes, concrete, subfields);
       }
     }
   }
+}
+
+function storeSubfieldExecutions(
+  plan: ExecutionPlan,
+  parentFieldNodes: Array<FieldNode>,
+  returnType: GraphQLObjectType,
+  subfields: Map<string, Array<FieldNode>>,
+): void {
+  if (plan.collectionDependsOnVariables) {
+    return;
+  }
+  let byType = plan.subfieldExecutionsByNodes.get(parentFieldNodes);
+  if (!byType) {
+    byType = new WeakMap();
+    plan.subfieldExecutionsByNodes.set(parentFieldNodes, byType);
+  }
+  byType.set(returnType, buildFieldExecutions(plan, subfields));
 }
 
 function collectAndStoreSubfields(
@@ -960,6 +1024,17 @@ function collectAndStoreSubfields(
     byTypeForNode.set(returnType, fields);
   }
   return fields;
+}
+
+/**
+ * Planned subfield execution list for a stable parent field + concrete type.
+ */
+export function getPlannedSubfieldExecutions(
+  plan: ExecutionPlan,
+  fieldNodes: ReadonlyArray<FieldNode>,
+  returnType: GraphQLObjectType,
+): ReadonlyArray<PlannedFieldExecution> | undefined {
+  return plan.subfieldExecutionsByNodes.get(fieldNodes)?.get(returnType);
 }
 
 function makeBoolVariableValues(names: ReadonlySet<string>, value: boolean): VariableValues {
