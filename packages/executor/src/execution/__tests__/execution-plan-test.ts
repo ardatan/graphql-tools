@@ -211,6 +211,38 @@ describe('execution plan', () => {
     ).toEqual({ data: { hello: 'hello GraphQL' } });
   });
 
+  it('compiles coerceVariables for empty and builtin-leaf variables', () => {
+    const emptyPlan = compileExecutionPlan({ schema, document: parse('{ a }') });
+    expect(isExecutionPlan(emptyPlan)).toBe(true);
+    if (!isExecutionPlan(emptyPlan)) {
+      return;
+    }
+    expect(emptyPlan.hasVariables).toBe(false);
+    expect(emptyPlan.coerceVariables(undefined)).toEqual({
+      variableValues: expect.objectContaining({ coerced: expect.any(Object) }),
+    });
+
+    const leafDoc = parse('query ($name: String) { hello(name: $name) }');
+    const leafPlan = compileExecutionPlan({ schema, document: leafDoc });
+    expect(isExecutionPlan(leafPlan)).toBe(true);
+    if (!isExecutionPlan(leafPlan)) {
+      return;
+    }
+    expect(leafPlan.hasVariables).toBe(true);
+    const coerced = leafPlan.coerceVariables({ name: 'GraphQL' });
+    expect('variableValues' in coerced).toBe(true);
+    if ('variableValues' in coerced) {
+      expect(coerced.variableValues.coerced).toMatchObject({ name: 'GraphQL' });
+    }
+    expect(
+      executeSync({
+        schema,
+        document: leafDoc,
+        variableValues: { name: 'GraphQL' },
+      }),
+    ).toEqual({ data: { hello: 'hello GraphQL' } });
+  });
+
   it('compiles resolveInfoStatic for planned fields', () => {
     const document = parse('{ hello }');
     const plan = compileExecutionPlan({ schema, document });
