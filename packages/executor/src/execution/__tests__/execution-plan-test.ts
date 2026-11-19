@@ -170,7 +170,7 @@ describe('execution plan', () => {
     });
   });
 
-  it('leaves variable argument coercion to getArgumentValues', () => {
+  it('compiles a coercer closure for bare-variable arguments', () => {
     const document = parse('query ($name: String) { hello(name: $name) }');
     const plan = compileExecutionPlan({ schema, document });
     expect(isExecutionPlan(plan)).toBe(true);
@@ -180,7 +180,32 @@ describe('execution plan', () => {
     const fieldPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('hello')!);
     expect(fieldPlan?.hasArgs).toBe(true);
     expect(fieldPlan?.staticArgs).toBeUndefined();
-    expect(fieldPlan?.argumentReader).toBeUndefined();
+    expect(fieldPlan?.argumentReader?.kind).toBe('coercer');
+    expect(
+      executeSync({
+        schema,
+        document,
+        variableValues: { name: 'GraphQL' },
+      }),
+    ).toEqual({ data: { hello: 'hello GraphQL' } });
+  });
+
+  it('records completionKind and skipIsTypeOf for object fields', () => {
+    const document = parse('{ items { name friend { name } } }');
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    const itemsPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('items')!);
+    expect(itemsPlan?.completionKind).toBe('list');
+    const itemFields = plan.subfieldsByNodes.get(plan.rootFields.get('items')!)?.get(itemType);
+    expect(itemFields).toBeDefined();
+    const namePlan = plan.fieldPlanByNodes.get(itemFields!.get('name')!);
+    expect(namePlan?.completionKind).toBe('leaf');
+    const friendPlan = plan.fieldPlanByNodes.get(itemFields!.get('friend')!);
+    expect(friendPlan?.completionKind).toBe('object');
+    expect(friendPlan?.skipIsTypeOf).toBe(true);
   });
 
   it('records planned leaf-list facts for list-of-scalar fields', () => {
