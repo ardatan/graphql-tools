@@ -98,11 +98,13 @@ import { invariant } from './invariant.js';
 import {
   compileExecutionPlan,
   getPlannedFieldPlan,
+  getPlannedSubfieldExecutions,
   getPlannedSubfields,
   isExecutionPlan,
   type ArgumentReader,
   type ExecutionPlan,
   type FieldPlan,
+  type PlannedFieldExecution,
 } from './plan.js';
 import { promiseForObject } from './promiseForObject.js';
 
@@ -113,6 +115,7 @@ export {
   compileListItemLeaf,
   getExecutionPlan,
   getPlannedFieldPlan,
+  getPlannedSubfieldExecutions,
   getPlannedSubfields,
   isExecutionPlan,
   type ArgumentReader,
@@ -122,6 +125,7 @@ export {
   type CompletionKind,
   type ExecutionPlan,
   type FieldPlan,
+  type PlannedFieldExecution,
   type PlannedLeafList,
   type ResolveKind,
 } from './plan.js';
@@ -1044,7 +1048,15 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
     if (operation.operation === 'mutation') {
       return executeFieldsSerially(exeContext, rootType, rootValue, path, plan.rootFields);
     }
-    return executeFields(exeContext, rootType, rootValue, path, plan.rootFields) as TData;
+    return executeFields(
+      exeContext,
+      rootType,
+      rootValue,
+      path,
+      plan.rootFields,
+      undefined,
+      plan.rootExecutions,
+    ) as TData;
   }
 
   const { fields: rootFields, patches } = collectFieldsFromContext(
@@ -1273,28 +1285,52 @@ function executeFields(
   path: Path | undefined,
   fields: Map<string, Array<FieldNode>>,
   asyncPayloadRecord?: AsyncPayloadRecord,
+  plannedExecutions?: ReadonlyArray<PlannedFieldExecution>,
 ): MaybePromise<Record<string, unknown>> {
   const results = Object.setPrototypeOf(new CompactExecutionResultMap(), null);
   let containsPromise = false;
 
   try {
-    for (const [responseName, fieldNodes] of fields) {
-      exeContext.signal?.throwIfAborted();
+    if (plannedExecutions != null && plannedExecutions.length > 0) {
+      // Bound execution list: skip Map iteration + WeakMap field-plan lookup.
+      for (const { responseName, fieldNodes, fieldPlan } of plannedExecutions) {
+        exeContext.signal?.throwIfAborted();
+        const fieldPath = addPath(path, responseName, parentType.name);
+        const result = executeField(
+          exeContext,
+          parentType,
+          sourceValue,
+          fieldNodes,
+          fieldPath,
+          asyncPayloadRecord,
+          fieldPlan,
+        );
+        if (result !== undefined) {
+          results[responseName] = result;
+          if (isPromise(result)) {
+            containsPromise = true;
+          }
+        }
+      }
+    } else {
+      for (const [responseName, fieldNodes] of fields) {
+        exeContext.signal?.throwIfAborted();
 
-      const fieldPath = addPath(path, responseName, parentType.name);
-      const result = executeField(
-        exeContext,
-        parentType,
-        sourceValue,
-        fieldNodes,
-        fieldPath,
-        asyncPayloadRecord,
-      );
+        const fieldPath = addPath(path, responseName, parentType.name);
+        const result = executeField(
+          exeContext,
+          parentType,
+          sourceValue,
+          fieldNodes,
+          fieldPath,
+          asyncPayloadRecord,
+        );
 
-      if (result !== undefined) {
-        results[responseName] = result;
-        if (isPromise(result)) {
-          containsPromise = true;
+        if (result !== undefined) {
+          results[responseName] = result;
+          if (isPromise(result)) {
+            containsPromise = true;
+          }
         }
       }
     }
@@ -1397,11 +1433,12 @@ function executeField(
   fieldNodes: Array<FieldNode>,
   path: Path,
   asyncPayloadRecord?: AsyncPayloadRecord,
+  knownFieldPlan?: FieldPlan,
 ): MaybePromise<unknown> {
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
-  const fieldPlan: FieldPlan | undefined = exeContext.plan
-    ? getPlannedFieldPlan(exeContext.plan, fieldNodes, parentType)
-    : undefined;
+  const fieldPlan: FieldPlan | undefined =
+    knownFieldPlan ??
+    (exeContext.plan ? getPlannedFieldPlan(exeContext.plan, fieldNodes, parentType) : undefined);
   const fieldDef = fieldPlan?.fieldDef ?? getFieldDef(exeContext.schema, parentType, fieldNodes[0]);
   if (!fieldDef) {
     return;
@@ -2570,6 +2607,10 @@ function collectAndExecuteSubfields(
       ? getPlannedSubfields(exeContext.plan, fieldNodes, returnType)
       : undefined;
   if (plannedSubfields && exeContext.nulledPaths == null) {
+    const plannedExecutions =
+      exeContext.plan != null
+        ? getPlannedSubfieldExecutions(exeContext.plan, fieldNodes, returnType)
+        : undefined;
     return executeFields(
       exeContext,
       returnType,
@@ -2577,6 +2618,7 @@ function collectAndExecuteSubfields(
       path,
       plannedSubfields,
       asyncPayloadRecord,
+      plannedExecutions,
     );
   }
 

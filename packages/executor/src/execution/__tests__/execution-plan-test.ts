@@ -211,6 +211,18 @@ describe('execution plan', () => {
     ).toEqual({ data: { hello: 'hello GraphQL' } });
   });
 
+  it('compiles rootExecutions for stable documents', () => {
+    const document = parse('{ a b }');
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    expect(plan.rootExecutions).toBeDefined();
+    expect(plan.rootExecutions!.map(e => e.responseName).sort()).toEqual(['a', 'b']);
+    expect(plan.rootExecutions!.every(e => e.fieldPlan != null)).toBe(true);
+  });
+
   it('compiles coerceVariables for empty and builtin-leaf variables', () => {
     const emptyPlan = compileExecutionPlan({ schema, document: parse('{ a }') });
     expect(isExecutionPlan(emptyPlan)).toBe(true);
