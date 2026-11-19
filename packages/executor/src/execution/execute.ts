@@ -116,6 +116,8 @@ export {
   getPlannedSubfields,
   isExecutionPlan,
   type ArgumentReader,
+  type CoerceVariables,
+  type CoerceVariablesResult,
   type CompileExecutionPlanArgs,
   type CompletionKind,
   type ExecutionPlan,
@@ -808,34 +810,52 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     ];
   }
 
+  // Compile / reuse an execution plan before variable coercion so warm paths
+  // can use planned coerceVariables (closed over schema + variableDefinitions).
+  // Operation resolution errors from compile are ignored — validated above.
+  const planResult = compileExecutionPlan({ schema, document, operationName });
+  const plan = isExecutionPlan(planResult) ? planResult : undefined;
+
   // FIXME: https://github.com/graphql/graphql-js/issues/2203
   /* c8 ignore next */
   const variableDefinitions = operation.variableDefinitions ?? [];
 
-  const coercedVariableValues = getVariableValues(
-    schema,
-    variableDefinitions,
-    rawVariableValues ?? {},
-    {
-      maxErrors: 50,
-      hideSuggestions: hideSuggestions ?? undefined,
-    } as { maxErrors?: number },
-  );
+  let variableValues: VariableValues;
+  if (plan != null) {
+    const coerced = plan.coerceVariables(rawVariableValues as { readonly [key: string]: unknown }, {
+      hideSuggestions,
+    });
+    if ('errors' in coerced) {
+      return coerced.errors;
+    }
+    variableValues = coerced.variableValues;
+  } else {
+    const coercedVariableValues = getVariableValues(
+      schema,
+      variableDefinitions,
+      rawVariableValues ?? {},
+      {
+        maxErrors: 50,
+        hideSuggestions: hideSuggestions ?? undefined,
+      } as { maxErrors?: number },
+    );
 
-  if (coercedVariableValues.errors) {
-    return coercedVariableValues.errors;
+    if (coercedVariableValues.errors) {
+      return coercedVariableValues.errors;
+    }
+
+    // GraphQL 17 returns { variableValues }; GraphQL 16 returns { coerced }.
+    variableValues = isGraphQL17
+      ? (coercedVariableValues as unknown as { variableValues: VariableValues }).variableValues
+      : {
+          coerced: (coercedVariableValues as unknown as { coerced: Record<string, unknown> })
+            .coerced,
+          sources: Object.create(null),
+        };
   }
 
   signal?.throwIfAborted();
 
-  // GraphQL 17 returns { variableValues }; GraphQL 16 returns { coerced }.
-  // Cast through unknown: installed graphql typings match only one major.
-  const variableValues: VariableValues = isGraphQL17
-    ? (coercedVariableValues as unknown as { variableValues: VariableValues }).variableValues
-    : {
-        coerced: (coercedVariableValues as unknown as { coerced: Record<string, unknown> }).coerced,
-        sources: Object.create(null),
-      };
   const resolveInfoVariableValues = (
     isGraphQL17 ? variableValues : variableValues.coerced
   ) as GraphQLResolveInfo['variableValues'];
@@ -915,12 +935,6 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     };
     detachSignalListener = removeAbortListener;
   }
-
-  // Compile / reuse an execution plan when the document is eligible. Operation
-  // resolution errors from compile are ignored here — buildExecutionContext
-  // already validated the operation above.
-  const planResult = compileExecutionPlan({ schema, document, operationName });
-  const plan = isExecutionPlan(planResult) ? planResult : undefined;
 
   const exeContext: ExecutionContext = {
     schema,
