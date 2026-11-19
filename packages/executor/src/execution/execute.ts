@@ -1382,6 +1382,10 @@ function executeField(
 
   const returnType = fieldPlan?.returnType ?? fieldDef.type;
   const resolveFn = fieldDef.resolve ?? exeContext.fieldResolver;
+  const resolveInfoForPath = (fieldPath: Path): GraphQLResolveInfo =>
+    fieldPlan != null
+      ? buildPlannedResolveInfo(exeContext, fieldPlan, fieldPath)
+      : buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, fieldPath);
 
   let info: GraphQLResolveInfo | undefined;
 
@@ -1447,7 +1451,7 @@ function executeField(
         if (typeof property === 'function') {
           // Same calling convention as defaultFieldResolver, with `this` =
           // source. Use .call so we do not re-read source[name].
-          info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+          info = resolveInfoForPath(path);
           const args = getFieldArgumentValues(
             fieldDef,
             fieldNodes[0],
@@ -1467,7 +1471,7 @@ function executeField(
         } else if (property instanceof Error) {
           throw property;
         } else if (isPromise(property)) {
-          info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+          info = resolveInfoForPath(path);
           result = property;
           resolvedViaDefaultProperty = true;
         } else {
@@ -1492,7 +1496,7 @@ function executeField(
             // Rare async serialize: same as completeLeafValue — return the
             // serialize promise as the completed value (do not completeValue,
             // which would serialize again on fulfillment).
-            info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+            info = resolveInfoForPath(path);
             result = serialized;
             resolvedViaDefaultProperty = true;
             resultAlreadySerialized = true;
@@ -1520,7 +1524,7 @@ function executeField(
         }
         const property = (source as Record<string, unknown>)[fieldPlan.fieldDef.name];
         if (typeof property === 'function') {
-          info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+          info = resolveInfoForPath(path);
           const args = getFieldArgumentValues(
             fieldDef,
             fieldNodes[0],
@@ -1540,7 +1544,7 @@ function executeField(
         } else if (property instanceof Error) {
           throw property;
         } else if (isPromise(property)) {
-          info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+          info = resolveInfoForPath(path);
           result = property;
           resolvedViaDefaultProperty = true;
         } else if (property == null) {
@@ -1551,7 +1555,7 @@ function executeField(
           }
           return null;
         } else {
-          info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+          info = resolveInfoForPath(path);
           result = property;
           resolvedViaDefaultProperty = true;
         }
@@ -1559,7 +1563,7 @@ function executeField(
     }
 
     if (!resolvedViaDefaultProperty) {
-      info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+      info = resolveInfoForPath(path);
       // Build a JS object of arguments from the field.arguments AST, using the
       // variables scope to fulfill any variable references. Empty-arg fields skip
       // coercion; list items reuse a memo keyed by fieldDef/fieldNode/variables.
@@ -1690,6 +1694,32 @@ export function buildResolveInfo(
     fieldNodes,
     returnType: fieldDef.type,
     parentType,
+    path,
+    schema: exeContext.schema,
+    fragments: exeContext.fragments,
+    rootValue: exeContext.rootValue,
+    operation: exeContext.operation,
+    variableValues: exeContext.resolveInfoVariableValues,
+    signal: exeContext.signal,
+    getAbortSignal: exeContext.getAbortSignal,
+    getAsyncHelpers: exeContext.getAsyncHelpers,
+  };
+}
+
+/**
+ * Warm plan path: reuse compiled fieldName / fieldNodes / returnType / parentType.
+ */
+function buildPlannedResolveInfo(
+  exeContext: ExecutionContext,
+  fieldPlan: FieldPlan,
+  path: Path,
+): GraphQLResolveInfo {
+  const staticInfo = fieldPlan.resolveInfoStatic;
+  return {
+    fieldName: staticInfo.fieldName,
+    fieldNodes: staticInfo.fieldNodes,
+    returnType: staticInfo.returnType,
+    parentType: staticInfo.parentType,
     path,
     schema: exeContext.schema,
     fragments: exeContext.fragments,
@@ -1904,6 +1934,11 @@ function getStreamValues(
       initialCount: number | undefined;
       label: string | undefined;
     } {
+  // Plan-eligible documents never include @stream; skip directive walks.
+  if (exeContext.plan != null) {
+    return;
+  }
+
   // do not stream inner lists of multi-dimensional lists
   if (typeof path.key === 'number') {
     return;
