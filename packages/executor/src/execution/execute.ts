@@ -397,9 +397,9 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   signalPromise?: Promise<never>;
   schemaCoordinateInErrors?: boolean;
   /**
-   * Execution plan when the document is eligible (stable field collection,
-   * no `@defer` / `@stream`). Shared across warm executions via the
-   * `compileExecutionPlan` plan cache.
+   * Execution plan from `compileExecutionPlan` when available. Stable docs
+   * reuse planned field maps; incremental / variable-collect docs still attach
+   * the plan for per-field facts via FieldNode keys.
    */
   plan?: ExecutionPlan;
 }
@@ -1035,14 +1035,15 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
     );
   }
 
-  // Warm plan path: reuse pre-collected root fields when collection is stable.
-  // Variable @skip/@include still attaches the plan for per-field lookups, but
-  // root fields are collected with runtime variables.
+  // Warm plan path: reuse pre-collected root fields when collection is stable
+  // and non-incremental. Variable @skip/@include and @defer/@stream still
+  // attach the plan for per-field lookups, but collect at runtime.
   if (
     plan &&
     plan.operation === operation &&
     plan.rootType === rootType &&
-    !plan.collectionDependsOnVariables
+    !plan.collectionDependsOnVariables &&
+    !plan.hasIncremental
   ) {
     const path = undefined;
     if (operation.operation === 'mutation') {
@@ -2000,14 +2001,34 @@ function getStreamValues(
       initialCount: number | undefined;
       label: string | undefined;
     } {
-  // Plan-eligible documents never include @stream; skip directive walks.
-  if (exeContext.plan != null) {
-    return;
-  }
-
   // do not stream inner lists of multi-dimensional lists
   if (typeof path.key === 'number') {
     return;
+  }
+
+  // Non-incremental plans never include @stream.
+  if (exeContext.plan != null && !exeContext.plan.hasIncremental) {
+    return;
+  }
+
+  // Planned stream facts: skip getDirectiveValues when args are static / absent.
+  if (exeContext.plan != null) {
+    const planned =
+      exeContext.plan.fieldPlanByNodes.get(fieldNodes) ??
+      exeContext.plan.fieldPlanByFieldNode.get(fieldNodes[0]!);
+    if (planned?.stream.kind === 'none') {
+      return;
+    }
+    if (planned?.stream.kind === 'static') {
+      const initialCount = planned.stream.initialCount;
+      // Same validation as getStreamUsageMemo (thrown as field errors upstream).
+      invariant(typeof initialCount === 'number', 'initialCount must be a number');
+      invariant(initialCount >= 0, 'initialCount must be a positive integer');
+      return {
+        initialCount,
+        label: planned.stream.label,
+      };
+    }
   }
 
   // validation only allows equivalent streams on multiple fields, so it is
@@ -2603,7 +2624,9 @@ function collectAndExecuteSubfields(
   // Variable @skip/@include plans store a union map — runtime must collect with
   // real variables, then hit field plans via FieldNode keys.
   const plannedSubfields =
-    exeContext.plan != null && !exeContext.plan.collectionDependsOnVariables
+    exeContext.plan != null &&
+    !exeContext.plan.collectionDependsOnVariables &&
+    !exeContext.plan.hasIncremental
       ? getPlannedSubfields(exeContext.plan, fieldNodes, returnType)
       : undefined;
   if (plannedSubfields && exeContext.nulledPaths == null) {

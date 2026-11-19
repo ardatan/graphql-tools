@@ -159,6 +159,16 @@ export interface FieldPlan {
     returnType: GraphQLOutputType;
     parentType: GraphQLObjectType;
   };
+  /**
+   * Compiled `@stream` facts for incremental plans.
+   * - `none`: no stream directive
+   * - `static`: literal args (skip getDirectiveValues)
+   * - `dynamic`: variable args — runtime getDirectiveValues
+   */
+  stream:
+    | { kind: 'none' }
+    | { kind: 'static'; initialCount: number | undefined; label: string | undefined }
+    | { kind: 'dynamic' };
 }
 
 /**
@@ -184,6 +194,12 @@ export interface ExecutionPlan {
    * with real variables and looks up field plans by FieldNode identity.
    */
   collectionDependsOnVariables: boolean;
+  /**
+   * True when the document uses `@defer` / `@stream`. Runtime keeps the
+   * incremental interpreter; the plan still supplies per-field facts via
+   * FieldNode keys.
+   */
+  hasIncremental: boolean;
   /** Pre-collected root field map (stable docs) or union over bool extremes. */
   rootFields: Map<string, Array<FieldNode>>;
   /** Field plan keyed by the exact `fieldNodes` array identity from this plan. */
@@ -307,9 +323,10 @@ export function getPlannedSubfields(
 /**
  * Compile a cacheable execution plan for a validated operation.
  *
- * Returns `undefined` when the document uses `@defer` / `@stream`. Variable
- * `@skip` / `@include` remain eligible via union collection + FieldNode keys.
- * Returns a GraphQL error list when the operation cannot be resolved.
+ * Variable `@skip` / `@include` use union collection + FieldNode keys.
+ * `@defer` / `@stream` set `hasIncremental` — runtime keeps the incremental
+ * interpreter while still using per-field plan facts. Returns a GraphQL error
+ * list when the operation cannot be resolved.
  */
 export function compileExecutionPlan(
   args: CompileExecutionPlanArgs,
@@ -394,10 +411,7 @@ function setCachedPlanEntry(
 function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCacheEntry {
   const { schema, document, operationName } = args;
 
-  // `@defer` / `@stream` stay on the classic interpreter (incremental path).
-  if (documentHasIncrementalDirectives(document)) {
-    return { kind: 'ineligible' };
-  }
+  const hasIncremental = documentHasIncrementalDirectives(document);
 
   const fragments = collectFragments(document);
   const operationResult = resolveOperation(document, operationName);
@@ -428,6 +442,10 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
     : EMPTY_VARIABLE_VALUES;
 
   let rootFields: Map<string, Array<FieldNode>>;
+  let rootPatches: Array<{
+    fields: Map<string, Array<FieldNode>>;
+    patches?: Array<any>;
+  }> = [];
   if (collectionDependsOnVariables) {
     const a = collectFields(
       schema,
@@ -443,10 +461,8 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
       rootType,
       operation.selectionSet,
     );
-    if (a.patches.length > 0 || b.patches.length > 0) {
-      return { kind: 'ineligible' };
-    }
     rootFields = unionFieldMaps(a.fields, b.fields);
+    rootPatches = [...a.patches, ...b.patches];
   } else {
     const { fields, patches } = collectFields(
       schema,
@@ -455,10 +471,8 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
       rootType,
       operation.selectionSet,
     );
-    if (patches.length > 0) {
-      return { kind: 'ineligible' };
-    }
     rootFields = fields;
+    rootPatches = patches;
   }
 
   const fieldPlanByNodes = new WeakMap<ReadonlyArray<FieldNode>, FieldPlan>();
@@ -487,6 +501,7 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
     fragments,
     rootType,
     collectionDependsOnVariables,
+    hasIncremental,
     rootFields,
     fieldPlanByNodes,
     fieldPlanByFieldNode,
@@ -501,10 +516,28 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
   };
 
   compileFieldMap(plan, rootType, rootFields);
-  if (!collectionDependsOnVariables) {
+  compilePatchFieldMaps(plan, rootType, rootPatches);
+  // Stable non-incremental roots can walk bound execution lists at runtime.
+  if (!collectionDependsOnVariables && !hasIncremental) {
     plan.rootExecutions = buildFieldExecutions(plan, rootFields);
   }
   return { kind: 'plan', plan };
+}
+
+function compilePatchFieldMaps(
+  plan: ExecutionPlan,
+  parentType: GraphQLObjectType,
+  patches: ReadonlyArray<{
+    fields: Map<string, Array<FieldNode>>;
+    patches?: ReadonlyArray<any>;
+  }>,
+): void {
+  for (const patch of patches) {
+    compileFieldMap(plan, parentType, patch.fields);
+    if (patch.patches?.length) {
+      compilePatchFieldMaps(plan, parentType, patch.patches);
+    }
+  }
 }
 
 function buildFieldExecutions(
@@ -751,7 +784,71 @@ function compileFieldPlan(
       returnType,
       parentType,
     },
+    stream: compileStreamPlan(fieldNodes[0]),
   };
+}
+
+function compileStreamPlan(fieldNode: FieldNode): FieldPlan['stream'] {
+  const directives = fieldNode.directives;
+  if (directives == null || directives.length === 0) {
+    return { kind: 'none' };
+  }
+  let streamDir: (typeof directives)[number] | undefined;
+  for (const directive of directives) {
+    if (directive.name.value === 'stream') {
+      streamDir = directive;
+      break;
+    }
+  }
+  if (streamDir == null) {
+    return { kind: 'none' };
+  }
+  let initialCount: number | undefined;
+  let sawInitialCount = false;
+  let label: string | undefined;
+  let ifValue: boolean | undefined;
+  for (const arg of streamDir.arguments ?? []) {
+    if (arg.value.kind === Kind.VARIABLE) {
+      return { kind: 'dynamic' };
+    }
+    switch (arg.name.value) {
+      case 'initialCount':
+        if (arg.value.kind === Kind.INT) {
+          initialCount = Number(arg.value.value);
+          sawInitialCount = true;
+        } else {
+          return { kind: 'dynamic' };
+        }
+        break;
+      case 'label':
+        if (arg.value.kind === Kind.STRING) {
+          label = arg.value.value;
+        } else if (arg.value.kind === Kind.NULL) {
+          label = undefined;
+        } else {
+          return { kind: 'dynamic' };
+        }
+        break;
+      case 'if':
+        if (arg.value.kind === Kind.BOOLEAN) {
+          ifValue = arg.value.value;
+        } else {
+          return { kind: 'dynamic' };
+        }
+        break;
+      default:
+        break;
+    }
+  }
+  if (ifValue === false) {
+    return { kind: 'none' };
+  }
+  // Without an explicit initialCount, graphql applies the directive default —
+  // keep that path in getDirectiveValues.
+  if (!sawInitialCount) {
+    return { kind: 'dynamic' };
+  }
+  return { kind: 'static', initialCount, label };
 }
 
 function classifyCompletionKind(
@@ -957,7 +1054,7 @@ function storeSubfieldExecutions(
   returnType: GraphQLObjectType,
   subfields: Map<string, Array<FieldNode>>,
 ): void {
-  if (plan.collectionDependsOnVariables) {
+  if (plan.collectionDependsOnVariables || plan.hasIncremental) {
     return;
   }
   let byType = plan.subfieldExecutionsByNodes.get(parentFieldNodes);
@@ -974,6 +1071,10 @@ function collectAndStoreSubfields(
   returnType: GraphQLObjectType,
 ): Map<string, Array<FieldNode>> | undefined {
   let fields: Map<string, Array<FieldNode>>;
+  let patches: ReadonlyArray<{
+    fields: Map<string, Array<FieldNode>>;
+    patches?: ReadonlyArray<any>;
+  }> = [];
   if (plan.collectionDependsOnVariables) {
     const a = collectSubFields(
       plan.schema,
@@ -989,10 +1090,8 @@ function collectAndStoreSubfields(
       returnType,
       fieldNodes,
     );
-    if (a.patches.length > 0 || b.patches.length > 0) {
-      return undefined;
-    }
     fields = unionFieldMaps(a.fields, b.fields);
+    patches = [...a.patches, ...b.patches];
   } else {
     const collected = collectSubFields(
       plan.schema,
@@ -1001,10 +1100,8 @@ function collectAndStoreSubfields(
       returnType,
       fieldNodes,
     );
-    if (collected.patches.length > 0) {
-      return undefined;
-    }
     fields = collected.fields;
+    patches = collected.patches;
   }
 
   let byType = plan.subfieldsByNodes.get(fieldNodes);
@@ -1022,6 +1119,12 @@ function collectAndStoreSubfields(
       plan.subfieldsByFieldNode.set(primary, byTypeForNode);
     }
     byTypeForNode.set(returnType, fields);
+  }
+
+  // Deferred selections under this object: compile field plans for patch fields
+  // (runtime still uses the incremental path for scheduling).
+  if (patches.length > 0) {
+    compilePatchFieldMaps(plan, returnType, patches);
   }
   return fields;
 }

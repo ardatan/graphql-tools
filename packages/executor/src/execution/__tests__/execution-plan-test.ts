@@ -127,9 +127,40 @@ describe('execution plan', () => {
     expect(exeContext.plan).toBe(plan);
   });
 
-  it('does not compile a plan when the document uses @defer', () => {
+  it('compiles an incremental plan for @defer (runtime still incremental)', () => {
     const document = parse('{ a ... @defer { b } }');
-    expect(compileExecutionPlan({ schema, document })).toBeUndefined();
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    expect(plan.hasIncremental).toBe(true);
+    expect(plan.rootExecutions).toBeUndefined();
+    expect(plan.fieldPlanByFieldNode.get(plan.rootFields.get('a')![0])).toBeDefined();
+  });
+
+  it('compiles static @stream facts on incremental plans', () => {
+    const listSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: { type: new GraphQLList(GraphQLInt), resolve: () => [1, 2, 3] },
+        },
+      }),
+    });
+    const document = parse('{ values @stream(initialCount: 1, label: "v") }');
+    const plan = compileExecutionPlan({ schema: listSchema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    expect(plan.hasIncremental).toBe(true);
+    const valuesPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('values')!);
+    expect(valuesPlan?.stream).toEqual({
+      kind: 'static',
+      initialCount: 1,
+      label: 'v',
+    });
   });
 
   it('invalidates cached plans for a document via clearExecutionPlanCache', () => {
