@@ -1,21 +1,17 @@
 import {
+  coerceInputValue,
   defaultFieldResolver,
   FieldNode,
   FragmentDefinitionNode,
   getArgumentValues,
   getVariableValues,
   GraphQLAbstractType,
-  GraphQLBoolean,
   GraphQLError,
   GraphQLField,
-  GraphQLFloat,
-  GraphQLID,
-  GraphQLInt,
   GraphQLLeafType,
   GraphQLObjectType,
   GraphQLOutputType,
   GraphQLSchema,
-  GraphQLString,
   isAbstractType,
   isInputType,
   isLeafType,
@@ -52,14 +48,6 @@ const EMPTY_VARIABLE_VALUES: VariableValues = Object.freeze({
 });
 
 const INCREMENTAL_DIRECTIVES = new Set(['defer', 'stream']);
-
-const BUILTIN_LEAF_TYPES = new Set<GraphQLLeafType>([
-  GraphQLBoolean,
-  GraphQLInt,
-  GraphQLFloat,
-  GraphQLString,
-  GraphQLID,
-]);
 
 /**
  * Result of a planned variable coercer (normalized across GraphQL 16/17).
@@ -237,9 +225,10 @@ export interface ExecutionPlan {
   hasVariables: boolean;
   /**
    * Compiled variable coercer closed over schema + variableDefinitions.
-   * Empty ops return EMPTY_VARIABLE_VALUES; builtin-leaf ops try a fast path
-   * then fall back to getVariableValues for identical error shapes; otherwise
-   * a bound getVariableValues closure (input-object / list / custom scalars).
+   * Empty ops return EMPTY_VARIABLE_VALUES; otherwise a typed coercer graph
+   * (leaf / list / input-object via `coerceInputValue`) with full
+   * `VariableValues.sources` signatures, falling back to getVariableValues for
+   * defaults and identical GraphQLError messaging.
    */
   coerceVariables: CoerceVariables;
   /**
@@ -557,9 +546,10 @@ function buildFieldExecutions(
 /**
  * Compile a variableValues coercer for the operation.
  * - No variables → empty map
- * - All builtin leaf (or NonNull leaf) vars → fast parseValue path with
- *   getVariableValues fallback for exact GraphQLError messaging
- * - Otherwise → bound getVariableValues (covers input objects, lists, customs)
+ * - No AST defaults → typed coercer graph (leaf / list / input-object) via
+ *   `coerceInputValue`, with `VariableValues.sources` signatures; invalid
+ *   values fall back to getVariableValues for exact GraphQLError messaging
+ * - Defaults / unresolvable types → bound getVariableValues
  */
 function compileVariableCoercer(
   schema: GraphQLSchema,
@@ -569,108 +559,98 @@ function compileVariableCoercer(
     return () => ({ variableValues: EMPTY_VARIABLE_VALUES });
   }
 
-  const leafBindings = tryCompileBuiltinLeafVariableBindings(schema, variableDefinitions);
+  const bindings = tryCompileVariableBindings(schema, variableDefinitions);
   const runFull: CoerceVariables = (rawVariableValues, options) =>
     runGetVariableValues(schema, variableDefinitions, rawVariableValues, options);
 
-  if (leafBindings == null) {
+  if (bindings == null) {
     return runFull;
   }
 
   return (rawVariableValues, options) => {
-    const fast = tryCoerceBuiltinLeafVariables(leafBindings, rawVariableValues);
+    const fast = tryCoerceVariables(bindings, rawVariableValues);
     if (fast !== undefined) {
       return { variableValues: fast };
     }
-    // Missing / null-for-non-null / parse failures: identical errors via graphql-js.
+    // Missing / null-for-non-null / coerce failures: identical errors via graphql-js.
     return runFull(rawVariableValues, options);
   };
 }
 
-type BuiltinLeafVariableBinding = {
+type VariableBinding = {
   name: string;
+  /** Full variable input type (including NonNull / List / input object). */
+  variableType: GraphQLInputType;
   nonNull: boolean;
-  leafType: GraphQLLeafType;
-  defaultValue: unknown;
-  hasDefault: boolean;
+  signature: {
+    name: string;
+    type: GraphQLInputType;
+    default: undefined;
+  };
 };
 
-function tryCompileBuiltinLeafVariableBindings(
+/**
+ * Compile per-variable bindings for the typed coercer graph.
+ * Returns undefined when any variable has an AST default (exact default
+ * coercion stays on getVariableValues) or an unresolvable input type.
+ */
+function tryCompileVariableBindings(
   schema: GraphQLSchema,
   variableDefinitions: ReadonlyArray<VariableDefinitionNode>,
-): BuiltinLeafVariableBinding[] | undefined {
-  const bindings: BuiltinLeafVariableBinding[] = [];
+): VariableBinding[] | undefined {
+  const bindings: VariableBinding[] = [];
   for (const def of variableDefinitions) {
+    if (def.defaultValue != null) {
+      return undefined;
+    }
     const inputType = typeFromAST(schema, def.type);
     if (inputType == null || !isInputType(inputType)) {
       return undefined;
     }
-    let type: GraphQLInputType = inputType;
-    let nonNull = false;
-    if (isNonNullType(type)) {
-      nonNull = true;
-      type = type.ofType;
-    }
-    if (isListType(type) || !isLeafType(type) || !BUILTIN_LEAF_TYPES.has(type)) {
-      return undefined;
-    }
-    const hasDefault = def.defaultValue != null;
-    let defaultValue: unknown;
-    if (hasDefault) {
-      // Use graphql getVariableValues once at compile time for the default only
-      // by coercing an empty raw map when all vars have defaults — too awkward.
-      // Instead mark hasDefault and fall back to full coerce when raw omits the
-      // key; tryCoerce returns undefined to trigger fallback.
-      defaultValue = undefined;
-    }
+    const nonNull = isNonNullType(inputType);
     bindings.push({
       name: def.variable.name.value,
+      variableType: inputType,
       nonNull,
-      leafType: type,
-      defaultValue,
-      hasDefault,
+      signature: {
+        name: def.variable.name.value,
+        type: inputType,
+        default: undefined,
+      },
     });
-  }
-  // Defaults need full getVariableValues for exact AST default coercion.
-  if (bindings.some(b => b.hasDefault)) {
-    return undefined;
   }
   return bindings;
 }
 
-function tryCoerceBuiltinLeafVariables(
-  bindings: ReadonlyArray<BuiltinLeafVariableBinding>,
+/**
+ * Fast path: coerce each raw variable with the public `coerceInputValue` graph
+ * (leaves, lists, input objects, oneOf) and populate GQL17-compatible sources.
+ */
+function tryCoerceVariables(
+  bindings: ReadonlyArray<VariableBinding>,
   rawVariableValues: { readonly [key: string]: unknown } | null | undefined,
 ): VariableValues | undefined {
   const raw = rawVariableValues ?? EMPTY_RAW_VARIABLES;
   const coerced = Object.create(null) as Record<string, unknown>;
+  const sources = Object.create(null) as VariableValues['sources'];
   for (const binding of bindings) {
-    if (!Object.prototype.hasOwnProperty.call(raw, binding.name)) {
+    const hasValue = Object.prototype.hasOwnProperty.call(raw, binding.name);
+    if (!hasValue) {
+      sources[binding.name] = { signature: binding.signature };
       if (binding.nonNull) {
         return undefined;
       }
       continue;
     }
     const value = raw[binding.name];
-    if (value == null) {
-      if (binding.nonNull) {
-        return undefined;
-      }
-      coerced[binding.name] = null;
-      continue;
-    }
-    let parsed: unknown;
-    try {
-      parsed = binding.leafType.parseValue(value);
-    } catch {
+    sources[binding.name] = { signature: binding.signature, value };
+    const coercedValue = coerceInputValue(value, binding.variableType);
+    if (coercedValue === undefined) {
       return undefined;
     }
-    if (parsed == null && binding.nonNull) {
-      return undefined;
-    }
-    coerced[binding.name] = parsed;
+    coerced[binding.name] = coercedValue;
   }
-  return { coerced, sources: Object.create(null) } as VariableValues;
+  return { coerced, sources };
 }
 
 const EMPTY_RAW_VARIABLES: { readonly [key: string]: unknown } = Object.freeze(Object.create(null));

@@ -1,6 +1,8 @@
 import {
+  GraphQLInputObjectType,
   GraphQLInt,
   GraphQLList,
+  GraphQLNonNull,
   GraphQLObjectType,
   GraphQLSchema,
   GraphQLString,
@@ -254,7 +256,7 @@ describe('execution plan', () => {
     expect(plan.rootExecutions!.every(e => e.fieldPlan != null)).toBe(true);
   });
 
-  it('compiles coerceVariables for empty and builtin-leaf variables', () => {
+  it('compiles coerceVariables for empty, leaf, and input-object variables', () => {
     const emptyPlan = compileExecutionPlan({ schema, document: parse('{ a }') });
     expect(isExecutionPlan(emptyPlan)).toBe(true);
     if (!isExecutionPlan(emptyPlan)) {
@@ -276,6 +278,10 @@ describe('execution plan', () => {
     expect('variableValues' in coerced).toBe(true);
     if ('variableValues' in coerced) {
       expect(coerced.variableValues.coerced).toMatchObject({ name: 'GraphQL' });
+      expect(coerced.variableValues.sources['name']).toMatchObject({
+        signature: expect.objectContaining({ name: 'name', default: undefined }),
+        value: 'GraphQL',
+      });
     }
     expect(
       executeSync({
@@ -284,6 +290,53 @@ describe('execution plan', () => {
         variableValues: { name: 'GraphQL' },
       }),
     ).toEqual({ data: { hello: 'hello GraphQL' } });
+
+    const InputType = new GraphQLInputObjectType({
+      name: 'HelloInput',
+      fields: {
+        name: { type: new GraphQLNonNull(GraphQLString) },
+        nick: { type: GraphQLString },
+      },
+    });
+    const inputSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          hello: {
+            type: GraphQLString,
+            args: { input: { type: InputType } },
+            resolve: (_src, args: { input?: { name: string; nick?: string } }) =>
+              `hello ${args.input?.nick ?? args.input?.name ?? 'world'}`,
+          },
+        },
+      }),
+    });
+    const inputDoc = parse('query ($input: HelloInput) { hello(input: $input) }');
+    const inputPlan = compileExecutionPlan({ schema: inputSchema, document: inputDoc });
+    expect(isExecutionPlan(inputPlan)).toBe(true);
+    if (!isExecutionPlan(inputPlan)) {
+      return;
+    }
+    const inputCoerced = inputPlan.coerceVariables({
+      input: { name: 'GraphQL', nick: 'GQL' },
+    });
+    expect('variableValues' in inputCoerced).toBe(true);
+    if ('variableValues' in inputCoerced) {
+      expect(inputCoerced.variableValues.coerced).toEqual({
+        input: { name: 'GraphQL', nick: 'GQL' },
+      });
+      expect(inputCoerced.variableValues.sources['input']).toMatchObject({
+        signature: expect.objectContaining({ name: 'input', default: undefined }),
+        value: { name: 'GraphQL', nick: 'GQL' },
+      });
+    }
+    expect(
+      executeSync({
+        schema: inputSchema,
+        document: inputDoc,
+        variableValues: { input: { name: 'GraphQL', nick: 'GQL' } },
+      }),
+    ).toEqual({ data: { hello: 'hello GQL' } });
   });
 
   it('compiles resolveInfoStatic for planned fields', () => {
