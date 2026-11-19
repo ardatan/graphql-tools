@@ -95,9 +95,24 @@ import {
   type GroupedFieldSet,
 } from './incrementalCollect.js';
 import { invariant } from './invariant.js';
+import {
+  compileExecutionPlan,
+  isExecutionPlan,
+  type ExecutionPlan,
+  type FieldPlan,
+} from './plan.js';
 import { promiseForObject } from './promiseForObject.js';
 
 export { defaultFieldResolver, defaultTypeResolver };
+export {
+  clearExecutionPlanCache,
+  compileExecutionPlan,
+  getExecutionPlan,
+  isExecutionPlan,
+  type CompileExecutionPlanArgs,
+  type ExecutionPlan,
+  type FieldPlan,
+} from './plan.js';
 
 export type { CompletedResult, PendingResult } from './incremental.js';
 
@@ -221,7 +236,11 @@ function getFieldArgumentValues(
   fieldDef: GraphQLField<unknown, unknown>,
   fieldNode: FieldNode,
   variableValues: VariableValues,
+  staticArgs?: { [argument: string]: unknown },
 ): { [argument: string]: unknown } {
+  if (staticArgs !== undefined) {
+    return staticArgs;
+  }
   if (fieldDef.args.length === 0) {
     return EMPTY_ARGS;
   }
@@ -350,6 +369,12 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   detachSignalListener?(): void;
   signalPromise?: Promise<never>;
   schemaCoordinateInErrors?: boolean;
+  /**
+   * Execution plan when the document is eligible (stable field collection,
+   * no `@defer` / `@stream`). Shared across warm executions via the
+   * `compileExecutionPlan` plan cache.
+   */
+  plan?: ExecutionPlan;
 }
 
 export interface FormattedExecutionResult<
@@ -870,6 +895,12 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     detachSignalListener = removeAbortListener;
   }
 
+  // Compile / reuse an execution plan when the document is eligible. Operation
+  // resolution errors from compile are ignored here — buildExecutionContext
+  // already validated the operation above.
+  const planResult = compileExecutionPlan({ schema, document, operationName });
+  const plan = isExecutionPlan(planResult) ? planResult : undefined;
+
   const exeContext: ExecutionContext = {
     schema,
     fragments,
@@ -892,6 +923,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     onSignalAbort,
     detachSignalListener,
     schemaCoordinateInErrors,
+    plan,
   };
 
   if (ensureSignalPlumbing) {
@@ -936,6 +968,7 @@ function buildPerEventExecutionContext(
     getAsyncHelpers: exeContext.getAsyncHelpers,
     onSignalAbort: exeContext.onSignalAbort,
     schemaCoordinateInErrors: exeContext.schemaCoordinateInErrors,
+    plan: exeContext.plan,
   };
   const parentDescriptor = Object.getOwnPropertyDescriptor(exeContext, 'signalPromise');
   if (parentDescriptor?.get) {
@@ -952,8 +985,8 @@ function buildPerEventExecutionContext(
 function executeOperation<TData = any, TVariables = any, TContext = any>(
   exeContext: ExecutionContext<TVariables, TContext>,
 ): MaybePromise<TData> {
-  const { operation, schema, fragments, variableValues, rootValue } = exeContext;
-  const rootType = getDefinedRootType(schema, operation.operation, [operation]);
+  const { operation, schema, fragments, variableValues, rootValue, plan } = exeContext;
+  const rootType = plan?.rootType ?? getDefinedRootType(schema, operation.operation, [operation]);
   if (rootType == null) {
     throw new GraphQLError(
       `Schema is not configured to execute ${operation.operation} operation.`,
@@ -961,6 +994,15 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
         nodes: operation,
       },
     );
+  }
+
+  // Warm plan path: reuse pre-collected root fields from the execution plan.
+  if (plan && plan.operation === operation && plan.rootType === rootType) {
+    const path = undefined;
+    if (operation.operation === 'mutation') {
+      return executeFieldsSerially(exeContext, rootType, rootValue, path, plan.rootFields);
+    }
+    return executeFields(exeContext, rootType, rootValue, path, plan.rootFields) as TData;
   }
 
   const { fields: rootFields, patches } = collectFieldsFromContext(
@@ -1315,12 +1357,13 @@ function executeField(
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): MaybePromise<unknown> {
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
-  const fieldDef = getFieldDef(exeContext.schema, parentType, fieldNodes[0]);
+  const fieldPlan: FieldPlan | undefined = exeContext.plan?.fieldPlanByNodes.get(fieldNodes);
+  const fieldDef = fieldPlan?.fieldDef ?? getFieldDef(exeContext.schema, parentType, fieldNodes[0]);
   if (!fieldDef) {
     return;
   }
 
-  const returnType = fieldDef.type;
+  const returnType = fieldPlan?.returnType ?? fieldDef.type;
   const resolveFn = fieldDef.resolve ?? exeContext.fieldResolver;
 
   let info: GraphQLResolveInfo | undefined;
@@ -1353,18 +1396,42 @@ function executeField(
       resolveFn === defaultFieldResolver &&
       (isObjectLike(source) || typeof source === 'function')
     ) {
-      const leafMemo = getLeafFieldMemo(fieldDef);
+      // Prefer compile-time leaf facts from the plan; fall back to per-fieldDef memo.
+      const leafType = fieldPlan?.leafType;
+      const leafNonNull = fieldPlan?.nonNull;
+      const leafHasArgs = fieldPlan?.hasArgs;
+      const leafName = fieldPlan?.fieldDef.name;
+      const plannedLeaf =
+        fieldPlan != null && leafType != null
+          ? {
+              leafType,
+              nonNull: leafNonNull === true,
+              hasArgs: leafHasArgs === true,
+              name: leafName!,
+            }
+          : null;
+      const leafMemo = plannedLeaf ?? getLeafFieldMemo(fieldDef);
       if (leafMemo !== null) {
         if (leafMemo.hasArgs) {
           // Coerce before property read (graphql-js order / required-arg errors).
-          getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
+          getFieldArgumentValues(
+            fieldDef,
+            fieldNodes[0],
+            exeContext.variableValues,
+            fieldPlan?.staticArgs,
+          );
         }
         const property = (source as Record<string, unknown>)[leafMemo.name];
         if (typeof property === 'function') {
           // Same calling convention as defaultFieldResolver, with `this` =
           // source. Use .call so we do not re-read source[name].
           info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
-          const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
+          const args = getFieldArgumentValues(
+            fieldDef,
+            fieldNodes[0],
+            exeContext.variableValues,
+            fieldPlan?.staticArgs,
+          );
           result = (
             property as (
               this: unknown,
@@ -1423,7 +1490,13 @@ function executeField(
       // Build a JS object of arguments from the field.arguments AST, using the
       // variables scope to fulfill any variable references. Empty-arg fields skip
       // coercion; list items reuse a memo keyed by fieldDef/fieldNode/variables.
-      const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
+      // Planned static args skip coercion entirely on the warm path.
+      const args = getFieldArgumentValues(
+        fieldDef,
+        fieldNodes[0],
+        exeContext.variableValues,
+        fieldPlan?.staticArgs,
+      );
 
       // The resolve function's optional third argument is a context value that
       // is provided to every resolve function within an execution. It is commonly
@@ -2208,6 +2281,19 @@ function collectAndExecuteSubfields(
   result: unknown,
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): MaybePromise<Record<string, unknown>> {
+  // Warm path: planned subfields for this fieldNodes + concrete type.
+  const plannedSubfields = exeContext.plan?.subfieldsByNodes.get(fieldNodes)?.get(returnType);
+  if (plannedSubfields && exeContext.nulledPaths == null) {
+    return executeFields(
+      exeContext,
+      returnType,
+      result,
+      path,
+      plannedSubfields,
+      asyncPayloadRecord,
+    );
+  }
+
   // Collect sub-fields to execute to complete this value.
   const { fields: subFieldNodes, patches: subPatches } = collectSubfieldsFromContext(
     exeContext,
