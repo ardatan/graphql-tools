@@ -7,18 +7,26 @@ type ResolvedObject<TData> = {
 };
 
 /**
- * This function transforms a JS object `Record<string, Promise<T>>` into
- * a `Promise<Record<string, T>>`
+ * Shared settler: transform `Record<string, Promise<T> | T>` into
+ * `Promise<Record<string, T>>` / sync map (bluebird `Promise.props` shape).
  *
- * This is akin to bluebird's `Promise.props`, but implemented only using
- * `Promise.all` so it will work with any implementation of ES6 promises.
+ * Uses V8-friendly `Promise.all` for the join. Optional `queue` runs field
+ * *execution* jobs with sync `flush` before settling — it must not wrap each
+ * then-write in another `queueMicrotask` (that regresses async-object).
  */
-export function promiseForObject<TData>(
+function settleObject<TData>(
   object: TData,
   signal?: AbortSignal,
   signalPromise?: Promise<never>,
+  queue?: WorkQueue,
 ): MaybePromise<ResolvedObject<TData>> {
   signal?.throwIfAborted();
+
+  if (queue != null) {
+    // Drain any pending planned field jobs before reading thenables.
+    queue.flush();
+  }
+
   const resolvedObject = Object.setPrototypeOf(new CompactExecutionResultMap(), null);
   const promises: Promise<void>[] = [];
   for (const key in object) {
@@ -46,82 +54,30 @@ export function promiseForObject<TData>(
 }
 
 /**
- * Planned-path variant: settle thenables through a shared microtask WorkQueue
- * so field writes batch onto one drain (CompiledExecutor-style scheduling,
- * tools-native). Sync-only maps still return immediately.
+ * This function transforms a JS object `Record<string, Promise<T>>` into
+ * a `Promise<Record<string, T>>`
+ *
+ * This is akin to bluebird's `Promise.props`, but implemented only using
+ * `Promise.all` so it will work with any implementation of ES6 promises.
+ */
+export function promiseForObject<TData>(
+  object: TData,
+  signal?: AbortSignal,
+  signalPromise?: Promise<never>,
+): MaybePromise<ResolvedObject<TData>> {
+  return settleObject(object, signal, signalPromise);
+}
+
+/**
+ * Planned-path settler: same `Promise.all` join as `promiseForObject`, with an
+ * optional WorkQueue flushed synchronously first (field jobs), never an extra
+ * microtask hop per write.
  */
 export function promiseForObjectQueued<TData>(
   object: TData,
   signal?: AbortSignal,
   signalPromise?: Promise<never>,
+  queue?: WorkQueue,
 ): MaybePromise<ResolvedObject<TData>> {
-  signal?.throwIfAborted();
-  const resolvedObject = Object.setPrototypeOf(new CompactExecutionResultMap(), null);
-  const asyncKeys: Array<{ key: keyof TData & string; value: Promise<unknown> }> = [];
-
-  for (const key in object) {
-    const value = object[key];
-    if (isPromise(value)) {
-      resolvedObject[key] = undefined;
-      asyncKeys.push({ key, value: value as Promise<unknown> });
-    } else {
-      resolvedObject[key] = value as ResolvedObject<TData>[Extract<keyof TData, string>];
-    }
-  }
-
-  if (asyncKeys.length === 0) {
-    return resolvedObject;
-  }
-
-  // Single thenable: no queue overhead — same shape as promiseForObject.
-  if (asyncKeys.length === 1) {
-    const { key, value } = asyncKeys[0];
-    const settled = value.then(resolvedValue => {
-      resolvedObject[key] = resolvedValue as ResolvedObject<TData>[Extract<keyof TData, string>];
-      return resolvedObject;
-    });
-    if (signalPromise) {
-      return Promise.race([signalPromise, settled]);
-    }
-    return settled;
-  }
-
-  const queue = new WorkQueue();
-  const settled = new Promise<ResolvedObject<TData>>((resolve, reject) => {
-    let remaining = asyncKeys.length;
-    let rejected = false;
-    for (const { key, value } of asyncKeys) {
-      value.then(
-        resolvedValue => {
-          queue.enqueue(() => {
-            if (rejected) {
-              return;
-            }
-            resolvedObject[key] = resolvedValue as ResolvedObject<TData>[Extract<
-              keyof TData,
-              string
-            >];
-            remaining--;
-            if (remaining === 0) {
-              resolve(resolvedObject);
-            }
-          });
-        },
-        error => {
-          queue.enqueue(() => {
-            if (rejected) {
-              return;
-            }
-            rejected = true;
-            reject(error);
-          });
-        },
-      );
-    }
-  });
-
-  if (signalPromise) {
-    return Promise.race([signalPromise, settled]);
-  }
-  return settled;
+  return settleObject(object, signal, signalPromise, queue);
 }

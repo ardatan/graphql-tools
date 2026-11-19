@@ -106,7 +106,7 @@ import {
   type FieldPlan,
   type PlannedFieldExecution,
 } from './plan.js';
-import { promiseForObject } from './promiseForObject.js';
+import { promiseForObject, promiseForObjectQueued } from './promiseForObject.js';
 
 export { defaultFieldResolver, defaultTypeResolver };
 export {
@@ -1290,6 +1290,11 @@ function executeFields(
 ): MaybePromise<Record<string, unknown>> {
   const results = Object.setPrototypeOf(new CompactExecutionResultMap(), null);
   let containsPromise = false;
+  // Planned non-incremental settles via promiseForObjectQueued (Promise.all join,
+  // same cost as promiseForObject — no per-write microtask hop). Field starts stay
+  // a direct loop: per-field WorkQueue.enqueue allocated N closures and regressed
+  // property-bag / async-object.
+  const usePlannedSettle = exeContext.plan != null && !exeContext.plan.hasIncremental;
 
   try {
     if (plannedExecutions != null && plannedExecutions.length > 0) {
@@ -1339,7 +1344,10 @@ function executeFields(
     if (error !== exeContext.signal?.reason && containsPromise) {
       // Ensure that any promises returned by other fields are handled, as they may also reject.
       return handleMaybePromise(
-        () => promiseForObject(results, exeContext.signal),
+        () =>
+          usePlannedSettle
+            ? promiseForObjectQueued(results, exeContext.signal)
+            : promiseForObject(results, exeContext.signal),
         () => {
           throw error;
         },
@@ -1359,8 +1367,9 @@ function executeFields(
   // Otherwise, results is a map from field name to the result of resolving that
   // field, which is possibly a promise. Return a promise that will return this
   // same map, but with any promises replaced with the values they resolved to.
-  // WorkQueue / promiseForObjectQueued was measured on the planned path and did
-  // not beat promiseForObject for async-object — keep the classic settler.
+  if (usePlannedSettle) {
+    return promiseForObjectQueued(results, exeContext.signal, exeContext.signalPromise);
+  }
   return promiseForObject(results, exeContext.signal, exeContext.signalPromise);
 }
 
