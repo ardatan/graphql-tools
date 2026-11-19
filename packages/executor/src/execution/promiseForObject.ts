@@ -1,5 +1,6 @@
 import { handleMaybePromise, isPromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 import { CompactExecutionResultMap } from './compactExecutionResultMap.js';
+import { WorkQueue } from './workQueue.js';
 
 type ResolvedObject<TData> = {
   [TKey in keyof TData]: TData[TKey] extends Promise<infer TValue> ? TValue : TData[TKey];
@@ -42,4 +43,85 @@ export function promiseForObject<TData>(
     return Promise.race([signalPromise, promiseAll]).then(() => resolvedObject);
   }
   return promiseAll.then(() => resolvedObject);
+}
+
+/**
+ * Planned-path variant: settle thenables through a shared microtask WorkQueue
+ * so field writes batch onto one drain (CompiledExecutor-style scheduling,
+ * tools-native). Sync-only maps still return immediately.
+ */
+export function promiseForObjectQueued<TData>(
+  object: TData,
+  signal?: AbortSignal,
+  signalPromise?: Promise<never>,
+): MaybePromise<ResolvedObject<TData>> {
+  signal?.throwIfAborted();
+  const resolvedObject = Object.setPrototypeOf(new CompactExecutionResultMap(), null);
+  const asyncKeys: Array<{ key: keyof TData & string; value: Promise<unknown> }> = [];
+
+  for (const key in object) {
+    const value = object[key];
+    if (isPromise(value)) {
+      resolvedObject[key] = undefined;
+      asyncKeys.push({ key, value: value as Promise<unknown> });
+    } else {
+      resolvedObject[key] = value as ResolvedObject<TData>[Extract<keyof TData, string>];
+    }
+  }
+
+  if (asyncKeys.length === 0) {
+    return resolvedObject;
+  }
+
+  // Single thenable: no queue overhead — same shape as promiseForObject.
+  if (asyncKeys.length === 1) {
+    const { key, value } = asyncKeys[0];
+    const settled = value.then(resolvedValue => {
+      resolvedObject[key] = resolvedValue as ResolvedObject<TData>[Extract<keyof TData, string>];
+      return resolvedObject;
+    });
+    if (signalPromise) {
+      return Promise.race([signalPromise, settled]);
+    }
+    return settled;
+  }
+
+  const queue = new WorkQueue();
+  const settled = new Promise<ResolvedObject<TData>>((resolve, reject) => {
+    let remaining = asyncKeys.length;
+    let rejected = false;
+    for (const { key, value } of asyncKeys) {
+      value.then(
+        resolvedValue => {
+          queue.enqueue(() => {
+            if (rejected) {
+              return;
+            }
+            resolvedObject[key] = resolvedValue as ResolvedObject<TData>[Extract<
+              keyof TData,
+              string
+            >];
+            remaining--;
+            if (remaining === 0) {
+              resolve(resolvedObject);
+            }
+          });
+        },
+        error => {
+          queue.enqueue(() => {
+            if (rejected) {
+              return;
+            }
+            rejected = true;
+            reject(error);
+          });
+        },
+      );
+    }
+  });
+
+  if (signalPromise) {
+    return Promise.race([signalPromise, settled]);
+  }
+  return settled;
 }

@@ -1359,6 +1359,8 @@ function executeFields(
   // Otherwise, results is a map from field name to the result of resolving that
   // field, which is possibly a promise. Return a promise that will return this
   // same map, but with any promises replaced with the values they resolved to.
+  // WorkQueue / promiseForObjectQueued was measured on the planned path and did
+  // not beat promiseForObject for async-object — keep the classic settler.
   return promiseForObject(results, exeContext.signal, exeContext.signalPromise);
 }
 
