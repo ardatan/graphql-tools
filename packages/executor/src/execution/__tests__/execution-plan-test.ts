@@ -94,16 +94,37 @@ describe('execution plan', () => {
     expect(lookedUp).toBe(first);
   });
 
-  it('does not compile a plan when @skip depends on variables', () => {
+  it('compiles a variable-@skip plan and executes both branches', () => {
     const document = parse('query ($s: Boolean!) { a b @skip(if: $s) }');
-    expect(compileExecutionPlan({ schema, document })).toBeUndefined();
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    expect(plan.collectionDependsOnVariables).toBe(true);
+    expect(plan.rootFields.has('a')).toBe(true);
+    expect(plan.rootFields.has('b')).toBe(true);
+    expect(
+      executeSync({
+        schema,
+        document,
+        variableValues: { s: false },
+      }),
+    ).toEqual({ data: { a: 'a', b: 'b' } });
+    expect(
+      executeSync({
+        schema,
+        document,
+        variableValues: { s: true },
+      }),
+    ).toEqual({ data: { a: 'a' } });
     const exeContext = buildExecutionContext({
       schema,
       document,
       variableValues: { s: false },
     });
     assertExeContext(exeContext);
-    expect(exeContext.plan).toBeUndefined();
+    expect(exeContext.plan).toBe(plan);
   });
 
   it('does not compile a plan when the document uses @defer', () => {

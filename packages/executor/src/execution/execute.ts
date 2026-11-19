@@ -97,6 +97,8 @@ import {
 import { invariant } from './invariant.js';
 import {
   compileExecutionPlan,
+  getPlannedFieldPlan,
+  getPlannedSubfields,
   isExecutionPlan,
   type ArgumentReader,
   type ExecutionPlan,
@@ -110,6 +112,8 @@ export {
   compileExecutionPlan,
   compileListItemLeaf,
   getExecutionPlan,
+  getPlannedFieldPlan,
+  getPlannedSubfields,
   isExecutionPlan,
   type ArgumentReader,
   type CompileExecutionPlanArgs,
@@ -1013,8 +1017,15 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
     );
   }
 
-  // Warm plan path: reuse pre-collected root fields from the execution plan.
-  if (plan && plan.operation === operation && plan.rootType === rootType) {
+  // Warm plan path: reuse pre-collected root fields when collection is stable.
+  // Variable @skip/@include still attaches the plan for per-field lookups, but
+  // root fields are collected with runtime variables.
+  if (
+    plan &&
+    plan.operation === operation &&
+    plan.rootType === rootType &&
+    !plan.collectionDependsOnVariables
+  ) {
     const path = undefined;
     if (operation.operation === 'mutation') {
       return executeFieldsSerially(exeContext, rootType, rootValue, path, plan.rootFields);
@@ -1374,7 +1385,9 @@ function executeField(
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): MaybePromise<unknown> {
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
-  const fieldPlan: FieldPlan | undefined = exeContext.plan?.fieldPlanByNodes.get(fieldNodes);
+  const fieldPlan: FieldPlan | undefined = exeContext.plan
+    ? getPlannedFieldPlan(exeContext.plan, fieldNodes, parentType)
+    : undefined;
   const fieldDef = fieldPlan?.fieldDef ?? getFieldDef(exeContext.schema, parentType, fieldNodes[0]);
   if (!fieldDef) {
     return;
@@ -1822,7 +1835,9 @@ function completeValue(
   // Skip plan lookup for list items (`path.key` number): the WeakMap get on
   // every promise callback regresses dense async leaf lists.
   const fieldPlan =
-    typeof path.key === 'number' ? undefined : exeContext.plan?.fieldPlanByNodes.get(fieldNodes);
+    typeof path.key === 'number' || exeContext.plan == null
+      ? undefined
+      : getPlannedFieldPlan(exeContext.plan, fieldNodes, info.parentType);
   const plannedNamedType =
     fieldPlan != null
       ? isNonNullType(fieldPlan.returnType)
@@ -2094,7 +2109,9 @@ function completeListValue(
   let previousAsyncPayloadRecord = asyncPayloadRecord;
   const completedResults: Array<unknown> = [];
   const nullableItemType = isNonNullType(itemType) ? itemType.ofType : itemType;
-  const fieldPlan = exeContext.plan?.fieldPlanByNodes.get(fieldNodes);
+  const fieldPlan = exeContext.plan
+    ? getPlannedFieldPlan(exeContext.plan, fieldNodes, info.parentType)
+    : undefined;
   const plannedLeafList = !stream ? fieldPlan?.listItemLeaf : undefined;
   const leafItemType =
     plannedLeafList?.leafType ??
@@ -2455,7 +2472,9 @@ function completeObjectValue(
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): MaybePromise<Record<string, unknown>> {
   // Warm plan path: concrete object fields without isTypeOf skip the predicate.
-  const fieldPlan = exeContext.plan?.fieldPlanByNodes.get(fieldNodes);
+  const fieldPlan = exeContext.plan
+    ? getPlannedFieldPlan(exeContext.plan, fieldNodes, info.parentType)
+    : undefined;
   if (
     fieldPlan?.skipIsTypeOf &&
     fieldPlan.objectType === returnType &&
@@ -2530,7 +2549,12 @@ function collectAndExecuteSubfields(
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): MaybePromise<Record<string, unknown>> {
   // Warm path: planned subfields for this fieldNodes + concrete type.
-  const plannedSubfields = exeContext.plan?.subfieldsByNodes.get(fieldNodes)?.get(returnType);
+  // Variable @skip/@include plans store a union map — runtime must collect with
+  // real variables, then hit field plans via FieldNode keys.
+  const plannedSubfields =
+    exeContext.plan != null && !exeContext.plan.collectionDependsOnVariables
+      ? getPlannedSubfields(exeContext.plan, fieldNodes, returnType)
+      : undefined;
   if (plannedSubfields && exeContext.nulledPaths == null) {
     return executeFields(
       exeContext,

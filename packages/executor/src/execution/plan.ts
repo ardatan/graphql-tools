@@ -148,10 +148,22 @@ export interface ExecutionPlan {
   operationName: string | undefined;
   fragments: Record<string, FragmentDefinitionNode>;
   rootType: GraphQLObjectType;
-  /** Pre-collected root field map (stable documents only). */
+  /**
+   * True when `@skip` / `@include` (or variable `@defer` label/`if`) make
+   * collected field sets depend on runtime variables. Root/subfield maps on
+   * the plan are a union over both boolean extremes; runtime still collects
+   * with real variables and looks up field plans by FieldNode identity.
+   */
+  collectionDependsOnVariables: boolean;
+  /** Pre-collected root field map (stable docs) or union over bool extremes. */
   rootFields: Map<string, Array<FieldNode>>;
   /** Field plan keyed by the exact `fieldNodes` array identity from this plan. */
   fieldPlanByNodes: WeakMap<ReadonlyArray<FieldNode>, FieldPlan>;
+  /**
+   * Field plan keyed by the primary AST `FieldNode` so runtime-collected
+   * fieldNodes arrays (variable skip/include) still hit the warm plan.
+   */
+  fieldPlanByFieldNode: WeakMap<FieldNode, FieldPlan>;
   /**
    * Subfield maps keyed by parent fieldNodes array then concrete return type.
    * List items of the same type reuse the same map identity.
@@ -160,6 +172,15 @@ export interface ExecutionPlan {
     ReadonlyArray<FieldNode>,
     WeakMap<GraphQLObjectType, Map<string, Array<FieldNode>>>
   >;
+  /** Subfield maps keyed by parent field's primary AST node (variable collect). */
+  subfieldsByFieldNode: WeakMap<
+    FieldNode,
+    WeakMap<GraphQLObjectType, Map<string, Array<FieldNode>>>
+  >;
+  /** VariableValues with skip/include bools set false — for union compile. */
+  collectVariablesFalse: VariableValues;
+  /** VariableValues with skip/include bools set true — for union compile. */
+  collectVariablesTrue: VariableValues;
 }
 
 export interface CompileExecutionPlanArgs {
@@ -189,11 +210,46 @@ export function isExecutionPlan(
 }
 
 /**
+ * Resolve a field plan for runtime fieldNodes (exact array or primary AST node).
+ */
+export function getPlannedFieldPlan(
+  plan: ExecutionPlan,
+  fieldNodes: ReadonlyArray<FieldNode>,
+  parentType?: GraphQLObjectType,
+): FieldPlan | undefined {
+  const byNodes = plan.fieldPlanByNodes.get(fieldNodes);
+  if (byNodes) {
+    return byNodes;
+  }
+  // Same AST FieldNode can appear under multiple concrete parents (unions /
+  // interfaces); only reuse when parentType matches the compiled plan.
+  const byNode = plan.fieldPlanByFieldNode.get(fieldNodes[0]!);
+  if (byNode != null && (parentType == null || byNode.parentType === parentType)) {
+    return byNode;
+  }
+  return undefined;
+}
+
+/**
+ * Resolve planned subfields for a parent fieldNodes array / primary AST node.
+ */
+export function getPlannedSubfields(
+  plan: ExecutionPlan,
+  fieldNodes: ReadonlyArray<FieldNode>,
+  returnType: GraphQLObjectType,
+): Map<string, Array<FieldNode>> | undefined {
+  return (
+    plan.subfieldsByNodes.get(fieldNodes)?.get(returnType) ??
+    plan.subfieldsByFieldNode.get(fieldNodes[0]!)?.get(returnType)
+  );
+}
+
+/**
  * Compile a cacheable execution plan for a validated operation.
  *
- * Returns `undefined` when the document is not eligible (variable-conditional
- * `@skip` / `@include` / `@defer`, or any `@defer` / `@stream`). Returns a
- * GraphQL error list when the operation cannot be resolved.
+ * Returns `undefined` when the document uses `@defer` / `@stream`. Variable
+ * `@skip` / `@include` remain eligible via union collection + FieldNode keys.
+ * Returns a GraphQL error list when the operation cannot be resolved.
  */
 export function compileExecutionPlan(
   args: CompileExecutionPlanArgs,
@@ -278,7 +334,8 @@ function setCachedPlanEntry(
 function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCacheEntry {
   const { schema, document, operationName } = args;
 
-  if (collectFieldsDependsOnVariables(document) || documentHasIncrementalDirectives(document)) {
+  // `@defer` / `@stream` stay on the classic interpreter (incremental path).
+  if (documentHasIncrementalDirectives(document)) {
     return { kind: 'ineligible' };
   }
 
@@ -299,20 +356,59 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
     };
   }
 
-  const { fields: rootFields, patches } = collectFields(
-    schema,
-    fragments,
-    EMPTY_VARIABLE_VALUES,
-    rootType,
-    operation.selectionSet,
-  );
-  if (patches.length > 0) {
-    return { kind: 'ineligible' };
+  const collectionDependsOnVariables = collectFieldsDependsOnVariables(document);
+  const skipIncludeVars = collectionDependsOnVariables
+    ? collectSkipIncludeVariableNames(document)
+    : undefined;
+  const collectVariablesFalse = skipIncludeVars
+    ? makeBoolVariableValues(skipIncludeVars, false)
+    : EMPTY_VARIABLE_VALUES;
+  const collectVariablesTrue = skipIncludeVars
+    ? makeBoolVariableValues(skipIncludeVars, true)
+    : EMPTY_VARIABLE_VALUES;
+
+  let rootFields: Map<string, Array<FieldNode>>;
+  if (collectionDependsOnVariables) {
+    const a = collectFields(
+      schema,
+      fragments,
+      collectVariablesFalse,
+      rootType,
+      operation.selectionSet,
+    );
+    const b = collectFields(
+      schema,
+      fragments,
+      collectVariablesTrue,
+      rootType,
+      operation.selectionSet,
+    );
+    if (a.patches.length > 0 || b.patches.length > 0) {
+      return { kind: 'ineligible' };
+    }
+    rootFields = unionFieldMaps(a.fields, b.fields);
+  } else {
+    const { fields, patches } = collectFields(
+      schema,
+      fragments,
+      EMPTY_VARIABLE_VALUES,
+      rootType,
+      operation.selectionSet,
+    );
+    if (patches.length > 0) {
+      return { kind: 'ineligible' };
+    }
+    rootFields = fields;
   }
 
   const fieldPlanByNodes = new WeakMap<ReadonlyArray<FieldNode>, FieldPlan>();
+  const fieldPlanByFieldNode = new WeakMap<FieldNode, FieldPlan>();
   const subfieldsByNodes = new WeakMap<
     ReadonlyArray<FieldNode>,
+    WeakMap<GraphQLObjectType, Map<string, Array<FieldNode>>>
+  >();
+  const subfieldsByFieldNode = new WeakMap<
+    FieldNode,
     WeakMap<GraphQLObjectType, Map<string, Array<FieldNode>>>
   >();
 
@@ -323,9 +419,14 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
     operationName: operationName ?? undefined,
     fragments,
     rootType,
+    collectionDependsOnVariables,
     rootFields,
     fieldPlanByNodes,
+    fieldPlanByFieldNode,
     subfieldsByNodes,
+    subfieldsByFieldNode,
+    collectVariablesFalse,
+    collectVariablesTrue,
   };
 
   compileFieldMap(plan, rootType, rootFields);
@@ -341,6 +442,9 @@ function compileFieldMap(
     const fieldPlan = compileFieldPlan(plan, parentType, responseName, fieldNodes);
     if (fieldPlan) {
       plan.fieldPlanByNodes.set(fieldNodes, fieldPlan);
+      for (const fieldNode of fieldNodes) {
+        plan.fieldPlanByFieldNode.set(fieldNode, fieldPlan);
+      }
       compileReturnTypeSubfields(plan, fieldPlan);
     }
   }
@@ -613,15 +717,38 @@ function collectAndStoreSubfields(
   fieldNodes: Array<FieldNode>,
   returnType: GraphQLObjectType,
 ): Map<string, Array<FieldNode>> | undefined {
-  const { fields, patches } = collectSubFields(
-    plan.schema,
-    plan.fragments,
-    EMPTY_VARIABLE_VALUES,
-    returnType,
-    fieldNodes,
-  );
-  if (patches.length > 0) {
-    return undefined;
+  let fields: Map<string, Array<FieldNode>>;
+  if (plan.collectionDependsOnVariables) {
+    const a = collectSubFields(
+      plan.schema,
+      plan.fragments,
+      plan.collectVariablesFalse,
+      returnType,
+      fieldNodes,
+    );
+    const b = collectSubFields(
+      plan.schema,
+      plan.fragments,
+      plan.collectVariablesTrue,
+      returnType,
+      fieldNodes,
+    );
+    if (a.patches.length > 0 || b.patches.length > 0) {
+      return undefined;
+    }
+    fields = unionFieldMaps(a.fields, b.fields);
+  } else {
+    const collected = collectSubFields(
+      plan.schema,
+      plan.fragments,
+      EMPTY_VARIABLE_VALUES,
+      returnType,
+      fieldNodes,
+    );
+    if (collected.patches.length > 0) {
+      return undefined;
+    }
+    fields = collected.fields;
   }
 
   let byType = plan.subfieldsByNodes.get(fieldNodes);
@@ -630,7 +757,90 @@ function collectAndStoreSubfields(
     plan.subfieldsByNodes.set(fieldNodes, byType);
   }
   byType.set(returnType, fields);
+
+  const primary = fieldNodes[0];
+  if (primary) {
+    let byTypeForNode = plan.subfieldsByFieldNode.get(primary);
+    if (!byTypeForNode) {
+      byTypeForNode = new WeakMap();
+      plan.subfieldsByFieldNode.set(primary, byTypeForNode);
+    }
+    byTypeForNode.set(returnType, fields);
+  }
   return fields;
+}
+
+function makeBoolVariableValues(names: ReadonlySet<string>, value: boolean): VariableValues {
+  // GraphQL 17 VariableValues is still `{ coerced, sources }` (from getVariableValues).
+  const coerced = Object.create(null) as Record<string, unknown>;
+  for (const name of names) {
+    coerced[name] = value;
+  }
+  // Cast: compile-time only; sources are unused by shouldIncludeNode / getDirectiveValues
+  // once `coerced` holds the bool extremes.
+  return { coerced, sources: Object.create(null) } as VariableValues;
+}
+
+function collectSkipIncludeVariableNames(document: DocumentNode): Set<string> {
+  const names = new Set<string>();
+  for (const definition of document.definitions) {
+    if (
+      definition.kind === Kind.OPERATION_DEFINITION ||
+      definition.kind === Kind.FRAGMENT_DEFINITION
+    ) {
+      collectSkipIncludeVarsFromSelectionSet(definition.selectionSet, names);
+    }
+  }
+  return names;
+}
+
+function collectSkipIncludeVarsFromSelectionSet(
+  selectionSet: { selections: ReadonlyArray<any> },
+  names: Set<string>,
+): void {
+  for (const selection of selectionSet.selections) {
+    if (selection.directives) {
+      for (const directive of selection.directives) {
+        const directiveName = directive.name.value as string;
+        if (directiveName !== 'skip' && directiveName !== 'include') {
+          continue;
+        }
+        for (const arg of directive.arguments ?? []) {
+          if (arg.name.value === 'if' && arg.value.kind === Kind.VARIABLE) {
+            names.add(arg.value.name.value);
+          }
+        }
+      }
+    }
+    if (selection.selectionSet) {
+      collectSkipIncludeVarsFromSelectionSet(selection.selectionSet, names);
+    }
+  }
+}
+
+function unionFieldMaps(
+  a: Map<string, Array<FieldNode>>,
+  b: Map<string, Array<FieldNode>>,
+): Map<string, Array<FieldNode>> {
+  const out = new Map<string, Array<FieldNode>>();
+  for (const [name, nodes] of a) {
+    out.set(name, nodes.slice());
+  }
+  for (const [name, nodes] of b) {
+    const existing = out.get(name);
+    if (!existing) {
+      out.set(name, nodes.slice());
+      continue;
+    }
+    const seen = new Set(existing);
+    for (const node of nodes) {
+      if (!seen.has(node)) {
+        existing.push(node);
+        seen.add(node);
+      }
+    }
+  }
+  return out;
 }
 
 function unwrapToNamedOutputType(type: GraphQLOutputType): GraphQLOutputType {
