@@ -1,5 +1,14 @@
 # @graphql-tools/external-fragment-loader
 
+## 1.0.11
+
+### Patch Changes
+
+- Updated dependencies [[`9a3f94f`](https://github.com/ardatan/graphql-tools/commit/9a3f94fa82c3a4cfddc4f7506bd5af6e3249670e)]:
+  - @graphql-tools/utils@13.2.3
+  - @graphql-tools/graphql-tag-pluck@9.0.11
+  - @graphql-tools/load-files@8.0.10
+
 ## 1.0.10
 
 ### Patch Changes
