@@ -1,0 +1,122 @@
+name: Cleanup Actions storage
+
+# Non-default-branch Actions caches (PR refs, feature branches) accumulate and
+# are not reclaimed when the branch/PR goes away. Delete them weekly so storage
+# stays on refs/heads/master caches only.
+
+on:
+  schedule:
+    # Weekly: Sunday 06:00 UTC
+    - cron: '0 6 * * 0'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+concurrency:
+  group: cleanup-actions-storage
+  cancel-in-progress: false
+
+jobs:
+  cleanup-caches:
+    name: Delete non-master Actions caches
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Delete caches not on refs/heads/master
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const keepRef = 'refs/heads/master';
+
+            // Nested actions_caches array; map so paginate concatenates entries.
+            const caches = await github.paginate(
+              github.rest.actions.getActionsCacheList,
+              { owner, repo, per_page: 100 },
+              (response) => response.data.actions_caches,
+            );
+
+            const toDelete = caches.filter((cache) => cache.ref !== keepRef);
+            const kept = caches.length - toDelete.length;
+
+            core.info(
+              `Found ${caches.length} cache(s); keeping ${kept} on ${keepRef}; ` +
+                `deleting ${toDelete.length}`,
+            );
+
+            const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+            async function deleteWithRetry(cache) {
+              const maxAttempts = 5;
+              for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                try {
+                  await github.rest.actions.deleteActionsCacheById({
+                    owner,
+                    repo,
+                    cache_id: cache.id,
+                  });
+                  return 'deleted';
+                } catch (error) {
+                  if (error.status === 404) {
+                    return 'already-gone';
+                  }
+                  const retriable =
+                    error.status === 429 ||
+                    error.status === 403 ||
+                    error.status >= 500;
+                  if (!retriable || attempt === maxAttempts) {
+                    throw error;
+                  }
+                  const backoffMs = Math.min(30_000, 1000 * 2 ** (attempt - 1));
+                  core.warning(
+                    `Retry ${attempt}/${maxAttempts} for cache ${cache.id} ` +
+                      `after ${error.status}: waiting ${backoffMs}ms`,
+                  );
+                  await sleep(backoffMs);
+                }
+              }
+            }
+
+            let deleted = 0;
+            let alreadyGone = 0;
+            let failed = 0;
+
+            for (let i = 0; i < toDelete.length; i++) {
+              const cache = toDelete[i];
+              try {
+                const result = await deleteWithRetry(cache);
+                if (result === 'deleted') {
+                  deleted += 1;
+                  core.info(
+                    `Deleted cache id=${cache.id} ref=${cache.ref} key=${cache.key}`,
+                  );
+                } else {
+                  alreadyGone += 1;
+                  core.info(
+                    `Cache id=${cache.id} already gone (ref=${cache.ref} key=${cache.key})`,
+                  );
+                }
+              } catch (error) {
+                failed += 1;
+                core.error(
+                  `Failed to delete cache id=${cache.id} ref=${cache.ref} ` +
+                    `key=${cache.key}: ${error.message}`,
+                );
+              }
+
+              // Light pacing to reduce secondary rate-limit pressure.
+              if ((i + 1) % 10 === 0) {
+                await sleep(200);
+              }
+            }
+
+            core.info(
+              `Cleanup done: deleted=${deleted} already_gone=${alreadyGone} ` +
+                `failed=${failed} kept_on_master=${kept}`,
+            );
+
+            if (failed > 0) {
+              core.setFailed(`Failed to delete ${failed} cache(s)`);
+            }
