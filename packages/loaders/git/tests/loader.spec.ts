@@ -204,9 +204,13 @@ describe('GitLoader', () => {
       it('should skip unrelated colon-containing inputs instead of throwing', async () => {
         await expect(load('http://localhost:4000/schema', {})).resolves.toEqual([]);
 
-        const [result] = await load(getPointer('type-defs.graphql'), {
-          ignore: ['http://localhost:4000/schema'],
-        });
+        // Glob so load goes through resolveGlobs (and its ignore loop).
+        const [result] = await load(
+          `git:${lastCommit}:packages/loaders/git/tests/test-files/*type-defs.graphql`,
+          {
+            ignore: ['http://localhost:4000/schema'],
+          },
+        );
         expect(result.document).toBeDefined();
       });
 
