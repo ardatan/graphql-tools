@@ -9,7 +9,13 @@ import {
   GraphQLTagPluckOptions,
 } from '@graphql-tools/graphql-tag-pluck';
 import { asArray, BaseLoaderOptions, Loader, Source } from '@graphql-tools/utils';
-import { loadFromGit, loadFromGitSync, readTreeAtRef, readTreeAtRefSync } from './load-git.js';
+import {
+  assertSafeGitOperand,
+  loadFromGit,
+  loadFromGitSync,
+  readTreeAtRef,
+  readTreeAtRefSync,
+} from './load-git.js';
 import { parse as handleStuff } from './parse.js';
 
 // git:branch:path/to/file
@@ -19,14 +25,22 @@ function extractData(pointer: string): null | {
 } {
   const parts = pointer.replace(/^git\:/i, '').split(':');
 
-  if (!parts || parts.length !== 2) {
+  if (!parts || parts.length < 2) {
     return null;
   }
 
-  return {
-    ref: parts[0],
-    path: parts[1],
-  };
+  if (parts.length > 2) {
+    throw new Error(
+      `Invalid git pointer "${pointer}": expected exactly one ":" separating ref and path`,
+    );
+  }
+
+  const ref = parts[0];
+  const path = parts[1];
+  assertSafeGitOperand(ref, 'ref');
+  assertSafeGitOperand(path, 'path');
+
+  return { ref, path };
 }
 
 /**
