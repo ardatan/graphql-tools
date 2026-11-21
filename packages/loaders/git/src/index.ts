@@ -23,6 +23,11 @@ function extractData(pointer: string): null | {
   ref: string;
   path: string;
 } {
+  // Non-git inputs (URLs, plain paths, ignore entries) must stay skippable.
+  if (typeof pointer !== 'string' || !pointer.toLowerCase().startsWith('git:')) {
+    return null;
+  }
+
   const parts = pointer.replace(/^git\:/i, '').split(':');
 
   if (!parts || parts.length < 2) {

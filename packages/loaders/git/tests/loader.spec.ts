@@ -201,6 +201,15 @@ describe('GitLoader', () => {
         expect(result).toEqual([]);
       });
 
+      it('should skip unrelated colon-containing inputs instead of throwing', async () => {
+        await expect(load('http://localhost:4000/schema', {})).resolves.toEqual([]);
+
+        const [result] = await load(getPointer('type-defs.graphql'), {
+          ignore: ['http://localhost:4000/schema'],
+        });
+        expect(result.document).toBeDefined();
+      });
+
       it("should work when loading glob paths that start with './'", async () => {
         const saveCwd = process.cwd();
         process.chdir(path.resolve(__dirname, 'test-files', 'a'));
