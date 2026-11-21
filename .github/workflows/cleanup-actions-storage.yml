@@ -32,10 +32,12 @@ jobs:
             const keepRef = 'refs/heads/master';
 
             // Nested actions_caches array; map so paginate concatenates entries.
+            // github-script normalizes response.data to the actions_caches
+            // array before a map callback runs; mapping .actions_caches again
+            // yields undefined and breaks cleanup.
             const caches = await github.paginate(
               github.rest.actions.getActionsCacheList,
               { owner, repo, per_page: 100 },
-              (response) => response.data.actions_caches,
             );
 
             const toDelete = caches.filter((cache) => cache.ref !== keepRef);
@@ -69,7 +71,22 @@ jobs:
                   if (!retriable || attempt === maxAttempts) {
                     throw error;
                   }
-                  const backoffMs = Math.min(30_000, 1000 * 2 ** (attempt - 1));
+                  let backoffMs;
+                  if (error.status === 429 || error.status === 403) {
+                    const headers = error.response?.headers || {};
+                    const retryAfter = headers['retry-after'] ?? headers['Retry-After'];
+                    const reset = headers['x-ratelimit-reset'] ?? headers['X-RateLimit-Reset'];
+                    if (retryAfter != null && !Number.isNaN(Number(retryAfter))) {
+                      backoffMs = Math.max(60_000, Number(retryAfter) * 1000);
+                    } else if (reset != null && !Number.isNaN(Number(reset))) {
+                      backoffMs = Math.max(60_000, Number(reset) * 1000 - Date.now());
+                    } else {
+                      // Secondary rate limit without cooldown headers.
+                      backoffMs = 60_000;
+                    }
+                  } else {
+                    backoffMs = Math.min(30_000, 1000 * 2 ** (attempt - 1));
+                  }
                   core.warning(
                     `Retry ${attempt}/${maxAttempts} for cache ${cache.id} ` +
                       `after ${error.status}: waiting ${backoffMs}ms`,
