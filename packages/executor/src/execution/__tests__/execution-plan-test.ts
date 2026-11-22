@@ -1,6 +1,9 @@
 import {
+  GraphQLFloat,
+  GraphQLInputObjectType,
   GraphQLInt,
   GraphQLList,
+  GraphQLNonNull,
   GraphQLObjectType,
   GraphQLSchema,
   GraphQLString,
@@ -253,6 +256,77 @@ describe('execution plan', () => {
         variableValues: { name: 'GraphQL' },
       }),
     ).toEqual({ data: { hello: 'hello GraphQL' } });
+  });
+
+  it('compiles hoisted coerceVariables for nested input-object variables', () => {
+    const nestedInput = new GraphQLInputObjectType({
+      name: 'NestedInput',
+      fields: {
+        x: { type: new GraphQLNonNull(GraphQLFloat) },
+        y: { type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLInt))) },
+      },
+    });
+    const filterInput = new GraphQLInputObjectType({
+      name: 'FilterInput',
+      fields: {
+        a: { type: new GraphQLNonNull(GraphQLInt) },
+        b: { type: new GraphQLNonNull(GraphQLString) },
+        nested: { type: new GraphQLNonNull(nestedInput) },
+      },
+    });
+    const inputSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          search: {
+            type: new GraphQLNonNull(GraphQLString),
+            args: { filter: { type: new GraphQLNonNull(filterInput) } },
+            resolve: (
+              _src,
+              args: { filter: { a: number; b: string; nested: { x: number; y: number[] } } },
+            ) =>
+              `${args.filter.a}:${args.filter.b}:${args.filter.nested.x}:${args.filter.nested.y.length}`,
+          },
+        },
+      }),
+    });
+    const document = parse('query ($filter: FilterInput!) { search(filter: $filter) }');
+    const plan = compileExecutionPlan({ schema: inputSchema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    expect(plan.hasVariables).toBe(true);
+
+    const raw = {
+      filter: { a: 7, b: 'x', nested: { x: 1.5, y: [1, 2, 3] } },
+    };
+    const coerced = plan.coerceVariables(raw);
+    expect('variableValues' in coerced).toBe(true);
+    if (!('variableValues' in coerced)) {
+      return;
+    }
+    expect(coerced.variableValues.coerced).toEqual({
+      filter: { a: 7, b: 'x', nested: { x: 1.5, y: [1, 2, 3] } },
+    });
+    expect(coerced.variableValues.sources['filter']).toMatchObject({
+      signature: expect.objectContaining({ name: 'filter' }),
+      value: raw.filter,
+    });
+
+    // Invalid nested value falls back to getVariableValues (errors, not throw).
+    const bad = plan.coerceVariables({
+      filter: { a: 7, b: 'x', nested: { x: 1.5, y: ['nope'] } },
+    });
+    expect('errors' in bad).toBe(true);
+
+    expect(
+      executeSync({
+        schema: inputSchema,
+        document,
+        variableValues: raw,
+      }),
+    ).toEqual({ data: { search: '7:x:1.5:3' } });
   });
 
   it('compiles resolveInfoStatic for planned fields', () => {

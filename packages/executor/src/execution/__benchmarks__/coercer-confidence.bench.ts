@@ -1,0 +1,190 @@
+/**
+ * Isolate variable/input-object coerce cost for baseline vs hoisted coercers.
+ * Warm plan: compile once, then only call plan.coerceVariables.
+ */
+import { buildSchema, parse } from 'graphql';
+import { test } from 'vitest';
+import {
+  compileExecutionPlan,
+  execute as executeImported,
+  isExecutionPlan,
+} from '@graphql-tools/executor';
+
+function writeOpts(name: string): { writeResult: string } | Record<string, never> {
+  return process.env['BENCH_WRITE'] ? { writeResult: `./benchmarks/results/${name}.json` } : {};
+}
+
+const execute = executeImported;
+
+const smallSchema = buildSchema(
+  /* GraphQL */ `
+    input NestedInput {
+      x: Float!
+      y: [Int!]!
+    }
+    input FilterInput {
+      a: Int!
+      b: String!
+      nested: NestedInput!
+    }
+    type Query {
+      search(filter: FilterInput!): String!
+    }
+  `,
+  { assumeValid: true },
+);
+const smallDocument = parse(/* GraphQL */ `
+  query ($filter: FilterInput!) {
+    search(filter: $filter)
+  }
+`);
+const smallRoot = {
+  search: (
+    _: unknown,
+    args: { filter: { a: number; b: string; nested: { x: number; y: number[] } } },
+  ) => `${args.filter.a}:${args.filter.b}:${args.filter.nested.x}:${args.filter.nested.y.length}`,
+};
+
+const heavySchema = buildSchema(
+  /* GraphQL */ `
+    input LeafBag {
+      ${Array.from({ length: 40 }, (_, i) => `k${i}: Int!`).join('\n')}
+    }
+    input MidInput {
+      name: String!
+      tags: [String!]!
+      bag: LeafBag!
+    }
+    input HeavyFilter {
+      id: Int!
+      mids: [MidInput!]!
+    }
+    type Query {
+      search(filter: HeavyFilter!): Int!
+    }
+  `,
+  { assumeValid: true },
+);
+const heavyDocument = parse(/* GraphQL */ `
+  query ($filter: HeavyFilter!) {
+    search(filter: $filter)
+  }
+`);
+const heavyRoot = {
+  search: (_: unknown, args: { filter: { id: number; mids: unknown[] } }) =>
+    args.filter.id + args.filter.mids.length,
+};
+
+function makeSmallRaw(n: number) {
+  return {
+    filter: {
+      a: n,
+      b: `v${n}`,
+      nested: { x: n * 1.5, y: [1, 2, n, n + 1, n + 2] },
+    },
+  };
+}
+
+function makeHeavyRaw(n: number) {
+  const bag: Record<string, number> = {};
+  for (let i = 0; i < 40; i++) {
+    bag[`k${i}`] = n + i;
+  }
+  const mids = Array.from({ length: 25 }, (_, mi) => ({
+    name: `m${n}-${mi}`,
+    tags: [`t${mi}`, `u${mi}`, `v${mi}`],
+    bag: { ...bag },
+  }));
+  return { filter: { id: n, mids } };
+}
+
+const smallPlanResult = compileExecutionPlan({
+  schema: smallSchema,
+  document: smallDocument,
+});
+if (!isExecutionPlan(smallPlanResult)) {
+  throw new Error('expected small execution plan');
+}
+const smallPlan = smallPlanResult;
+
+const heavyPlanResult = compileExecutionPlan({
+  schema: heavySchema,
+  document: heavyDocument,
+});
+if (!isExecutionPlan(heavyPlanResult)) {
+  throw new Error('expected heavy execution plan');
+}
+const heavyPlan = heavyPlanResult;
+
+let smallCoerceN = 0;
+let heavyCoerceN = 0;
+let smallExecN = 0;
+let heavyExecN = 0;
+
+test('coercer confidence (coerce-only + coerce+execute)', async ({ bench }) => {
+  await bench(
+    'Coerce-only: small nested input-object (warm plan)',
+    { ...writeOpts('coercer-only-small') },
+    () => {
+      for (let i = 0; i < 500; i++) {
+        smallCoerceN++;
+        const result = smallPlan.coerceVariables(makeSmallRaw(smallCoerceN));
+        if ('errors' in result) {
+          throw new Error('coerce failed');
+        }
+      }
+    },
+  ).run();
+
+  await bench(
+    'Coerce-only: heavy nested input-object (warm plan)',
+    { ...writeOpts('coercer-only-heavy') },
+    () => {
+      for (let i = 0; i < 50; i++) {
+        heavyCoerceN++;
+        const result = heavyPlan.coerceVariables(makeHeavyRaw(heavyCoerceN));
+        if ('errors' in result) {
+          throw new Error('coerce failed');
+        }
+      }
+    },
+  ).run();
+
+  await bench(
+    'Coerce+execute: small nested input-object',
+    { ...writeOpts('coercer-exec-small') },
+    () => {
+      for (let i = 0; i < 50; i++) {
+        smallExecN++;
+        const result = execute({
+          schema: smallSchema,
+          document: smallDocument,
+          rootValue: smallRoot,
+          variableValues: makeSmallRaw(smallExecN),
+        });
+        if (result instanceof Promise) {
+          throw new Error('expected sync result');
+        }
+      }
+    },
+  ).run();
+
+  await bench(
+    'Coerce+execute: heavy nested input-object',
+    { ...writeOpts('coercer-exec-heavy') },
+    () => {
+      for (let i = 0; i < 10; i++) {
+        heavyExecN++;
+        const result = execute({
+          schema: heavySchema,
+          document: heavyDocument,
+          rootValue: heavyRoot,
+          variableValues: makeHeavyRaw(heavyExecN),
+        });
+        if (result instanceof Promise) {
+          throw new Error('expected sync result');
+        }
+      }
+    },
+  ).run();
+});

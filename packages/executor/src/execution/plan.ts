@@ -17,6 +17,7 @@ import {
   GraphQLSchema,
   GraphQLString,
   isAbstractType,
+  isInputObjectType,
   isInputType,
   isLeafType,
   isListType,
@@ -223,7 +224,8 @@ export interface ExecutionPlan {
    * Compiled variable coercer closed over schema + variableDefinitions.
    * Empty ops return EMPTY_VARIABLE_VALUES; builtin-leaf ops try a fast path
    * then fall back to getVariableValues for identical error shapes; otherwise
-   * a bound getVariableValues closure (input-object / list / custom scalars).
+   * hoisted per-input-type coercer closures (lists / input objects / custom
+   * leaves) with getVariableValues fallback (AST defaults stay on full path).
    */
   coerceVariables: CoerceVariables;
   /**
@@ -528,7 +530,8 @@ function buildFieldExecutions(
  * - No variables → empty map
  * - All builtin leaf (or NonNull leaf) vars → fast parseValue path with
  *   getVariableValues fallback for exact GraphQLError messaging
- * - Otherwise → bound getVariableValues (covers input objects, lists, customs)
+ * - Else try hoisted per-input-type coercer closures (lists / input objects /
+ *   custom leaves) with getVariableValues fallback; AST defaults stay on full path
  */
 function compileVariableCoercer(
   schema: GraphQLSchema,
@@ -538,22 +541,255 @@ function compileVariableCoercer(
     return () => ({ variableValues: EMPTY_VARIABLE_VALUES });
   }
 
-  const leafBindings = tryCompileBuiltinLeafVariableBindings(schema, variableDefinitions);
   const runFull: CoerceVariables = (rawVariableValues, options) =>
     runGetVariableValues(schema, variableDefinitions, rawVariableValues, options);
 
-  if (leafBindings == null) {
+  const leafBindings = tryCompileBuiltinLeafVariableBindings(schema, variableDefinitions);
+  if (leafBindings != null) {
+    return (rawVariableValues, options) => {
+      const fast = tryCoerceBuiltinLeafVariables(leafBindings, rawVariableValues);
+      if (fast !== undefined) {
+        return { variableValues: fast };
+      }
+      // Missing / null-for-non-null / parse failures: identical errors via graphql-js.
+      return runFull(rawVariableValues, options);
+    };
+  }
+
+  const inputBindings = tryCompileHoistedVariableBindings(schema, variableDefinitions);
+  if (inputBindings == null) {
     return runFull;
   }
 
   return (rawVariableValues, options) => {
-    const fast = tryCoerceBuiltinLeafVariables(leafBindings, rawVariableValues);
+    const fast = tryCoerceHoistedVariables(inputBindings, rawVariableValues);
     if (fast !== undefined) {
       return { variableValues: fast };
     }
-    // Missing / null-for-non-null / parse failures: identical errors via graphql-js.
     return runFull(rawVariableValues, options);
   };
+}
+
+/** Plan-bound input value coercer; returns `undefined` to signal fallback. */
+type InputValueCoercer = (raw: unknown) => unknown | undefined;
+
+type HoistedVariableBinding = {
+  name: string;
+  nonNull: boolean;
+  variableType: GraphQLInputType;
+  coerce: InputValueCoercer;
+};
+
+/**
+ * Compile hoisted per-type input coercers for variables without AST defaults.
+ * Cost is linear in input types (shared via cache), not in selection paths.
+ */
+function tryCompileHoistedVariableBindings(
+  schema: GraphQLSchema,
+  variableDefinitions: ReadonlyArray<VariableDefinitionNode>,
+): HoistedVariableBinding[] | undefined {
+  const typeCache = new Map<GraphQLInputType, InputValueCoercer>();
+  const bindings: HoistedVariableBinding[] = [];
+  for (const def of variableDefinitions) {
+    if (def.defaultValue != null) {
+      return undefined;
+    }
+    const inputType = typeFromAST(schema, def.type);
+    if (inputType == null || !isInputType(inputType)) {
+      return undefined;
+    }
+    const coerce = compileInputValueCoercer(inputType, typeCache);
+    if (coerce == null) {
+      return undefined;
+    }
+    bindings.push({
+      name: def.variable.name.value,
+      nonNull: isNonNullType(inputType),
+      variableType: inputType,
+      coerce,
+    });
+  }
+  return bindings;
+}
+
+function tryCoerceHoistedVariables(
+  bindings: ReadonlyArray<HoistedVariableBinding>,
+  rawVariableValues: { readonly [key: string]: unknown } | null | undefined,
+): VariableValues | undefined {
+  const raw = rawVariableValues ?? EMPTY_RAW_VARIABLES;
+  const coerced = Object.create(null) as Record<string, unknown>;
+  const sources = Object.create(null) as VariableValues['sources'];
+  for (const binding of bindings) {
+    const signature = {
+      name: binding.name,
+      type: binding.variableType,
+      default: undefined,
+    };
+    if (!Object.prototype.hasOwnProperty.call(raw, binding.name)) {
+      sources[binding.name] = { signature };
+      if (binding.nonNull) {
+        return undefined;
+      }
+      continue;
+    }
+    const value = raw[binding.name];
+    sources[binding.name] = { signature, value };
+    const coercedValue = binding.coerce(value);
+    if (coercedValue === undefined) {
+      return undefined;
+    }
+    coerced[binding.name] = coercedValue;
+  }
+  return { coerced, sources };
+}
+
+/**
+ * Build a plan-bound coercer for one input type (shared across variables).
+ * Returns null when the type needs graphql-js (e.g. @oneOf stays on fallback).
+ */
+function compileInputValueCoercer(
+  type: GraphQLInputType,
+  cache: Map<GraphQLInputType, InputValueCoercer>,
+): InputValueCoercer | null {
+  const cached = cache.get(type);
+  if (cached != null) {
+    return cached;
+  }
+
+  if (isNonNullType(type)) {
+    const inner = compileInputValueCoercer(type.ofType, cache);
+    if (inner == null) {
+      return null;
+    }
+    const coercer: InputValueCoercer = raw => {
+      if (raw == null) {
+        return undefined;
+      }
+      return inner(raw);
+    };
+    cache.set(type, coercer);
+    return coercer;
+  }
+
+  if (isListType(type)) {
+    const itemCoercer = compileInputValueCoercer(type.ofType, cache);
+    if (itemCoercer == null) {
+      return null;
+    }
+    const coercer: InputValueCoercer = raw => {
+      if (raw == null) {
+        return null;
+      }
+      if (!Array.isArray(raw)) {
+        // graphql-js wraps singular values; fall back for identical behavior.
+        return undefined;
+      }
+      const out: unknown[] = [];
+      for (let i = 0; i < raw.length; i++) {
+        const item = itemCoercer(raw[i]);
+        if (item === undefined) {
+          return undefined;
+        }
+        out.push(item);
+      }
+      return out;
+    };
+    cache.set(type, coercer);
+    return coercer;
+  }
+
+  if (isLeafType(type)) {
+    const leafType = type;
+    const coercer: InputValueCoercer = raw => {
+      if (raw == null) {
+        return null;
+      }
+      try {
+        const parsed = leafType.parseValue(raw);
+        // parseValue returning undefined is treated as failure → fallback.
+        return parsed === undefined ? undefined : parsed;
+      } catch {
+        return undefined;
+      }
+    };
+    cache.set(type, coercer);
+    return coercer;
+  }
+
+  if (isInputObjectType(type)) {
+    // Placeholder enables recursive input objects during field compile.
+    const placeholder: InputValueCoercer = () => undefined;
+    cache.set(type, placeholder);
+
+    if (type.isOneOf) {
+      cache.delete(type);
+      return null;
+    }
+
+    const fields = type.getFields();
+    const fieldEntries: Array<{
+      name: string;
+      nonNull: boolean;
+      coerce: InputValueCoercer;
+      hasDefault: boolean;
+      defaultValue: unknown;
+    }> = [];
+
+    for (const fieldName of Object.keys(fields)) {
+      const field = fields[fieldName]!;
+      const fieldCoercer = compileInputValueCoercer(field.type, cache);
+      if (fieldCoercer == null) {
+        cache.delete(type);
+        return null;
+      }
+      fieldEntries.push({
+        name: fieldName,
+        nonNull: isNonNullType(field.type),
+        coerce: fieldCoercer,
+        hasDefault: field.defaultValue !== undefined,
+        defaultValue: field.defaultValue,
+      });
+    }
+
+    const expectedKeys = new Set(fieldEntries.map(f => f.name));
+    const coercer: InputValueCoercer = raw => {
+      if (raw == null) {
+        return null;
+      }
+      if (typeof raw !== 'object' || Array.isArray(raw)) {
+        return undefined;
+      }
+      const obj = raw as Record<string, unknown>;
+      for (const key of Object.keys(obj)) {
+        if (!expectedKeys.has(key)) {
+          return undefined;
+        }
+      }
+      const out = Object.create(null) as Record<string, unknown>;
+      for (const field of fieldEntries) {
+        if (!Object.prototype.hasOwnProperty.call(obj, field.name)) {
+          if (field.hasDefault) {
+            out[field.name] = field.defaultValue;
+            continue;
+          }
+          if (field.nonNull) {
+            return undefined;
+          }
+          continue;
+        }
+        const coercedField = field.coerce(obj[field.name]);
+        if (coercedField === undefined) {
+          return undefined;
+        }
+        out[field.name] = coercedField;
+      }
+      return out;
+    };
+    cache.set(type, coercer);
+    return coercer;
+  }
+
+  return null;
 }
 
 type BuiltinLeafVariableBinding = {
