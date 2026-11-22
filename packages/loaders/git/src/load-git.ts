@@ -4,15 +4,32 @@ import unixify from 'unixify';
 type PartialInput = { ref: string };
 type Input = PartialInput & { path: string };
 
+/**
+ * Reject ref/path operands that look like CLI flags so git cannot treat them as options.
+ * @internal
+ */
+export function assertSafeGitOperand(value: string, kind: 'ref' | 'path'): void {
+  if (value.startsWith('-')) {
+    throw new Error(
+      `Invalid git ${kind} "${value}": ref and path segments must not start with "-"`,
+    );
+  }
+}
+
 const createLoadError = (error: any) => new Error('Unable to load file from git: ' + error);
+// Use cat-file -p (not show): `git show -- rev:path` treats the operand as a
+// pathspec after `--` and returns empty, while cat-file -p still prints the blob.
 const createShowCommand = ({ ref, path }: Input): string[] => {
-  return ['show', `${ref}:${path}`];
+  assertSafeGitOperand(ref, 'ref');
+  assertSafeGitOperand(path, 'path');
+  return ['cat-file', '-p', '--', `${ref}:${path}`];
 };
 
 const createTreeError = (error: Error) =>
   new Error('Unable to load the file tree from git: ' + error);
 const createTreeCommand = ({ ref }: PartialInput): string[] => {
-  return ['ls-tree', '-r', '--name-only', ref];
+  assertSafeGitOperand(ref, 'ref');
+  return ['ls-tree', '-r', '--name-only', '--', ref];
 };
 
 /**
