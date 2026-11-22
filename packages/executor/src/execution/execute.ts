@@ -54,6 +54,7 @@ import {
   Path,
   pathToArray,
   promiseReduce,
+  shouldIncludeNode,
   VariableValues,
   type FieldsAndPatches,
   type IncrementalSpec,
@@ -499,11 +500,26 @@ function compileSingleFieldIncludePredicate(
   const includeVariable = includeVar;
   return variableValues => {
     const coerced = variableValues.coerced as Record<string, unknown>;
-    if (skipVariable != null && coerced[skipVariable] === true) {
-      return false;
+    // Fast path only for strict booleans. Null / missing values must use
+    // classic getDirectiveValues so `@skip`/`@include` `Boolean!` args still
+    // error before resolvers run (skip-before-include order preserved).
+    if (skipVariable != null) {
+      const value = coerced[skipVariable];
+      if (value !== true && value !== false) {
+        return shouldIncludeNode(variableValues, fieldNode);
+      }
+      if (value === true) {
+        return false;
+      }
     }
-    if (includeVariable != null && coerced[includeVariable] === false) {
-      return false;
+    if (includeVariable != null) {
+      const value = coerced[includeVariable];
+      if (value !== true && value !== false) {
+        return shouldIncludeNode(variableValues, fieldNode);
+      }
+      if (value === false) {
+        return false;
+      }
     }
     return true;
   };
