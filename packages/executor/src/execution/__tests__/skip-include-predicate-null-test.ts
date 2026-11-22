@@ -1,5 +1,5 @@
 import { buildSchema, parse } from 'graphql';
-import { execute } from '../../index.js';
+import { executeSync } from '../execute.js';
 
 /**
  * Predicate collect must match classic getDirectiveValues errors when a
@@ -21,7 +21,7 @@ describe('field-level skip/include predicate null/missing parity', () => {
   const root = { doThing: () => 'ran' };
 
   function run(document: ReturnType<typeof parse>, variableValues?: Record<string, unknown>) {
-    return execute({
+    return executeSync({
       schema,
       document,
       rootValue: root,
