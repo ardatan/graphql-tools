@@ -366,3 +366,80 @@ test('execution plan warm path benchmarks', async ({ bench }) => {
     },
   ).run();
 });
+
+// Dense field-level @skip/@include — plan-path predicate filter keep bench.
+const denseSkipSchema = buildSchema(
+  /* GraphQL */ `
+    type Query {
+      ${Array.from({ length: 40 }, (_, i) => `f${i}: Int`).join('\n')}
+    }
+  `,
+  { assumeValid: true },
+);
+const denseSkipDocument = parse(/* GraphQL */ `
+  query ($s: Boolean!, $i: Boolean!) {
+    f0
+    f1 @skip(if: $s)
+    f2 @include(if: $i)
+    f3 @skip(if: $s) @include(if: $i)
+    f4
+    f5 @skip(if: $s)
+    f6 @include(if: $i)
+    f7
+    f8 @skip(if: $s)
+    f9 @include(if: $i)
+    f10
+    f11 @skip(if: $s)
+    f12 @include(if: $i)
+    f13
+    f14 @skip(if: $s)
+    f15 @include(if: $i)
+    f16
+    f17 @skip(if: $s)
+    f18 @include(if: $i)
+    f19
+    f20 @skip(if: $s)
+    f21 @include(if: $i)
+    f22
+    f23 @skip(if: $s)
+    f24 @include(if: $i)
+    f25
+    f26 @skip(if: $s)
+    f27 @include(if: $i)
+    f28
+    f29 @skip(if: $s)
+    f30 @include(if: $i)
+    f31
+    f32 @skip(if: $s)
+    f33 @include(if: $i)
+    f34
+    f35 @skip(if: $s)
+    f36 @include(if: $i)
+    f37
+    f38 @skip(if: $s)
+    f39 @include(if: $i)
+  }
+`);
+const denseSkipRootValue = Object.fromEntries(Array.from({ length: 40 }, (_, i) => [`f${i}`, i]));
+let denseSkipToggle = false;
+
+test('skip/include predicate candidate benchmarks', async ({ bench }) => {
+  await bench(
+    'Dense @skip/@include variable fields',
+    { ...writeOpts('executor-dense-skip-include') },
+    () => {
+      for (let index = 0; index < 25; index++) {
+        denseSkipToggle = !denseSkipToggle;
+        const result = execute({
+          schema: denseSkipSchema,
+          document: denseSkipDocument,
+          rootValue: denseSkipRootValue,
+          variableValues: { s: denseSkipToggle, i: !denseSkipToggle },
+        });
+        if (result instanceof Promise) {
+          throw new Error('expected sync result');
+        }
+      }
+    },
+  ).run();
+});

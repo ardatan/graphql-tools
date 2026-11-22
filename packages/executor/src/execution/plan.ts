@@ -40,6 +40,7 @@ import {
   collectFieldsDependsOnVariables,
   collectSubFields,
   getDefinedRootType,
+  shouldIncludeNode,
   VariableValues,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
@@ -231,9 +232,16 @@ export interface ExecutionPlan {
   /**
    * Stable root execution list (same order as `rootFields`). Warm path can
    * walk these instead of Map entries + WeakMap field-plan lookups.
-   * Undefined when `collectionDependsOnVariables` (runtime collect differs).
+   * When `collectionDependsOnVariables` and `skipIncludePredicates` is set,
+   * this is the union list; runtime filters via per-entry `include`.
    */
   rootExecutions: ReadonlyArray<PlannedFieldExecution> | undefined;
+  /**
+   * True when variable `@skip`/`@include` appear only on Field nodes (not
+   * fragment spreads / inline fragments). Runtime can filter `rootExecutions`
+   * / subfield executions with compiled predicates instead of re-collecting.
+   */
+  skipIncludePredicates: boolean;
 }
 
 /**
@@ -243,6 +251,11 @@ export interface PlannedFieldExecution {
   responseName: string;
   fieldNodes: Array<FieldNode>;
   fieldPlan: FieldPlan;
+  /**
+   * When set, true iff this field should run for the given variable values
+   * (compiled `@skip`/`@include` on the field nodes). Absent on stable docs.
+   */
+  include?: (variableValues: VariableValues) => boolean;
 }
 
 export interface CompileExecutionPlanArgs {
@@ -482,6 +495,8 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
 
   const variableDefinitions = operation.variableDefinitions ?? [];
   const coerceVariables = compileVariableCoercer(schema, variableDefinitions);
+  const skipIncludePredicates =
+    collectionDependsOnVariables && documentHasOnlyFieldSkipInclude(document);
 
   const plan: ExecutionPlan = {
     schema,
@@ -502,11 +517,12 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
     hasVariables: variableDefinitions.length > 0,
     coerceVariables,
     rootExecutions: undefined,
+    skipIncludePredicates,
   };
 
   compileFieldMap(plan, rootType, rootFields);
-  if (!collectionDependsOnVariables) {
-    plan.rootExecutions = buildFieldExecutions(plan, rootFields);
+  if (!collectionDependsOnVariables || skipIncludePredicates) {
+    plan.rootExecutions = buildFieldExecutions(plan, rootFields, skipIncludePredicates);
   }
   return { kind: 'plan', plan };
 }
@@ -514,15 +530,165 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
 function buildFieldExecutions(
   plan: ExecutionPlan,
   fields: Map<string, Array<FieldNode>>,
+  withIncludePredicates = false,
 ): PlannedFieldExecution[] {
   const executions: PlannedFieldExecution[] = [];
   for (const [responseName, fieldNodes] of fields) {
     const fieldPlan = plan.fieldPlanByNodes.get(fieldNodes);
     if (fieldPlan) {
-      executions.push({ responseName, fieldNodes, fieldPlan });
+      const execution: PlannedFieldExecution = { responseName, fieldNodes, fieldPlan };
+      if (withIncludePredicates) {
+        execution.include = compileFieldNodesIncludePredicate(fieldNodes);
+      }
+      executions.push(execution);
     }
   }
   return executions;
+}
+
+/**
+ * True when every `@skip`/`@include` in the document sits on a Field node
+ * (not fragment spreads / inline fragments). Safe for predicate filtering.
+ */
+function documentHasOnlyFieldSkipInclude(document: DocumentNode): boolean {
+  for (const definition of document.definitions) {
+    if (
+      definition.kind !== Kind.OPERATION_DEFINITION &&
+      definition.kind !== Kind.FRAGMENT_DEFINITION
+    ) {
+      continue;
+    }
+    if (!selectionSetHasOnlyFieldSkipInclude(definition.selectionSet)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function selectionSetHasOnlyFieldSkipInclude(selectionSet: {
+  selections: ReadonlyArray<any>;
+}): boolean {
+  for (const selection of selectionSet.selections) {
+    const directives = selection.directives;
+    if (directives) {
+      for (const directive of directives) {
+        const name = directive.name.value as string;
+        if (name !== 'skip' && name !== 'include') {
+          continue;
+        }
+        if (selection.kind !== Kind.FIELD) {
+          return false;
+        }
+      }
+    }
+    if (selection.selectionSet && !selectionSetHasOnlyFieldSkipInclude(selection.selectionSet)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Compile `@skip`/`@include` on field nodes into a single predicate.
+ * A response name is included when any contributing field node is included
+ * (matches collectFields merge semantics).
+ */
+function compileFieldNodesIncludePredicate(
+  fieldNodes: ReadonlyArray<FieldNode>,
+): (variableValues: VariableValues) => boolean {
+  const predicates = fieldNodes.map(compileSingleFieldIncludePredicate);
+  if (predicates.length === 1) {
+    return predicates[0]!;
+  }
+  return variableValues => {
+    for (const predicate of predicates) {
+      if (predicate(variableValues)) {
+        return true;
+      }
+    }
+    return false;
+  };
+}
+
+function compileSingleFieldIncludePredicate(
+  fieldNode: FieldNode,
+): (variableValues: VariableValues) => boolean {
+  const directives = fieldNode.directives;
+  if (directives == null || directives.length === 0) {
+    return () => true;
+  }
+
+  let skipVar: string | undefined;
+  let skipLiteral: boolean | undefined;
+  let includeVar: string | undefined;
+  let includeLiteral: boolean | undefined;
+
+  for (const directive of directives) {
+    const name = directive.name.value;
+    if (name !== 'skip' && name !== 'include') {
+      continue;
+    }
+    for (const arg of directive.arguments ?? []) {
+      if (arg.name.value !== 'if') {
+        continue;
+      }
+      if (arg.value.kind === Kind.VARIABLE) {
+        if (name === 'skip') {
+          skipVar = arg.value.name.value;
+        } else {
+          includeVar = arg.value.name.value;
+        }
+      } else if (arg.value.kind === Kind.BOOLEAN) {
+        if (name === 'skip') {
+          skipLiteral = arg.value.value;
+        } else {
+          includeLiteral = arg.value.value;
+        }
+      }
+    }
+  }
+
+  if (
+    skipVar == null &&
+    includeVar == null &&
+    skipLiteral === undefined &&
+    includeLiteral === undefined
+  ) {
+    return () => true;
+  }
+
+  // Constant false from literals.
+  if (skipLiteral === true || includeLiteral === false) {
+    return () => false;
+  }
+
+  const skipVariable = skipVar;
+  const includeVariable = includeVar;
+  return variableValues => {
+    const coerced = variableValues.coerced as Record<string, unknown>;
+    // Fast path only for strict booleans. Null / missing values must use
+    // classic getDirectiveValues so `@skip`/`@include` `Boolean!` args still
+    // error before resolvers run (skip-before-include order preserved).
+    if (skipVariable != null) {
+      const value = coerced[skipVariable];
+      if (value !== true && value !== false) {
+        return shouldIncludeNode(variableValues, fieldNode);
+      }
+      if (value === true) {
+        return false;
+      }
+    }
+    if (includeVariable != null) {
+      const value = coerced[includeVariable];
+      if (value !== true && value !== false) {
+        return shouldIncludeNode(variableValues, fieldNode);
+      }
+      if (value === false) {
+        return false;
+      }
+    }
+    return true;
+  };
 }
 
 /**
@@ -1206,7 +1372,7 @@ function storeSubfieldExecutions(
   returnType: GraphQLObjectType,
   subfields: Map<string, Array<FieldNode>>,
 ): void {
-  if (plan.collectionDependsOnVariables) {
+  if (plan.collectionDependsOnVariables && !plan.skipIncludePredicates) {
     return;
   }
   let byType = plan.subfieldExecutionsByNodes.get(parentFieldNodes);
@@ -1214,7 +1380,23 @@ function storeSubfieldExecutions(
     byType = new WeakMap();
     plan.subfieldExecutionsByNodes.set(parentFieldNodes, byType);
   }
-  byType.set(returnType, buildFieldExecutions(plan, subfields));
+  byType.set(returnType, buildFieldExecutions(plan, subfields, plan.skipIncludePredicates));
+}
+
+/**
+ * Filter planned executions by compiled `@skip`/`@include` predicates.
+ */
+export function filterPlannedExecutions(
+  executions: ReadonlyArray<PlannedFieldExecution>,
+  variableValues: VariableValues,
+): PlannedFieldExecution[] {
+  const out: PlannedFieldExecution[] = [];
+  for (const execution of executions) {
+    if (execution.include == null || execution.include(variableValues)) {
+      out.push(execution);
+    }
+  }
+  return out;
 }
 
 function collectAndStoreSubfields(

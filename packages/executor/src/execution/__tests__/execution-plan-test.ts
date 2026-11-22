@@ -105,6 +105,9 @@ describe('execution plan', () => {
       return;
     }
     expect(plan.collectionDependsOnVariables).toBe(true);
+    expect(plan.skipIncludePredicates).toBe(true);
+    expect(plan.rootExecutions).toBeDefined();
+    expect(plan.rootExecutions!.some(e => e.responseName === 'b' && e.include != null)).toBe(true);
     expect(plan.rootFields.has('a')).toBe(true);
     expect(plan.rootFields.has('b')).toBe(true);
     expect(

@@ -97,6 +97,7 @@ import {
 import { invariant } from './invariant.js';
 import {
   compileExecutionPlan,
+  filterPlannedExecutions,
   getPlannedFieldPlan,
   getPlannedSubfieldExecutions,
   getPlannedSubfields,
@@ -1036,27 +1037,48 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
   }
 
   // Warm plan path: reuse pre-collected root fields when collection is stable.
-  // Variable @skip/@include still attaches the plan for per-field lookups, but
-  // root fields are collected with runtime variables.
-  if (
-    plan &&
-    plan.operation === operation &&
-    plan.rootType === rootType &&
-    !plan.collectionDependsOnVariables
-  ) {
-    const path = undefined;
-    if (operation.operation === 'mutation') {
-      return executeFieldsSerially(exeContext, rootType, rootValue, path, plan.rootFields);
+  // Variable @skip/@include: when predicates are compiled (field-level only),
+  // filter the union execution list instead of re-collecting.
+  if (plan && plan.operation === operation && plan.rootType === rootType) {
+    if (!plan.collectionDependsOnVariables) {
+      const path = undefined;
+      if (operation.operation === 'mutation') {
+        return executeFieldsSerially(exeContext, rootType, rootValue, path, plan.rootFields);
+      }
+      return executeFields(
+        exeContext,
+        rootType,
+        rootValue,
+        path,
+        plan.rootFields,
+        undefined,
+        plan.rootExecutions,
+      ) as TData;
     }
-    return executeFields(
-      exeContext,
-      rootType,
-      rootValue,
-      path,
-      plan.rootFields,
-      undefined,
-      plan.rootExecutions,
-    ) as TData;
+    if (plan.skipIncludePredicates && plan.rootExecutions != null) {
+      const path = undefined;
+      const filtered = filterPlannedExecutions(
+        plan.rootExecutions,
+        variableValues as VariableValues,
+      );
+      if (operation.operation === 'mutation') {
+        // Serial path still needs a field map; build a thin one from filtered.
+        const fields = new Map<string, Array<FieldNode>>();
+        for (const execution of filtered) {
+          fields.set(execution.responseName, execution.fieldNodes);
+        }
+        return executeFieldsSerially(exeContext, rootType, rootValue, path, fields);
+      }
+      return executeFields(
+        exeContext,
+        rootType,
+        rootValue,
+        path,
+        plan.rootFields,
+        undefined,
+        filtered,
+      ) as TData;
+    }
   }
 
   const { fields: rootFields, patches } = collectFieldsFromContext(
@@ -1291,8 +1313,9 @@ function executeFields(
   let containsPromise = false;
 
   try {
-    if (plannedExecutions != null && plannedExecutions.length > 0) {
+    if (plannedExecutions != null) {
       // Bound execution list: skip Map iteration + WeakMap field-plan lookup.
+      // Empty array is intentional (e.g. all fields filtered by @skip/@include).
       for (const { responseName, fieldNodes, fieldPlan } of plannedExecutions) {
         exeContext.signal?.throwIfAborted();
         const fieldPath = addPath(path, responseName, parentType.name);
@@ -2600,17 +2623,22 @@ function collectAndExecuteSubfields(
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): MaybePromise<Record<string, unknown>> {
   // Warm path: planned subfields for this fieldNodes + concrete type.
-  // Variable @skip/@include plans store a union map — runtime must collect with
-  // real variables, then hit field plans via FieldNode keys.
+  // Variable @skip/@include: filter union subfield executions when predicates
+  // are available; otherwise collect with real variables.
+  const plan = exeContext.plan;
   const plannedSubfields =
-    exeContext.plan != null && !exeContext.plan.collectionDependsOnVariables
-      ? getPlannedSubfields(exeContext.plan, fieldNodes, returnType)
+    plan != null && (!plan.collectionDependsOnVariables || plan.skipIncludePredicates)
+      ? getPlannedSubfields(plan, fieldNodes, returnType)
       : undefined;
   if (plannedSubfields && exeContext.nulledPaths == null) {
-    const plannedExecutions =
-      exeContext.plan != null
-        ? getPlannedSubfieldExecutions(exeContext.plan, fieldNodes, returnType)
-        : undefined;
+    let plannedExecutions =
+      plan != null ? getPlannedSubfieldExecutions(plan, fieldNodes, returnType) : undefined;
+    if (plannedExecutions != null && plan?.skipIncludePredicates) {
+      plannedExecutions = filterPlannedExecutions(
+        plannedExecutions,
+        exeContext.variableValues as VariableValues,
+      );
+    }
     return executeFields(
       exeContext,
       returnType,
