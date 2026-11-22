@@ -424,6 +424,58 @@ const denseSkipDocument = parse(/* GraphQL */ `
 const denseSkipRootValue = Object.fromEntries(Array.from({ length: 40 }, (_, i) => [`f${i}`, i]));
 let denseSkipToggle = false;
 
+// Dense fragment-level @skip — was classic re-collect on checkpoint; plan-path
+// path-aware predicates should filter without re-collectFields.
+const denseFragSkipDocument = parse(/* GraphQL */ `
+  query ($s: Boolean!) {
+    f0
+    f1
+    ... @skip(if: $s) {
+      f2
+      f3
+      f4
+      f5
+      f6
+      f7
+      f8
+      f9
+      f10
+      f11
+      f12
+      f13
+      f14
+      f15
+      f16
+      f17
+      f18
+      f19
+    }
+    f20
+    f21
+    ... @skip(if: $s) {
+      f22
+      f23
+      f24
+      f25
+      f26
+      f27
+      f28
+      f29
+      f30
+      f31
+      f32
+      f33
+      f34
+      f35
+      f36
+      f37
+      f38
+      f39
+    }
+  }
+`);
+let denseFragSkipToggle = false;
+
 test('skip/include predicate candidate benchmarks', async ({ bench }) => {
   await bench(
     'Dense @skip/@include variable fields',
@@ -436,6 +488,25 @@ test('skip/include predicate candidate benchmarks', async ({ bench }) => {
           document: denseSkipDocument,
           rootValue: denseSkipRootValue,
           variableValues: { s: denseSkipToggle, i: !denseSkipToggle },
+        });
+        if (result instanceof Promise) {
+          throw new Error('expected sync result');
+        }
+      }
+    },
+  ).run();
+
+  await bench(
+    'Dense fragment @skip variable fields',
+    { ...writeOpts('executor-dense-fragment-skip') },
+    () => {
+      for (let index = 0; index < 25; index++) {
+        denseFragSkipToggle = !denseFragSkipToggle;
+        const result = execute({
+          schema: denseSkipSchema,
+          document: denseFragSkipDocument,
+          rootValue: denseSkipRootValue,
+          variableValues: { s: denseFragSkipToggle },
         });
         if (result instanceof Promise) {
           throw new Error('expected sync result');

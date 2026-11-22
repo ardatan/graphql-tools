@@ -234,12 +234,60 @@ describe('execution plan warm-path edges', () => {
           ... @skip(if: $s) { b }
         }
       `);
-      compileExecutionPlan({ schema, document });
+      const plan = compileExecutionPlan({ schema, document });
+      expect(isExecutionPlan(plan)).toBe(true);
+      if (isExecutionPlan(plan)) {
+        expect(plan.skipIncludePredicates).toBe(true);
+        expect(plan.rootExecutions).toBeDefined();
+        expect(plan.rootExecutions!.some(e => e.responseName === 'b' && e.include != null)).toBe(
+          true,
+        );
+      }
       expect(executeSync({ schema, document, variableValues: { s: false } })).toEqual({
         data: { a: 'a', b: 'b' },
       });
       expect(executeSync({ schema, document, variableValues: { s: true } })).toEqual({
         data: { a: 'a' },
+      });
+    });
+
+    it('handles @skip on a fragment spread', () => {
+      const document = parse(`
+        query ($s: Boolean!) {
+          a
+          ...Frag @skip(if: $s)
+        }
+        fragment Frag on Query { b c }
+      `);
+      const plan = compileExecutionPlan({ schema, document });
+      expect(isExecutionPlan(plan)).toBe(true);
+      if (isExecutionPlan(plan)) {
+        expect(plan.skipIncludePredicates).toBe(true);
+        expect(plan.rootExecutions).toBeDefined();
+      }
+      expect(executeSync({ schema, document, variableValues: { s: false } })).toEqual({
+        data: { a: 'a', b: 'b', c: 'c' },
+      });
+      expect(executeSync({ schema, document, variableValues: { s: true } })).toEqual({
+        data: { a: 'a' },
+      });
+    });
+
+    it('ORs fragment and root paths when the same field is contributed twice', () => {
+      const document = parse(`
+        query ($s: Boolean!) {
+          b
+          ... @skip(if: $s) { b }
+        }
+      `);
+      const plan = compileExecutionPlan({ schema, document });
+      expect(isExecutionPlan(plan)).toBe(true);
+      // Root `b` is always included → fragment skip must not drop it.
+      expect(executeSync({ schema, document, variableValues: { s: true } })).toEqual({
+        data: { b: 'b' },
+      });
+      expect(executeSync({ schema, document, variableValues: { s: false } })).toEqual({
+        data: { b: 'b' },
       });
     });
   });

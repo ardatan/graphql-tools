@@ -44,9 +44,11 @@ import {
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import {
-  compileFieldNodesIncludePredicate,
-  documentHasOnlyFieldSkipInclude,
-} from './skipIncludePredicates.js';
+  compileConditionalSelectionSet,
+  groupConditionalEntriesByResponseName,
+  type ConditionalFieldEntry,
+} from './conditionalCollect.js';
+import { ALWAYS_INCLUDE, type IncludePredicate } from './skipIncludePredicates.js';
 
 const isGraphQL17 = versionInfo.major >= 17;
 
@@ -240,9 +242,10 @@ export interface ExecutionPlan {
    */
   rootExecutions: ReadonlyArray<PlannedFieldExecution> | undefined;
   /**
-   * True when variable `@skip`/`@include` appear only on Field nodes (not
-   * fragment spreads / inline fragments). Runtime can filter `rootExecutions`
-   * / subfield executions with compiled predicates instead of re-collecting.
+   * True when `collectionDependsOnVariables` (plan already excludes `@defer` /
+   * `@stream`). Runtime filters `rootExecutions` / subfield executions with
+   * path-aware `@skip`/`@include` predicates (fields + fragments) instead of
+   * re-collecting.
    */
   skipIncludePredicates: boolean;
 }
@@ -498,8 +501,10 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
 
   const variableDefinitions = operation.variableDefinitions ?? [];
   const coerceVariables = compileVariableCoercer(schema, variableDefinitions);
-  const skipIncludePredicates =
-    collectionDependsOnVariables && documentHasOnlyFieldSkipInclude(document);
+  // Plans are never built for @defer/@stream docs, so variable-dependent
+  // collection can always use path-aware skip/include predicates (fields +
+  // fragments) instead of re-collecting at runtime.
+  const skipIncludePredicates = collectionDependsOnVariables;
 
   const plan: ExecutionPlan = {
     schema,
@@ -524,27 +529,155 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
   };
 
   compileFieldMap(plan, rootType, rootFields);
-  if (!collectionDependsOnVariables || skipIncludePredicates) {
-    plan.rootExecutions = buildFieldExecutions(plan, rootFields, skipIncludePredicates);
+  if (!collectionDependsOnVariables) {
+    plan.rootExecutions = buildFieldExecutions(plan, rootType, rootFields);
+  } else if (skipIncludePredicates) {
+    const rootExecutions = buildExecutionsFromSelectionSet(
+      plan,
+      rootType,
+      operation.selectionSet,
+      plan.rootFields,
+    );
+    if (rootExecutions == null) {
+      // Unexpected for non-incremental plans; disable predicate path.
+      plan.skipIncludePredicates = false;
+    } else {
+      plan.rootExecutions = rootExecutions;
+    }
   }
   return { kind: 'plan', plan };
 }
 
+function resolveFieldPlanForParent(
+  plan: ExecutionPlan,
+  parentType: GraphQLObjectType,
+  fieldNodes: ReadonlyArray<FieldNode>,
+): FieldPlan | undefined {
+  // Exact array hit still requires parentType match (unions / interfaces).
+  const byNodes = plan.fieldPlanByNodes.get(fieldNodes);
+  if (byNodes != null && byNodes.parentType === parentType) {
+    return byNodes;
+  }
+  const byNode = plan.fieldPlanByFieldNode.get(fieldNodes[0]!);
+  if (byNode != null && byNode.parentType === parentType) {
+    return byNode;
+  }
+  return undefined;
+}
+
 function buildFieldExecutions(
   plan: ExecutionPlan,
+  parentType: GraphQLObjectType,
   fields: Map<string, Array<FieldNode>>,
-  withIncludePredicates = false,
+  includeByResponseName?: Map<string, IncludePredicate>,
 ): PlannedFieldExecution[] {
   const executions: PlannedFieldExecution[] = [];
   for (const [responseName, fieldNodes] of fields) {
-    const fieldPlan = plan.fieldPlanByNodes.get(fieldNodes);
+    const fieldPlan = resolveFieldPlanForParent(plan, parentType, fieldNodes);
     if (fieldPlan) {
-      const execution: PlannedFieldExecution = { responseName, fieldNodes, fieldPlan };
-      if (withIncludePredicates) {
-        execution.include = compileFieldNodesIncludePredicate(fieldNodes);
+      const execution: PlannedFieldExecution = {
+        responseName,
+        fieldNodes,
+        fieldPlan,
+      };
+      const include = includeByResponseName?.get(responseName);
+      if (include != null) {
+        execution.include = include;
       }
       executions.push(execution);
     }
+  }
+  return executions;
+}
+
+/**
+ * Build planned executions with path-aware `@skip`/`@include` predicates by
+ * walking the selection set (fields + enclosing fragments).
+ * Returns `undefined` if the walk hits `@defer`/`@stream` (should not happen
+ * for plan-eligible docs) so runtime can fall back to classic collect.
+ */
+function buildExecutionsFromSelectionSet(
+  plan: ExecutionPlan,
+  runtimeType: GraphQLObjectType,
+  selectionSet: import('graphql').SelectionSetNode,
+  preferredFieldMap?: Map<string, Array<FieldNode>>,
+): PlannedFieldExecution[] | undefined {
+  const entries: ConditionalFieldEntry[] = [];
+  if (
+    !compileConditionalSelectionSet(
+      plan.schema,
+      plan.fragments,
+      runtimeType,
+      selectionSet,
+      entries,
+      new Set(),
+      ALWAYS_INCLUDE,
+    )
+  ) {
+    return undefined;
+  }
+  return buildExecutionsFromConditionalEntries(plan, runtimeType, entries, preferredFieldMap);
+}
+
+function buildExecutionsFromParentFieldNodes(
+  plan: ExecutionPlan,
+  returnType: GraphQLObjectType,
+  parentFieldNodes: ReadonlyArray<FieldNode>,
+  preferredFieldMap?: Map<string, Array<FieldNode>>,
+): PlannedFieldExecution[] | undefined {
+  const entries: ConditionalFieldEntry[] = [];
+  const visitedFragmentNames = new Set<string>();
+  for (const fieldNode of parentFieldNodes) {
+    if (fieldNode.selectionSet == null) {
+      continue;
+    }
+    if (
+      !compileConditionalSelectionSet(
+        plan.schema,
+        plan.fragments,
+        returnType,
+        fieldNode.selectionSet,
+        entries,
+        visitedFragmentNames,
+        ALWAYS_INCLUDE,
+      )
+    ) {
+      return undefined;
+    }
+  }
+  return buildExecutionsFromConditionalEntries(plan, returnType, entries, preferredFieldMap);
+}
+
+function buildExecutionsFromConditionalEntries(
+  plan: ExecutionPlan,
+  parentType: GraphQLObjectType,
+  entries: ReadonlyArray<ConditionalFieldEntry>,
+  /**
+   * When provided (root or planned subfield map), reuse that array identity so
+   * `fieldPlanByNodes` WeakMap hits stay exact on the warm path.
+   */
+  preferredFieldMap?: Map<string, Array<FieldNode>>,
+): PlannedFieldExecution[] {
+  const grouped = groupConditionalEntriesByResponseName(entries);
+  const executions: PlannedFieldExecution[] = [];
+  for (const [responseName, group] of grouped) {
+    const preferred = preferredFieldMap?.get(responseName);
+    const fieldNodes =
+      preferred != null &&
+      preferred.length === group.fieldNodes.length &&
+      preferred.every((node, i) => node === group.fieldNodes[i])
+        ? preferred
+        : group.fieldNodes;
+    const fieldPlan = resolveFieldPlanForParent(plan, parentType, fieldNodes);
+    if (fieldPlan == null) {
+      continue;
+    }
+    executions.push({
+      responseName,
+      fieldNodes,
+      fieldPlan,
+      include: group.include,
+    });
   }
   return executions;
 }
@@ -1230,7 +1363,16 @@ function storeSubfieldExecutions(
   returnType: GraphQLObjectType,
   subfields: Map<string, Array<FieldNode>>,
 ): void {
-  if (plan.collectionDependsOnVariables && !plan.skipIncludePredicates) {
+  let executions: PlannedFieldExecution[] | undefined;
+  if (!plan.collectionDependsOnVariables) {
+    executions = buildFieldExecutions(plan, returnType, subfields);
+  } else if (plan.skipIncludePredicates) {
+    executions = buildExecutionsFromParentFieldNodes(plan, returnType, parentFieldNodes, subfields);
+    if (executions == null) {
+      // Defer/stream inside a sub-selection — leave unset so runtime collects.
+      return;
+    }
+  } else {
     return;
   }
   let byType = plan.subfieldExecutionsByNodes.get(parentFieldNodes);
@@ -1238,7 +1380,7 @@ function storeSubfieldExecutions(
     byType = new WeakMap();
     plan.subfieldExecutionsByNodes.set(parentFieldNodes, byType);
   }
-  byType.set(returnType, buildFieldExecutions(plan, subfields, plan.skipIncludePredicates));
+  byType.set(returnType, executions);
 }
 
 /**

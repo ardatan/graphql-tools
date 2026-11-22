@@ -36,10 +36,8 @@ import {
   collectSubFields as _collectSubfields,
   addPath,
   collectFieldsDependsOnVariables,
-  doesFragmentConditionMatch,
   getDefinedRootType,
   getDirectiveValues,
-  getFieldEntryKey,
   GraphQLResolveInfo,
   GraphQLStreamDirective,
   inspect,
@@ -69,6 +67,11 @@ import {
 } from '@whatwg-node/promise-helpers';
 import { coerceError } from './coerceError.js';
 import { CompactExecutionResultMap } from './compactExecutionResultMap.js';
+import {
+  compileConditionalSelectionSet,
+  type ConditionalCollectProgram,
+  type ConditionalFieldEntry,
+} from './conditionalCollect.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import {
   cancelAsyncPayload,
@@ -110,10 +113,6 @@ import {
   type PlannedFieldExecution,
 } from './plan.js';
 import { promiseForObject } from './promiseForObject.js';
-import {
-  compileSingleFieldIncludePredicate,
-  documentHasOnlyFieldSkipInclude,
-} from './skipIncludePredicates.js';
 
 export { defaultFieldResolver, defaultTypeResolver };
 export {
@@ -203,9 +202,9 @@ const collectSubfieldsWithVariables = memoize3(function collectSubfieldsWithVari
  * Root/selection-set field collection with optional cross-execution memoization
  * when the document has no variable-conditional `@skip` / `@include` / `@defer`.
  *
- * When collection *does* depend on variables but `@skip`/`@include` are only on
- * Field nodes (no FieldPlan required), use a compiled predicate program:
- * walk the AST once, then filter with cheap closures instead of re-collecting.
+ * When collection *does* depend on variables, try a compiled predicate program
+ * (field + fragment `@skip`/`@include`): walk the AST once, then filter with
+ * cheap closures instead of re-collecting. `@defer`/`@stream` → classic collect.
  *
  * @internal
  */
@@ -291,21 +290,9 @@ const collectSubfieldsWithPredicates = memoize3(function collectSubfieldsWithPre
 });
 
 /**
- * One compiled field selection: response name + AST node + include predicate.
- * Master-only analogue of plan `PlannedFieldExecution.include` without FieldPlan.
- */
-type ConditionalFieldEntry = {
-  responseName: string;
-  fieldNode: FieldNode;
-  include: (variableValues: VariableValues) => boolean;
-};
-
-type ConditionalCollectProgram = ReadonlyArray<ConditionalFieldEntry> | null;
-
-/**
- * Compile a selection set into field entries with `@skip`/`@include` predicates.
- * Returns `null` when the shape needs classic collect (defer, fragment-level
- * skip/include, or unresolvable fragments).
+ * Compile a selection set into field entries with path-aware `@skip`/`@include`
+ * predicates (field + enclosing fragment directives). Returns `null` when the
+ * shape needs classic collect (`@defer` / `@stream`).
  */
 const getConditionalCollectProgram = memoize4(function getConditionalCollectProgram(
   schema: GraphQLSchema,
@@ -378,106 +365,6 @@ function filterConditionalCollect(
     }
   }
   return { fields, patches: [] };
-}
-
-function compileConditionalSelectionSet(
-  schema: GraphQLSchema,
-  fragments: Record<string, FragmentDefinitionNode>,
-  runtimeType: GraphQLObjectType,
-  selectionSet: SelectionSetNode,
-  entries: ConditionalFieldEntry[],
-  visitedFragmentNames: Set<string>,
-): boolean {
-  for (const selection of selectionSet.selections) {
-    switch (selection.kind) {
-      case Kind.FIELD: {
-        if (selectionHasDefer(selection)) {
-          return false;
-        }
-        entries.push({
-          responseName: getFieldEntryKey(selection),
-          fieldNode: selection,
-          include: compileSingleFieldIncludePredicate(selection),
-        });
-        break;
-      }
-      case Kind.INLINE_FRAGMENT: {
-        if (selectionHasSkipIncludeOrDefer(selection)) {
-          // Fragment-level skip/include/defer: keep classic collect.
-          return false;
-        }
-        if (!doesFragmentConditionMatch(schema, selection, runtimeType)) {
-          continue;
-        }
-        if (
-          !compileConditionalSelectionSet(
-            schema,
-            fragments,
-            runtimeType,
-            selection.selectionSet,
-            entries,
-            visitedFragmentNames,
-          )
-        ) {
-          return false;
-        }
-        break;
-      }
-      case Kind.FRAGMENT_SPREAD: {
-        if (selectionHasSkipIncludeOrDefer(selection)) {
-          return false;
-        }
-        const fragName = selection.name.value;
-        if (visitedFragmentNames.has(fragName)) {
-          continue;
-        }
-        const fragment = fragments[fragName];
-        if (!fragment || !doesFragmentConditionMatch(schema, fragment, runtimeType)) {
-          continue;
-        }
-        visitedFragmentNames.add(fragName);
-        if (
-          !compileConditionalSelectionSet(
-            schema,
-            fragments,
-            runtimeType,
-            fragment.selectionSet,
-            entries,
-            visitedFragmentNames,
-          )
-        ) {
-          return false;
-        }
-        break;
-      }
-      default:
-        return false;
-    }
-  }
-  return true;
-}
-
-function selectionHasDefer(selection: {
-  directives?: ReadonlyArray<{ name: { value: string } }>;
-}): boolean {
-  for (const directive of selection.directives ?? []) {
-    if (directive.name.value === 'defer' || directive.name.value === 'stream') {
-      return true;
-    }
-  }
-  return false;
-}
-
-function selectionHasSkipIncludeOrDefer(selection: {
-  directives?: ReadonlyArray<{ name: { value: string } }>;
-}): boolean {
-  for (const directive of selection.directives ?? []) {
-    const name = directive.name.value;
-    if (name === 'skip' || name === 'include' || name === 'defer' || name === 'stream') {
-      return true;
-    }
-  }
-  return false;
 }
 
 /**
@@ -596,8 +483,9 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
    */
   collectFieldsDependsOnVariables: boolean;
   /**
-   * True when variable `@skip`/`@include` appear only on Field nodes, so
-   * collect can use a compiled predicate program (no ExecutionPlan/FieldPlan).
+   * True when collected fields depend on variables, so collect can try a
+   * compiled `@skip`/`@include` predicate program (fields + fragments).
+   * Program compile returns null on `@defer`/`@stream` → classic collect.
    */
   skipIncludeFieldPredicates: boolean;
   /** Precomputed for GraphQLResolveInfo (GQL16 coerced map vs GQL17 VariableValues). */
@@ -956,7 +844,6 @@ const fragmentsFromDocumentCache = new WeakMap<
 >();
 
 const collectFieldsDependsOnVariablesCache = new WeakMap<DocumentNode, boolean>();
-const documentHasOnlyFieldSkipIncludeCache = new WeakMap<DocumentNode, boolean>();
 
 export function getFragmentsFromDocument(
   document: DocumentNode,
@@ -981,15 +868,6 @@ function getCollectFieldsDependsOnVariables(document: DocumentNode): boolean {
     collectFieldsDependsOnVariablesCache.set(document, depends);
   }
   return depends;
-}
-
-function getDocumentHasOnlyFieldSkipInclude(document: DocumentNode): boolean {
-  let onlyField = documentHasOnlyFieldSkipIncludeCache.get(document);
-  if (onlyField === undefined) {
-    onlyField = documentHasOnlyFieldSkipInclude(document);
-    documentHasOnlyFieldSkipIncludeCache.set(document, onlyField);
-  }
-  return onlyField;
 }
 
 /**
@@ -1208,7 +1086,9 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     operation,
     variableValues,
     collectFieldsDependsOnVariables: collectDepends,
-    skipIncludeFieldPredicates: collectDepends && getDocumentHasOnlyFieldSkipInclude(document),
+    // Try predicate collect whenever vars affect collection; program is null
+    // on @defer/@stream and falls back to classic collect.
+    skipIncludeFieldPredicates: collectDepends,
     resolveInfoVariableValues,
     fieldResolver: fieldResolver ?? defaultFieldResolver,
     typeResolver: typeResolver ?? defaultTypeResolver,
@@ -1298,13 +1178,20 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
   }
 
   // Warm plan path: reuse pre-collected root fields when collection is stable.
-  // Variable @skip/@include: when predicates are compiled (field-level only),
-  // filter the union execution list instead of re-collecting.
+  // Variable @skip/@include: filter the union execution list (field + fragment
+  // predicates) instead of re-collecting.
   if (plan && plan.operation === operation && plan.rootType === rootType) {
     if (!plan.collectionDependsOnVariables) {
       const path = undefined;
       if (operation.operation === 'mutation') {
-        return executeFieldsSerially(exeContext, rootType, rootValue, path, plan.rootFields);
+        return executeFieldsSerially(
+          exeContext,
+          rootType,
+          rootValue,
+          path,
+          plan.rootFields,
+          plan.rootExecutions,
+        );
       }
       return executeFields(
         exeContext,
@@ -1323,12 +1210,12 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
         variableValues as VariableValues,
       );
       if (operation.operation === 'mutation') {
-        // Serial path still needs a field map; build a thin one from filtered.
+        // Serial path: thin field map from filtered + bound executions.
         const fields = new Map<string, Array<FieldNode>>();
         for (const execution of filtered) {
           fields.set(execution.responseName, execution.fieldNodes);
         }
-        return executeFieldsSerially(exeContext, rootType, rootValue, path, fields);
+        return executeFieldsSerially(exeContext, rootType, rootValue, path, fields, filtered);
       }
       return executeFields(
         exeContext,
@@ -1533,7 +1420,42 @@ function executeFieldsSerially<TData>(
   sourceValue: unknown,
   path: Path | undefined,
   fields: Map<string, Array<FieldNode>>,
+  plannedExecutions?: ReadonlyArray<PlannedFieldExecution>,
 ): MaybePromise<TData> {
+  if (plannedExecutions != null) {
+    // Bound execution list: same order as parallel warm path; serial reduce.
+    return promiseReduce(
+      plannedExecutions,
+      (results, { responseName, fieldNodes, fieldPlan }) => {
+        const fieldPath = addPath(path, responseName, parentType.name);
+        exeContext.signal?.throwIfAborted();
+
+        return handleMaybePromise(
+          () =>
+            executeField(
+              exeContext,
+              parentType,
+              sourceValue,
+              fieldNodes,
+              fieldPath,
+              undefined,
+              fieldPlan,
+            ),
+          result => {
+            if (result === undefined) {
+              return results;
+            }
+
+            results[responseName] = result;
+
+            return results;
+          },
+        );
+      },
+      Object.create(null),
+    );
+  }
+
   return promiseReduce(
     fields,
     (results, [responseName, fieldNodes]) => {

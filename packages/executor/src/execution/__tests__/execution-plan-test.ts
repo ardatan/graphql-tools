@@ -229,6 +229,88 @@ describe('execution plan', () => {
     expect(plan.rootExecutions!.every(e => e.fieldPlan != null)).toBe(true);
   });
 
+  it('uses planned rootExecutions on the mutation serial path', () => {
+    const calls: string[] = [];
+    const mutationSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: { a: { type: GraphQLString, resolve: () => 'a' } },
+      }),
+      mutation: new GraphQLObjectType({
+        name: 'Mutation',
+        fields: {
+          first: {
+            type: GraphQLString,
+            resolve: () => {
+              calls.push('first');
+              return '1';
+            },
+          },
+          second: {
+            type: GraphQLString,
+            resolve: () => {
+              calls.push('second');
+              return '2';
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('mutation { first second }');
+    const plan = compileExecutionPlan({ schema: mutationSchema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (isExecutionPlan(plan)) {
+      expect(plan.rootExecutions).toBeDefined();
+      expect(plan.rootExecutions!.map(e => e.responseName)).toEqual(['first', 'second']);
+    }
+    expect(executeSync({ schema: mutationSchema, document })).toEqual({
+      data: { first: '1', second: '2' },
+    });
+    expect(calls).toEqual(['first', 'second']);
+  });
+
+  it('filters mutation rootExecutions with fragment @skip predicates', () => {
+    const mutationSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: { a: { type: GraphQLString, resolve: () => 'a' } },
+      }),
+      mutation: new GraphQLObjectType({
+        name: 'Mutation',
+        fields: {
+          first: { type: GraphQLString, resolve: () => '1' },
+          second: { type: GraphQLString, resolve: () => '2' },
+        },
+      }),
+    });
+    const document = parse(`
+      mutation ($s: Boolean!) {
+        first
+        ... @skip(if: $s) { second }
+      }
+    `);
+    const plan = compileExecutionPlan({ schema: mutationSchema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (isExecutionPlan(plan)) {
+      expect(plan.skipIncludePredicates).toBe(true);
+      expect(plan.rootExecutions).toBeDefined();
+    }
+    expect(
+      executeSync({
+        schema: mutationSchema,
+        document,
+        variableValues: { s: true },
+      }),
+    ).toEqual({ data: { first: '1' } });
+    expect(
+      executeSync({
+        schema: mutationSchema,
+        document,
+        variableValues: { s: false },
+      }),
+    ).toEqual({ data: { first: '1', second: '2' } });
+  });
+
   it('compiles coerceVariables for empty and builtin-leaf variables', () => {
     const emptyPlan = compileExecutionPlan({ schema, document: parse('{ a }') });
     expect(isExecutionPlan(emptyPlan)).toBe(true);

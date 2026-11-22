@@ -1,4 +1,4 @@
-import { DocumentNode, FieldNode, Kind } from 'graphql';
+import { DocumentNode, FieldNode, FragmentSpreadNode, InlineFragmentNode, Kind } from 'graphql';
 import { shouldIncludeNode, VariableValues } from '@graphql-tools/utils';
 
 export type IncludePredicate = (variableValues: VariableValues) => boolean;
@@ -6,10 +6,12 @@ export type IncludePredicate = (variableValues: VariableValues) => boolean;
 export const ALWAYS_INCLUDE: IncludePredicate = (_variableValues: VariableValues): boolean => true;
 export const NEVER_INCLUDE: IncludePredicate = (_variableValues: VariableValues): boolean => false;
 
+type SkipIncludeNode = FieldNode | InlineFragmentNode | FragmentSpreadNode;
 /**
  * True when every `@skip`/`@include` in the document sits on a Field node
- * (not fragment spreads / inline fragments). Safe for predicate filtering on
- * both the collect-layer path and the plan-path warm executions list.
+ * (not fragment spreads / inline fragments). Kept for tests / diagnostics;
+ * plan and collect-layer now support fragment-level predicates via
+ * `conditionalCollect.ts`.
  */
 export function documentHasOnlyFieldSkipInclude(document: DocumentNode): boolean {
   for (const definition of document.definitions) {
@@ -54,12 +56,54 @@ function selectionSetHasOnlyFieldSkipInclude(selectionSet: {
 }
 
 /**
- * Compile `@skip`/`@include` on one field node into an include predicate.
+ * AND two include predicates. Identity / never shortcuts avoid extra closures.
+ */
+export function andIncludePredicates(a: IncludePredicate, b: IncludePredicate): IncludePredicate {
+  if (a === ALWAYS_INCLUDE) {
+    return b;
+  }
+  if (b === ALWAYS_INCLUDE) {
+    return a;
+  }
+  if (a === NEVER_INCLUDE || b === NEVER_INCLUDE) {
+    return NEVER_INCLUDE;
+  }
+  return variableValues => a(variableValues) && b(variableValues);
+}
+
+/**
+ * OR include predicates (collectFields merge: any contributing path includes).
+ */
+export function orIncludePredicates(predicates: ReadonlyArray<IncludePredicate>): IncludePredicate {
+  if (predicates.length === 0) {
+    return ALWAYS_INCLUDE;
+  }
+  if (predicates.length === 1) {
+    return predicates[0]!;
+  }
+  if (predicates.every(p => p === ALWAYS_INCLUDE)) {
+    return ALWAYS_INCLUDE;
+  }
+  if (predicates.every(p => p === NEVER_INCLUDE)) {
+    return NEVER_INCLUDE;
+  }
+  return variableValues => {
+    for (const predicate of predicates) {
+      if (predicate(variableValues)) {
+        return true;
+      }
+    }
+    return false;
+  };
+}
+
+/**
+ * Compile `@skip`/`@include` on a Field, inline fragment, or fragment spread.
  * Fast path for strict booleans; null / missing `Boolean!` falls back to
  * classic `shouldIncludeNode` so errors still fire before resolvers run.
  */
-export function compileSingleFieldIncludePredicate(fieldNode: FieldNode): IncludePredicate {
-  const directives = fieldNode.directives;
+export function compileSkipIncludePredicate(node: SkipIncludeNode): IncludePredicate {
+  const directives = node.directives;
   if (directives == null || directives.length === 0) {
     return ALWAYS_INCLUDE;
   }
@@ -117,7 +161,7 @@ export function compileSingleFieldIncludePredicate(fieldNode: FieldNode): Includ
     if (skipVariable != null) {
       const value = coerced[skipVariable];
       if (value !== true && value !== false) {
-        return shouldIncludeNode(variableValues, fieldNode);
+        return shouldIncludeNode(variableValues, node);
       }
       if (value === true) {
         return false;
@@ -126,7 +170,7 @@ export function compileSingleFieldIncludePredicate(fieldNode: FieldNode): Includ
     if (includeVariable != null) {
       const value = coerced[includeVariable];
       if (value !== true && value !== false) {
-        return shouldIncludeNode(variableValues, fieldNode);
+        return shouldIncludeNode(variableValues, node);
       }
       if (value === false) {
         return false;
@@ -137,23 +181,20 @@ export function compileSingleFieldIncludePredicate(fieldNode: FieldNode): Includ
 }
 
 /**
+ * Compile `@skip`/`@include` on one field node into an include predicate.
+ */
+export function compileSingleFieldIncludePredicate(fieldNode: FieldNode): IncludePredicate {
+  return compileSkipIncludePredicate(fieldNode);
+}
+
+/**
  * Compile `@skip`/`@include` across merged field nodes into a single predicate.
  * A response name is included when any contributing field node is included
- * (matches collectFields merge semantics).
+ * (matches collectFields merge semantics). Field-directives only — for
+ * fragment path gates use `conditionalCollect` grouping instead.
  */
 export function compileFieldNodesIncludePredicate(
   fieldNodes: ReadonlyArray<FieldNode>,
 ): IncludePredicate {
-  const predicates = fieldNodes.map(compileSingleFieldIncludePredicate);
-  if (predicates.length === 1) {
-    return predicates[0]!;
-  }
-  return variableValues => {
-    for (const predicate of predicates) {
-      if (predicate(variableValues)) {
-        return true;
-      }
-    }
-    return false;
-  };
+  return orIncludePredicates(fieldNodes.map(compileSingleFieldIncludePredicate));
 }
