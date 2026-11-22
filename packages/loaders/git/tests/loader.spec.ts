@@ -1,4 +1,5 @@
 import { execSync } from 'child_process';
+import * as fs from 'fs';
 import * as path from 'path';
 import { versionInfo } from 'graphql';
 import { runTests } from '../../../testing/utils.js';
@@ -165,9 +166,52 @@ describe('GitLoader', () => {
         );
       });
 
+      it('should reject option-shaped refs and not write files', async () => {
+        const outFile = path.resolve('git-loader-argv-test-WRITTEN');
+        try {
+          await expect(load(`git:--output=${path.basename(outFile)}:marker`, {})).rejects.toThrow(
+            /must not start with "-"/,
+          );
+          expect(fs.existsSync(outFile)).toBe(false);
+        } finally {
+          fs.rmSync(outFile, { force: true });
+        }
+      });
+
+      it('should reject paths that start with a dash', async () => {
+        await expect(load(`git:${lastCommit}:-dash-named.graphql`, {})).rejects.toThrow(
+          /must not start with "-"/,
+        );
+      });
+
+      it('should reject pointers with extra colon segments', async () => {
+        await expect(load(`git:${lastCommit}:foo:bar`, {})).rejects.toThrow(
+          /expected exactly one ":" separating ref and path/,
+        );
+      });
+
+      it('should still load a normal git:ref:path pointer', async () => {
+        const [result] = await load(getPointer('type-defs.graphql'), {});
+        expect(result.document).toBeDefined();
+        expect(result.location).toBe(getPointer('type-defs.graphql'));
+      });
+
       it('should simply ignore a non git path', async () => {
         const result = await load('./pluckable.ts', {});
         expect(result).toEqual([]);
+      });
+
+      it('should skip unrelated colon-containing inputs instead of throwing', async () => {
+        await expect(load('http://localhost:4000/schema', {})).resolves.toEqual([]);
+
+        // Glob so load goes through resolveGlobs (and its ignore loop).
+        const [result] = await load(
+          `git:${lastCommit}:packages/loaders/git/tests/test-files/*type-defs.graphql`,
+          {
+            ignore: ['http://localhost:4000/schema'],
+          },
+        );
+        expect(result.document).toBeDefined();
       });
 
       it("should work when loading glob paths that start with './'", async () => {

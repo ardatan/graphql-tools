@@ -36,8 +36,10 @@ import {
   collectSubFields as _collectSubfields,
   addPath,
   collectFieldsDependsOnVariables,
+  doesFragmentConditionMatch,
   getDefinedRootType,
   getDirectiveValues,
+  getFieldEntryKey,
   GraphQLResolveInfo,
   GraphQLStreamDirective,
   inspect,
@@ -52,6 +54,7 @@ import {
   Path,
   pathToArray,
   promiseReduce,
+  shouldIncludeNode,
   VariableValues,
   type FieldsAndPatches,
   type IncrementalSpec,
@@ -197,6 +200,10 @@ const collectSubfieldsWithVariables = memoize3(function collectSubfieldsWithVari
  * Root/selection-set field collection with optional cross-execution memoization
  * when the document has no variable-conditional `@skip` / `@include` / `@defer`.
  *
+ * When collection *does* depend on variables but `@skip`/`@include` are only on
+ * Field nodes (no FieldPlan required), use a compiled predicate program:
+ * walk the AST once, then filter with cheap closures instead of re-collecting.
+ *
  * @internal
  */
 export function collectFieldsFromContext(
@@ -205,6 +212,20 @@ export function collectFieldsFromContext(
   selectionSet: SelectionSetNode,
 ): FieldsAndPatches {
   if (exeContext.collectFieldsDependsOnVariables) {
+    if (exeContext.skipIncludeFieldPredicates) {
+      const filtered = filterConditionalCollect(
+        getConditionalCollectProgram(
+          exeContext.schema,
+          exeContext.fragments,
+          runtimeType,
+          selectionSet,
+        ),
+        exeContext.variableValues as VariableValues,
+      );
+      if (filtered != null) {
+        return filtered;
+      }
+    }
     return _collectFields(
       exeContext.schema,
       exeContext.fragments,
@@ -232,9 +253,357 @@ export function collectSubfieldsFromContext(
   fieldNodes: Array<FieldNode>,
 ): FieldsAndPatches {
   if (exeContext.collectFieldsDependsOnVariables) {
+    if (exeContext.skipIncludeFieldPredicates) {
+      return collectSubfieldsWithPredicates(exeContext, returnType, fieldNodes);
+    }
     return collectSubfieldsWithVariables(exeContext, returnType, fieldNodes);
   }
   return collectSubfieldsStable(exeContext.schema, exeContext.fragments, returnType, fieldNodes);
+}
+
+/**
+ * Per-execution memo of predicate-filtered subfields so list items reuse the
+ * same Map (classic collectSubfieldsWithVariables identity) instead of
+ * rebuilding on every item.
+ */
+const collectSubfieldsWithPredicates = memoize3(function collectSubfieldsWithPredicates(
+  exeContext: ExecutionContext,
+  returnType: GraphQLObjectType,
+  fieldNodes: Array<FieldNode>,
+): FieldsAndPatches {
+  const filtered = filterConditionalCollect(
+    getConditionalSubfieldProgram(exeContext.schema, exeContext.fragments, returnType, fieldNodes),
+    exeContext.variableValues as VariableValues,
+  );
+  if (filtered != null) {
+    return filtered;
+  }
+  return _collectSubfields(
+    exeContext.schema,
+    exeContext.fragments,
+    exeContext.variableValues,
+    returnType,
+    fieldNodes,
+  );
+});
+
+/**
+ * One compiled field selection: response name + AST node + include predicate.
+ * Master-only analogue of plan `PlannedFieldExecution.include` without FieldPlan.
+ */
+type ConditionalFieldEntry = {
+  responseName: string;
+  fieldNode: FieldNode;
+  include: (variableValues: VariableValues) => boolean;
+};
+
+type ConditionalCollectProgram = ReadonlyArray<ConditionalFieldEntry> | null;
+
+/**
+ * Compile a selection set into field entries with `@skip`/`@include` predicates.
+ * Returns `null` when the shape needs classic collect (defer, fragment-level
+ * skip/include, or unresolvable fragments).
+ */
+const getConditionalCollectProgram = memoize4(function getConditionalCollectProgram(
+  schema: GraphQLSchema,
+  fragments: Record<string, FragmentDefinitionNode>,
+  runtimeType: GraphQLObjectType,
+  selectionSet: SelectionSetNode,
+): ConditionalCollectProgram {
+  const entries: ConditionalFieldEntry[] = [];
+  const visitedFragmentNames = new Set<string>();
+  if (
+    !compileConditionalSelectionSet(
+      schema,
+      fragments,
+      runtimeType,
+      selectionSet,
+      entries,
+      visitedFragmentNames,
+    )
+  ) {
+    return null;
+  }
+  return entries;
+});
+
+const getConditionalSubfieldProgram = memoize4(function getConditionalSubfieldProgram(
+  schema: GraphQLSchema,
+  fragments: Record<string, FragmentDefinitionNode>,
+  returnType: GraphQLObjectType,
+  fieldNodes: Array<FieldNode>,
+): ConditionalCollectProgram {
+  const entries: ConditionalFieldEntry[] = [];
+  const visitedFragmentNames = new Set<string>();
+  for (const fieldNode of fieldNodes) {
+    if (fieldNode.selectionSet == null) {
+      continue;
+    }
+    if (
+      !compileConditionalSelectionSet(
+        schema,
+        fragments,
+        returnType,
+        fieldNode.selectionSet,
+        entries,
+        visitedFragmentNames,
+      )
+    ) {
+      return null;
+    }
+  }
+  return entries;
+});
+
+function filterConditionalCollect(
+  program: ConditionalCollectProgram,
+  variableValues: VariableValues,
+): FieldsAndPatches | null {
+  if (program == null) {
+    return null;
+  }
+  const fields = new Map<string, Array<FieldNode>>();
+  for (const entry of program) {
+    if (!entry.include(variableValues)) {
+      continue;
+    }
+    const existing = fields.get(entry.responseName);
+    if (existing != null) {
+      existing.push(entry.fieldNode);
+    } else {
+      fields.set(entry.responseName, [entry.fieldNode]);
+    }
+  }
+  return { fields, patches: [] };
+}
+
+function compileConditionalSelectionSet(
+  schema: GraphQLSchema,
+  fragments: Record<string, FragmentDefinitionNode>,
+  runtimeType: GraphQLObjectType,
+  selectionSet: SelectionSetNode,
+  entries: ConditionalFieldEntry[],
+  visitedFragmentNames: Set<string>,
+): boolean {
+  for (const selection of selectionSet.selections) {
+    switch (selection.kind) {
+      case Kind.FIELD: {
+        if (selectionHasDefer(selection)) {
+          return false;
+        }
+        entries.push({
+          responseName: getFieldEntryKey(selection),
+          fieldNode: selection,
+          include: compileSingleFieldIncludePredicate(selection),
+        });
+        break;
+      }
+      case Kind.INLINE_FRAGMENT: {
+        if (selectionHasSkipIncludeOrDefer(selection)) {
+          // Fragment-level skip/include/defer: keep classic collect.
+          return false;
+        }
+        if (!doesFragmentConditionMatch(schema, selection, runtimeType)) {
+          continue;
+        }
+        if (
+          !compileConditionalSelectionSet(
+            schema,
+            fragments,
+            runtimeType,
+            selection.selectionSet,
+            entries,
+            visitedFragmentNames,
+          )
+        ) {
+          return false;
+        }
+        break;
+      }
+      case Kind.FRAGMENT_SPREAD: {
+        if (selectionHasSkipIncludeOrDefer(selection)) {
+          return false;
+        }
+        const fragName = selection.name.value;
+        if (visitedFragmentNames.has(fragName)) {
+          continue;
+        }
+        const fragment = fragments[fragName];
+        if (!fragment || !doesFragmentConditionMatch(schema, fragment, runtimeType)) {
+          continue;
+        }
+        visitedFragmentNames.add(fragName);
+        if (
+          !compileConditionalSelectionSet(
+            schema,
+            fragments,
+            runtimeType,
+            fragment.selectionSet,
+            entries,
+            visitedFragmentNames,
+          )
+        ) {
+          return false;
+        }
+        break;
+      }
+      default:
+        return false;
+    }
+  }
+  return true;
+}
+
+function selectionHasDefer(selection: {
+  directives?: ReadonlyArray<{ name: { value: string } }>;
+}): boolean {
+  for (const directive of selection.directives ?? []) {
+    if (directive.name.value === 'defer' || directive.name.value === 'stream') {
+      return true;
+    }
+  }
+  return false;
+}
+
+function selectionHasSkipIncludeOrDefer(selection: {
+  directives?: ReadonlyArray<{ name: { value: string } }>;
+}): boolean {
+  for (const directive of selection.directives ?? []) {
+    const name = directive.name.value;
+    if (name === 'skip' || name === 'include' || name === 'defer' || name === 'stream') {
+      return true;
+    }
+  }
+  return false;
+}
+
+function compileSingleFieldIncludePredicate(
+  fieldNode: FieldNode,
+): (variableValues: VariableValues) => boolean {
+  const directives = fieldNode.directives;
+  if (directives == null || directives.length === 0) {
+    return ALWAYS_INCLUDE;
+  }
+
+  let skipVar: string | undefined;
+  let skipLiteral: boolean | undefined;
+  let includeVar: string | undefined;
+  let includeLiteral: boolean | undefined;
+
+  for (const directive of directives) {
+    const name = directive.name.value;
+    if (name !== 'skip' && name !== 'include') {
+      continue;
+    }
+    for (const arg of directive.arguments ?? []) {
+      if (arg.name.value !== 'if') {
+        continue;
+      }
+      if (arg.value.kind === Kind.VARIABLE) {
+        if (name === 'skip') {
+          skipVar = arg.value.name.value;
+        } else {
+          includeVar = arg.value.name.value;
+        }
+      } else if (arg.value.kind === Kind.BOOLEAN) {
+        if (name === 'skip') {
+          skipLiteral = arg.value.value;
+        } else {
+          includeLiteral = arg.value.value;
+        }
+      }
+    }
+  }
+
+  if (
+    skipVar == null &&
+    includeVar == null &&
+    skipLiteral === undefined &&
+    includeLiteral === undefined
+  ) {
+    return ALWAYS_INCLUDE;
+  }
+
+  if (skipLiteral === true || includeLiteral === false) {
+    return NEVER_INCLUDE;
+  }
+
+  const skipVariable = skipVar;
+  const includeVariable = includeVar;
+  return variableValues => {
+    const coerced = variableValues.coerced as Record<string, unknown>;
+    // Fast path only for strict booleans. Null / missing values must use
+    // classic getDirectiveValues so `@skip`/`@include` `Boolean!` args still
+    // error before resolvers run (skip-before-include order preserved).
+    if (skipVariable != null) {
+      const value = coerced[skipVariable];
+      if (value !== true && value !== false) {
+        return shouldIncludeNode(variableValues, fieldNode);
+      }
+      if (value === true) {
+        return false;
+      }
+    }
+    if (includeVariable != null) {
+      const value = coerced[includeVariable];
+      if (value !== true && value !== false) {
+        return shouldIncludeNode(variableValues, fieldNode);
+      }
+      if (value === false) {
+        return false;
+      }
+    }
+    return true;
+  };
+}
+
+const ALWAYS_INCLUDE = (_variableValues: VariableValues): boolean => true;
+const NEVER_INCLUDE = (_variableValues: VariableValues): boolean => false;
+
+/**
+ * True when every `@skip`/`@include` in the document sits on a Field node.
+ * Enables the master-only predicate collect path (no FieldPlan).
+ */
+function documentHasOnlyFieldSkipInclude(document: DocumentNode): boolean {
+  for (const definition of document.definitions) {
+    if (
+      definition.kind !== Kind.OPERATION_DEFINITION &&
+      definition.kind !== Kind.FRAGMENT_DEFINITION
+    ) {
+      continue;
+    }
+    if (!selectionSetHasOnlyFieldSkipInclude(definition.selectionSet)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function selectionSetHasOnlyFieldSkipInclude(selectionSet: {
+  selections: ReadonlyArray<{
+    kind: string;
+    directives?: ReadonlyArray<{ name: { value: string } }>;
+    selectionSet?: { selections: ReadonlyArray<any> };
+  }>;
+}): boolean {
+  for (const selection of selectionSet.selections) {
+    const directives = selection.directives;
+    if (directives) {
+      for (const directive of directives) {
+        const name = directive.name.value;
+        if (name !== 'skip' && name !== 'include') {
+          continue;
+        }
+        if (selection.kind !== Kind.FIELD) {
+          return false;
+        }
+      }
+    }
+    if (selection.selectionSet && !selectionSetHasOnlyFieldSkipInclude(selection.selectionSet)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**
@@ -352,6 +721,11 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
    * in this document.
    */
   collectFieldsDependsOnVariables: boolean;
+  /**
+   * True when variable `@skip`/`@include` appear only on Field nodes, so
+   * collect can use a compiled predicate program (no ExecutionPlan/FieldPlan).
+   */
+  skipIncludeFieldPredicates: boolean;
   /** Precomputed for GraphQLResolveInfo (GQL16 coerced map vs GQL17 VariableValues). */
   resolveInfoVariableValues: GraphQLResolveInfo['variableValues'];
   fieldResolver: GraphQLFieldResolver<any, TContext>;
@@ -708,6 +1082,7 @@ const fragmentsFromDocumentCache = new WeakMap<
 >();
 
 const collectFieldsDependsOnVariablesCache = new WeakMap<DocumentNode, boolean>();
+const documentHasOnlyFieldSkipIncludeCache = new WeakMap<DocumentNode, boolean>();
 
 export function getFragmentsFromDocument(
   document: DocumentNode,
@@ -732,6 +1107,15 @@ function getCollectFieldsDependsOnVariables(document: DocumentNode): boolean {
     collectFieldsDependsOnVariablesCache.set(document, depends);
   }
   return depends;
+}
+
+function getDocumentHasOnlyFieldSkipInclude(document: DocumentNode): boolean {
+  let onlyField = documentHasOnlyFieldSkipIncludeCache.get(document);
+  if (onlyField === undefined) {
+    onlyField = documentHasOnlyFieldSkipInclude(document);
+    documentHasOnlyFieldSkipIncludeCache.set(document, onlyField);
+  }
+  return onlyField;
 }
 
 /**
@@ -941,6 +1325,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     detachSignalListener = removeAbortListener;
   }
 
+  const collectDepends = getCollectFieldsDependsOnVariables(document);
   const exeContext: ExecutionContext = {
     schema,
     fragments,
@@ -948,7 +1333,8 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     contextValue,
     operation,
     variableValues,
-    collectFieldsDependsOnVariables: getCollectFieldsDependsOnVariables(document),
+    collectFieldsDependsOnVariables: collectDepends,
+    skipIncludeFieldPredicates: collectDepends && getDocumentHasOnlyFieldSkipInclude(document),
     resolveInfoVariableValues,
     fieldResolver: fieldResolver ?? defaultFieldResolver,
     typeResolver: typeResolver ?? defaultTypeResolver,
@@ -994,6 +1380,7 @@ function buildPerEventExecutionContext(
     operation: exeContext.operation,
     variableValues: exeContext.variableValues,
     collectFieldsDependsOnVariables: exeContext.collectFieldsDependsOnVariables,
+    skipIncludeFieldPredicates: exeContext.skipIncludeFieldPredicates,
     resolveInfoVariableValues: exeContext.resolveInfoVariableValues,
     fieldResolver: exeContext.fieldResolver,
     typeResolver: exeContext.typeResolver,

@@ -51,7 +51,7 @@
     "graphql": "^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/executor-graphql-ws": "^3.2.1",
+    "@graphql-tools/executor-graphql-ws": "^3.2.2",
     "@graphql-tools/executor-http": "^3.6.2",
     "@graphql-tools/executor-legacy-ws": "^2.0.9",
     "@graphql-tools/utils": "^13.2.2",
@@ -76,7 +76,7 @@
     "graphql-sse": "2.6.3",
     "graphql-upload": "18.0.1",
     "graphql-yoga": "6.1.0",
-    "puppeteer": "25.17.0",
+    "puppeteer": "25.18.1",
     "subscriptions-transport-ws": "0.11.0",
     "webpack": "5.112.2"
   },

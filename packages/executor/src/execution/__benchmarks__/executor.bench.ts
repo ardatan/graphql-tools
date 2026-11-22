@@ -367,7 +367,8 @@ test('execution plan warm path benchmarks', async ({ bench }) => {
   ).run();
 });
 
-// Dense field-level @skip/@include — plan-path predicate filter keep bench.
+// Dense field-level @skip/@include — plan-path filter (and master collect-layer
+// #8681 when FieldPlan is absent). Same shape as the C2 keep bench.
 const denseSkipSchema = buildSchema(
   /* GraphQL */ `
     type Query {

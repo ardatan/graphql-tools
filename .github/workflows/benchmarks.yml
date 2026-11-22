@@ -54,3 +54,4 @@ jobs:
           name: bench-results-${{ github.event.pull_request.number || github.sha }}
           path: benchmarks/results
           if-no-files-found: ignore
+          retention-days: 7
