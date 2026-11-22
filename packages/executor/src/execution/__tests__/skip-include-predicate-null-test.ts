@@ -1,5 +1,20 @@
-import { buildSchema, parse } from 'graphql';
+import { buildSchema, parse, versionInfo } from 'graphql';
 import { executeSync } from '../execute.js';
+
+const isGraphQL17 = versionInfo.major >= 17;
+
+/** GraphQL 16 vs 17 wording for null `@skip`/`@include` `if: Boolean!`. */
+function nullDirectiveIfMessage(): string {
+  return isGraphQL17
+    ? 'Expected variable "$s" provided to non-null type "Boolean!" not to be null'
+    : 'Argument "if" of non-null type "Boolean!" must not be null.';
+}
+
+function missingDirectiveIfMessage(): RegExp {
+  return isGraphQL17
+    ? /Expected variable "\$s" provided to type "Boolean!" to provide a runtime value/
+    : /Argument "if" of required type "Boolean!" was not provided/;
+}
 
 /**
  * Predicate collect must match classic getDirectiveValues errors when a
@@ -57,9 +72,7 @@ describe('field-level skip/include predicate null/missing parity', () => {
         data: null,
         errors: [
           {
-            message: expect.stringContaining(
-              'Expected variable "$s" provided to non-null type "Boolean!" not to be null',
-            ),
+            message: expect.stringContaining(nullDirectiveIfMessage()),
           },
         ],
       });
@@ -69,9 +82,7 @@ describe('field-level skip/include predicate null/missing parity', () => {
         data: null,
         errors: [
           {
-            message: expect.stringContaining(
-              'Expected variable "$s" provided to non-null type "Boolean!" not to be null',
-            ),
+            message: expect.stringContaining(nullDirectiveIfMessage()),
           },
         ],
       });
@@ -90,16 +101,34 @@ describe('field-level skip/include predicate null/missing parity', () => {
       }
     `);
 
-    it('errors when the variable is missing or null', () => {
-      for (const vars of [undefined, {}, { s: null }] as const) {
+    it('errors when the variable is missing', () => {
+      for (const vars of [undefined, {}] as const) {
         const includeResult = run(includeDoc, vars as any);
         expect(includeResult.data).toBeNull();
-        expect(includeResult.errors?.[0]?.message).toEqual(expect.stringMatching(/\$s|Boolean!/));
+        expect(includeResult.errors?.[0]?.message).toEqual(
+          expect.stringMatching(missingDirectiveIfMessage()),
+        );
 
         const skipResult = run(skipDoc, vars as any);
         expect(skipResult.data).toBeNull();
-        expect(skipResult.errors?.[0]?.message).toEqual(expect.stringMatching(/\$s|Boolean!/));
+        expect(skipResult.errors?.[0]?.message).toEqual(
+          expect.stringMatching(missingDirectiveIfMessage()),
+        );
       }
+    });
+
+    it('errors when the variable is explicit null', () => {
+      const includeResult = run(includeDoc, { s: null });
+      expect(includeResult.data).toBeNull();
+      expect(includeResult.errors?.[0]?.message).toEqual(
+        expect.stringContaining(nullDirectiveIfMessage()),
+      );
+
+      const skipResult = run(skipDoc, { s: null });
+      expect(skipResult.data).toBeNull();
+      expect(skipResult.errors?.[0]?.message).toEqual(
+        expect.stringContaining(nullDirectiveIfMessage()),
+      );
     });
 
     it('still honors true/false', () => {
