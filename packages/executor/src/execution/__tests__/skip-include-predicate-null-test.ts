@@ -13,7 +13,7 @@ function nullDirectiveIfMessage(): string {
 function missingDirectiveIfMessage(): RegExp {
   return isGraphQL17
     ? /Expected variable "\$s" provided to type "Boolean!" to provide a runtime value/
-    : /Argument "if" of required type "Boolean!" was not provided/;
+    : /Argument "if" of required type "Boolean!" was provided the variable "\$s" which was not provided a runtime value/;
 }
 
 /**
