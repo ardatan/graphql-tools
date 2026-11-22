@@ -98,6 +98,29 @@ function makeHeavyRaw(n: number) {
   return { filter: { id: n, mids } };
 }
 
+const defaultsSchema = buildSchema(
+  /* GraphQL */ `
+    input NestedInput {
+      x: Float! = 1.5
+      y: [Int!]! = [1, 2, 3]
+    }
+    input FilterInput {
+      a: Int! = 7
+      b: String! = "x"
+      nested: NestedInput! = { x: 1.5, y: [1, 2, 3] }
+    }
+    type Query {
+      search(filter: FilterInput!): String!
+    }
+  `,
+  { assumeValid: true },
+);
+const defaultsDocument = parse(/* GraphQL */ `
+  query ($filter: FilterInput! = { a: 7, b: "x", nested: { x: 1.5, y: [1, 2, 3] } }) {
+    search(filter: $filter)
+  }
+`);
+
 const smallPlanResult = compileExecutionPlan({
   schema: smallSchema,
   document: smallDocument,
@@ -106,6 +129,15 @@ if (!isExecutionPlan(smallPlanResult)) {
   throw new Error('expected small execution plan');
 }
 const smallPlan = smallPlanResult;
+
+const defaultsPlanResult = compileExecutionPlan({
+  schema: defaultsSchema,
+  document: defaultsDocument,
+});
+if (!isExecutionPlan(defaultsPlanResult)) {
+  throw new Error('expected defaults execution plan');
+}
+const defaultsPlan = defaultsPlanResult;
 
 const heavyPlanResult = compileExecutionPlan({
   schema: heavySchema,
@@ -120,6 +152,7 @@ let smallCoerceN = 0;
 let heavyCoerceN = 0;
 let smallExecN = 0;
 let heavyExecN = 0;
+let defaultsCoerceN = 0;
 
 test('coercer confidence (coerce-only + coerce+execute)', async ({ bench }) => {
   await bench(
@@ -129,6 +162,20 @@ test('coercer confidence (coerce-only + coerce+execute)', async ({ bench }) => {
       for (let i = 0; i < 500; i++) {
         smallCoerceN++;
         const result = smallPlan.coerceVariables(makeSmallRaw(smallCoerceN));
+        if ('errors' in result) {
+          throw new Error('coerce failed');
+        }
+      }
+    },
+  ).run();
+
+  await bench(
+    'Coerce-only: omitted vars use AST defaults (warm plan)',
+    { ...writeOpts('coercer-only-defaults') },
+    () => {
+      for (let i = 0; i < 500; i++) {
+        defaultsCoerceN++;
+        const result = defaultsPlan.coerceVariables({});
         if ('errors' in result) {
           throw new Error('coerce failed');
         }

@@ -414,6 +414,79 @@ describe('execution plan', () => {
     ).toEqual({ data: { search: '7:x:1.5:3' } });
   });
 
+  it('applies AST variable defaults on the warm coerce path', () => {
+    const document = parse('query ($name: String = "Ada") { hello(name: $name) }');
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    const omitted = plan.coerceVariables({});
+    expect('variableValues' in omitted).toBe(true);
+    if ('variableValues' in omitted) {
+      expect(omitted.variableValues.coerced).toMatchObject({ name: 'Ada' });
+      expect(omitted.variableValues.sources['name']?.signature).toMatchObject({
+        name: 'name',
+        default: { literal: expect.objectContaining({ kind: 'StringValue' }) },
+      });
+    }
+    expect(executeSync({ schema, document })).toEqual({
+      data: { hello: 'hello Ada' },
+    });
+    expect(
+      executeSync({
+        schema,
+        document,
+        variableValues: { name: 'Bob' },
+      }),
+    ).toEqual({ data: { hello: 'hello Bob' } });
+  });
+
+  it('coerces @oneOf input variables on the warm path (happy path)', () => {
+    const oneOfInput = new GraphQLInputObjectType({
+      name: 'OneOfInput',
+      isOneOf: true,
+      fields: {
+        a: { type: GraphQLString },
+        b: { type: GraphQLInt },
+      },
+    });
+    const oneOfSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          test: {
+            type: GraphQLString,
+            args: { input: { type: new GraphQLNonNull(oneOfInput) } },
+            resolve: (_src, args: { input: { a?: string; b?: number } }) =>
+              args.input.a ?? String(args.input.b),
+          },
+        },
+      }),
+    });
+    const document = parse('query ($input: OneOfInput!) { test(input: $input) }');
+    const plan = compileExecutionPlan({ schema: oneOfSchema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    const ok = plan.coerceVariables({ input: { a: 'hi' } });
+    expect('variableValues' in ok).toBe(true);
+    if ('variableValues' in ok) {
+      expect(ok.variableValues.coerced).toEqual({ input: { a: 'hi' } });
+    }
+    // Bad oneOf (two keys) falls back to getVariableValues errors.
+    const bad = plan.coerceVariables({ input: { a: 'hi', b: 1 } });
+    expect('errors' in bad).toBe(true);
+    expect(
+      executeSync({
+        schema: oneOfSchema,
+        document,
+        variableValues: { input: { a: 'hi' } },
+      }),
+    ).toEqual({ data: { test: 'hi' } });
+  });
+
   it('compiles resolveInfoStatic for planned fields', () => {
     const document = parse('{ hello }');
     const plan = compileExecutionPlan({ schema, document });

@@ -29,6 +29,7 @@ import {
   typeFromAST,
   TypeMetaFieldDef,
   TypeNameMetaFieldDef,
+  valueFromAST,
   versionInfo,
   type DocumentNode,
   type GraphQLInputType,
@@ -228,10 +229,10 @@ export interface ExecutionPlan {
   hasVariables: boolean;
   /**
    * Compiled variable coercer closed over schema + variableDefinitions.
-   * Empty ops return EMPTY_VARIABLE_VALUES; builtin-leaf ops try a fast path
-   * then fall back to getVariableValues for identical error shapes; otherwise
-   * hoisted per-input-type coercer closures (lists / input objects / custom
-   * leaves) with getVariableValues fallback (AST defaults stay on full path).
+   * Empty ops return EMPTY_VARIABLE_VALUES; builtin-leaf / hoisted input
+   * coercers (lists, input objects, @oneOf, AST defaults via valueFromAST)
+   * try a fast path then fall back to getVariableValues for identical
+   * GraphQLError shapes (#11).
    */
   coerceVariables: CoerceVariables;
   /**
@@ -686,9 +687,10 @@ function buildExecutionsFromConditionalEntries(
  * Compile a variableValues coercer for the operation.
  * - No variables → empty map
  * - All builtin leaf (or NonNull leaf) vars → fast parseValue path with
- *   getVariableValues fallback for exact GraphQLError messaging
+ *   getVariableValues fallback for exact GraphQLError messaging (AST defaults
+ *   compiled via valueFromAST when present)
  * - Else try hoisted per-input-type coercer closures (lists / input objects /
- *   custom leaves) with getVariableValues fallback; AST defaults stay on full path
+ *   @oneOf / custom leaves / AST defaults) with getVariableValues fallback
  */
 function compileVariableCoercer(
   schema: GraphQLSchema,
@@ -735,10 +737,16 @@ type HoistedVariableBinding = {
   nonNull: boolean;
   variableType: GraphQLInputType;
   coerce: InputValueCoercer;
+  hasDefault: boolean;
+  /** Coerced JS default from AST (when `hasDefault`). */
+  defaultValue: unknown;
+  /** AST default node for GQL17 `sources.signature.default.literal`. */
+  defaultLiteral: ValueNode | undefined;
 };
 
 /**
- * Compile hoisted per-type input coercers for variables without AST defaults.
+ * Compile hoisted per-type input coercers (lists / input objects / @oneOf /
+ * custom leaves). Variable AST defaults are valueFromAST'd at compile time.
  * Cost is linear in input types (shared via cache), not in selection paths.
  */
 function tryCompileHoistedVariableBindings(
@@ -748,9 +756,6 @@ function tryCompileHoistedVariableBindings(
   const typeCache = new Map<GraphQLInputType, InputValueCoercer>();
   const bindings: HoistedVariableBinding[] = [];
   for (const def of variableDefinitions) {
-    if (def.defaultValue != null) {
-      return undefined;
-    }
     const inputType = typeFromAST(schema, def.type);
     if (inputType == null || !isInputType(inputType)) {
       return undefined;
@@ -759,11 +764,26 @@ function tryCompileHoistedVariableBindings(
     if (coerce == null) {
       return undefined;
     }
+    let hasDefault = false;
+    let defaultValue: unknown;
+    const defaultLiteral = def.defaultValue ?? undefined;
+    if (def.defaultValue != null) {
+      const compiledDefault = valueFromAST(def.defaultValue, inputType);
+      if (compiledDefault === undefined) {
+        // Invalid default — leave to getVariableValues for exact errors.
+        return undefined;
+      }
+      hasDefault = true;
+      defaultValue = compiledDefault;
+    }
     bindings.push({
       name: def.variable.name.value,
       nonNull: isNonNullType(inputType),
       variableType: inputType,
       coerce,
+      hasDefault,
+      defaultValue,
+      defaultLiteral,
     });
   }
   return bindings;
@@ -780,10 +800,14 @@ function tryCoerceHoistedVariables(
     const signature = {
       name: binding.name,
       type: binding.variableType,
-      default: undefined,
+      default: binding.hasDefault ? { literal: binding.defaultLiteral } : undefined,
     };
     if (!Object.prototype.hasOwnProperty.call(raw, binding.name)) {
       sources[binding.name] = { signature };
+      if (binding.hasDefault) {
+        coerced[binding.name] = binding.defaultValue;
+        continue;
+      }
       if (binding.nonNull) {
         return undefined;
       }
@@ -802,7 +826,8 @@ function tryCoerceHoistedVariables(
 
 /**
  * Build a plan-bound coercer for one input type (shared across variables).
- * Returns null when the type needs graphql-js (e.g. @oneOf stays on fallback).
+ * `@oneOf` is handled on the happy path; failures return `undefined` so
+ * runtime can fall back to getVariableValues for GraphQLError parity.
  */
 function compileInputValueCoercer(
   type: GraphQLInputType,
@@ -878,11 +903,6 @@ function compileInputValueCoercer(
     const placeholder: InputValueCoercer = () => undefined;
     cache.set(type, placeholder);
 
-    if (type.isOneOf) {
-      cache.delete(type);
-      return null;
-    }
-
     const fields = type.getFields();
     const fieldEntries: Array<{
       name: string;
@@ -909,6 +929,49 @@ function compileInputValueCoercer(
     }
 
     const expectedKeys = new Set(fieldEntries.map(f => f.name));
+
+    // Keep the non-@oneOf hot path byte-stable with the prior hoisted coercer
+    // (dense nested coerce benches). @oneOf gets a dedicated closure.
+    if (type.isOneOf === true) {
+      const coercer: InputValueCoercer = raw => {
+        if (raw == null) {
+          return null;
+        }
+        if (typeof raw !== 'object' || Array.isArray(raw)) {
+          return undefined;
+        }
+        const obj = raw as Record<string, unknown>;
+        let definedFieldCount = 0;
+        let onlyKey: string | undefined;
+        for (const key of Object.keys(obj)) {
+          if (obj[key] === undefined) {
+            continue;
+          }
+          definedFieldCount++;
+          onlyKey = key;
+          if (!expectedKeys.has(key)) {
+            return undefined;
+          }
+        }
+        if (definedFieldCount !== 1 || onlyKey == null) {
+          return undefined;
+        }
+        const field = fieldEntries.find(f => f.name === onlyKey);
+        if (field == null) {
+          return undefined;
+        }
+        const coercedField = field.coerce(obj[onlyKey]);
+        if (coercedField === undefined || coercedField == null) {
+          return undefined;
+        }
+        const out = Object.create(null) as Record<string, unknown>;
+        out[onlyKey] = coercedField;
+        return out;
+      };
+      cache.set(type, coercer);
+      return coercer;
+    }
+
     const coercer: InputValueCoercer = raw => {
       if (raw == null) {
         return null;
@@ -948,7 +1011,6 @@ function compileInputValueCoercer(
 
   return null;
 }
-
 type BuiltinLeafVariableBinding = {
   name: string;
   nonNull: boolean;
@@ -957,6 +1019,7 @@ type BuiltinLeafVariableBinding = {
   variableType: GraphQLInputType;
   defaultValue: unknown;
   hasDefault: boolean;
+  defaultLiteral: ValueNode | undefined;
 };
 
 function tryCompileBuiltinLeafVariableBindings(
@@ -978,14 +1041,16 @@ function tryCompileBuiltinLeafVariableBindings(
     if (isListType(type) || !isLeafType(type) || !BUILTIN_LEAF_TYPES.has(type)) {
       return undefined;
     }
-    const hasDefault = def.defaultValue != null;
+    let hasDefault = false;
     let defaultValue: unknown;
-    if (hasDefault) {
-      // Use graphql getVariableValues once at compile time for the default only
-      // by coercing an empty raw map when all vars have defaults — too awkward.
-      // Instead mark hasDefault and fall back to full coerce when raw omits the
-      // key; tryCoerce returns undefined to trigger fallback.
-      defaultValue = undefined;
+    const defaultLiteral = def.defaultValue ?? undefined;
+    if (def.defaultValue != null) {
+      const compiledDefault = valueFromAST(def.defaultValue, inputType);
+      if (compiledDefault === undefined) {
+        return undefined;
+      }
+      hasDefault = true;
+      defaultValue = compiledDefault;
     }
     bindings.push({
       name: def.variable.name.value,
@@ -994,11 +1059,8 @@ function tryCompileBuiltinLeafVariableBindings(
       variableType: inputType,
       defaultValue,
       hasDefault,
+      defaultLiteral,
     });
-  }
-  // Defaults need full getVariableValues for exact AST default coercion.
-  if (bindings.some(b => b.hasDefault)) {
-    return undefined;
   }
   return bindings;
 }
@@ -1014,10 +1076,14 @@ function tryCoerceBuiltinLeafVariables(
     const signature = {
       name: binding.name,
       type: binding.variableType,
-      default: undefined,
+      default: binding.hasDefault ? { literal: binding.defaultLiteral } : undefined,
     };
     if (!Object.prototype.hasOwnProperty.call(raw, binding.name)) {
       sources[binding.name] = { signature };
+      if (binding.hasDefault) {
+        coerced[binding.name] = binding.defaultValue;
+        continue;
+      }
       if (binding.nonNull) {
         return undefined;
       }
@@ -1045,7 +1111,6 @@ function tryCoerceBuiltinLeafVariables(
   }
   return { coerced, sources };
 }
-
 const EMPTY_RAW_VARIABLES: { readonly [key: string]: unknown } = Object.freeze(Object.create(null));
 
 function runGetVariableValues(
