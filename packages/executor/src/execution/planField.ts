@@ -276,7 +276,11 @@ export function compileFieldMap(
   fields: Map<string, Array<FieldNode>>,
 ): void {
   for (const [responseName, fieldNodes] of fields) {
-    if (resolveFieldPlanForParent(plan, parentType, fieldNodes)) {
+    // Reuse only on exact fieldNodes array identity (+ parent type). Do not
+    // skip via primary FieldNode: two merged groups can share that node but
+    // select different subfields (see CR regression on nested abstracts).
+    const existingExact = plan.fieldPlanByNodes.get(fieldNodes);
+    if (existingExact != null && existingExact.parentType === parentType) {
       continue;
     }
     chargeCompileWork(plan);

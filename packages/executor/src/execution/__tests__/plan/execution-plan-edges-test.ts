@@ -806,4 +806,56 @@ describe('plan compile budget', () => {
     expect(result.errors).toBeUndefined();
     expect(result.data?.root).toMatchObject({ id: 'root' });
   });
+
+  it('does not reuse subfields across merged groups that share a primary FieldNode', () => {
+    // Two parents spread the same fragment field `node { x }` but `a` also
+    // selects `node { y }`. Compile must not skip `b.node` via primary-node
+    // reuse and leak `y` into `b`.
+    const Node = new GraphQLObjectType({
+      name: 'HolderNode',
+      fields: {
+        x: { type: GraphQLString },
+        y: { type: GraphQLString },
+      },
+    });
+    const Holder = new GraphQLObjectType({
+      name: 'Holder',
+      fields: {
+        node: { type: Node },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          a: {
+            type: Holder,
+            resolve: () => ({ node: { x: 'ax', y: 'ay' } }),
+          },
+          b: {
+            type: Holder,
+            resolve: () => ({ node: { x: 'bx', y: 'by' } }),
+          },
+        },
+      }),
+    });
+    const document = parse(`
+      {
+        a { ...Fields node { y } }
+        b { ...Fields }
+      }
+      fragment Fields on Holder {
+        node { x }
+      }
+    `);
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    const result = executeSync({ schema, document });
+    expect(result).toEqual({
+      data: {
+        a: { node: { x: 'ax', y: 'ay' } },
+        b: { node: { x: 'bx' } },
+      },
+    });
+  });
 });
