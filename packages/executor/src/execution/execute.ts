@@ -5528,18 +5528,42 @@ function executePlannedSyncObjectFieldsPreCR(
   const source = sourceValue as Record<string, unknown>;
   const results: Record<string, unknown> = Object.create(null);
   let n = 0;
+  let recordedGetterError = false;
   for (const execution of plannedExecutions) {
     // Match classic: stop before the next field read once the request aborted.
     exeContext.signal?.throwIfAborted();
     const { responseName, fieldNodes, fieldPlan } = execution;
     if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
-      return n > 0 ? thinObjectMiss(results, false, undefined) : undefined;
+      return n > 0 || recordedGetterError
+        ? thinObjectMiss(results, recordedGetterError, undefined)
+        : undefined;
     }
-    let property: unknown = source[fieldPlan.fieldDef.name];
+    let property: unknown;
+    try {
+      property = source[fieldPlan.fieldDef.name];
+    } catch (rawError) {
+      // Locate at the child field (classic parity) — do not let a raw throw
+      // bubble to the list item path alone.
+      const fieldPath = addPath(path, responseName, parentType.name);
+      const error = locatedError(
+        coerceError(rawError),
+        fieldNodes,
+        pathToArray(fieldPath),
+        exeContext.schemaCoordinateInErrors &&
+          schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+      );
+      results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+      recordedGetterError = true;
+      n++;
+      continue;
+    }
     if (typeof property === 'function') {
       if (fieldPlan.kind !== 'leaf' || fieldPlan.leafType == null) {
-        return n > 0 ? thinObjectMiss(results, false, undefined) : undefined;
+        return n > 0 || recordedGetterError
+          ? thinObjectMiss(results, recordedGetterError, undefined)
+          : undefined;
       }
+      const fieldPath = addPath(path, responseName, parentType.name);
       try {
         property = (
           property as (
@@ -5552,15 +5576,20 @@ function executePlannedSyncObjectFieldsPreCR(
           source,
           Object.create(null),
           exeContext.contextValue,
-          buildPlannedResolveInfo(
-            exeContext,
-            fieldPlan,
-            addPath(path, responseName, parentType.name),
-            fieldNodes,
-          ),
+          buildPlannedResolveInfo(exeContext, fieldPlan, fieldPath, fieldNodes),
         );
-      } catch {
-        return n > 0 ? thinObjectMiss(results, false, undefined) : undefined;
+      } catch (rawError) {
+        const error = locatedError(
+          coerceError(rawError),
+          fieldNodes,
+          pathToArray(fieldPath),
+          exeContext.schemaCoordinateInErrors &&
+            schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+        );
+        results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+        recordedGetterError = true;
+        n++;
+        continue;
       }
       if (property != null && typeof property === 'object' && isPromise(property)) {
         const pendingLeaves = registerThinPendingLeaf(
@@ -5575,15 +5604,30 @@ function executePlannedSyncObjectFieldsPreCR(
         return thinObjectMiss(results, true, pendingLeaves);
       }
     } else if (property instanceof Error) {
-      return n > 0 ? thinObjectMiss(results, false, undefined) : undefined;
+      const fieldPath = addPath(path, responseName, parentType.name);
+      const error = locatedError(
+        property,
+        fieldNodes,
+        pathToArray(fieldPath),
+        exeContext.schemaCoordinateInErrors &&
+          schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+      );
+      results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+      recordedGetterError = true;
+      n++;
+      continue;
     }
     if (property != null && typeof property === 'object' && isPromise(property)) {
-      return n > 0 ? thinObjectMiss(results, false, undefined) : undefined;
+      return n > 0 || recordedGetterError
+        ? thinObjectMiss(results, recordedGetterError, undefined)
+        : undefined;
     }
     if (fieldPlan.kind === 'leaf' && fieldPlan.leafType != null) {
       if (property == null) {
         if (fieldPlan.nonNull) {
-          return n > 0 ? thinObjectMiss(results, false, undefined) : undefined;
+          return n > 0 || recordedGetterError
+            ? thinObjectMiss(results, recordedGetterError, undefined)
+            : undefined;
         }
         results[responseName] = null;
         n++;
@@ -5592,34 +5636,46 @@ function executePlannedSyncObjectFieldsPreCR(
       try {
         const serialized = fieldPlan.leafType.serialize(property);
         if (serialized == null || isPromise(serialized)) {
-          return n > 0 ? thinObjectMiss(results, false, undefined) : undefined;
+          return n > 0 || recordedGetterError
+            ? thinObjectMiss(results, recordedGetterError, undefined)
+            : undefined;
         }
         results[responseName] = serialized;
         n++;
       } catch {
-        return n > 0 ? thinObjectMiss(results, false, undefined) : undefined;
+        return n > 0 || recordedGetterError
+          ? thinObjectMiss(results, recordedGetterError, undefined)
+          : undefined;
       }
       continue;
     }
     if (fieldPlan.kind === 'object' && fieldPlan.skipIsTypeOf && fieldPlan.objectType != null) {
       if (property == null) {
         if (fieldPlan.nonNull) {
-          return n > 0 ? thinObjectMiss(results, false, undefined) : undefined;
+          return n > 0 || recordedGetterError
+            ? thinObjectMiss(results, recordedGetterError, undefined)
+            : undefined;
         }
         results[responseName] = null;
         n++;
         continue;
       }
       if (!isObjectLike(property)) {
-        return n > 0 ? thinObjectMiss(results, false, undefined) : undefined;
+        return n > 0 || recordedGetterError
+          ? thinObjectMiss(results, recordedGetterError, undefined)
+          : undefined;
       }
       const plan = exeContext.plan;
       if (plan == null) {
-        return n > 0 ? thinObjectMiss(results, false, undefined) : undefined;
+        return n > 0 || recordedGetterError
+          ? thinObjectMiss(results, recordedGetterError, undefined)
+          : undefined;
       }
       const rawSubExecutions = getPlannedSubfieldExecutions(plan, fieldNodes, fieldPlan.objectType);
       if (rawSubExecutions == null) {
-        return n > 0 ? thinObjectMiss(results, false, undefined) : undefined;
+        return n > 0 || recordedGetterError
+          ? thinObjectMiss(results, recordedGetterError, undefined)
+          : undefined;
       }
       const subExecutions =
         plan.skipIncludePredicates === true
@@ -5633,7 +5689,9 @@ function executePlannedSyncObjectFieldsPreCR(
         subExecutions,
       );
       if (nested === undefined) {
-        return n > 0 ? thinObjectMiss(results, true, undefined) : undefined;
+        return n > 0 || recordedGetterError
+          ? thinObjectMiss(results, true, undefined)
+          : undefined;
       }
       if (
         typeof nested === 'object' &&
@@ -5668,7 +5726,9 @@ function executePlannedSyncObjectFieldsPreCR(
       n++;
       continue;
     }
-    return n > 0 ? thinObjectMiss(results, false, undefined) : undefined;
+    return n > 0 || recordedGetterError
+      ? thinObjectMiss(results, recordedGetterError, undefined)
+      : undefined;
   }
   return results;
 }

@@ -2380,6 +2380,42 @@ describe('plain object-list single-pass (no speculative replay)', () => {
     });
   });
 
+  it('keeps a completed NonNull id when its getter truncates the list to empty', () => {
+    // NonNull leaf forces the remainder (PreCR) object-list path — plain
+    // single-pass skips NonNull subfields.
+    const userType = new GraphQLObjectType({
+      name: 'RemainderTruncateToEmptyUser',
+      fields: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(userType) },
+        },
+      }),
+    });
+    const users: Array<{ id: string } | undefined> = [
+      {
+        get id(): string {
+          users.length = 0;
+          return 'u1';
+        },
+      },
+      { id: 'u2-should-not-read' },
+    ];
+    const result = executeSync({
+      schema,
+      document: parse('{ users { id } }'),
+      rootValue: { users },
+    });
+    expect(result).toEqual({
+      data: { users: [{ id: 'u1' }] },
+    });
+  });
+
   it('keeps a nullable item error when a getter truncates after throwing', () => {
     const userType = new GraphQLObjectType({
       name: 'PlainTruncateNullableFailUser',
@@ -2411,7 +2447,12 @@ describe('plain object-list single-pass (no speculative replay)', () => {
     });
     expect(result).toEqual({
       data: { users: [null] },
-      errors: [expect.objectContaining({ message: 'id failed' })],
+      errors: [
+        expect.objectContaining({
+          message: 'id failed',
+          path: ['users', 0, 'id'],
+        }),
+      ],
     });
   });
 
@@ -2446,7 +2487,12 @@ describe('plain object-list single-pass (no speculative replay)', () => {
     });
     expect(result).toEqual({
       data: null,
-      errors: [expect.objectContaining({ message: 'id failed' })],
+      errors: [
+        expect.objectContaining({
+          message: 'id failed',
+          path: ['users', 0, 'id'],
+        }),
+      ],
     });
   });
 });
