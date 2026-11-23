@@ -693,3 +693,28 @@ describe('execution plan warm-path edges', () => {
     });
   },
 );
+
+describe('root runner + field-local leaf list settle', () => {
+  it('keeps async root leaf values when a sibling leaf list is also async', async () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          count: {
+            type: GraphQLInt,
+            resolve: () => Promise.resolve(7),
+          },
+          scores: {
+            type: new GraphQLList(GraphQLInt),
+            resolve: () => [Promise.resolve(1), Promise.resolve(2)],
+          },
+        },
+      }),
+    });
+    const document = parse('{ count scores }');
+    compileExecutionPlan({ schema, document });
+    await expect(execute({ schema, document })).resolves.toEqual({
+      data: { count: 7, scores: [1, 2] },
+    });
+  });
+});

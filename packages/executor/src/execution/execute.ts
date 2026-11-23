@@ -1705,12 +1705,22 @@ function executeFields(
       // Observe field-local promises immediately (not after the root runner),
       // so a rejecting leaf list cannot hang / go unhandled while a root field
       // is still pending.
-      const fieldLocal = containsPromise
-        ? promiseForObject(results, exeContext.signal)
-        : undefined;
+      const fieldLocal = containsPromise ? promiseForObject(results, exeContext.signal) : undefined;
       const done =
         fieldLocal != null && isPromise(fieldLocal)
-          ? Promise.all([settled, fieldLocal]).then(([, fields]) => fields)
+          ? Promise.all([settled, fieldLocal]).then(([, fields]) => {
+              // `fields` is a snapshot that may still hold root-runner
+              // placeholders (`count: undefined`). Merge only slots that are
+              // still thenables in the live `results` map (field-local lists);
+              // root-runner writes into `results` directly.
+              const fieldMap = fields as Record<string, unknown>;
+              for (const key of Object.keys(fieldMap)) {
+                if (isPromise(results[key])) {
+                  results[key] = fieldMap[key];
+                }
+              }
+              return results;
+            })
           : settled.then(() => results);
       if (exeContext.signalPromise) {
         return Promise.race([exeContext.signalPromise, done]);
