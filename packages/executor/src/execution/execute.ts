@@ -2165,6 +2165,7 @@ function executePlannedSyncObjectFieldsD98(
         return undefined;
       }
       if (property != null && typeof property === 'object' && isPromise(property)) {
+        // Fast lane declines; CR Phase A/B / PreCR carries pendingLeaves.
         (property as Promise<unknown>).then(undefined, () => undefined);
         return undefined;
       }
@@ -2240,6 +2241,7 @@ function executePlannedSyncObjectFieldsD98(
 function tryCompletePlannedObjectListD98(
   exeContext: ExecutionContext,
   _fieldPlan: FieldPlan,
+  _fieldNodes: Array<FieldNode>,
   path: Path,
   result: unknown[],
   itemObjectType: GraphQLObjectType,
@@ -2247,8 +2249,6 @@ function tryCompletePlannedObjectListD98(
   subExecutions: ReadonlyArray<PlannedFieldExecution>,
 ): ReadonlyArray<unknown> | null | undefined {
   // Byte-close to pre-CR d98 list complete. nestedDefault never declines.
-  // On decline return undefined so the CR Phase A/B path runs (plain gate
-  // excludes NonNull/hasArgs one-shot edges that need stash).
   const completedResults: Array<unknown> = new Array(result.length);
   for (let index = 0; index < result.length; index++) {
     const item = result[index];
@@ -2335,6 +2335,7 @@ function completePlannedObjectListValue(
     const fast = tryCompletePlannedObjectListD98(
       exeContext,
       fieldPlan,
+      fieldNodes,
       path,
       result,
       itemObjectType,
@@ -2363,10 +2364,12 @@ function completePlannedObjectListValue(
     | Record<string, unknown>
     | ThinObjectPartial
     | undefined
-    | Promise<unknown>
-    | typeof STASH_SLIM_DECLINED = undefined;
+    | MaybePromise<Record<string, unknown> | ThinObjectPartial | undefined>
+    | typeof STASH_SLIM_DECLINED;
   let hasStash = false;
   let pendingBubbled: unknown;
+  let stashedItem: unknown;
+  let hasStashedItem = false;
   for (; index < len; index++) {
     const item = result[index];
     if (item == null) {
@@ -2386,6 +2389,8 @@ function completePlannedObjectListValue(
       continue;
     }
     if (!isObjectLike(item) || isPromise(item) || item instanceof Error) {
+      stashedItem = item;
+      hasStashedItem = true;
       break;
     }
     let nested: Record<string, unknown> | ThinObjectPartial | undefined;
@@ -2399,11 +2404,15 @@ function completePlannedObjectListValue(
       );
     } catch (bubbled) {
       pendingBubbled = bubbled;
+      stashedItem = item;
+      hasStashedItem = true;
       break;
     }
     if (nested === undefined) {
       stashedNested = STASH_SLIM_DECLINED;
       hasStash = true;
+      stashedItem = item;
+      hasStashedItem = true;
       break;
     }
     if (
@@ -2413,6 +2422,8 @@ function completePlannedObjectListValue(
     ) {
       stashedNested = nested as ThinObjectPartial;
       hasStash = true;
+      stashedItem = item;
+      hasStashedItem = true;
       break;
     }
     completedResults[index] = nested;
@@ -2436,6 +2447,8 @@ function completePlannedObjectListValue(
     stashedNested,
     hasStash,
     pendingBubbled,
+    hasStashedItem ? stashedItem : undefined,
+    hasStashedItem,
   );
 }
 
@@ -2454,10 +2467,12 @@ function completePlannedObjectListValuePhaseB(
     | Record<string, unknown>
     | ThinObjectPartial
     | undefined
-    | Promise<unknown>
+    | MaybePromise<Record<string, unknown> | ThinObjectPartial | undefined>
     | typeof STASH_SLIM_DECLINED,
   hasStash: boolean,
   pendingBubbled: unknown,
+  stashedItem: unknown,
+  hasStashedItem: boolean,
 ): MaybePromise<ReadonlyArray<unknown> | null> {
   // Phase B — remaining items (and stashed Phase A item).
   let visitedCount = index;
@@ -2571,11 +2586,17 @@ function completePlannedObjectListValuePhaseB(
   for (; index < result.length; index++) {
     visitedCount = index + 1;
     let item: unknown;
-    try {
-      item = result[index];
-    } catch (rawError) {
-      exeContext.signal?.throwIfAborted();
-      throw coerceError(rawError);
+    if (hasStashedItem) {
+      item = stashedItem;
+      hasStashedItem = false;
+      stashedItem = undefined;
+    } else {
+      try {
+        item = result[index];
+      } catch (rawError) {
+        exeContext.signal?.throwIfAborted();
+        throw coerceError(rawError);
+      }
     }
     const itemPath = addPath(path, index, undefined);
     if (pendingBubbled !== undefined) {
@@ -2746,7 +2767,7 @@ function completePlannedObjectListValuePhaseB(
     // Sync object — hot path: slim/tryFast plain Record assign (nestedDefault).
     const syncItem = item as Record<string, unknown>;
     try {
-      let nested: Record<string, unknown> | ThinObjectPartial | undefined | Promise<unknown>;
+      let nested: MaybePromise<Record<string, unknown> | ThinObjectPartial | undefined>;
       if (hasStash) {
         hasStash = false;
         if (stashedNested === STASH_SLIM_DECLINED) {
@@ -2811,8 +2832,9 @@ function completePlannedObjectListValuePhaseB(
   }
 
   const trimVisited = (): Array<unknown> => {
-    const live = result.length;
-    completedResults.length = visitedCount < live ? visitedCount : live;
+    // Length from visited slots only — a pending child must not truncate
+    // already-written later indices if the source array shrinks mid-join.
+    completedResults.length = visitedCount;
     return completedResults;
   };
   if (asyncUpdates != null && asyncUpdates.length > 0) {
@@ -5369,8 +5391,16 @@ function executePlannedSyncObjectFieldsPreCR(
         return n > 0 ? thinObjectMiss(results, false, undefined) : undefined;
       }
       if (property != null && typeof property === 'object' && isPromise(property)) {
-        (property as Promise<unknown>).then(undefined, () => undefined);
-        return n > 0 ? thinObjectMiss(results, true, undefined) : undefined;
+        const pendingLeaves = registerThinPendingLeaf(
+          results,
+          undefined,
+          parentType,
+          responseName,
+          property as Promise<unknown>,
+          fieldNodes,
+          fieldPlan,
+        );
+        return thinObjectMiss(results, true, pendingLeaves);
       }
     } else if (property instanceof Error) {
       return n > 0 ? thinObjectMiss(results, false, undefined) : undefined;

@@ -65,7 +65,7 @@ type PlanCacheEntry =
  * document -> schema -> operationName -> compiled entry.
  * Error results are remembered so we do not re-walk the AST every time.
  */
-const planCache = new WeakMap<DocumentNode, WeakMap<GraphQLSchema, Map<string, PlanCacheEntry>>>();
+let planCache = new WeakMap<DocumentNode, WeakMap<GraphQLSchema, Map<string, PlanCacheEntry>>>();
 
 /**
  * When false, {@link resolvePlanForExecute} skips compile/cache so `execute`
@@ -244,8 +244,10 @@ export function resolvePlanForExecute(
 export function clearExecutionPlanCache(document?: DocumentNode): void {
   if (document) {
     planCache.delete(document);
+    return;
   }
-  // WeakMap has no clear; callers pass a document when they need invalidation.
+  // Full reset for test afterEach (WeakMap has no .clear).
+  planCache = new WeakMap();
 }
 
 function operationCacheKey(operationName: string | null | undefined): string {
