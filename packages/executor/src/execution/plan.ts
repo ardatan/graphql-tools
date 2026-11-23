@@ -353,6 +353,27 @@ function collectSkipIncludeVariableNames(document: DocumentNode): Set<string> {
 
 function collectSkipIncludeVarsFromSelectionSet(
   selectionSet: { selections: ReadonlyArray<any> },
+  names: Set<string>,
+): void {
+  for (const selection of selectionSet.selections) {
+    if (selection.directives) {
+      for (const directive of selection.directives) {
+        const directiveName = directive.name.value as string;
+        if (directiveName !== 'skip' && directiveName !== 'include') {
+          continue;
+        }
+        for (const arg of directive.arguments ?? []) {
+          if (arg.name.value === 'if' && arg.value.kind === Kind.VARIABLE) {
+            names.add(arg.value.name.value);
+          }
+        }
+      }
+    }
+    if (selection.selectionSet) {
+      collectSkipIncludeVarsFromSelectionSet(selection.selectionSet, names);
+    }
+  }
+}
 
 function documentHasIncrementalDirectives(document: DocumentNode): boolean {
   for (const definition of document.definitions) {
