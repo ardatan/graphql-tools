@@ -869,6 +869,53 @@ describe('execution plan', () => {
     expect(reads).toBe(1);
   });
 
+  // R24 P1-05: multiple Int! nulls must aggregate like classic (not early-return one).
+  it('P1-05: aggregates multiple Int! null variable errors like classic', () => {
+    const document = parse('query ($x: Int!, $y: Int!) { n }');
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    const coerced = plan.coerceVariables({ x: null, y: null });
+    expect('errors' in coerced).toBe(true);
+    if (!('errors' in coerced)) {
+      return;
+    }
+    expect(coerced.errors).toHaveLength(2);
+    expect(coerced.errors.some(e => e.message.includes('$x'))).toBe(true);
+    expect(coerced.errors.some(e => e.message.includes('$y'))).toBe(true);
+  });
+
+  // R24 P1-06: coerce fallback must not re-read prior one-shot variable getters.
+  it('P1-06: coerce fallback does not re-consume a prior one-shot variable getter', () => {
+    // `$b: [Int]` as a Set forces INPUT_COERCE_DEFER → getVariableValues after `$a` was read.
+    const document = parse('query ($a: Int, $b: [Int]) { n }');
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    let aReads = 0;
+    const raw = {
+      get a() {
+        aReads += 1;
+        if (aReads > 1) {
+          throw new Error('a getter re-consumed');
+        }
+        return 1;
+      },
+      b: new Set([1, 2]),
+    };
+    const coerced = plan.coerceVariables(raw);
+    expect('variableValues' in coerced).toBe(true);
+    if ('variableValues' in coerced) {
+      expect(coerced.variableValues.coerced['a']).toBe(1);
+      expect(coerced.variableValues.coerced['b']).toEqual([1, 2]);
+    }
+    expect(aReads).toBe(1);
+  });
+
   it('applies GraphQL 17 coerceInputLiteral for variable defaults', () => {
     if (versionInfo.major < 17) {
       return;

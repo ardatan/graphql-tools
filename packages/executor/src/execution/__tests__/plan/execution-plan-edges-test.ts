@@ -7,6 +7,7 @@ import {
   GraphQLBoolean,
   GraphQLError,
   GraphQLID,
+  GraphQLInputObjectType,
   GraphQLInt,
   GraphQLInterfaceType,
   GraphQLList,
@@ -1918,6 +1919,164 @@ describe('thin-walk fallback invocation counts', () => {
       data: { items: [{ ok: 'fine', bad: null }] },
       errors: [expect.objectContaining({ message: 'getter boom', path: ['items', 0, 'bad'] })],
     });
+  });
+
+  // R24 P1-07: compile must not run custom scalar parseLiteral for skipped fields;
+  // holdArgumentError must not sticky-fail when the field is skipped.
+  it('P1-07: no compile-time custom parseLiteral on skipped fields; skip hides bad literal', () => {
+    let parseLiteralCalls = 0;
+    const Boom = new GraphQLScalarType({
+      name: 'BoomSkip',
+      serialize: v => v,
+      parseValue: v => v,
+      parseLiteral(ast) {
+        parseLiteralCalls += 1;
+        if (ast.kind === 'StringValue' && ast.value === 'bad') {
+          throw new GraphQLError('boom literal');
+        }
+        return valueFromASTUntyped(ast);
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          ok: { type: GraphQLString, resolve: () => 'ok' },
+          echo: {
+            type: Boom,
+            args: { msg: { type: Boom } },
+            resolve: (_s, args: { msg: unknown }) => args.msg,
+          },
+        },
+      }),
+    });
+    const document = parse('query ($s: Boolean!) { ok echo(msg: "hi") @skip(if: $s) }');
+    clearExecutionPlanCache(document);
+    parseLiteralCalls = 0;
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    // Compile must not coerce skipped-field custom literals.
+    expect(parseLiteralCalls).toBe(0);
+
+    parseLiteralCalls = 0;
+    const skipped = executeSync({
+      schema,
+      document,
+      variableValues: { s: true },
+    });
+    expect(skipped).toEqual({ data: { ok: 'ok' } });
+    expect(parseLiteralCalls).toBe(0);
+
+    const badDoc = parse('query ($s: Boolean!) { ok echo(msg: "bad") @skip(if: $s) }');
+    clearExecutionPlanCache(badDoc);
+    const badPlan = compileExecutionPlan({ schema, document: badDoc });
+    expect(isExecutionPlan(badPlan)).toBe(true);
+    // Skipped: holdArgumentError must not surface.
+    expect(executeSync({ schema, document: badDoc, variableValues: { s: true } })).toEqual({
+      data: { ok: 'ok' },
+    });
+    // Included: bad literal errors like classic.
+    const included = executeSync({ schema, document: badDoc, variableValues: { s: false } });
+    const classic = executeClassicSync({
+      schema,
+      document: badDoc,
+      variableValues: { s: false },
+    });
+    expect(included.errors?.length).toBeGreaterThan(0);
+    expect(included).toEqual(classic);
+  });
+
+  // R24 V03: @oneOf input must not double-read the selected key getter.
+  it('V03: @oneOf coerce reads the selected key getter once', () => {
+    const oneOfInput = new GraphQLInputObjectType({
+      name: 'V03OneOf',
+      isOneOf: true,
+      fields: {
+        a: { type: GraphQLString },
+        b: { type: GraphQLInt },
+      },
+    });
+    const oneOfSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          test: {
+            type: GraphQLString,
+            args: { input: { type: new GraphQLNonNull(oneOfInput) } },
+            resolve: (_src, args: { input: { a?: string } }) => args.input.a ?? null,
+          },
+        },
+      }),
+    });
+    const document = parse('query ($input: V03OneOf!) { test(input: $input) }');
+    const plan = compileExecutionPlan({ schema: oneOfSchema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    let aReads = 0;
+    const raw = {
+      input: {
+        get a() {
+          aReads += 1;
+          return 'only';
+        },
+      },
+    };
+    const coerced = plan.coerceVariables(raw);
+    expect('variableValues' in coerced).toBe(true);
+    expect(aReads).toBe(1);
+  });
+
+  // R24 V04: EMPTY_ARGS must stay frozen.
+  it('V04: EMPTY_ARGS is frozen', () => {
+    const document = parse('{ id }');
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: { id: { type: GraphQLString, resolve: () => 'x' } },
+      }),
+    });
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    const fieldPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('id')!);
+    expect(fieldPlan?.staticArgs).toBeDefined();
+    expect(Object.isFrozen(fieldPlan!.staticArgs)).toBe(true);
+    expect(() => {
+      (fieldPlan!.staticArgs as Record<string, unknown>)['x'] = 1;
+    }).toThrow();
+  });
+
+  // R24 V05: skip/include fold order matches classic for mixed directives.
+  it('V05: skip/include fold order matches classic', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          a: { type: GraphQLString, resolve: () => 'A' },
+          b: { type: GraphQLString, resolve: () => 'B' },
+        },
+      }),
+    });
+    const document = parse(`
+      query ($skip: Boolean!, $include: Boolean!) {
+        a @skip(if: $skip) @include(if: $include)
+        b @include(if: $include) @skip(if: $skip)
+      }
+    `);
+    for (const vars of [
+      { skip: false, include: true },
+      { skip: true, include: true },
+      { skip: false, include: false },
+      { skip: true, include: false },
+    ]) {
+      const planned = executeSync({ schema, document, variableValues: vars });
+      const classic = executeClassicSync({ schema, document, variableValues: vars });
+      expect(planned).toEqual(classic);
+    }
   });
 });
 

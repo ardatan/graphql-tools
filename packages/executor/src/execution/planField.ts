@@ -6,6 +6,7 @@ import {
   GraphQLAbstractType,
   GraphQLError,
   GraphQLField,
+  GraphQLInputType,
   GraphQLLeafType,
   GraphQLObjectType,
   GraphQLOutputType,
@@ -32,7 +33,12 @@ import {
   groupConditionalEntriesByResponseName,
   type ConditionalFieldEntry,
 } from './conditionalCollect.js';
-import { EMPTY_ARGS, EMPTY_VARIABLE_VALUES, isGraphQL17 } from './planShared.js';
+import {
+  BUILTIN_LEAF_TYPES,
+  EMPTY_ARGS,
+  EMPTY_VARIABLE_VALUES,
+  isGraphQL17,
+} from './planShared.js';
 import type {
   ArgumentReader,
   FieldPlan,
@@ -560,7 +566,18 @@ function compileArgumentReader(
   }
 
   if (!fieldArgumentsContainVariable(fieldNode)) {
-    // Pre-coerce only when literals are valid with empty variables. Missing
+    // P1-07: custom-scalar literals must not run parseLiteral at compile time
+    // (skipped fields / holdArgumentError sticky fail). Defer to first read.
+    if (fieldArgsUseCustomLeaf(fieldDef)) {
+      const read = (_variableValues: VariableValues) =>
+        getArgumentValuesForPlan(fieldDef, fieldNode, EMPTY_VARIABLE_VALUES);
+      return {
+        staticArgs: undefined,
+        argumentReader: { kind: 'coercer', read },
+        readArguments: read,
+      };
+    }
+    // Pre-coerce builtin literals when valid with empty variables. Missing
     // required args / bad literals (#5): plan-held GraphQLError replay.
     try {
       // Template only — each read returns a fresh object so resolvers that
@@ -587,7 +604,6 @@ function compileArgumentReader(
       };
     }
   }
-
   const bareBindings = tryBareVariableBindings(fieldDef, fieldNode, parentType);
   if (bareBindings) {
     const missingAstMessageByArg = compileMissingAstArgMessages(fieldDef, fieldNode, parentType);
@@ -632,6 +648,23 @@ function compileArgumentReader(
     argumentReader: { kind: 'coercer', read },
     readArguments: read,
   };
+}
+
+/** True when any field argument type wraps a non-builtin leaf (custom scalar/enum). */
+function fieldArgsUseCustomLeaf(fieldDef: GraphQLField<unknown, unknown>): boolean {
+  for (const arg of fieldDef.args) {
+    let t: GraphQLInputType = arg.type;
+    while (isNonNullType(t) || isListType(t)) {
+      t = t.ofType;
+    }
+    if (isLeafType(t) && !BUILTIN_LEAF_TYPES.has(t)) {
+      return true;
+    }
+    if (isInputObjectType(t)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**

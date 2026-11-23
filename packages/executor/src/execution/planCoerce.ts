@@ -152,15 +152,13 @@ export function compileVariableCoercer(
   const leafBindings = tryCompileBuiltinLeafVariableBindings(schema, variableDefinitions);
   if (leafBindings != null) {
     return (rawVariableValues, options) => {
-      const fast = tryCoerceBuiltinLeafVariables(
-        leafBindings,
-        rawVariableValues,
-        options?.hideSuggestions,
-      );
+      // P1-06: memoize raw reads so getVariableValues fallback cannot re-consume getters.
+      const memoRaw = memoizeRawVariableValues(rawVariableValues);
+      const fast = tryCoerceBuiltinLeafVariables(leafBindings, memoRaw, options?.hideSuggestions);
       if (fast !== undefined) {
         return 'errors' in fast ? fast : { variableValues: fast };
       }
-      return runFull(rawVariableValues, options);
+      return runFull(memoRaw, options);
     };
   }
 
@@ -170,16 +168,52 @@ export function compileVariableCoercer(
   }
 
   return (rawVariableValues, options) => {
-    const fast = tryCoerceHoistedVariables(
-      inputBindings,
-      rawVariableValues,
-      options?.hideSuggestions,
-    );
+    const memoRaw = memoizeRawVariableValues(rawVariableValues);
+    const fast = tryCoerceHoistedVariables(inputBindings, memoRaw, options?.hideSuggestions);
     if (fast !== undefined) {
       return 'errors' in fast ? fast : { variableValues: fast };
     }
-    return runFull(rawVariableValues, options);
+    return runFull(memoRaw, options);
   };
+}
+
+/**
+ * Cache own-property reads (including getter throws) so a fast-path miss that
+ * falls back to getVariableValues does not re-invoke one-shot accessors (P1-06).
+ */
+function memoizeRawVariableValues(
+  rawVariableValues: { readonly [key: string]: unknown } | null | undefined,
+): { readonly [key: string]: unknown } {
+  if (rawVariableValues == null) {
+    return EMPTY_RAW_VARIABLES;
+  }
+  const raw = rawVariableValues;
+  const cache = new Map<
+    PropertyKey,
+    { kind: 'value'; value: unknown } | { kind: 'throw'; error: unknown }
+  >();
+  return new Proxy(raw as object, {
+    get(target, prop, receiver) {
+      if (typeof prop === 'symbol') {
+        return Reflect.get(target, prop, receiver);
+      }
+      const hit = cache.get(prop);
+      if (hit != null) {
+        if (hit.kind === 'throw') {
+          throw hit.error;
+        }
+        return hit.value;
+      }
+      try {
+        const value = Reflect.get(target, prop, receiver);
+        cache.set(prop, { kind: 'value', value });
+        return value;
+      } catch (error) {
+        cache.set(prop, { kind: 'throw', error });
+        throw error;
+      }
+    },
+  }) as { readonly [key: string]: unknown };
 }
 
 /** Plan-bound input value coercer; returns `undefined` to signal fallback. */
@@ -284,6 +318,8 @@ function tryCoerceHoistedVariables(
   const raw = rawVariableValues ?? EMPTY_RAW_VARIABLES;
   const coerced = newCoercedObject();
   const sources = Object.create(null) as VariableValues['sources'];
+  // P1-05: collect NonNull missing/null errors like classic maxErrors aggregation.
+  const aggregated: GraphQLError[] = [];
   for (const binding of bindings) {
     const signature = {
       name: binding.name,
@@ -292,7 +328,9 @@ function tryCoerceHoistedVariables(
     };
     const read = readRawVariable(raw, binding.name);
     if (read.kind === 'thrown') {
-      return { errors: errorsFromThrownCoerce(thrownCoerceResult(read.error)) };
+      return {
+        errors: [...aggregated, ...errorsFromThrownCoerce(thrownCoerceResult(read.error))],
+      };
     }
     if (read.kind === 'missing') {
       sources[binding.name] = { signature };
@@ -304,14 +342,15 @@ function tryCoerceHoistedVariables(
         );
         if (materialized === undefined) {
           // Fresh AST default coercion failed; classic getVariableValues.
-          return undefined;
+          return aggregated.length > 0 ? { errors: aggregated } : undefined;
         }
         coerced[binding.name] = materialized;
         continue;
       }
       if (binding.nonNull) {
-        // Fall through to getVariableValues so all missing vars are reported.
-        return undefined;
+        const parts = binding.nonNullErrors!;
+        aggregated.push(new GraphQLError(parts.missingMessage, { nodes: parts.nodes }));
+        continue;
       }
       continue;
     }
@@ -319,9 +358,14 @@ function tryCoerceHoistedVariables(
     sources[binding.name] = { signature, value };
     if (value == null && binding.nonNull) {
       const parts = binding.nonNullErrors!;
-      return {
-        errors: [new GraphQLError(parts.nullMessage, { nodes: parts.nodes })],
-      };
+      aggregated.push(new GraphQLError(parts.nullMessage, { nodes: parts.nodes }));
+      continue;
+    }
+    if (aggregated.length > 0) {
+      // Already failing NonNull vars — still walk remaining bindings for more
+      // NonNull misses, but skip value coerce (classic aggregates without
+      // needing successful coerced maps).
+      continue;
     }
     const coercedValue = binding.coerce(value);
     if (coercedValue === INPUT_COERCE_DEFER) {
@@ -346,9 +390,11 @@ function tryCoerceHoistedVariables(
     }
     coerced[binding.name] = coercedValue;
   }
+  if (aggregated.length > 0) {
+    return { errors: aggregated };
+  }
   return { coerced, sources };
 }
-
 /**
  * Build a plan-bound coercer for one input type (shared across variables).
  * `@oneOf` is handled on the happy path; failures return `undefined` so
@@ -514,6 +560,7 @@ function compileInputValueCoercer(
         const obj = raw as Record<string, unknown>;
         let definedFieldCount = 0;
         let onlyKey: string | undefined;
+        let onlyValue: unknown;
         for (const key of Object.keys(obj)) {
           let keyValue: unknown;
           try {
@@ -531,6 +578,7 @@ function compileInputValueCoercer(
           }
           definedFieldCount++;
           onlyKey = key;
+          onlyValue = keyValue;
           if (!expectedKeys.has(key)) {
             return undefined;
           }
@@ -558,12 +606,7 @@ function compileInputValueCoercer(
         if (field == null) {
           return undefined;
         }
-        let onlyValue: unknown;
-        try {
-          onlyValue = obj[onlyKey];
-        } catch (error) {
-          return thrownCoerceResult(error);
-        }
+        // V03: coerce the value already read for `onlyKey` (no second getter hit).
         const coercedField = field.coerce(onlyValue);
         if (coercedField === INPUT_COERCE_DEFER) {
           return INPUT_COERCE_DEFER;
@@ -807,6 +850,8 @@ function tryCoerceBuiltinLeafVariables(
   const raw = rawVariableValues ?? EMPTY_RAW_VARIABLES;
   const coerced = newCoercedObject();
   const sources = Object.create(null) as VariableValues['sources'];
+  // P1-05: collect NonNull missing/null errors like classic maxErrors aggregation.
+  const aggregated: GraphQLError[] = [];
   for (const binding of bindings) {
     const signature = {
       name: binding.name,
@@ -815,7 +860,9 @@ function tryCoerceBuiltinLeafVariables(
     };
     const read = readRawVariable(raw, binding.name);
     if (read.kind === 'thrown') {
-      return { errors: errorsFromThrownCoerce(thrownCoerceResult(read.error)) };
+      return {
+        errors: [...aggregated, ...errorsFromThrownCoerce(thrownCoerceResult(read.error))],
+      };
     }
     if (read.kind === 'missing') {
       sources[binding.name] = { signature };
@@ -827,14 +874,15 @@ function tryCoerceBuiltinLeafVariables(
         );
         if (materialized === undefined) {
           // Fresh AST default coercion failed; classic getVariableValues.
-          return undefined;
+          return aggregated.length > 0 ? { errors: aggregated } : undefined;
         }
         coerced[binding.name] = materialized;
         continue;
       }
       if (binding.nonNull) {
-        // Fall through to getVariableValues so all missing vars are reported.
-        return undefined;
+        const parts = binding.nonNullErrors!;
+        aggregated.push(new GraphQLError(parts.missingMessage, { nodes: parts.nodes }));
+        continue;
       }
       continue;
     }
@@ -843,11 +891,15 @@ function tryCoerceBuiltinLeafVariables(
     if (value == null) {
       if (binding.nonNull) {
         const parts = binding.nonNullErrors!;
-        return {
-          errors: [new GraphQLError(parts.nullMessage, { nodes: parts.nodes })],
-        };
+        aggregated.push(new GraphQLError(parts.nullMessage, { nodes: parts.nodes }));
+        continue;
       }
-      coerced[binding.name] = null;
+      if (aggregated.length === 0) {
+        coerced[binding.name] = null;
+      }
+      continue;
+    }
+    if (aggregated.length > 0) {
       continue;
     }
     let parsed: unknown;
@@ -900,6 +952,9 @@ function tryCoerceBuiltinLeafVariables(
       return undefined;
     }
     coerced[binding.name] = parsed;
+  }
+  if (aggregated.length > 0) {
+    return { errors: aggregated };
   }
   return { coerced, sources };
 }
