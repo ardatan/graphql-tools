@@ -94,11 +94,6 @@ export interface FieldPlan {
    */
   readArguments: (variableValues: VariableValues) => { [argument: string]: unknown };
   /**
-   * True when `fieldDef.resolve` is unset or is the GraphQL default resolver.
-   * Runtime still gates on `exeContext.fieldResolver === defaultFieldResolver`.
-   */
-  mayUseDefaultLeafPath: boolean;
-  /**
    * Static GraphQLResolveInfo fields compiled once (path + execution details
    * filled at runtime by `buildPlannedResolveInfo`).
    */

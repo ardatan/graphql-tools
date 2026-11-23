@@ -274,21 +274,19 @@ test('default resolver property fast path benchmarks', async ({ bench }) => {
 
 /**
  * Execution plan warm vs cold: cold clears the plan cache every iteration so
- * compile + execute are measured; warm compiles once then repeatedly executes
- * on the warm plan path.
+ * compile + execute are measured; warm executes once then repeatedly hits the
+ * cached plan path.
  *
- * Skips when BENCH_PACKAGE_ROOT points at a build without the plan API (e.g.
- * master baseline in CI) so interleaved compare still runs other benches.
+ * Skips when the package under BENCH_PACKAGE_ROOT has no plan cache helper
+ * (e.g. master baseline in CI) so interleaved compare still runs other benches.
  */
 test('execution plan warm path benchmarks', async ({ bench }) => {
   const executor = await import('@graphql-tools/executor');
   const clearExecutionPlanCache = executor.clearExecutionPlanCache as
     ((document?: object) => void) | undefined;
-  const compileExecutionPlan = executor.compileExecutionPlan as
-    ((args: object) => unknown) | undefined;
 
-  if (typeof clearExecutionPlanCache !== 'function' || typeof compileExecutionPlan !== 'function') {
-    console.warn('execution plan API unavailable in this build; skipping plan warm/cold benches');
+  if (typeof clearExecutionPlanCache !== 'function') {
+    console.warn('execution plan cache unavailable in this build; skipping plan warm/cold benches');
     return;
   }
 
@@ -309,9 +307,11 @@ test('execution plan warm path benchmarks', async ({ bench }) => {
     },
   ).run();
 
-  compileExecutionPlan({
+  // Warm the cache via execute (no public compile API).
+  execute({
     schema: nestedSchema,
     document: nestedDefaultDocument,
+    rootValue: nestedRootValue,
   });
   await bench(
     'Plan warm: execute nested objects (cached plan)',
@@ -346,9 +346,10 @@ test('execution plan warm path benchmarks', async ({ bench }) => {
     },
   ).run();
 
-  compileExecutionPlan({
+  execute({
     schema: propertyBagSchema,
     document: propertyBagDocument,
+    rootValue: propertyBagRootValue,
   });
   await bench(
     'Plan warm: execute property-bag (cached plan)',

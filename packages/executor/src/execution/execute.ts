@@ -26,7 +26,6 @@ import {
   SelectionSetNode,
   TypeMetaFieldDef,
   TypeNameMetaFieldDef,
-  versionInfo,
 } from 'graphql';
 import {
   collectFields as _collectFields,
@@ -53,11 +52,7 @@ import {
   type FieldsAndPatches,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
-import {
-  handleMaybePromise,
-  isPromise,
-  type MaybePromise,
-} from '@whatwg-node/promise-helpers';
+import { handleMaybePromise, isPromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 import { coerceError } from './coerceError.js';
 import { CompactExecutionResultMap } from './compactExecutionResultMap.js';
 import {
@@ -65,6 +60,13 @@ import {
   type ConditionalCollectProgram,
   type ConditionalFieldEntry,
 } from './conditionalCollect.js';
+import type {
+  ExecutionArgs,
+  ExecutionContext,
+  IncrementalExecutionResults,
+  InitialIncrementalExecutionResult,
+  SingularExecutionResult,
+} from './executeTypes.js';
 import {
   cancelAsyncPayload,
   collectInitialPending,
@@ -90,55 +92,23 @@ import {
 } from './incrementalCollect.js';
 import { invariant } from './invariant.js';
 import {
-  compileExecutionPlan,
   filterPlannedExecutions,
   getPlannedFieldPlan,
   getPlannedSubfieldExecutions,
   getPlannedSubfields,
-  isExecutionPlan,
+  resolvePlanForExecute,
   type ArgumentReader,
   type FieldPlan,
   type PlannedFieldExecution,
 } from './plan.js';
+import { EMPTY_ARGS, EMPTY_VARIABLE_VALUES, isGraphQL17 } from './planShared.js';
 import { promiseForObject } from './promiseForObject.js';
-import type {
-  ExecutionArgs,
-  ExecutionContext,
-  IncrementalExecutionResults,
-  InitialIncrementalExecutionResult,
-  SingularExecutionResult,
-} from './executeTypes.js';
 
 export { defaultFieldResolver, defaultTypeResolver };
-export {
-  clearExecutionPlanCache,
-  compileExecutionPlan,
-  compileListItemLeaf,
-  getExecutionPlan,
-  getPlannedFieldPlan,
-  getPlannedSubfieldExecutions,
-  getPlannedSubfields,
-  isExecutionPlan,
-  type ArgumentReader,
-  type CoerceVariables,
-  type CoerceVariablesResult,
-  type CompileExecutionPlanArgs,
-  type CompletionKind,
-  type ExecutionPlan,
-  type FieldPlan,
-  type PlannedFieldExecution,
-  type PlannedLeafList,
-  type ResolveKind,
-} from './plan.js';
+/** Drop cached plans for a document (schema mutation / tests / benches). */
+export { clearExecutionPlanCache } from './plan.js';
 
 export type { CompletedResult, PendingResult } from './incremental.js';
-
-const EMPTY_ARGS: { [argument: string]: unknown } = Object.freeze(Object.create(null));
-const EMPTY_VARIABLE_VALUES: VariableValues = Object.freeze({
-  coerced: Object.freeze(Object.create(null)),
-  sources: Object.freeze(Object.create(null)),
-});
-const isGraphQL17 = versionInfo.major >= 17;
 
 export type {
   ExecutionArgs,
@@ -158,12 +128,7 @@ export type {
   SubsequentIncrementalExecutionResult,
 } from './executeTypes.js';
 
-export {
-  flattenIncrementalResults,
-  isIncrementalResults,
-  subscribe,
-} from './executeSubscribe.js';
-
+export { flattenIncrementalResults, isIncrementalResults, subscribe } from './executeSubscribe.js';
 
 /**
  * Cross-execution collectFields cache for documents whose `@skip` /
@@ -497,6 +462,9 @@ const getStreamUsageMemo = memoize2(function getStreamUsageMemo(
  *
  * If the arguments to this function do not result in a legal execution context,
  * a GraphQLError will be thrown immediately explaining the invalid input.
+ *
+ * Eligible documents compile a plan on first use and reuse it from the WeakMap
+ * cache on later executes.
  */
 export function execute<TData = any, TVariables = any, TContext = any>(
   args: ExecutionArgs<TData, TVariables, TContext>,
@@ -748,11 +716,9 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     ];
   }
 
-  // Compile / reuse an execution plan before variable coercion so warm paths
-  // can use planned coerceVariables (closed over schema + variableDefinitions).
-  // Operation resolution errors from compile are ignored — validated above.
-  const planResult = compileExecutionPlan({ schema, document, operationName });
-  const plan = isExecutionPlan(planResult) ? planResult : undefined;
+  // Compile / reuse from the WeakMap cache before variable coercion so warm
+  // paths can use planned coerceVariables.
+  const plan = resolvePlanForExecute({ schema, document, operationName });
 
   // FIXME: https://github.com/graphql/graphql-js/issues/2203
   /* c8 ignore next */
@@ -1911,9 +1877,12 @@ function completeValue(
         return completeLeafValue(fieldPlan!.leafType ?? (returnType as GraphQLLeafType), result);
       case 'leafList':
       case 'list':
+        if (!isListType(returnType)) {
+          break;
+        }
         return completeListValue(
           exeContext,
-          returnType as GraphQLList<GraphQLOutputType>,
+          returnType,
           fieldNodes,
           info,
           path,
@@ -2643,21 +2612,25 @@ function collectAndExecuteSubfields(
   if (plannedSubfields && exeContext.nulledPaths == null) {
     let plannedExecutions =
       plan != null ? getPlannedSubfieldExecutions(plan, fieldNodes, returnType) : undefined;
-    if (plannedExecutions != null && plan?.skipIncludePredicates) {
-      plannedExecutions = filterPlannedExecutions(
+    // Variable-dependent plans without a bound execution list cannot safely
+    // walk the union subfield map — fall through to classic collect.
+    if (!(plan?.skipIncludePredicates && plannedExecutions == null)) {
+      if (plannedExecutions != null && plan?.skipIncludePredicates) {
+        plannedExecutions = filterPlannedExecutions(
+          plannedExecutions,
+          exeContext.variableValues as VariableValues,
+        );
+      }
+      return executeFields(
+        exeContext,
+        returnType,
+        result,
+        path,
+        plannedSubfields,
+        asyncPayloadRecord,
         plannedExecutions,
-        exeContext.variableValues as VariableValues,
       );
     }
-    return executeFields(
-      exeContext,
-      returnType,
-      result,
-      path,
-      plannedSubfields,
-      asyncPayloadRecord,
-      plannedExecutions,
-    );
   }
 
   // Collect sub-fields to execute to complete this value.

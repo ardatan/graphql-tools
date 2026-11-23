@@ -1,5 +1,4 @@
 import {
-  DocumentNode,
   FieldNode,
   FragmentSpreadNode,
   GraphQLError,
@@ -17,53 +16,6 @@ export const ALWAYS_INCLUDE: IncludePredicate = (_variableValues: VariableValues
 export const NEVER_INCLUDE: IncludePredicate = (_variableValues: VariableValues): boolean => false;
 
 type SkipIncludeNode = FieldNode | InlineFragmentNode | FragmentSpreadNode;
-/**
- * True when every `@skip`/`@include` in the document sits on a Field node
- * (not fragment spreads / inline fragments). Kept for tests / diagnostics;
- * plan and collect-layer now support fragment-level predicates via
- * `conditionalCollect.ts`.
- */
-export function documentHasOnlyFieldSkipInclude(document: DocumentNode): boolean {
-  for (const definition of document.definitions) {
-    if (
-      definition.kind !== Kind.OPERATION_DEFINITION &&
-      definition.kind !== Kind.FRAGMENT_DEFINITION
-    ) {
-      continue;
-    }
-    if (!selectionSetHasOnlyFieldSkipInclude(definition.selectionSet)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function selectionSetHasOnlyFieldSkipInclude(selectionSet: {
-  selections: ReadonlyArray<{
-    kind: string;
-    directives?: ReadonlyArray<{ name: { value: string } }>;
-    selectionSet?: { selections: ReadonlyArray<any> };
-  }>;
-}): boolean {
-  for (const selection of selectionSet.selections) {
-    const directives = selection.directives;
-    if (directives) {
-      for (const directive of directives) {
-        const name = directive.name.value;
-        if (name !== 'skip' && name !== 'include') {
-          continue;
-        }
-        if (selection.kind !== Kind.FIELD) {
-          return false;
-        }
-      }
-    }
-    if (selection.selectionSet && !selectionSetHasOnlyFieldSkipInclude(selection.selectionSet)) {
-      return false;
-    }
-  }
-  return true;
-}
 
 /**
  * AND two include predicates. Identity / never shortcuts avoid extra closures.
@@ -250,23 +202,4 @@ function throwDirectiveIfError(
   }
   // Non-boolean weird runtime value — classic getDirectiveValues parity.
   return shouldIncludeNode(variableValues, node);
-}
-
-/**
- * Compile `@skip`/`@include` on one field node into an include predicate.
- */
-export function compileSingleFieldIncludePredicate(fieldNode: FieldNode): IncludePredicate {
-  return compileSkipIncludePredicate(fieldNode);
-}
-
-/**
- * Compile `@skip`/`@include` across merged field nodes into a single predicate.
- * A response name is included when any contributing field node is included
- * (matches collectFields merge semantics). Field-directives only — for
- * fragment path gates use `conditionalCollect` grouping instead.
- */
-export function compileFieldNodesIncludePredicate(
-  fieldNodes: ReadonlyArray<FieldNode>,
-): IncludePredicate {
-  return orIncludePredicates(fieldNodes.map(compileSingleFieldIncludePredicate));
 }

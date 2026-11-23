@@ -19,13 +19,8 @@ import {
   valueFromASTUntyped,
   versionInfo,
 } from 'graphql';
-import {
-  compileExecutionPlan,
-  execute,
-  executeSync,
-  getPlannedFieldPlan,
-  isExecutionPlan,
-} from '../../execute.js';
+import { execute, executeSync } from '../../execute.js';
+import { compileExecutionPlan, getPlannedFieldPlan, isExecutionPlan } from '../../plan.js';
 
 describe('execution plan warm-path edges', () => {
   describe('union / interface FieldNode keys', () => {

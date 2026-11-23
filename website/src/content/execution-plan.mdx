@@ -8,17 +8,16 @@ import { Callout } from '@theguild/components'
 
 # Planned execution
 
-`@graphql-tools/executor` can compile a cacheable **execution plan** for a GraphQL operation and
-reuse it across repeated `execute` / `executeSync` calls. The plan is an in-memory structure
-interpreted by the default executor on the warm path.
+`@graphql-tools/executor` compiles a cacheable **execution plan** for a GraphQL operation and reuses
+it across repeated `execute` / `executeSync` calls. The plan is an in-memory structure the executor
+interprets on the warm path.
 
 On a warm hit, field collection, type classification, variable coercion, resolveInfo statics, and
 safe argument reads are already prepared, so each request does less AST work.
 
 ## What is compiled
 
-For an eligible `(schema, document, operationName)`, `compileExecutionPlan` builds an
-`ExecutionPlan` that holds:
+For an eligible `(schema, document, operationName)`, `execute` builds an `ExecutionPlan` that holds:
 
 | Piece                | Role                                                                                                                                                    |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -50,13 +49,12 @@ flowchart TB
   className="mt-4 rounded"
 />
 
-## Document parser cache (compile once)
+## Document parser cache
 
 Plans are cached in a `WeakMap` keyed by **`DocumentNode` identity** (then schema, then operation
-name). That pairs naturally with a **document parser cache** (for example Yoga's
-`useParserAndValidationCache`, or Envelop's parser-cache plugin): the same query string keeps
-returning the same `DocumentNode`, so the plan is compiled on the first execute and reused on every
-later request for that document.
+name). Pair with a **document parser cache** (for example Yoga's `useParserAndValidationCache`, or
+Envelop's parser-cache plugin): the same query string keeps returning the same `DocumentNode`, so
+the plan compiles once and is reused on later requests for that document.
 
 ```mermaid
 sequenceDiagram
@@ -68,7 +66,7 @@ sequenceDiagram
   Client->>ParserCache: query string (1st)
   ParserCache->>ParserCache: parse -> DocumentNode A
   Client->>Execute: execute(document A)
-  Execute->>PlanCache: miss -> compileExecutionPlan
+  Execute->>PlanCache: compile plan
   PlanCache-->>Execute: ExecutionPlan P
   Execute-->>Client: result
 
@@ -81,33 +79,23 @@ sequenceDiagram
 
 <Callout type="info">
   Without a parser cache, each `parse(source)` allocates a **new** `DocumentNode`. The plan cache
-  cannot hit across those identities, so every request pays compile cost again. Pairing parser cache
-  + plan cache is how servers get the warm path in production.
+  cannot hit across those identities. Pairing parser cache + plan cache is how servers stay on the
+  warm path in production.
 </Callout>
 
-Cold first-hit (compile + execute) can be slower than classic execute on some documents; the wins
-below are for the **warm** path after the plan is cached. Default mode is speculative: classic
-execute on a cache miss, with a background compile so later hits are warm.
-
-## How to use it effectively
+## How to use it
 
 1. **Keep document identity stable**: use Yoga / Envelop parser cache, persisted queries, or any
    layer that returns the same `DocumentNode` for the same source.
-2. **Call the default executor**: `execute` / `executeSync` / `normalizedExecutor` compile and
-   attach the plan automatically via `buildExecutionContext`. You can also call
-   `compileExecutionPlan` yourself to warm the cache.
+2. **Call `execute`**: `execute` / `executeSync` / `normalizedExecutor` compile and cache the plan
+   as part of normal execution.
 3. **Prefer stable schemas**: plans close over field configs; if you mutate a schema object in
-   place, call `clearExecutionPlanCache(document)` (or use a new schema identity).
-4. **No API change required**: eligible operations get the warm path by default; ineligible or
-   error cases fall back to classic coerce / collect behavior with the same GraphQL error shapes.
+   place, use a new schema identity (or a new `DocumentNode`) so stale plans are not reused.
 
 ```ts
-import { compileExecutionPlan, execute } from '@graphql-tools/executor'
+import { execute } from '@graphql-tools/executor'
 
-// Optional: warm once at startup for known operations
-compileExecutionPlan({ schema, document })
-
-// Later requests with the same DocumentNode reuse the plan
+// Same DocumentNode identity across requests → warm plan path
 const result = await execute({ schema, document, variableValues })
 ```
 
@@ -133,8 +121,8 @@ resolveInfo static setup, and safe argument coercion on every request.
 
 ### Hoisted variable coercers
 
-| Bench                                    |                     Approx. delta |
-| ---------------------------------------- | --------------------------------: |
+| Bench                                    |                    Approx. delta |
+| ---------------------------------------- | -------------------------------: |
 | Coerce+execute heavy nested input-object |                     **~+67-74%** |
 | Coerce-only heavy nested input-object    | **~+130-140%** (stage isolation) |
 | Coerce+execute small nested input-object |        ~flat (execute-dominated) |
@@ -158,15 +146,3 @@ re-`collectFields` every time.
   alt="Execution plan completion and resolve kinds"
   className="mt-4 rounded"
 />
-
-## API surface
-
-| Export                    | Purpose                            |
-| ------------------------- | ---------------------------------- |
-| `compileExecutionPlan`    | Compile or return the cached plan  |
-| `getExecutionPlan`        | Lookup without compiling           |
-| `clearExecutionPlanCache` | Drop cached entries for a document |
-| `isExecutionPlan`         | Type guard for a successful plan   |
-
-See the package source (`packages/executor/src/execution/plan.ts`) for the full `ExecutionPlan` /
-`FieldPlan` TypeScript shapes.

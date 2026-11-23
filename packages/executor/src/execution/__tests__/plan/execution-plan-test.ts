@@ -9,15 +9,13 @@ import {
   GraphQLString,
   parse,
 } from 'graphql';
+import { buildExecutionContext, executeSync, type ExecutionContext } from '../../execute.js';
 import {
-  buildExecutionContext,
   clearExecutionPlanCache,
   compileExecutionPlan,
-  executeSync,
   getExecutionPlan,
   isExecutionPlan,
-  type ExecutionContext,
-} from '../../execute.js';
+} from '../../plan.js';
 
 const friendType = new GraphQLObjectType({
   name: 'Friend',
@@ -65,9 +63,7 @@ function assertExeContext(
 
 describe('execution plan', () => {
   afterEach(() => {
-    // Plans are WeakMap-cached by document; tests that share parse() results
-    // across cases rely on identity — clear nothing global. Per-document clear
-    // is exercised explicitly below.
+    // Plans are WeakMap-cached by document identity.
   });
 
   it('compiles a plan for stable documents and attaches it to ExecutionContext', () => {
@@ -660,5 +656,94 @@ describe('execution plan', () => {
         variableValues: { name: 'GraphQL' },
       }),
     ).toEqual({ data: { hello: 'hello GraphQL' } });
+  });
+
+  it('does not drop a later conditional spread of the same fragment', () => {
+    const document = parse(`
+      query ($a: Boolean!, $b: Boolean!) {
+        ...F @include(if: $a)
+        ...F @include(if: $b)
+      }
+      fragment F on Query {
+        a
+      }
+    `);
+    expect(
+      executeSync({
+        schema,
+        document,
+        variableValues: { a: false, b: true },
+      }),
+    ).toEqual({ data: { a: 'a' } });
+    expect(
+      executeSync({
+        schema,
+        document,
+        variableValues: { a: true, b: false },
+      }),
+    ).toEqual({ data: { a: 'a' } });
+  });
+
+  it('gates subfields from a conditionally merged parent field node', () => {
+    const document = parse(`
+      query ($s: Boolean!) {
+        items {
+          name
+        }
+        items @include(if: $s) {
+          friend {
+            name
+          }
+        }
+      }
+    `);
+    expect(
+      executeSync({
+        schema,
+        document,
+        variableValues: { s: false },
+      }),
+    ).toEqual({
+      data: {
+        items: [{ name: 'a' }, { name: 'b' }],
+      },
+    });
+    expect(
+      executeSync({
+        schema,
+        document,
+        variableValues: { s: true },
+      }),
+    ).toEqual({
+      data: {
+        items: [
+          { name: 'a', friend: { name: 'fa' } },
+          { name: 'b', friend: { name: 'fb' } },
+        ],
+      },
+    });
+  });
+
+  it('returns a fresh static args object per read so mutations do not leak', () => {
+    const document = parse('{ hello(name: "Ada") }');
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    const fieldPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('hello')!);
+    expect(fieldPlan).toBeDefined();
+    const coerced = plan.coerceVariables({});
+    expect('variableValues' in coerced).toBe(true);
+    if (!('variableValues' in coerced)) {
+      return;
+    }
+    const first = fieldPlan!.readArguments(coerced.variableValues);
+    const second = fieldPlan!.readArguments(coerced.variableValues);
+    expect(first).toEqual({ name: 'Ada' });
+    expect(second).toEqual({ name: 'Ada' });
+    expect(first).not.toBe(second);
+    (first as { name: string }).name = 'mutated';
+    expect(second).toEqual({ name: 'Ada' });
   });
 });

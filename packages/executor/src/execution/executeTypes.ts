@@ -27,7 +27,7 @@ import {
   type DeferUsage,
   type DeferUsageSet,
 } from './incrementalCollect.js';
-import type { ExecutionPlan } from './plan.js';
+import type { ExecutionPlan } from './planTypes.js';
 
 export interface SingularExecutionResult<TData = any, TExtensions = any> {
   errors?: ReadonlyArray<GraphQLError>;
@@ -100,9 +100,9 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   signalPromise?: Promise<never>;
   schemaCoordinateInErrors?: boolean;
   /**
-   * Execution plan from `compileExecutionPlan` when available. Stable docs
-   * reuse planned field maps; incremental / variable-collect docs still attach
-   * the plan for per-field facts via FieldNode keys.
+   * Internal execution plan when compile succeeded for this operation.
+   * Stable docs reuse planned field maps; incremental / variable-collect docs
+   * still attach the plan for per-field facts via FieldNode keys.
    */
   plan?: ExecutionPlan;
 }

@@ -1,20 +1,29 @@
 /**
  * Isolate variable/input-object coerce cost for baseline vs hoisted coercers.
- * Warm plan: compile once, then only call plan.coerceVariables.
+ * Warm plan: compile once (internal module), then only call plan.coerceVariables.
+ *
+ * Coerce-only cases need the internal plan module and only run against tip.
+ * Coerce+execute cases always run (master vs tip compare).
  */
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { buildSchema, parse } from 'graphql';
 import { test } from 'vitest';
-import {
-  compileExecutionPlan,
-  execute as executeImported,
-  isExecutionPlan,
-} from '@graphql-tools/executor';
+import { execute as executeImported } from '@graphql-tools/executor';
+import { compileExecutionPlan, isExecutionPlan } from '../plan.js';
 
 function writeOpts(name: string): { writeResult: string } | Record<string, never> {
   return process.env['BENCH_WRITE'] ? { writeResult: `./benchmarks/results/${name}.json` } : {};
 }
 
 const execute = executeImported;
+
+const tipRepoRoot = resolve(fileURLToPath(new URL('.', import.meta.url)), '../../../../../');
+
+function isTipPackage(): boolean {
+  const root = process.env['BENCH_PACKAGE_ROOT'];
+  return root == null || resolve(root) === tipRepoRoot;
+}
 
 const smallSchema = buildSchema(
   /* GraphQL */ `
@@ -39,10 +48,9 @@ const smallDocument = parse(/* GraphQL */ `
   }
 `);
 const smallRoot = {
-  search: (
-    _: unknown,
-    args: { filter: { a: number; b: string; nested: { x: number; y: number[] } } },
-  ) => `${args.filter.a}:${args.filter.b}:${args.filter.nested.x}:${args.filter.nested.y.length}`,
+  // Default field resolver calls root functions as (args, context, info).
+  search: (args: { filter: { a: number; b: string; nested: { x: number; y: number[] } } }) =>
+    `${args.filter.a}:${args.filter.b}:${args.filter.nested.x}:${args.filter.nested.y.length}`,
 };
 
 const heavySchema = buildSchema(
@@ -71,7 +79,7 @@ const heavyDocument = parse(/* GraphQL */ `
   }
 `);
 const heavyRoot = {
-  search: (_: unknown, args: { filter: { id: number; mids: unknown[] } }) =>
+  search: (args: { filter: { id: number; mids: unknown[] } }) =>
     args.filter.id + args.filter.mids.length,
 };
 
@@ -121,33 +129,6 @@ const defaultsDocument = parse(/* GraphQL */ `
   }
 `);
 
-const smallPlanResult = compileExecutionPlan({
-  schema: smallSchema,
-  document: smallDocument,
-});
-if (!isExecutionPlan(smallPlanResult)) {
-  throw new Error('expected small execution plan');
-}
-const smallPlan = smallPlanResult;
-
-const defaultsPlanResult = compileExecutionPlan({
-  schema: defaultsSchema,
-  document: defaultsDocument,
-});
-if (!isExecutionPlan(defaultsPlanResult)) {
-  throw new Error('expected defaults execution plan');
-}
-const defaultsPlan = defaultsPlanResult;
-
-const heavyPlanResult = compileExecutionPlan({
-  schema: heavySchema,
-  document: heavyDocument,
-});
-if (!isExecutionPlan(heavyPlanResult)) {
-  throw new Error('expected heavy execution plan');
-}
-const heavyPlan = heavyPlanResult;
-
 let smallCoerceN = 0;
 let heavyCoerceN = 0;
 let smallExecN = 0;
@@ -155,47 +136,78 @@ let heavyExecN = 0;
 let defaultsCoerceN = 0;
 
 test('coercer confidence (coerce-only + coerce+execute)', async ({ bench }) => {
-  await bench(
-    'Coerce-only: small nested input-object (warm plan)',
-    { ...writeOpts('coercer-only-small') },
-    () => {
-      for (let i = 0; i < 500; i++) {
-        smallCoerceN++;
-        const result = smallPlan.coerceVariables(makeSmallRaw(smallCoerceN));
-        if ('errors' in result) {
-          throw new Error('coerce failed');
-        }
-      }
-    },
-  ).run();
+  if (isTipPackage()) {
+    const smallPlanResult = compileExecutionPlan({
+      schema: smallSchema,
+      document: smallDocument,
+    });
+    if (!isExecutionPlan(smallPlanResult)) {
+      throw new Error('expected small execution plan');
+    }
+    const smallPlan = smallPlanResult;
 
-  await bench(
-    'Coerce-only: omitted vars use AST defaults (warm plan)',
-    { ...writeOpts('coercer-only-defaults') },
-    () => {
-      for (let i = 0; i < 500; i++) {
-        defaultsCoerceN++;
-        const result = defaultsPlan.coerceVariables({});
-        if ('errors' in result) {
-          throw new Error('coerce failed');
-        }
-      }
-    },
-  ).run();
+    const defaultsPlanResult = compileExecutionPlan({
+      schema: defaultsSchema,
+      document: defaultsDocument,
+    });
+    if (!isExecutionPlan(defaultsPlanResult)) {
+      throw new Error('expected defaults execution plan');
+    }
+    const defaultsPlan = defaultsPlanResult;
 
-  await bench(
-    'Coerce-only: heavy nested input-object (warm plan)',
-    { ...writeOpts('coercer-only-heavy') },
-    () => {
-      for (let i = 0; i < 50; i++) {
-        heavyCoerceN++;
-        const result = heavyPlan.coerceVariables(makeHeavyRaw(heavyCoerceN));
-        if ('errors' in result) {
-          throw new Error('coerce failed');
+    const heavyPlanResult = compileExecutionPlan({
+      schema: heavySchema,
+      document: heavyDocument,
+    });
+    if (!isExecutionPlan(heavyPlanResult)) {
+      throw new Error('expected heavy execution plan');
+    }
+    const heavyPlan = heavyPlanResult;
+
+    await bench(
+      'Coerce-only: small nested input-object (warm plan)',
+      { ...writeOpts('coercer-only-small') },
+      () => {
+        for (let i = 0; i < 500; i++) {
+          smallCoerceN++;
+          const result = smallPlan.coerceVariables(makeSmallRaw(smallCoerceN));
+          if ('errors' in result) {
+            throw new Error('coerce failed');
+          }
         }
-      }
-    },
-  ).run();
+      },
+    ).run();
+
+    await bench(
+      'Coerce-only: omitted vars use AST defaults (warm plan)',
+      { ...writeOpts('coercer-only-defaults') },
+      () => {
+        for (let i = 0; i < 500; i++) {
+          defaultsCoerceN++;
+          const result = defaultsPlan.coerceVariables({});
+          if ('errors' in result) {
+            throw new Error('coerce failed');
+          }
+        }
+      },
+    ).run();
+
+    await bench(
+      'Coerce-only: heavy nested input-object (warm plan)',
+      { ...writeOpts('coercer-only-heavy') },
+      () => {
+        for (let i = 0; i < 50; i++) {
+          heavyCoerceN++;
+          const result = heavyPlan.coerceVariables(makeHeavyRaw(heavyCoerceN));
+          if ('errors' in result) {
+            throw new Error('coerce failed');
+          }
+        }
+      },
+    ).run();
+  } else {
+    console.warn('coerce-only plan benches skipped (not tip package)');
+  }
 
   await bench(
     'Coerce+execute: small nested input-object',
@@ -211,6 +223,9 @@ test('coercer confidence (coerce-only + coerce+execute)', async ({ bench }) => {
         });
         if (result instanceof Promise) {
           throw new Error('expected sync result');
+        }
+        if (result.errors) {
+          throw new Error('execution returned errors');
         }
       }
     },
@@ -230,6 +245,9 @@ test('coercer confidence (coerce-only + coerce+execute)', async ({ bench }) => {
         });
         if (result instanceof Promise) {
           throw new Error('expected sync result');
+        }
+        if (result.errors) {
+          throw new Error('execution returned errors');
         }
       }
     },

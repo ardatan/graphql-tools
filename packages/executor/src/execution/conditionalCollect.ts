@@ -31,7 +31,8 @@ export type ConditionalCollectProgram = ReadonlyArray<ConditionalFieldEntry> | n
 /**
  * Compile a selection set into field entries with path-aware `@skip`/`@include`
  * predicates (fields and enclosing inline fragments / fragment spreads).
- * Returns `false` when the shape needs classic collect (`@defer` / `@stream`).
+ * Returns `false` when the shape needs classic collect (`@defer` / `@stream`,
+ * or a second conditional spread of a fragment that cannot be represented).
  */
 export function compileConditionalSelectionSet(
   schema: GraphQLSchema,
@@ -41,6 +42,11 @@ export function compileConditionalSelectionSet(
   entries: ConditionalFieldEntry[],
   visitedFragmentNames: Set<string>,
   parentInclude: IncludePredicate = ALWAYS_INCLUDE,
+  /**
+   * Fragment spreads whose first visit was gated by a non-always predicate.
+   * Shared across the whole walk (including multiple parent field nodes).
+   */
+  conditionalVisits: Set<string> = new Set(),
 ): boolean {
   for (const selection of selectionSet.selections) {
     switch (selection.kind) {
@@ -80,6 +86,7 @@ export function compileConditionalSelectionSet(
             entries,
             visitedFragmentNames,
             fragInclude,
+            conditionalVisits,
           )
         ) {
           return false;
@@ -92,6 +99,11 @@ export function compileConditionalSelectionSet(
         }
         const fragName = selection.name.value;
         if (visitedFragmentNames.has(fragName)) {
+          // Classic collect marks a spread visited only after it is included.
+          // A prior conditional visit cannot stand in for a later spread.
+          if (conditionalVisits.has(fragName)) {
+            return false;
+          }
           continue;
         }
         const fragment = fragments[fragName];
@@ -103,6 +115,9 @@ export function compileConditionalSelectionSet(
           parentInclude,
           compileSkipIncludePredicate(selection),
         );
+        if (spreadInclude !== ALWAYS_INCLUDE) {
+          conditionalVisits.add(fragName);
+        }
         if (spreadInclude === NEVER_INCLUDE) {
           break;
         }
@@ -115,6 +130,7 @@ export function compileConditionalSelectionSet(
             entries,
             visitedFragmentNames,
             spreadInclude,
+            conditionalVisits,
           )
         ) {
           return false;

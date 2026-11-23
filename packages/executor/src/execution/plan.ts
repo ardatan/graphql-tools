@@ -43,20 +43,14 @@ export type {
   ResolveKind,
 } from './planTypes.js';
 
-export {
-  compileListItemLeaf,
-  filterPlannedExecutions,
-  getPlannedSubfieldExecutions,
-} from './planField.js';
+export { filterPlannedExecutions, getPlannedSubfieldExecutions } from './planField.js';
 
 type PlanCacheEntry =
-  | { kind: 'plan'; plan: ExecutionPlan }
-  | { kind: 'ineligible' }
-  | { kind: 'errors'; errors: ReadonlyArray<GraphQLError> };
+  { kind: 'plan'; plan: ExecutionPlan } | { kind: 'errors'; errors: ReadonlyArray<GraphQLError> };
 
 /**
- * document → schema → operationName → compiled entry.
- * Ineligible documents are remembered so we do not re-walk the AST every time.
+ * document -> schema -> operationName -> compiled entry.
+ * Error results are remembered so we do not re-walk the AST every time.
  */
 const planCache = new WeakMap<DocumentNode, WeakMap<GraphQLSchema, Map<string, PlanCacheEntry>>>();
 
@@ -110,9 +104,11 @@ export function getPlannedSubfields(
  * Compile a cacheable execution plan for a validated operation.
  *
  * Variable `@skip` / `@include` use union collection + FieldNode keys.
- * `@defer` / `@stream` set `hasIncremental` , runtime keeps the incremental
+ * `@defer` / `@stream` set `hasIncremental`; runtime keeps the incremental
  * interpreter while still using per-field plan facts. Returns a GraphQL error
  * list when the operation cannot be resolved.
+ *
+ * `execute` compiles/caches via {@link resolvePlanForExecute}.
  */
 export function compileExecutionPlan(
   args: CompileExecutionPlanArgs,
@@ -141,7 +137,7 @@ export function compileExecutionPlan(
 
 /**
  * Look up a previously compiled plan without compiling. Returns `undefined`
- * when missing or ineligible.
+ * when missing or when compile stored errors.
  */
 export function getExecutionPlan(
   schema: GraphQLSchema,
@@ -150,6 +146,23 @@ export function getExecutionPlan(
 ): ExecutionPlan | undefined {
   const cached = getCachedPlanEntry(schema, document, operationName);
   return cached?.kind === 'plan' ? cached.plan : undefined;
+}
+
+/**
+ * Resolve the plan for one `execute` / `buildExecutionContext` call.
+ * Uses the WeakMap cache; compiles synchronously on a cache miss.
+ */
+export function resolvePlanForExecute(args: CompileExecutionPlanArgs): ExecutionPlan | undefined {
+  const cached = getCachedPlanEntry(args.schema, args.document, args.operationName);
+  if (cached?.kind === 'plan') {
+    return cached.plan;
+  }
+  if (cached != null) {
+    // errors: do not retry every request
+    return undefined;
+  }
+  const result = compileExecutionPlan(args);
+  return isExecutionPlan(result) ? result : undefined;
 }
 
 /**

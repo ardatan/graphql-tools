@@ -38,7 +38,11 @@ import type {
   PlannedLeafList,
   ResolveKind,
 } from './planTypes.js';
-import { ALWAYS_INCLUDE, type IncludePredicate } from './skipIncludePredicates.js';
+import {
+  ALWAYS_INCLUDE,
+  compileSkipIncludePredicate,
+  type IncludePredicate,
+} from './skipIncludePredicates.js';
 
 export function compilePatchFieldMaps(
   plan: ExecutionPlan,
@@ -135,10 +139,14 @@ function buildExecutionsFromParentFieldNodes(
 ): PlannedFieldExecution[] | undefined {
   const entries: ConditionalFieldEntry[] = [];
   const visitedFragmentNames = new Set<string>();
+  const conditionalVisits = new Set<string>();
   for (const fieldNode of parentFieldNodes) {
     if (fieldNode.selectionSet == null) {
       continue;
     }
+    // Inherit this contributing parent's own `@skip`/`@include` so subfields
+    // from a conditional merge peer stay gated (classic collect semantics).
+    const parentInclude = compileSkipIncludePredicate(fieldNode);
     if (
       !compileConditionalSelectionSet(
         plan.schema,
@@ -147,7 +155,8 @@ function buildExecutionsFromParentFieldNodes(
         fieldNode.selectionSet,
         entries,
         visitedFragmentNames,
-        ALWAYS_INCLUDE,
+        parentInclude,
+        conditionalVisits,
       )
     ) {
       return undefined;
@@ -189,7 +198,6 @@ function buildExecutionsFromConditionalEntries(
   }
   return executions;
 }
-
 
 export function compileFieldMap(
   plan: ExecutionPlan,
@@ -236,10 +244,6 @@ function compileFieldPlan(
     fieldResolve != null && fieldResolve !== defaultFieldResolver
       ? 'schemaResolve'
       : 'defaultProperty';
-  // Unset resolve or explicit `resolve: defaultFieldResolver` may take the
-  // leaf / leaf-list fast path when the effective runtime resolver is still default.
-  const mayUseDefaultLeafPath =
-    (leafType != null || listItemLeaf != null) && resolveKind === 'defaultProperty';
   const hasArgs = fieldDef.args.length > 0;
   const { staticArgs, argumentReader, readArguments } = compileArgumentReader(
     fieldDef,
@@ -266,7 +270,6 @@ function compileFieldPlan(
     staticArgs,
     argumentReader,
     readArguments,
-    mayUseDefaultLeafPath,
     resolveInfoStatic: {
       fieldName: fieldDef.name,
       fieldNodes,
@@ -367,7 +370,7 @@ function classifyCompletionKind(
 /**
  * If `type` is List or NonNull(List) of (NonNull) leaf, return leaf completion facts.
  */
-export function compileListItemLeaf(type: GraphQLOutputType): PlannedLeafList | undefined {
+function compileListItemLeaf(type: GraphQLOutputType): PlannedLeafList | undefined {
   let current: GraphQLOutputType = type;
   if (isNonNullType(current)) {
     current = current.ofType;
@@ -410,17 +413,17 @@ function compileArgumentReader(
     // Pre-coerce only when literals are valid with empty variables. Missing
     // required args / bad literals (#5): plan-held GraphQLError replay.
     try {
-      const staticArgs = Object.freeze(
-        Object.assign(
-          Object.create(null),
-          getArgumentValuesForPlan(fieldDef, fieldNode, EMPTY_VARIABLE_VALUES),
-        ),
+      // Template only — each read returns a fresh object so resolvers that
+      // mutate args (or nested inputs) cannot leak across requests.
+      const staticArgs = Object.assign(
+        Object.create(null),
+        getArgumentValuesForPlan(fieldDef, fieldNode, EMPTY_VARIABLE_VALUES),
       );
       const argumentReader: ArgumentReader = { kind: 'static', args: staticArgs };
       return {
         staticArgs,
         argumentReader,
-        readArguments: () => staticArgs,
+        readArguments: () => getArgumentValuesForPlan(fieldDef, fieldNode, EMPTY_VARIABLE_VALUES),
       };
     } catch (err) {
       const held = holdArgumentError(err);
@@ -801,7 +804,6 @@ export function getPlannedSubfieldExecutions(
   return plan.subfieldExecutionsByNodes.get(fieldNodes)?.get(returnType);
 }
 
-
 export function unionFieldMaps(
   a: Map<string, Array<FieldNode>>,
   b: Map<string, Array<FieldNode>>,
@@ -868,7 +870,6 @@ function valueContainsVariable(value: ValueNode): boolean {
       return false;
   }
 }
-
 
 function getFieldDefForPlan(
   schema: GraphQLSchema,
