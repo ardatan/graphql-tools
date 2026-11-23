@@ -1923,8 +1923,37 @@ function completePlannedObjectListValue(
         itemPath,
         subExecutions,
       );
-      if (nested === undefined || isThinObjectPartial(nested)) {
-        return undefined;
+      if (isThinObjectPartial(nested)) {
+        // Keep already-recorded children; finish only what the thin walk missed.
+        const finished = finishThinObjectPartialSync(
+          exeContext,
+          itemObjectType,
+          item,
+          itemPath,
+          subExecutions,
+          nested,
+        );
+        if (finished === undefined) {
+          // Remaining work is async — cannot keep the sync list path.
+          return undefined;
+        }
+        completedResults[index] = finished;
+        continue;
+      }
+      if (nested === undefined) {
+        // This item alone needs classic completion; do not redo prior items.
+        const finished = executeObjectItemViaFieldsSync(
+          exeContext,
+          itemObjectType,
+          item,
+          itemPath,
+          subExecutions,
+        );
+        if (finished === undefined) {
+          return undefined;
+        }
+        completedResults[index] = finished;
+        continue;
       }
       completedResults[index] = nested;
     } catch (bubbled) {
@@ -4000,6 +4029,68 @@ function thinObjectMiss(
   };
 }
 
+/**
+ * Finish a thin-walk partial by running only remaining children via classic
+ * executeFields. Returns undefined when remaining work is async (caller must
+ * leave the sync thin path).
+ */
+function finishThinObjectPartialSync(
+  exeContext: ExecutionContext,
+  parentType: GraphQLObjectType,
+  sourceValue: unknown,
+  path: Path,
+  plannedExecutions: ReadonlyArray<PlannedFieldExecution>,
+  partial: ThinObjectPartial,
+): Record<string, unknown> | undefined {
+  const remaining = plannedExecutions.filter(e => !partial.completed.has(e.responseName));
+  if (remaining.length === 0) {
+    return partial.results;
+  }
+  const restFields = new Map<string, Array<FieldNode>>();
+  for (const execution of remaining) {
+    restFields.set(execution.responseName, execution.fieldNodes as Array<FieldNode>);
+  }
+  const rest = executeFields(
+    exeContext,
+    parentType,
+    sourceValue,
+    path,
+    restFields,
+    undefined,
+    remaining,
+  );
+  if (isPromise(rest)) {
+    return undefined;
+  }
+  return Object.assign(partial.results, rest);
+}
+
+function executeObjectItemViaFieldsSync(
+  exeContext: ExecutionContext,
+  parentType: GraphQLObjectType,
+  sourceValue: unknown,
+  path: Path,
+  plannedExecutions: ReadonlyArray<PlannedFieldExecution>,
+): Record<string, unknown> | undefined {
+  const fields = new Map<string, Array<FieldNode>>();
+  for (const execution of plannedExecutions) {
+    fields.set(execution.responseName, execution.fieldNodes as Array<FieldNode>);
+  }
+  const completed = executeFields(
+    exeContext,
+    parentType,
+    sourceValue,
+    path,
+    fields,
+    undefined,
+    plannedExecutions,
+  );
+  if (isPromise(completed)) {
+    return undefined;
+  }
+  return completed;
+}
+
 function executePlannedSyncObjectFields(
   exeContext: ExecutionContext,
   parentType: GraphQLObjectType,
@@ -4106,14 +4197,31 @@ function executePlannedSyncObjectFields(
       }
       const childPath = addPath(path, responseName, parentType.name);
       try {
+        const nestedSubExecutions = filterPlannedExecutions(rawSub, exeContext.variableValues);
         const nested = executePlannedSyncObjectFields(
           exeContext,
           fieldPlan.objectType,
           property,
           childPath,
-          filterPlannedExecutions(rawSub, exeContext.variableValues),
+          nestedSubExecutions,
         );
-        if (nested === undefined || isThinObjectPartial(nested)) {
+        if (isThinObjectPartial(nested)) {
+          const finished = finishThinObjectPartialSync(
+            exeContext,
+            fieldPlan.objectType,
+            property,
+            childPath,
+            nestedSubExecutions,
+            nested,
+          );
+          if (finished === undefined) {
+            return thinObjectMiss(results, recordedGetterError);
+          }
+          results[responseName] = finished;
+          recordedGetterError = true;
+          continue;
+        }
+        if (nested === undefined) {
           return thinObjectMiss(results, recordedGetterError);
         }
         results[responseName] = nested;

@@ -934,6 +934,105 @@ describe('execution plan', () => {
     expect(idReads).toBe(1);
   });
 
+  it('preserves completed list items when a later item falls back from thin walk', () => {
+    let firstIdReads = 0;
+    const userType = new GraphQLObjectType({
+      name: 'ListPartialUser',
+      fields: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+        name: { type: GraphQLString },
+      },
+    });
+    const listPartialSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: {
+            type: new GraphQLList(userType),
+            resolve: () => [
+              {
+                get id() {
+                  firstIdReads += 1;
+                  if (firstIdReads === 1) {
+                    throw new Error('first id once');
+                  }
+                  return 'should-not-win';
+                },
+                name: 'Ada',
+              },
+              {
+                // Method forces thin miss for this item only.
+                id() {
+                  return 'u2';
+                },
+                name: 'Grace',
+              },
+            ],
+          },
+        },
+      }),
+    });
+    const document = parse('{ users { id name } }');
+    const result = executeSync({ schema: listPartialSchema, document });
+    expect(result).toEqual({
+      data: {
+        users: [null, { id: 'u2', name: 'Grace' }],
+      },
+      errors: [expect.objectContaining({ message: 'first id once' })],
+    });
+    expect(firstIdReads).toBe(1);
+  });
+
+  it('preserves nested partial thin results when a sibling needs classic', () => {
+    let idReads = 0;
+    const profileType = new GraphQLObjectType({
+      name: 'NestedPartialProfile',
+      fields: {
+        id: { type: GraphQLString },
+        name: { type: GraphQLString },
+      },
+    });
+    const userType = new GraphQLObjectType({
+      name: 'NestedPartialUser',
+      fields: {
+        profile: { type: profileType },
+      },
+    });
+    const nestedPartialSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          user: {
+            type: userType,
+            resolve: () => ({
+              profile: {
+                get id() {
+                  idReads += 1;
+                  if (idReads === 1) {
+                    throw new Error('profile id once');
+                  }
+                  return 'should-not-win';
+                },
+                name() {
+                  return 'Ada';
+                },
+              },
+            }),
+          },
+        },
+      }),
+    });
+    const document = parse('{ user { profile { id name } } }');
+    const result = executeSync({ schema: nestedPartialSchema, document });
+    expect(result).toEqual({
+      data: {
+        user: { profile: { id: null, name: 'Ada' } },
+      },
+      errors: [expect.objectContaining({ message: 'profile id once' })],
+    });
+    expect(idReads).toBe(1);
+  });
+
   it('propagates abort from thin object walk without reading later getters', () => {
     const controller = new AbortController();
     let nameReads = 0;
