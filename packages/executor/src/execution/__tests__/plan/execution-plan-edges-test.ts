@@ -2573,11 +2573,36 @@ describe('differential parity: classic vs planned (R9)', () => {
           : `{\n${selections.join('\n')}\n}`;
         const document = parse(source);
         const variableValues = useSkip ? { s: rand() > 0.5 } : undefined;
-        const args = { schema, document, rootValue: root, variableValues };
+        // Independent root/resolver state per mode — shared mutable roots can
+        // hide planned vs classic ordering differences.
+        const makeRoot = (): Record<string, unknown> => {
+          const next: Record<string, unknown> = {};
+          for (const [key, value] of Object.entries(root)) {
+            if (typeof value === 'function') {
+              const fn = value as () => unknown;
+              next[key] = () => fn();
+            } else if (Array.isArray(value)) {
+              next[key] = value.slice();
+            } else {
+              next[key] = value;
+            }
+          }
+          return next;
+        };
 
         try {
-          const planned = executeSync(args);
-          const classic = executeClassicSync(args);
+          const planned = executeSync({
+            schema,
+            document,
+            rootValue: makeRoot(),
+            variableValues,
+          });
+          const classic = executeClassicSync({
+            schema,
+            document,
+            rootValue: makeRoot(),
+            variableValues,
+          });
           expect(planned).toEqual(classic);
         } catch (err) {
           failures.push(`case ${caseIndex}: ${err instanceof Error ? err.message : String(err)}`);
@@ -2592,33 +2617,34 @@ describe('differential parity: classic vs planned (R9)', () => {
       const failures: string[] = [];
       for (let caseIndex = 0; caseIndex < 24; caseIndex++) {
         const mode = Math.floor(rand() * 4);
-        const schema = new GraphQLSchema({
-          query: new GraphQLObjectType({
-            name: 'Query',
-            fields: {
-              values: {
-                type: new GraphQLList(GraphQLString),
-                resolve: () => {
-                  if (mode === 0) {
-                    return ['a', 'b'];
-                  }
-                  if (mode === 1) {
-                    return [Promise.resolve('a'), Promise.resolve('b')];
-                  }
-                  if (mode === 2) {
-                    return ['a', Promise.reject(new Error(`rej-${caseIndex}`))];
-                  }
-                  return [Promise.resolve(new Error(`res-err-${caseIndex}`)), 'b'];
+        const makeSchema = () =>
+          new GraphQLSchema({
+            query: new GraphQLObjectType({
+              name: 'Query',
+              fields: {
+                values: {
+                  type: new GraphQLList(GraphQLString),
+                  resolve: () => {
+                    if (mode === 0) {
+                      return ['a', 'b'];
+                    }
+                    if (mode === 1) {
+                      return [Promise.resolve('a'), Promise.resolve('b')];
+                    }
+                    if (mode === 2) {
+                      return ['a', Promise.reject(new Error(`rej-${caseIndex}`))];
+                    }
+                    return [Promise.resolve(new Error(`res-err-${caseIndex}`)), 'b'];
+                  },
                 },
+                ok: { type: GraphQLString, resolve: () => 'yes' },
               },
-              ok: { type: GraphQLString, resolve: () => 'yes' },
-            },
-          }),
-        });
+            }),
+          });
         const document = parse('{ values ok }');
         try {
-          const planned = assertSingular(await execute({ schema, document }));
-          const classic = await executeClassic({ schema, document });
+          const planned = assertSingular(await execute({ schema: makeSchema(), document }));
+          const classic = await executeClassic({ schema: makeSchema(), document });
           expect(planned).toEqual(classic);
         } catch (err) {
           failures.push(
