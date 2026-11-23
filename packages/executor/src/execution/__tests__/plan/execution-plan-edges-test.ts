@@ -1672,6 +1672,253 @@ describe('thin-walk fallback invocation counts', () => {
     expect(nameReads).toBe(1);
     expect(nameSawIdAlready).toBe(true);
   });
+
+  // R22/R23 C1: after thinObjectMiss, completed leaf serialize must not re-run.
+  it('C1: does not re-serialize a completed leaf after thinObjectMiss', () => {
+    let serializeCalls = 0;
+    const CountSer = new GraphQLScalarType({
+      name: 'C1CountSer',
+      serialize(value) {
+        serializeCalls += 1;
+        return String(value);
+      },
+    });
+    const Item = new GraphQLObjectType({
+      name: 'C1Item',
+      fields: {
+        id: { type: CountSer },
+        name: {
+          type: GraphQLString,
+          args: { lang: { type: GraphQLString } },
+          resolve: (obj: { name: string }, args: { lang?: string | null }) =>
+            args.lang ? `${obj.name}:${args.lang}` : obj.name,
+        },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+        },
+      }),
+    });
+    const document = parse('{ items { id name(lang: "en") } }');
+    const rootValue = { items: [{ id: 1, name: 'Ada' }] };
+    const result = executeSync({ schema, document, rootValue });
+    expect(result).toEqual({
+      data: { items: [{ id: '1', name: 'Ada:en' }] },
+    });
+    expect(serializeCalls).toBe(1);
+    serializeCalls = 0;
+    const classic = executeClassicSync({ schema, document, rootValue });
+    expect(classic).toEqual(result);
+    expect(serializeCalls).toBe(1);
+  });
+
+  // R22/R23 C2: pending leaf must serialize raw async values (not stash raw).
+  it('C2: serializes pending async leaf raw values (not raw string for Int-like scalar)', async () => {
+    const Tagged = new GraphQLScalarType({
+      name: 'C2Tagged',
+      serialize(value) {
+        if (value === 'RAW') {
+          return 'SERIALIZED';
+        }
+        throw new Error(`unexpected serialize input: ${String(value)}`);
+      },
+    });
+    const Item = new GraphQLObjectType({
+      name: 'C2Item',
+      fields: {
+        tag: { type: Tagged },
+        label: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+        },
+      }),
+    });
+    const document = parse('{ items { tag label } }');
+    const rootValue = {
+      items: [{ tag: Promise.resolve('RAW'), label: 'ok' }],
+    };
+    const result = assertSingular(await execute({ schema, document, rootValue }));
+    expect(result).toEqual({
+      data: { items: [{ tag: 'SERIALIZED', label: 'ok' }] },
+    });
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(classic).toEqual(result);
+  });
+
+  // R22/R23 C4: nested async NonNull null must bubble like classic.
+  it('C4: nested async NonNull null bubbles with classic path', async () => {
+    const Nested = new GraphQLObjectType({
+      name: 'C4Nested',
+      fields: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+      },
+    });
+    const Item = new GraphQLObjectType({
+      name: 'C4Item',
+      fields: {
+        nested: { type: Nested },
+        label: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+        },
+      }),
+    });
+    const document = parse('{ items { nested { id } label } }');
+    const rootValue = {
+      items: [
+        {
+          nested: Promise.resolve({ id: null }),
+          label: 'keep',
+        },
+      ],
+    };
+    const result = assertSingular(await execute({ schema, document, rootValue }));
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(result).toEqual(classic);
+    expect(result).toMatchObject({
+      data: { items: [{ nested: null, label: 'keep' }] },
+      errors: [expect.objectContaining({ path: ['items', 0, 'nested', 'id'] })],
+    });
+  });
+
+  // R22/R23 C5: callable thenable (function with .then) — planned matches classic.
+  // defaultFieldResolver invokes typeof==='function' before thenable check, so
+  // both planned and classic invoke (no planned-only bug).
+  it('C5: callable thenable matches classic (invoked, not awaited as thenable)', async () => {
+    const Item = new GraphQLObjectType({
+      name: 'C5Item',
+      fields: {
+        value: { type: GraphQLInt },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+        },
+      }),
+    });
+    const document = parse('{ items { value } }');
+    let invokeCount = 0;
+    const callableThenable = Object.assign(
+      function callable() {
+        invokeCount += 1;
+        return 999;
+      },
+      { then: Promise.resolve(7).then.bind(Promise.resolve(7)) },
+    );
+    const rootValue = { items: [{ value: callableThenable }] };
+    const result = assertSingular(await execute({ schema, document, rootValue }));
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(result).toEqual(classic);
+    expect(result).toEqual({ data: { items: [{ value: 999 }] } });
+    expect(invokeCount).toBeGreaterThan(0);
+  });
+
+  // R22/R23 C7: plan coerce must not double-call custom scalar parseValue.
+  it('C7: coerce does not double-call custom scalar parseValue vs classic', () => {
+    let parseCalls = 0;
+    const Counted = new GraphQLScalarType({
+      name: 'C7Counted',
+      parseValue(value) {
+        parseCalls += 1;
+        return Number(value);
+      },
+      parseLiteral(ast) {
+        if (ast.kind === 'IntValue') {
+          return Number(ast.value);
+        }
+        return null;
+      },
+      serialize: Number,
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          echo: {
+            type: GraphQLInt,
+            args: { n: { type: Counted } },
+            resolve: (_s, args: { n: number }) => args.n,
+          },
+        },
+      }),
+    });
+    const document = parse('query ($n: C7Counted!) { echo(n: $n) }');
+    parseCalls = 0;
+    const result = executeSync({
+      schema,
+      document,
+      variableValues: { n: 3 },
+    });
+    const plannedCalls = parseCalls;
+    parseCalls = 0;
+    const classic = executeClassicSync({
+      schema,
+      document,
+      variableValues: { n: 3 },
+    });
+    expect(result).toEqual(classic);
+    expect(result).toEqual({ data: { echo: 3 } });
+    // Planned must not call parseValue more times than classic.
+    expect(plannedCalls).toBeLessThanOrEqual(parseCalls);
+    expect(plannedCalls).toBeGreaterThan(0);
+  });
+
+  // R22/R23 C3: plain walker must localize getter throws to the field path.
+  it('C3: localizes plain-walker getter throws to the child field path', () => {
+    const Item = new GraphQLObjectType({
+      name: 'C3Item',
+      fields: {
+        ok: { type: GraphQLString },
+        bad: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+        },
+      }),
+    });
+    const document = parse('{ items { ok bad } }');
+    const rootValue = {
+      items: [
+        {
+          ok: 'fine',
+          get bad() {
+            throw new Error('getter boom');
+          },
+        },
+      ],
+    };
+    const result = executeSync({ schema, document, rootValue });
+    expect(result).toMatchObject({
+      data: { items: [{ ok: 'fine', bad: null }] },
+      errors: [expect.objectContaining({ message: 'getter boom', path: ['items', 0, 'bad'] })],
+    });
+    const classic = executeClassicSync({ schema, document, rootValue });
+    expect(classic).toMatchObject({
+      data: { items: [{ ok: 'fine', bad: null }] },
+      errors: [expect.objectContaining({ message: 'getter boom', path: ['items', 0, 'bad'] })],
+    });
+  });
 });
 
 describe('classic vs planned differential', () => {

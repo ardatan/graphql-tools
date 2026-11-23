@@ -2201,12 +2201,27 @@ function executePlannedSyncObjectFieldsPlain(
     if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
       return thinObjectMiss(results, false, pendingLeaves);
     }
-    let property: unknown = source[fieldPlan.fieldDef.name];
+    let property: unknown;
+    try {
+      property = source[fieldPlan.fieldDef.name];
+    } catch (rawError) {
+      // C3: localize getter throws at the child field (do not bubble to list item).
+      const fieldPath = addPath(path, responseName, parentType.name);
+      const error = locatedError(
+        coerceError(rawError),
+        fieldNodes,
+        pathToArray(fieldPath),
+        exeContext.schemaCoordinateInErrors && schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+      );
+      results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+      continue;
+    }
     if (typeof property === 'function') {
       // One-shot getters may return a method — invoke leaf methods once.
       if (fieldPlan.kind !== 'leaf' || fieldPlan.leafType == null) {
         return thinObjectMiss(results, false, pendingLeaves);
       }
+      const fieldPath = addPath(path, responseName, parentType.name);
       try {
         property = (
           property as (
@@ -2219,15 +2234,18 @@ function executePlannedSyncObjectFieldsPlain(
           source,
           Object.create(null),
           exeContext.contextValue,
-          buildPlannedResolveInfo(
-            exeContext,
-            fieldPlan,
-            addPath(path, responseName, parentType.name),
-            fieldNodes,
-          ),
+          buildPlannedResolveInfo(exeContext, fieldPlan, fieldPath, fieldNodes),
         );
-      } catch {
-        return thinObjectMiss(results, false, pendingLeaves);
+      } catch (rawError) {
+        const error = locatedError(
+          coerceError(rawError),
+          fieldNodes,
+          pathToArray(fieldPath),
+          exeContext.schemaCoordinateInErrors &&
+            schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+        );
+        results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+        continue;
       }
       if (property != null && typeof property === 'object' && isPromise(property)) {
         pendingLeaves = registerThinPendingLeaf(
@@ -2235,24 +2253,45 @@ function executePlannedSyncObjectFieldsPlain(
           pendingLeaves,
           parentType,
           responseName,
-          property as Promise<unknown>,
+          mapThinLeafPromise(
+            property as Promise<unknown>,
+            fieldPlan.leafType,
+            fieldPlan.nonNull === true,
+            parentType.name,
+            fieldPlan.fieldDef.name,
+          ),
           fieldNodes,
           fieldPlan,
         );
         continue;
       }
     } else if (property instanceof Error) {
-      return thinObjectMiss(results, false, pendingLeaves);
+      const fieldPath = addPath(path, responseName, parentType.name);
+      const error = locatedError(
+        property,
+        fieldNodes,
+        pathToArray(fieldPath),
+        exeContext.schemaCoordinateInErrors && schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+      );
+      results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+      continue;
     }
     // Avoid isPromise on plain data (nested bench); only gate real thenables.
     if (property != null && typeof property === 'object' && isPromise(property)) {
       if (fieldPlan.kind === 'leaf' && fieldPlan.leafType != null) {
+        // C2: serialize through pendingLeaves (raw thenable must not land in data).
         pendingLeaves = registerThinPendingLeaf(
           results,
           pendingLeaves,
           parentType,
           responseName,
-          property as Promise<unknown>,
+          mapThinLeafPromise(
+            property as Promise<unknown>,
+            fieldPlan.leafType,
+            fieldPlan.nonNull === true,
+            parentType.name,
+            fieldPlan.fieldDef.name,
+          ),
           fieldNodes,
           fieldPlan,
         );
@@ -5366,6 +5405,51 @@ function isThinObjectPartial(value: unknown): value is ThinObjectPartial {
   );
 }
 
+/**
+ * Wrap a raw leaf thenable so settlePendingLeaves stores serialized output
+ * (not the raw resolver/property value). Shared by plain / PreCR / fast paths.
+ */
+function mapThinLeafPromise(
+  promise: Promise<unknown>,
+  leafType: GraphQLLeafType,
+  nonNull: boolean,
+  parentTypeName: string,
+  fieldName: string,
+): Promise<unknown> {
+  return promise.then((value: unknown) => {
+    if (value instanceof Error) {
+      throw value;
+    }
+    if (value == null) {
+      if (nonNull) {
+        throw new Error(
+          `Cannot return null for non-nullable field ${parentTypeName}.${fieldName}.`,
+        );
+      }
+      return null;
+    }
+    const serialized = leafType.serialize(value);
+    if (isPromise(serialized)) {
+      return serialized.then((resolved: unknown) => {
+        if (resolved == null) {
+          throw new Error(
+            `Expected \`${inspect(leafType)}.serialize(${inspect(value)})\` to ` +
+              `return non-nullable value, returned: ${inspect(resolved)}`,
+          );
+        }
+        return resolved;
+      });
+    }
+    if (serialized == null) {
+      throw new Error(
+        `Expected \`${inspect(leafType)}.serialize(${inspect(value)})\` to ` +
+          `return non-nullable value, returned: ${inspect(serialized)}`,
+      );
+    }
+    return serialized;
+  });
+}
+
 function registerThinPendingLeaf(
   results: Record<string, unknown>,
   pendingLeaves: Map<string, PendingLeafEntry> | undefined,
@@ -5645,7 +5729,13 @@ function executePlannedSyncObjectFieldsPreCR(
           undefined,
           parentType,
           responseName,
-          property as Promise<unknown>,
+          mapThinLeafPromise(
+            property as Promise<unknown>,
+            fieldPlan.leafType,
+            fieldPlan.nonNull === true,
+            parentType.name,
+            fieldPlan.fieldDef.name,
+          ),
           fieldNodes,
           fieldPlan,
         );
@@ -5665,6 +5755,24 @@ function executePlannedSyncObjectFieldsPreCR(
       continue;
     }
     if (property != null && typeof property === 'object' && isPromise(property)) {
+      if (fieldPlan.kind === 'leaf' && fieldPlan.leafType != null) {
+        const pendingLeaves = registerThinPendingLeaf(
+          results,
+          undefined,
+          parentType,
+          responseName,
+          mapThinLeafPromise(
+            property as Promise<unknown>,
+            fieldPlan.leafType,
+            fieldPlan.nonNull === true,
+            parentType.name,
+            fieldPlan.fieldDef.name,
+          ),
+          fieldNodes,
+          fieldPlan,
+        );
+        return thinObjectMiss(results, true, pendingLeaves);
+      }
       return n > 0 || recordedGetterError
         ? thinObjectMiss(results, recordedGetterError, undefined)
         : undefined;
@@ -5914,47 +6022,18 @@ function tryExecutePlannedSyncObjectFieldsFast(
     }
     if (property != null && typeof property === 'object' && isPromise(property)) {
       if (fieldPlan.kind === 'leaf' && fieldPlan.leafType != null) {
-        const leafType = fieldPlan.leafType;
-        const nonNull = fieldPlan.nonNull === true;
-        const fieldName = fieldPlan.fieldDef.name;
-        const settled = property.then((value: unknown) => {
-          if (value instanceof Error) {
-            throw value;
-          }
-          if (value == null) {
-            if (nonNull) {
-              throw new Error(
-                `Cannot return null for non-nullable field ${parentType.name}.${fieldName}.`,
-              );
-            }
-            return null;
-          }
-          const serialized = leafType.serialize(value);
-          if (isPromise(serialized)) {
-            return serialized.then((resolved: unknown) => {
-              if (resolved == null) {
-                throw new Error(
-                  `Expected \`${inspect(leafType)}.serialize(${inspect(value)})\` to ` +
-                    `return non-nullable value, returned: ${inspect(resolved)}`,
-                );
-              }
-              return resolved;
-            });
-          }
-          if (serialized == null) {
-            throw new Error(
-              `Expected \`${inspect(leafType)}.serialize(${inspect(value)})\` to ` +
-                `return non-nullable value, returned: ${inspect(serialized)}`,
-            );
-          }
-          return serialized;
-        });
         pendingLeaves = registerThinPendingLeaf(
           results,
           pendingLeaves,
           parentType,
           responseName,
-          settled,
+          mapThinLeafPromise(
+            property as Promise<unknown>,
+            fieldPlan.leafType,
+            fieldPlan.nonNull === true,
+            parentType.name,
+            fieldPlan.fieldDef.name,
+          ),
           fieldNodes,
           fieldPlan,
         );
@@ -6368,44 +6447,18 @@ function executePlannedSyncObjectFieldsFrom(
       if (fieldPlan.kind === 'leaf' && fieldPlan.leafType != null) {
         // Method/property already produced a thenable — serialize through
         // pendingLeaves so classic fallback does not re-invoke the method.
-        const leafType = fieldPlan.leafType;
-        const nonNull = fieldPlan.nonNull === true;
-        const fieldName = fieldPlan.fieldDef.name;
-        const settled = property.then((value: unknown) => {
-          if (value instanceof Error) {
-            throw value;
-          }
-          if (value == null) {
-            if (nonNull) {
-              throw new Error(
-                `Cannot return null for non-nullable field ${parentType.name}.${fieldName}.`,
-              );
-            }
-            return null;
-          }
-          const serialized = leafType.serialize(value);
-          // Async serialize must validate the fulfilled value the same way
-          // as the sync path (nullish serialize is always an error).
-          if (isPromise(serialized)) {
-            return serialized.then((resolved: unknown) => {
-              if (resolved == null) {
-                throw new Error(
-                  `Expected \`${inspect(leafType)}.serialize(${inspect(value)})\` to ` +
-                    `return non-nullable value, returned: ${inspect(resolved)}`,
-                );
-              }
-              return resolved;
-            });
-          }
-          if (serialized == null) {
-            throw new Error(
-              `Expected \`${inspect(leafType)}.serialize(${inspect(value)})\` to ` +
-                `return non-nullable value, returned: ${inspect(serialized)}`,
-            );
-          }
-          return serialized;
-        });
-        registerPendingLeaf(responseName, settled, fieldNodes, fieldPlan);
+        registerPendingLeaf(
+          responseName,
+          mapThinLeafPromise(
+            property as Promise<unknown>,
+            fieldPlan.leafType,
+            fieldPlan.nonNull === true,
+            parentType.name,
+            fieldPlan.fieldDef.name,
+          ),
+          fieldNodes,
+          fieldPlan,
+        );
         recordedGetterError = true;
         continue;
       }
