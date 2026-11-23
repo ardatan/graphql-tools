@@ -1555,7 +1555,8 @@ describe('merged sibling fields with @include (external review)', () => {
 });
 
 describe('thin-walk fallback invocation counts', () => {
-  it('partial thin-walk then classic: one-shot id getter is not re-read', () => {
+  // R26 P1-01: field-level value must not be re-read / re-resolved after thinObjectMiss.
+  it('P1-01: partial thin-walk then classic: one-shot id getter is not re-read', () => {
     // `id` uses default property resolve (thin completes it); `name(lang:)` has
     // args so thin declines mid-walk. One-shot getter throws on re-read so a
     // re-invoke-on-fallback bug fails. Path assertion: planned result matches
@@ -1674,8 +1675,8 @@ describe('thin-walk fallback invocation counts', () => {
     expect(nameSawIdAlready).toBe(true);
   });
 
-  // R22/R23 C1: after thinObjectMiss, completed leaf serialize must not re-run.
-  it('C1: does not re-serialize a completed leaf after thinObjectMiss', () => {
+  // R26 P1-02 / R22 C1: after thinObjectMiss, completed leaf serialize must not re-run.
+  it('P1-02: does not re-serialize a completed leaf after thinObjectMiss', () => {
     let serializeCalls = 0;
     const CountSer = new GraphQLScalarType({
       name: 'C1CountSer',
@@ -1717,8 +1718,8 @@ describe('thin-walk fallback invocation counts', () => {
     expect(serializeCalls).toBe(1);
   });
 
-  // R22/R23 C2: pending leaf must serialize raw async values (not stash raw).
-  it('C2: serializes pending async leaf raw values (not raw string for Int-like scalar)', async () => {
+  // R26 P1-03 / R22 C2: pending leaf must serialize raw async values (not stash raw).
+  it('P1-03: serializes pending async leaf raw values (not raw string for Int-like scalar)', async () => {
     const Tagged = new GraphQLScalarType({
       name: 'C2Tagged',
       serialize(value) {
@@ -1881,8 +1882,8 @@ describe('thin-walk fallback invocation counts', () => {
     expect(plannedCalls).toBeGreaterThan(0);
   });
 
-  // R22/R23 C3: plain walker must localize getter throws to the field path.
-  it('C3: localizes plain-walker getter throws to the child field path', () => {
+  // R26 P1-04 / R22 C3: plain walker must localize getter throws to the field path.
+  it('P1-04: localizes plain-walker getter throws to the child field path', () => {
     const Item = new GraphQLObjectType({
       name: 'C3Item',
       fields: {
