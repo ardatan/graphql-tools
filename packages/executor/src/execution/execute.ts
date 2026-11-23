@@ -1401,6 +1401,60 @@ function executeFieldsSerially<TData>(
 }
 
 /**
+ * Classic interpreter field loop (no plan). Kept separate so planning-disabled
+ * and fallback execution do not allocate planned root runners or walk planned
+ * execution lists — restores pre-plan monomorphism on wide selections.
+ */
+function executeFieldsClassic(
+  exeContext: ExecutionContext,
+  parentType: GraphQLObjectType,
+  sourceValue: unknown,
+  path: Path | undefined,
+  fields: Map<string, Array<FieldNode>>,
+  asyncPayloadRecord?: AsyncPayloadRecord,
+): MaybePromise<Record<string, unknown>> {
+  const results = Object.setPrototypeOf(new CompactExecutionResultMap(), null);
+  let containsPromise = false;
+  try {
+    for (const [responseName, fieldNodes] of fields) {
+      exeContext.signal?.throwIfAborted();
+      const fieldPath = addPath(path, responseName, parentType.name);
+      const result = executeField(
+        exeContext,
+        parentType,
+        sourceValue,
+        fieldNodes,
+        fieldPath,
+        asyncPayloadRecord,
+      );
+      if (result !== undefined) {
+        results[responseName] = result;
+        if (isPromise(result)) {
+          containsPromise = true;
+        }
+      }
+    }
+  } catch (error) {
+    if (error !== exeContext.signal?.reason && containsPromise) {
+      return handleMaybePromise(
+        () => promiseForObject(results, exeContext.signal),
+        () => {
+          throw error;
+        },
+        () => {
+          throw error;
+        },
+      );
+    }
+    throw error;
+  }
+  if (!containsPromise) {
+    return results;
+  }
+  return promiseForObject(results, exeContext.signal, exeContext.signalPromise);
+}
+
+/**
  * Implements the "Executing selection sets" section of the spec
  * for fields that may be executed in parallel.
  */
@@ -1413,6 +1467,18 @@ function executeFields(
   asyncPayloadRecord?: AsyncPayloadRecord,
   plannedExecutions?: ReadonlyArray<PlannedFieldExecution>,
 ): MaybePromise<Record<string, unknown>> {
+  // Classic-only: keep the pre-plan bound loop (no rootAsync/rootRunner setup).
+  // Planning-disabled and fallback paths must not pay planned-interpreter taxes.
+  if (exeContext.plan == null && plannedExecutions == null) {
+    return executeFieldsClassic(
+      exeContext,
+      parentType,
+      sourceValue,
+      path,
+      fields,
+      asyncPayloadRecord,
+    );
+  }
   // Nested / dense-skip stay on classic bound loop + promiseForObject.
   // Root only: lazily attach a PlannedWorkRunner when a field returns a
   // thenable (asyncRoot) — sync roots (denseSkip) never allocate a runner.

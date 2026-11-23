@@ -1647,7 +1647,7 @@ describe('list completion: retain preflight item reads', () => {
 
   // process.on('unhandledRejection') retains the Jest isolate under --detectLeaks
   // (Node 22 + GraphQL 17 CI). Skip the observation assertion there; unit tests still cover it.
-  (process.env.LEAK_TEST ? it.skip : it)(
+  (process.env['LEAK_TEST'] ? it.skip : it)(
     'observes pending item promises when a later default-resolved list accessor throws',
     async () => {
       const Item = new GraphQLObjectType({
@@ -2074,7 +2074,7 @@ describe('object-list thin path: r8 differential matrix', () => {
     expect(planned).toEqual({ data: { users: [{ id: '1' }] } });
   });
 
-  (process.env.LEAK_TEST ? it.skip : it)(
+  (process.env['LEAK_TEST'] ? it.skip : it)(
     'does not pre-read later custom-scalar slots when earlier NonNull serialize fails',
     async () => {
       // Classic reports path ["values", 0] without touching later getters. Planned
@@ -2202,7 +2202,7 @@ describe('object-list thin path: r8 differential matrix', () => {
 
 describe('list completion: observe pending without re-inspect', () => {
   // process.on('unhandledRejection') retains the Jest isolate under --detectLeaks.
-  (process.env.LEAK_TEST ? it.skip : it)(
+  (process.env['LEAK_TEST'] ? it.skip : it)(
     'observes recorded item promises on sync abort without re-isPromise slots',
     async () => {
       let thenReads = 0;
