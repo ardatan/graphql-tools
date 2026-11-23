@@ -32,6 +32,7 @@ import {
   compileExecutionPlan,
   getExecutionPlan,
   getPlannedFieldPlan,
+  getPlannedSubfieldExecutions,
   getPlannedSubfields,
   isExecutionPlan,
   type InternalExecutionPlan,
@@ -801,35 +802,72 @@ describe('root runner + field-local leaf list settle', () => {
     });
   });
 
-  // R11 P2: field-local observe when a sibling NonNull fails sync after the list starts.
+  // R11/R12 P2: nested `container { list stop }` so rootAsync=false and the
+  // thin leaf/object-list stores use observeFieldLocalPromise. Abort on `stop`
+  // so executeFields skips the normal promise join (signal.reason path); a
+  // deferred list rejection after exit must not become an unhandledRejection.
   (process.env['LEAK_TEST'] ? it.skip : it)(
-    'observes async leaf-list when a sibling NonNull fails sync (planned == classic, no UHR)',
+    'observes nested async leaf-list when abort skips the promise join (no UHR)',
     async () => {
-      const document = parse('{ scores stop }');
-      const makeSchema = () =>
-        new GraphQLSchema({
+      const document = parse('{ container { scores stop } }');
+
+      const makeSchema = (controller: AbortController) => {
+        const Container = new GraphQLObjectType({
+          name: 'LeafObserveContainer',
+          fields: {
+            scores: {
+              type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLInt))),
+            },
+            stop: {
+              type: new GraphQLNonNull(GraphQLString),
+              resolve: () => {
+                controller.abort();
+                throw controller.signal.reason;
+              },
+            },
+          },
+        });
+        return new GraphQLSchema({
           query: new GraphQLObjectType({
             name: 'Query',
             fields: {
-              scores: {
-                type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLInt))),
-                resolve: () => [
-                  Promise.reject(
-                    Object.assign(new Error('score pending'), { name: 'ScorePending' }),
-                  ),
-                ],
-              },
-              stop: {
-                type: new GraphQLNonNull(GraphQLString),
-                resolve: () => {
-                  throw new Error('stop sync');
-                },
-              },
+              container: { type: Container },
             },
           }),
         });
-      const plan = compileExecutionPlan({ schema: makeSchema(), document });
+      };
+      const makeRoot = (pending: PromiseLike<number>) => ({
+        container: {
+          scores: [pending],
+        },
+      });
+
+      // Same controller for schema stop resolve and execute signal — abort must
+      // equal signal.reason so executeFields skips the promise join.
+      const controllerP = new AbortController();
+      const schemaP = makeSchema(controllerP);
+      const plan = compileExecutionPlan({ schema: schemaP, document });
       expect(isExecutionPlan(plan)).toBe(true);
+      if (!isExecutionPlan(plan)) {
+        return;
+      }
+      const internal = plan as InternalExecutionPlan;
+      const containerEx = (internal.rootExecutions ?? []).find(
+        ex => ex.responseName === 'container',
+      );
+      expect(containerEx).toBeDefined();
+      const containerType = schemaP.getType('LeafObserveContainer');
+      const nested = getPlannedSubfieldExecutions(
+        internal,
+        containerEx!.fieldNodes,
+        containerType as GraphQLObjectType,
+      );
+      expect(nested?.some(ex => ex.fieldPlan.kind === 'leafList')).toBe(true);
+
+      let rejectScore!: (reason: Error) => void;
+      const pendingScore = new Promise<number>((_resolve, reject) => {
+        rejectScore = reject;
+      });
 
       let unhandled = 0;
       const onUnhandled = (): void => {
@@ -837,17 +875,48 @@ describe('root runner + field-local leaf list settle', () => {
       };
       process.on('unhandledRejection', onUnhandled);
       try {
-        const planned = await execute({ schema: makeSchema(), document });
-        const classic = await executeClassic({ schema: makeSchema(), document });
+        // Abort may throw sync from executeFields (signal.reason path) or reject.
+        // Compare reason after settle — signal.reason is undefined before abort().
+        let plannedErr: unknown;
+        try {
+          await Promise.resolve().then(() =>
+            execute({
+              plan,
+              rootValue: makeRoot(pendingScore),
+              signal: controllerP.signal,
+            }),
+          );
+        } catch (err) {
+          plannedErr = err;
+        }
+        expect(plannedErr).toBe(controllerP.signal.reason);
+
+        const controllerC = new AbortController();
+        let rejectClassic!: (reason: Error) => void;
+        const pendingClassic = new Promise<number>((_resolve, reject) => {
+          rejectClassic = reject;
+        });
+        let classicErr: unknown;
+        try {
+          await Promise.resolve().then(() =>
+            executeClassic({
+              schema: makeSchema(controllerC),
+              document,
+              rootValue: makeRoot(pendingClassic),
+              signal: controllerC.signal,
+            }),
+          );
+        } catch (err) {
+          classicErr = err;
+        }
+        expect(classicErr).toBe(controllerC.signal.reason);
+
+        rejectScore(Object.assign(new Error('score late'), { name: 'ScoreLate' }));
+        rejectClassic(Object.assign(new Error('score late classic'), { name: 'ScoreLateC' }));
         await new Promise<void>(resolve => {
           setImmediate(resolve);
         });
         expect(unhandled).toBe(0);
-        expect(planned).toEqual(classic);
-        expect(planned).toMatchObject({
-          data: null,
-          errors: [{ message: 'stop sync', path: ['stop'] }],
-        });
       } finally {
         process.off('unhandledRejection', onUnhandled);
       }
@@ -855,7 +924,7 @@ describe('root runner + field-local leaf list settle', () => {
   );
 
   (process.env['LEAK_TEST'] ? it.skip : it)(
-    'observes nested async object-list when a sibling NonNull fails sync (planned == classic, no UHR)',
+    'observes nested async object-list when abort skips the promise join (no UHR)',
     async () => {
       const User = new GraphQLObjectType({
         name: 'ObserveUser',
@@ -863,32 +932,64 @@ describe('root runner + field-local leaf list settle', () => {
           id: { type: new GraphQLNonNull(GraphQLString) },
         },
       });
-      const document = parse('{ users { id } stop }');
-      const makeSchema = () =>
-        new GraphQLSchema({
+      const document = parse('{ container { users { id } stop } }');
+
+      const makeSchema = (controller: AbortController) => {
+        const Container = new GraphQLObjectType({
+          name: 'ObjectObserveContainer',
+          fields: {
+            // Default property resolve → thin object-list path (nested, not root).
+            users: {
+              type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(User))),
+            },
+            stop: {
+              type: new GraphQLNonNull(GraphQLString),
+              resolve: () => {
+                controller.abort();
+                throw controller.signal.reason;
+              },
+            },
+          },
+        });
+        return new GraphQLSchema({
           query: new GraphQLObjectType({
             name: 'Query',
             fields: {
-              // Default property resolve → thin object-list path.
-              users: {
-                type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(User))),
-              },
-              stop: {
-                type: new GraphQLNonNull(GraphQLString),
-                resolve: () => {
-                  throw new Error('stop sync');
-                },
-              },
+              container: { type: Container },
             },
           }),
         });
-      const makeRoot = () => ({
-        users: [
-          Promise.reject(Object.assign(new Error('user pending'), { name: 'UserPending' })),
-        ],
+      };
+      const makeRoot = (pending: PromiseLike<unknown>) => ({
+        container: {
+          users: [pending],
+        },
       });
-      const plan = compileExecutionPlan({ schema: makeSchema(), document });
+
+      const controllerP = new AbortController();
+      const schemaP = makeSchema(controllerP);
+      const plan = compileExecutionPlan({ schema: schemaP, document });
       expect(isExecutionPlan(plan)).toBe(true);
+      if (!isExecutionPlan(plan)) {
+        return;
+      }
+      const internal = plan as InternalExecutionPlan;
+      const containerEx = (internal.rootExecutions ?? []).find(
+        ex => ex.responseName === 'container',
+      );
+      expect(containerEx).toBeDefined();
+      const containerType = schemaP.getType('ObjectObserveContainer');
+      const nested = getPlannedSubfieldExecutions(
+        internal,
+        containerEx!.fieldNodes,
+        containerType as GraphQLObjectType,
+      );
+      expect(nested?.some(ex => ex.fieldPlan.kind === 'list')).toBe(true);
+
+      let rejectUser!: (reason: Error) => void;
+      const pendingUser = new Promise<unknown>((_resolve, reject) => {
+        rejectUser = reject;
+      });
 
       let unhandled = 0;
       const onUnhandled = (): void => {
@@ -896,30 +997,87 @@ describe('root runner + field-local leaf list settle', () => {
       };
       process.on('unhandledRejection', onUnhandled);
       try {
-        const planned = await execute({
-          schema: makeSchema(),
-          document,
-          rootValue: makeRoot(),
+        let plannedErr: unknown;
+        try {
+          await Promise.resolve().then(() =>
+            execute({
+              plan,
+              rootValue: makeRoot(pendingUser),
+              signal: controllerP.signal,
+            }),
+          );
+        } catch (err) {
+          plannedErr = err;
+        }
+        expect(plannedErr).toBe(controllerP.signal.reason);
+
+        const controllerC = new AbortController();
+        let rejectClassic!: (reason: Error) => void;
+        const pendingClassic = new Promise<unknown>((_resolve, reject) => {
+          rejectClassic = reject;
         });
-        const classic = await executeClassic({
-          schema: makeSchema(),
-          document,
-          rootValue: makeRoot(),
-        });
+        let classicErr: unknown;
+        try {
+          await Promise.resolve().then(() =>
+            executeClassic({
+              schema: makeSchema(controllerC),
+              document,
+              rootValue: makeRoot(pendingClassic),
+              signal: controllerC.signal,
+            }),
+          );
+        } catch (err) {
+          classicErr = err;
+        }
+        expect(classicErr).toBe(controllerC.signal.reason);
+
+        rejectUser(Object.assign(new Error('user late'), { name: 'UserLate' }));
+        rejectClassic(Object.assign(new Error('user late classic'), { name: 'UserLateC' }));
         await new Promise<void>(resolve => {
           setImmediate(resolve);
         });
         expect(unhandled).toBe(0);
-        expect(planned).toEqual(classic);
-        expect(planned).toMatchObject({
-          data: null,
-          errors: [{ message: 'stop sync', path: ['stop'] }],
-        });
       } finally {
         process.off('unhandledRejection', onUnhandled);
       }
     },
   );
+
+  // Retain NonNull sync-fail parity (join path); abort tests above cover observe.
+  it('nested NonNull sibling sync fail still nulls container (parity)', async () => {
+    const document = parse('{ container { scores stop } }');
+    const makeSchema = () => {
+      const Container = new GraphQLObjectType({
+        name: 'ParityLeafContainer',
+        fields: {
+          scores: {
+            type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLInt))),
+            resolve: () => [Promise.resolve(1)],
+          },
+          stop: {
+            type: new GraphQLNonNull(GraphQLString),
+            resolve: () => {
+              throw new Error('stop sync');
+            },
+          },
+        },
+      });
+      return new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: { container: { type: Container } },
+        }),
+      });
+    };
+    const rootValue = { container: {} };
+    const planned = await execute({ schema: makeSchema(), document, rootValue });
+    const classic = await executeClassic({ schema: makeSchema(), document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { container: null },
+      errors: [{ message: 'stop sync', path: ['container', 'stop'] }],
+    });
+  });
 });
 
 describe('plan compile budget', () => {
@@ -2379,8 +2537,9 @@ describe('object-list thin path: r8 differential matrix', () => {
     const document = parse('{ values }');
     const planned = executeSync({ schema, document });
     const classic = executeClassicSync({ schema, document });
-    expect(planned).toEqual({ data: { values: ['a'] } });
     expect(planned).toEqual(classic);
+    expect(planned.data?.values).toStrictEqual(['a']);
+    expect((planned.data?.values as unknown[]).length).toBe(1);
   });
 
   // R11 P3: array mutation edges not covered by truncate-to-one alone.
@@ -2411,8 +2570,9 @@ describe('object-list thin path: r8 differential matrix', () => {
     const planned = executeSync({ schema, document });
     const classic = executeClassicSync({ schema, document });
     // Visited slot kept; unread holes trimmed (not length-0 wipe of the returned value).
-    expect(planned).toEqual({ data: { values: ['a'] } });
     expect(planned).toEqual(classic);
+    expect(planned.data?.values).toStrictEqual(['a']);
+    expect((planned.data?.values as unknown[]).length).toBe(1);
   });
 
   it('sees later slots grown during GraphQLString leaf-list traversal (planned == classic)', () => {
