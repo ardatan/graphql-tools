@@ -2029,8 +2029,11 @@ function executeObjectListFieldThin(
     if (!(isObjectLike(source) || typeof source === 'function')) {
       return undefined;
     }
+    let args: { [argument: string]: unknown } | undefined;
     if (fieldPlan.hasArgs) {
-      getFieldArgumentValues(
+      // Read before property access so invalid args never run the getter.
+      // Reuse below for method call (do not coerce twice).
+      args = getFieldArgumentValues(
         fieldPlan.fieldDef,
         fieldNodes[0],
         exeContext.variableValues,
@@ -2043,21 +2046,23 @@ function executeObjectListFieldThin(
       // Always pass args/context/info — `Function.length === 0` includes
       // rest-parameter methods that still read `arguments` (classic parity).
       const info = buildPlannedResolveInfo(exeContext, fieldPlan, path, fieldNodes);
-      const args = getFieldArgumentValues(
-        fieldPlan.fieldDef,
-        fieldNodes[0],
-        exeContext.variableValues,
-        fieldPlan.argumentReader,
-        fieldPlan.readArguments,
-      );
+      const methodArgs =
+        args ??
+        getFieldArgumentValues(
+          fieldPlan.fieldDef,
+          fieldNodes[0],
+          exeContext.variableValues,
+          fieldPlan.argumentReader,
+          fieldPlan.readArguments,
+        );
       result = (
         property as (
           this: unknown,
-          fieldArgs: typeof args,
+          fieldArgs: typeof methodArgs,
           contextValue: unknown,
           resolveInfo: GraphQLResolveInfo,
         ) => unknown
-      ).call(source, args, exeContext.contextValue, info);
+      ).call(source, methodArgs, exeContext.contextValue, info);
     } else if (property instanceof Error) {
       throw property;
     } else if (property != null && typeof property === 'object' && isPromise(property)) {
@@ -2210,7 +2215,7 @@ function executePlannedSyncObjectFieldsPlain(
       signal.throwIfAborted();
     }
     const { responseName, fieldNodes, fieldPlan } = execution;
-    if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
+    if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
       return thinObjectMiss(results, false, pendingLeaves);
     }
     let property: unknown;
@@ -2403,43 +2408,60 @@ function executePlannedSyncObjectFieldsPlain(
           continue;
         }
       }
-      const nested = executePlannedSyncObjectFieldsPlain(
-        exeContext,
-        fieldPlan.objectType,
-        property,
-        childPath,
-        nestedSub,
-      );
-      if (nested === undefined) {
-        return thinObjectMiss(results, false, pendingLeaves);
-      }
-      if (isThinObjectPartial(nested)) {
-        const finished = finishThinObjectPartial(
+      try {
+        const nested = executePlannedSyncObjectFieldsPlain(
           exeContext,
           fieldPlan.objectType,
           property,
-          addPath(path, responseName, parentType.name),
+          childPath,
           nestedSub,
-          nested,
         );
-        if (isPromise(finished)) {
-          results[responseName] = undefined;
-          const parentPartial = thinObjectMiss(results, true, pendingLeaves) as ThinObjectPartial;
-          return {
-            ...parentPartial,
-            pendingFieldWork: [
-              ...(parentPartial.pendingFieldWork ?? []),
-              finished.then(value => {
-                results[responseName] = value;
-              }),
-            ],
-          };
+        if (nested === undefined) {
+          return thinObjectMiss(results, false, pendingLeaves);
         }
-        results[responseName] = finished;
+        if (isThinObjectPartial(nested)) {
+          const finished = finishThinObjectPartial(
+            exeContext,
+            fieldPlan.objectType,
+            property,
+            addPath(path, responseName, parentType.name),
+            nestedSub,
+            nested,
+          );
+          if (isPromise(finished)) {
+            results[responseName] = undefined;
+            const parentPartial = thinObjectMiss(results, true, pendingLeaves) as ThinObjectPartial;
+            return {
+              ...parentPartial,
+              pendingFieldWork: [
+                ...(parentPartial.pendingFieldWork ?? []),
+                finished.then(value => {
+                  results[responseName] = value;
+                }),
+              ],
+            };
+          }
+          results[responseName] = finished;
+          continue;
+        }
+        results[responseName] = nested;
+        continue;
+      } catch (bubbled) {
+        // NonNull child bubbled — stop at this nullable nested object field.
+        exeContext.signal?.throwIfAborted();
+        if (fieldPlan.nonNull) {
+          throw bubbled;
+        }
+        const error = locatedError(
+          coerceError(bubbled),
+          fieldNodes,
+          pathToArray(childPath),
+          exeContext.schemaCoordinateInErrors &&
+            schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+        );
+        results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
         continue;
       }
-      results[responseName] = nested;
-      continue;
     }
     // List / Abstract / LeafList — decline without replaying completed fields.
     return thinObjectMiss(results, false, pendingLeaves);
@@ -2551,11 +2573,12 @@ function tryCompletePlannedObjectListPlain(
 }
 
 function subExecutionsArePlainDefault(
+  exeContext: ExecutionContext,
   subExecutions: ReadonlyArray<PlannedFieldExecution>,
 ): boolean {
   for (const execution of subExecutions) {
     const { fieldPlan } = execution;
-    if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
+    if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
       return false;
     }
     // NonNull fields: getter throws need the remainder path for item-local nulling.
@@ -2629,7 +2652,7 @@ function completePlannedObjectListValue(
   // Plain default-property fast lane (nestedDefault). Full success returns the
   // array; any decline returns a handoff so the remainder path continues from
   // that index without re-running the completed prefix (single-pass).
-  if (subExecutionsArePlainDefault(effectiveSubExecutions)) {
+  if (subExecutionsArePlainDefault(exeContext, effectiveSubExecutions)) {
     const fast = tryCompletePlannedObjectListPlain(
       exeContext,
       fieldPlan,
@@ -5708,7 +5731,7 @@ function executePlannedSyncObjectFieldsPreCR(
     // Match classic: stop before the next field read once the request aborted.
     exeContext.signal?.throwIfAborted();
     const { responseName, fieldNodes, fieldPlan } = execution;
-    if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
+    if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
       return n > 0 || recordedGetterError
         ? thinObjectMiss(results, recordedGetterError, undefined)
         : undefined;
@@ -5931,48 +5954,69 @@ function executePlannedSyncObjectFieldsPreCR(
           continue;
         }
       }
-      const nested = executePlannedSyncObjectFieldsPreCR(
-        exeContext,
-        fieldPlan.objectType,
-        property,
-        childPath,
-        subExecutions,
-      );
-      if (nested === undefined) {
-        return n > 0 || recordedGetterError ? thinObjectMiss(results, true, undefined) : undefined;
-      }
-      if (
-        typeof nested === 'object' &&
-        nested != null &&
-        (nested as ThinObjectPartial)[THIN_OBJECT_PARTIAL] === true
-      ) {
-        const finished = finishThinObjectPartial(
+      try {
+        const nested = executePlannedSyncObjectFieldsPreCR(
           exeContext,
           fieldPlan.objectType,
           property,
-          addPath(path, responseName, parentType.name),
+          childPath,
           subExecutions,
-          nested as ThinObjectPartial,
         );
-        if (isPromise(finished)) {
-          results[responseName] = undefined;
-          const parentPartial = thinObjectMiss(results, true, undefined) as ThinObjectPartial;
-          return {
-            ...parentPartial,
-            pendingFieldWork: [
-              finished.then(value => {
-                parentPartial.results[responseName] = value;
-              }),
-            ],
-          };
+        if (nested === undefined) {
+          return n > 0 || recordedGetterError
+            ? thinObjectMiss(results, true, undefined)
+            : undefined;
         }
-        results[responseName] = finished;
+        if (
+          typeof nested === 'object' &&
+          nested != null &&
+          (nested as ThinObjectPartial)[THIN_OBJECT_PARTIAL] === true
+        ) {
+          const finished = finishThinObjectPartial(
+            exeContext,
+            fieldPlan.objectType,
+            property,
+            addPath(path, responseName, parentType.name),
+            subExecutions,
+            nested as ThinObjectPartial,
+          );
+          if (isPromise(finished)) {
+            results[responseName] = undefined;
+            const parentPartial = thinObjectMiss(results, true, undefined) as ThinObjectPartial;
+            return {
+              ...parentPartial,
+              pendingFieldWork: [
+                finished.then(value => {
+                  parentPartial.results[responseName] = value;
+                }),
+              ],
+            };
+          }
+          results[responseName] = finished;
+          n++;
+          continue;
+        }
+        results[responseName] = nested;
+        n++;
+        continue;
+      } catch (bubbled) {
+        // NonNull child bubbled — stop at this nullable nested object field.
+        exeContext.signal?.throwIfAborted();
+        if (fieldPlan.nonNull) {
+          throw bubbled;
+        }
+        const error = locatedError(
+          coerceError(bubbled),
+          fieldNodes,
+          pathToArray(childPath),
+          exeContext.schemaCoordinateInErrors &&
+            schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+        );
+        results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+        recordedGetterError = true;
         n++;
         continue;
       }
-      results[responseName] = nested;
-      n++;
-      continue;
     }
     return n > 0 || recordedGetterError
       ? thinObjectMiss(results, recordedGetterError, undefined)
@@ -6002,9 +6046,8 @@ function tryExecutePlannedSyncObjectFieldsFast(
       signal.throwIfAborted();
     }
     const { responseName, fieldNodes, fieldPlan } = plannedExecutions[index];
-    // resolveKind is compile-time; skip live fieldDef.resolve on the hot path
-    // (pre-CR did the same — nestedDefault never pays per-field resolve checks).
-    if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
+    // Live resolveKind: a resolver installed after compile must decline thin.
+    if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
       return thinObjectMiss(results, recordedGetterError, pendingLeaves);
     }
 
@@ -6234,66 +6277,84 @@ function tryExecutePlannedSyncObjectFieldsFast(
           continue;
         }
       }
-      const nested = tryExecutePlannedSyncObjectFieldsFast(
-        exeContext,
-        fieldPlan.objectType,
-        property,
-        childPath,
-        nestedSubExecutions,
-      );
-      if (nested === SYNC_OBJECT_NEEDS_HEAVY) {
-        if (recordedGetterError || Object.keys(results).length > 0 || pendingLeaves != null) {
-          // Force partial so parent finishes this field via classic (no key skip).
-          return thinObjectMiss(results, true, pendingLeaves);
-        }
-        return SYNC_OBJECT_NEEDS_HEAVY;
-      }
-      if (isThinObjectPartial(nested)) {
-        // Finish nested partial here so completed children (e.g. one-shot
-        // getter errors) are not re-walked by a parent NEED_HEAVY / From.
-        const finished = finishThinObjectPartial(
+      try {
+        const nested = tryExecutePlannedSyncObjectFieldsFast(
           exeContext,
           fieldPlan.objectType,
           property,
           childPath,
           nestedSubExecutions,
-          nested,
         );
-        if (isPromise(finished)) {
-          // Reserve the response key so finishThin does not classic-replay this
-          // nested field (one-shot safe). Always return a partial with
-          // pendingFieldWork — even when this is the first parent field — so
-          // remaining siblings (e.g. `name` after async `profile`) still start
-          // before the nested work is joined. Returning `finished.then(...)`
-          // as a complete map would omit those siblings.
-          results[responseName] = undefined;
-          const parentPartial = thinObjectMiss(results, true, pendingLeaves) as ThinObjectPartial;
-          return {
-            ...parentPartial,
-            pendingFieldWork: [
-              finished.then(value => {
-                parentPartial.results[responseName] = value;
-              }),
-            ],
-          };
+        if (nested === SYNC_OBJECT_NEEDS_HEAVY) {
+          if (recordedGetterError || Object.keys(results).length > 0 || pendingLeaves != null) {
+            // Force partial so parent finishes this field via classic (no key skip).
+            return thinObjectMiss(results, true, pendingLeaves);
+          }
+          return SYNC_OBJECT_NEEDS_HEAVY;
         }
-        results[responseName] = finished;
+        if (isThinObjectPartial(nested)) {
+          // Finish nested partial here so completed children (e.g. one-shot
+          // getter errors) are not re-walked by a parent NEED_HEAVY / From.
+          const finished = finishThinObjectPartial(
+            exeContext,
+            fieldPlan.objectType,
+            property,
+            childPath,
+            nestedSubExecutions,
+            nested,
+          );
+          if (isPromise(finished)) {
+            // Reserve the response key so finishThin does not classic-replay this
+            // nested field (one-shot safe). Always return a partial with
+            // pendingFieldWork — even when this is the first parent field — so
+            // remaining siblings (e.g. `name` after async `profile`) still start
+            // before the nested work is joined. Returning `finished.then(...)`
+            // as a complete map would omit those siblings.
+            results[responseName] = undefined;
+            const parentPartial = thinObjectMiss(results, true, pendingLeaves) as ThinObjectPartial;
+            return {
+              ...parentPartial,
+              pendingFieldWork: [
+                finished.then(value => {
+                  parentPartial.results[responseName] = value;
+                }),
+              ],
+            };
+          }
+          results[responseName] = finished;
+          recordedGetterError = true;
+          continue;
+        }
+        if (nested === undefined) {
+          return thinObjectMiss(results, true, pendingLeaves);
+        }
+        if (isPromise(nested)) {
+          // Should not happen on the fast path; escalate safely.
+          if (recordedGetterError || Object.keys(results).length > 0 || pendingLeaves != null) {
+            nested.then(undefined, () => undefined);
+            return thinObjectMiss(results, true, pendingLeaves);
+          }
+          return SYNC_OBJECT_NEEDS_HEAVY;
+        }
+        results[responseName] = nested;
+        continue;
+      } catch (bubbled) {
+        // NonNull child bubbled — stop at this nullable nested object field.
+        exeContext.signal?.throwIfAborted();
+        if (fieldPlan.nonNull) {
+          throw bubbled;
+        }
+        const error = locatedError(
+          coerceError(bubbled),
+          fieldNodes,
+          pathToArray(childPath),
+          exeContext.schemaCoordinateInErrors &&
+            schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+        );
+        results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
         recordedGetterError = true;
         continue;
       }
-      if (nested === undefined) {
-        return thinObjectMiss(results, true, pendingLeaves);
-      }
-      if (isPromise(nested)) {
-        // Should not happen on the fast path; escalate safely.
-        if (recordedGetterError || Object.keys(results).length > 0 || pendingLeaves != null) {
-          nested.then(undefined, () => undefined);
-          return thinObjectMiss(results, true, pendingLeaves);
-        }
-        return SYNC_OBJECT_NEEDS_HEAVY;
-      }
-      results[responseName] = nested;
-      continue;
     }
 
     // List / abstract / leaf-list — miss or decline.
