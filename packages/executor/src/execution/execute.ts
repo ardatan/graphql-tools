@@ -66,7 +66,6 @@ import type {
   ExecutionPlan,
   IncrementalExecutionResults,
   InitialIncrementalExecutionResult,
-  PlannedExecuteArgs,
   SingularExecutionResult,
 } from './executeTypes.js';
 import {
@@ -101,7 +100,6 @@ import {
   getPlannedSubfields,
   isExecutionPlan as isInternalExecutionPlan,
   resolvePlanForExecute,
-  setPlanExecuteImpl,
   type ArgumentReader,
   type CompileExecutionPlanArgs,
   type FieldPlan,
@@ -135,7 +133,6 @@ export type {
   IncrementalResult,
   IncrementalStreamResult,
   InitialIncrementalExecutionResult,
-  PlannedExecuteArgs,
   SingularExecutionResult,
   SubsequentIncrementalExecutionResult,
 } from './executeTypes.js';
@@ -145,8 +142,8 @@ export { flattenIncrementalResults, isIncrementalResults, subscribe } from './ex
 /**
  * Compile a cacheable opaque {@link ExecutionPlan}.
  *
- * Prefer `plan.execute(...)` for warm reuse. Internal plan fields are not part
- * of the public TypeScript API.
+ * Pass the result to `execute({ plan })` for warm reuse. Internal plan fields
+ * are not part of the public TypeScript API.
  */
 export function compileExecutionPlan(
   args: CompileExecutionPlanArgs,
@@ -515,66 +512,28 @@ const getStreamUsageMemo = memoize2(function getStreamUsageMemo(
  * If the arguments to this function do not result in a legal execution context,
  * a GraphQLError will be thrown immediately explaining the invalid input.
  *
- * Eligible documents get-or-compile a plan, then run via `plan.execute(...)`.
- * When compile is unavailable, falls back to the classic interpreter path.
+ * Eligible documents use `args.plan` when provided, otherwise get-or-compile a
+ * plan from the WeakMap cache. When compile is unavailable, falls back to the
+ * classic interpreter path.
  */
 export function execute<TData = any, TVariables = any, TContext = any>(
   args: ExecutionArgs<TData, TVariables, TContext>,
 ): MaybePromise<SingularExecutionResult<TData> | IncrementalExecutionResults<TData>> {
-  const plan = resolvePlanForExecute({
-    schema: args.schema,
-    document: args.document,
-    operationName: args.operationName,
-  });
-  if (plan != null) {
-    return plan.execute!({
-      rootValue: args.rootValue,
-      contextValue: args.contextValue,
-      variableValues: args.variableValues,
-      fieldResolver: args.fieldResolver,
-      typeResolver: args.typeResolver,
-      subscribeFieldResolver: args.subscribeFieldResolver,
-      signal: args.signal,
-      schemaCoordinateInErrors: args.schemaCoordinateInErrors,
-      hideSuggestions: args.hideSuggestions,
-      incrementalSpec: args.incrementalSpec,
-    }) as MaybePromise<SingularExecutionResult<TData> | IncrementalExecutionResults<TData>>;
-  }
+  const knownPlan =
+    args.plan != null
+      ? (args.plan as unknown as InternalExecutionPlan)
+      : (resolvePlanForExecute({
+          schema: args.schema,
+          document: args.document,
+          operationName: args.operationName,
+        }) ?? null);
 
-  // Classic path when no plan (compile skipped / prior compile errors).
-  const exeContext = buildExecutionContext(args, null);
+  const exeContext = buildExecutionContext(args, knownPlan);
   if (!('schema' in exeContext)) {
     return formatContextBuildErrors(exeContext);
   }
   return executeImpl(exeContext);
 }
-
-// Planned run lives on `plan.execute` (no cycle back into public `execute`).
-setPlanExecuteImpl((plan, args) => {
-  const planned = args as PlannedExecuteArgs;
-  const exeContext = buildExecutionContext(
-    {
-      schema: plan.schema,
-      document: plan.document,
-      operationName: plan.operationName,
-      rootValue: planned.rootValue,
-      contextValue: planned.contextValue,
-      variableValues: planned.variableValues,
-      fieldResolver: planned.fieldResolver,
-      typeResolver: planned.typeResolver,
-      subscribeFieldResolver: planned.subscribeFieldResolver,
-      signal: planned.signal,
-      schemaCoordinateInErrors: planned.schemaCoordinateInErrors,
-      hideSuggestions: planned.hideSuggestions,
-      incrementalSpec: planned.incrementalSpec,
-    },
-    plan,
-  );
-  if (!('schema' in exeContext)) {
-    return formatContextBuildErrors(exeContext);
-  }
-  return executeImpl(exeContext);
-});
 
 export function executeImpl<TData = any, TVariables = any, TContext = any>(
   exeContext: ExecutionContext<TVariables, TContext>,
@@ -727,9 +686,9 @@ function getCollectFieldsDependsOnVariables(document: DocumentNode): boolean {
  * @internal
  */
 /**
- * @param knownPlan When an {@link InternalExecutionPlan} is passed, use it
- *   (planned `plan.execute` path). Pass `null` to skip plan resolve (classic
- *   fallback). Omit to resolve/compile from the WeakMap cache.
+ * @param knownPlan When an {@link InternalExecutionPlan} is passed, use it.
+ *   Pass `null` to skip plan resolve (classic fallback). Omit to
+ *   resolve/compile from the WeakMap cache (or `args.plan` when set).
  */
 export function buildExecutionContext<TData = any, TVariables = any, TContext = any>(
   args: ExecutionArgs<TData, TVariables, TContext>,
@@ -804,11 +763,13 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     ];
   }
 
-  // Planned path: use the sealed plan. Classic fallback: `null` skips resolve.
-  // Direct callers that omit knownPlan still get-or-compile from the WeakMap.
+  // Planned path: use the known plan. Classic fallback: `null` skips resolve.
+  // Direct callers that omit knownPlan use `args.plan` or get-or-compile.
   const plan =
     knownPlan === undefined
-      ? resolvePlanForExecute({ schema, document, operationName })
+      ? args.plan != null
+        ? (args.plan as unknown as InternalExecutionPlan)
+        : resolvePlanForExecute({ schema, document, operationName })
       : (knownPlan ?? undefined);
 
   // FIXME: https://github.com/graphql/graphql-js/issues/2203

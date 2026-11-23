@@ -18,8 +18,8 @@ safe argument reads are already prepared, so each request does less AST work.
 ## What is compiled
 
 For an eligible `(schema, document, operationName)`, public `execute` get-or-compiles an opaque
-`ExecutionPlan` and runs it with `plan.execute(...)` (or call `compileExecutionPlan` yourself).
-Internally the warm interpreter holds:
+`ExecutionPlan` (or uses `args.plan` when you pass one from `compileExecutionPlan`). Internally the
+warm interpreter holds:
 
 | Piece                | Role                                                                                                                                                |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -89,22 +89,22 @@ sequenceDiagram
 
 1. **Keep document identity stable**: use Yoga / Envelop parser cache, persisted queries, or any
    layer that returns the same `DocumentNode` for the same source.
-2. **Call `execute`**: public `execute` / `executeSync` / `normalizedExecutor` get-or-compile a
-   plan, then run via `plan.execute(...)`. You can also call `compileExecutionPlan` once and reuse
-   `plan.execute(...)` directly (schema / document / operation come from the plan).
+2. **Call `execute`**: public `execute` / `executeSync` / `normalizedExecutor` get-or-compile a plan
+   when `plan` is omitted. You can also call `compileExecutionPlan` once and pass
+   `execute({ plan, ... })` for warm reuse.
 3. **Prefer stable schemas**: plans close over field configs; if you mutate a schema object in
    place, use a new schema identity (or a new `DocumentNode`) so stale plans are not reused.
 
 ```ts
 import { compileExecutionPlan, execute, isExecutionPlan } from '@graphql-tools/executor'
 
-// Same DocumentNode identity → get-or-compile plan, then plan.execute(...)
+// Same DocumentNode identity → get-or-compile plan, then execute
 const result = await execute({ schema, document, variableValues })
 
 // Explicit compile + warm reuse (opaque plan; internal fields are not public)
 const plan = compileExecutionPlan({ schema, document })
 if (isExecutionPlan(plan)) {
-  const warm = await plan.execute({ variableValues })
+  const warm = await execute({ schema, document, plan, variableValues })
 }
 ```
 

@@ -147,7 +147,7 @@ export type FieldPlan =
   LeafFieldPlan | LeafListFieldPlan | ObjectFieldPlan | AbstractFieldPlan | ListFieldPlan; /**
  * @internal Runtime execution plan data used by the warm interpreter.
  * Not a public API. Prefer the opaque {@link ExecutionPlan} surface from
- * `execute.ts` (compile + `plan.execute`).
+ * `execute.ts` (`compileExecutionPlan` + `execute({ plan })`).
  */
 export interface InternalExecutionPlan {
   schema: GraphQLSchema;
@@ -224,11 +224,6 @@ export interface InternalExecutionPlan {
    * `@skip`/`@include` predicates (fields + fragments) instead of re-collecting.
    */
   skipIncludePredicates: boolean;
-  /**
-   * Sealed by `compileExecutionPlan` (non-enumerable). Prefer the opaque
-   * public `ExecutionPlan` type; this field exists for the warm path only.
-   */
-  execute?(args?: Record<string, unknown>): unknown;
 }
 
 /**

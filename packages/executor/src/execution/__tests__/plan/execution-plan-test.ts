@@ -93,29 +93,26 @@ describe('execution plan', () => {
     expect(lookedUp).toBe(first);
   });
 
-  it('seals a non-enumerable plan.execute that matches executeSync', () => {
+  it('execute with args.plan matches get-or-compile executeSync', () => {
     const document = parse('{ a b }');
     const plan = compileExecutionPlan({ schema, document });
     expect(isExecutionPlan(plan)).toBe(true);
     if (!isExecutionPlan(plan)) {
       return;
     }
-    expect(typeof plan.execute).toBe('function');
-    expect(Object.keys(plan)).not.toContain('execute');
-    expect(Object.getOwnPropertyDescriptor(plan, 'execute')?.enumerable).toBe(false);
-    const viaPlan = plan.execute!();
+    const viaPlan = executeSync({ schema, document, plan });
     const viaExecute = executeSync({ schema, document });
     expect(viaPlan).toEqual(viaExecute);
   });
 
-  it('public execute get-or-compiles and matches plan.execute', () => {
+  it('public execute get-or-compiles and attaches the plan', () => {
     const document = parse('{ a b }');
     const plan = compileExecutionPlan({ schema, document });
     expect(isExecutionPlan(plan)).toBe(true);
     if (!isExecutionPlan(plan)) {
       return;
     }
-    expect(executeSync({ schema, document })).toEqual(plan.execute!({}));
+    expect(executeSync({ schema, document })).toEqual(executeSync({ schema, document, plan }));
     const exeContext = buildExecutionContext({ schema, document });
     assertExeContext(exeContext);
     expect(exeContext.plan).toBe(plan);

@@ -60,34 +60,6 @@ type PlanCacheEntry =
  */
 const planCache = new WeakMap<DocumentNode, WeakMap<GraphQLSchema, Map<string, PlanCacheEntry>>>();
 
-type PlanExecuteFn = (plan: InternalExecutionPlan, args: Record<string, unknown>) => unknown;
-
-/** Wired from execute.ts so plan modules do not import execute (cycle). */
-let planExecuteImpl: PlanExecuteFn | undefined;
-
-/** @internal Register `plan.execute` implementation from execute.ts. */
-export function setPlanExecuteImpl(fn: PlanExecuteFn): void {
-  planExecuteImpl = fn;
-}
-
-function sealExecutionPlan(plan: InternalExecutionPlan): InternalExecutionPlan {
-  if (typeof (plan as { execute?: unknown }).execute === 'function') {
-    return plan;
-  }
-  Object.defineProperty(plan, 'execute', {
-    value(args: Record<string, unknown> = {}) {
-      if (planExecuteImpl == null) {
-        throw new Error('ExecutionPlan.execute is not initialized');
-      }
-      return planExecuteImpl(plan, args);
-    },
-    enumerable: false,
-    configurable: false,
-    writable: false,
-  });
-  return plan;
-}
-
 /**
  * True when `compileExecutionPlan` returned a usable plan (not errors / skip).
  */
@@ -143,18 +115,8 @@ export function getPlannedSubfields(
 /**
  * Compile a cacheable execution plan for a validated operation.
  *
- * Variable `@skip` / `@include` use union collection + FieldNode keys.
- * `@defer` / `@stream` set `hasIncremental`; runtime keeps the incremental
- * interpreter while still using per-field plan facts. Returns a GraphQL error
- * list when the operation cannot be resolved.
- *
- * `execute` compiles/caches via {@link resolvePlanForExecute}.
- */
-/**
- * Compile a cacheable execution plan for a validated operation.
- *
- * Returns an opaque {@link import('./executeTypes.js').ExecutionPlan} with
- * `plan.execute(...)`. Internal fields exist at runtime for the warm path but
+ * Returns an opaque {@link import('./executeTypes.js').ExecutionPlan} for
+ * `execute({ plan })`. Internal fields exist at runtime for the warm path but
  * are not part of the public TypeScript API.
  */
 export function compileExecutionPlan(
@@ -163,7 +125,7 @@ export function compileExecutionPlan(
   const cached = getCachedPlanEntry(args.schema, args.document, args.operationName);
   if (cached) {
     if (cached.kind === 'plan') {
-      return sealExecutionPlan(cached.plan);
+      return cached.plan;
     }
     if (cached.kind === 'errors') {
       return cached.errors;
@@ -174,7 +136,7 @@ export function compileExecutionPlan(
   const entry = compileExecutionPlanUncached(args);
   setCachedPlanEntry(args.schema, args.document, args.operationName, entry);
   if (entry.kind === 'plan') {
-    return sealExecutionPlan(entry.plan);
+    return entry.plan;
   }
   if (entry.kind === 'errors') {
     return entry.errors;
@@ -192,7 +154,7 @@ export function getExecutionPlan(
   operationName?: string | null,
 ): InternalExecutionPlan | undefined {
   const cached = getCachedPlanEntry(schema, document, operationName);
-  return cached?.kind === 'plan' ? sealExecutionPlan(cached.plan) : undefined;
+  return cached?.kind === 'plan' ? cached.plan : undefined;
 }
 
 /**
@@ -204,7 +166,7 @@ export function resolvePlanForExecute(
 ): InternalExecutionPlan | undefined {
   const cached = getCachedPlanEntry(args.schema, args.document, args.operationName);
   if (cached?.kind === 'plan') {
-    return sealExecutionPlan(cached.plan);
+    return cached.plan;
   }
   if (cached != null) {
     // errors: do not retry every request
