@@ -2318,6 +2318,71 @@ describe('thin-walk fallback invocation counts', () => {
     expect(planned.errors?.[0]?.extensions?.['CRITICAL_ERROR']).toBeUndefined();
   });
 
+  // R29: PreCR async serialize then-nullish must match classic (hasArgs forces PreCR).
+  it('R29: PreCR async serialize null / undefined / reject match classic', async () => {
+    for (const mode of ['null', 'undefined', 'reject', 'ok'] as const) {
+      const Ser = new GraphQLScalarType({
+        name: `R29PreCRAsync_${mode}`,
+        serialize(value) {
+          if (mode === 'ok') {
+            return Promise.resolve(`S:${String(value)}`);
+          }
+          if (mode === 'null') {
+            return Promise.resolve(null);
+          }
+          if (mode === 'undefined') {
+            return Promise.resolve(undefined);
+          }
+          return Promise.reject(new Error('precr async rej'));
+        },
+      });
+      const Item = new GraphQLObjectType({
+        name: `R29PreCRAsyncItem_${mode}`,
+        fields: {
+          id: { type: Ser },
+          label: {
+            type: GraphQLString,
+            args: { lang: { type: GraphQLString } },
+            resolve: () => 'x',
+          },
+        },
+      });
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            items: { type: new GraphQLList(Item) },
+            ok: { type: GraphQLString, resolve: () => 'yes' },
+          },
+        }),
+      });
+      const document = parse('{ items { id label(lang: "en") } ok }');
+      const rootValue = { items: [{ id: 1, label: 'x' }] };
+      const planned = assertSingular(await execute({ schema, document, rootValue }));
+      const classic = await executeClassic({ schema, document, rootValue });
+      expect(planned).toEqual(classic);
+      if (mode === 'ok') {
+        expect(planned).toEqual({
+          data: { items: [{ id: 'S:1', label: 'x' }], ok: 'yes' },
+        });
+      } else if (mode === 'reject') {
+        expect(planned).toMatchObject({
+          data: { items: [{ id: null, label: 'x' }], ok: 'yes' },
+          errors: [
+            expect.objectContaining({ message: 'precr async rej', path: ['items', 0, 'id'] }),
+          ],
+        });
+      } else if (mode === 'null') {
+        expect(planned).toEqual({
+          data: { items: [{ id: null, label: 'x' }], ok: 'yes' },
+        });
+      } else {
+        expect(planned.errors).toBeUndefined();
+        expect(planned.data?.ok).toBe('yes');
+      }
+    }
+  });
+
   // R28 P2: async serializer (not resolver promise) — planned matches classic
   // (do not invent nullish-serialize errors classic does not emit).
   it('R28 P2: async serialize resolve / null / undefined / reject match classic', async () => {

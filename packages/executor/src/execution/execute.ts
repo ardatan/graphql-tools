@@ -5816,21 +5816,14 @@ function executePlannedSyncObjectFieldsPreCR(
           continue;
         }
         if (isPromise(serialized)) {
-          const leafType = fieldPlan.leafType;
-          const checked = serialized.then((resolved: unknown) => {
-            if (resolved == null) {
-              throw new Error(
-                `Expected \`${inspect(leafType)}.serialize(...)\` to return non-nullable value, returned: ${inspect(resolved)}`,
-              );
-            }
-            return resolved;
-          });
+          // Match classic completeLeafValue: return the serialize promise as-is
+          // (do not invent a nullish error when it settles; sync nullish still errors above).
           const pendingLeaves = registerThinPendingLeaf(
             results,
             undefined,
             parentType,
             responseName,
-            checked,
+            serialized,
             fieldNodes,
             fieldPlan,
           );
@@ -6123,21 +6116,13 @@ function tryExecutePlannedSyncObjectFieldsFast(
           continue;
         }
         if (isPromise(serialized)) {
-          const leafType = fieldPlan.leafType;
-          const checked = serialized.then((resolved: unknown) => {
-            if (resolved == null) {
-              throw new Error(
-                `Expected \`${inspect(leafType)}.serialize(...)\` to return non-nullable value, returned: ${inspect(resolved)}`,
-              );
-            }
-            return resolved;
-          });
+          // Match classic: settle the serialize promise as-is (no invented nullish error).
           pendingLeaves = registerThinPendingLeaf(
             results,
             pendingLeaves,
             parentType,
             responseName,
-            checked,
+            serialized,
             fieldNodes,
             fieldPlan,
           );
@@ -6556,17 +6541,8 @@ function executePlannedSyncObjectFieldsFrom(
           continue;
         }
         if (isPromise(serialized)) {
-          // Validate nullish serialize result when the promise settles.
-          const leafType = fieldPlan.leafType;
-          const checked = serialized.then((resolved: unknown) => {
-            if (resolved == null) {
-              throw new Error(
-                `Expected \`${inspect(leafType)}.serialize(...)\` to return non-nullable value, returned: ${inspect(resolved)}`,
-              );
-            }
-            return resolved;
-          });
-          registerPendingLeaf(responseName, checked, fieldNodes, fieldPlan);
+          // Match classic: settle the serialize promise as-is (no invented nullish error).
+          registerPendingLeaf(responseName, serialized, fieldNodes, fieldPlan);
           recordedGetterError = true;
           continue;
         }
