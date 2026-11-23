@@ -809,40 +809,76 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
   args: ExecuteArgs<TData, TVariables, TContext>,
   knownPlan?: ExecutionPlan | null,
 ): ReadonlyArray<GraphQLError> | ExecutionContext {
-  // Honor explicit null before automatic lookup so classic helpers never
-  // compile/cache a plan (and never double-run custom scalar parseLiteral).
-  // Public kill-switch (planning disabled) also skips resolvePlanForExecute.
-  const resolved = resolveExecutionRequest(args, {
-    skipPlan: knownPlan === null || !isExecutionPlanningEnabled(),
-  });
-  const {
-    schema,
-    document,
-    operationName,
-    rootValue,
-    contextValue,
-    variableValues: rawVariableValues,
-    fieldResolver,
-    typeResolver,
-    subscribeFieldResolver,
-    signal,
-    schemaCoordinateInErrors,
-    hideSuggestions,
-    incrementalSpec = 'v0.1',
-  } = { ...resolved, incrementalSpec: resolved.incrementalSpec ?? 'v0.1' };
+  // Thin classic path when planning is off / explicitly skipped and the caller
+  // did not pass `{ plan }`. Avoids resolveExecutionRequest allocation + plan
+  // lookup that cost ~10% vs master on high-hz classic (mixedSync).
+  const argsHasPlan = 'plan' in args && args.plan != null;
+  const useClassicThinPath =
+    !argsHasPlan &&
+    (knownPlan === null || (knownPlan === undefined && !isExecutionPlanningEnabled()));
 
-  const trustedPlan: InternalExecutionPlan | undefined =
-    knownPlan === undefined
-      ? resolved.knownPlan
-      : knownPlan === null
-        ? undefined
-        : asInternalExecutionPlan(knownPlan);
+  let schema: GraphQLSchema;
+  let document: DocumentNode;
+  let operationName: string | null | undefined;
+  let rootValue: unknown;
+  let contextValue: unknown;
+  let rawVariableValues: TVariables | null | undefined;
+  let fieldResolver: ExecutionContext['fieldResolver'] | null | undefined;
+  let typeResolver: ExecutionContext['typeResolver'] | null | undefined;
+  let subscribeFieldResolver: ExecutionContext['subscribeFieldResolver'] | null | undefined;
+  let signal: AbortSignal | null | undefined;
+  let schemaCoordinateInErrors: boolean | null | undefined;
+  let hideSuggestions: boolean | null | undefined;
+  let incrementalSpec: 'v0.1' | 'v0.2';
+  let trustedPlan: InternalExecutionPlan | undefined;
+
+  if (useClassicThinPath) {
+    schema = args.schema as GraphQLSchema;
+    document = args.document as DocumentNode;
+    operationName = args.operationName;
+    rootValue = args.rootValue;
+    contextValue = args.contextValue;
+    rawVariableValues = args.variableValues;
+    fieldResolver = args.fieldResolver;
+    typeResolver = args.typeResolver;
+    subscribeFieldResolver = args.subscribeFieldResolver;
+    signal = args.signal;
+    schemaCoordinateInErrors = args.schemaCoordinateInErrors;
+    hideSuggestions = args.hideSuggestions;
+    incrementalSpec = args.incrementalSpec ?? 'v0.1';
+    trustedPlan = undefined;
+  } else {
+    // Honor explicit null before automatic lookup so classic helpers never
+    // compile/cache a plan (and never double-run custom scalar parseLiteral).
+    const resolved = resolveExecutionRequest(args, {
+      skipPlan: knownPlan === null || !isExecutionPlanningEnabled(),
+    });
+    schema = resolved.schema;
+    document = resolved.document;
+    operationName = resolved.operationName;
+    rootValue = resolved.rootValue;
+    contextValue = resolved.contextValue;
+    rawVariableValues = resolved.variableValues;
+    fieldResolver = resolved.fieldResolver;
+    typeResolver = resolved.typeResolver;
+    subscribeFieldResolver = resolved.subscribeFieldResolver;
+    signal = resolved.signal;
+    schemaCoordinateInErrors = resolved.schemaCoordinateInErrors;
+    hideSuggestions = resolved.hideSuggestions;
+    incrementalSpec = resolved.incrementalSpec ?? 'v0.1';
+    trustedPlan =
+      knownPlan === undefined
+        ? resolved.knownPlan
+        : knownPlan === null
+          ? undefined
+          : asInternalExecutionPlan(knownPlan);
+  }
+
   const plan = trustedPlan;
 
   signal?.throwIfAborted();
 
-  // Schema already validated in resolveExecutionRequest (before cold compile).
-  // assertValidSchema is idempotent (caches on the schema).
+  // Single assertValidSchema (master parity). Cached/idempotent on the schema.
   assertValidSchema(schema);
 
   let operation: OperationDefinitionNode;
