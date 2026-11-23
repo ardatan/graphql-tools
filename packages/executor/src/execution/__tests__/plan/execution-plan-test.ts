@@ -1161,6 +1161,9 @@ describe('execution plan', () => {
         user @skip(if: $s) { secret }
       }
     `);
+    const op = document.definitions[0] as import('graphql').OperationDefinitionNode;
+    const userIdNode = op.selectionSet.selections[0]!;
+    const userSecretNode = op.selectionSet.selections[1]!;
     captured.length = 0;
     expect(
       executeSync({
@@ -1170,7 +1173,7 @@ describe('execution plan', () => {
       }),
     ).toEqual({ data: { user: { id: '1' } } });
     expect(captured).toHaveLength(1);
-    expect(captured[0]).toHaveLength(1);
+    expect(captured[0]).toEqual([userIdNode]);
 
     captured.length = 0;
     expect(
@@ -1181,11 +1184,11 @@ describe('execution plan', () => {
       }),
     ).toEqual({ data: { user: { id: '1', secret: 'shh' } } });
     expect(captured).toHaveLength(1);
-    expect(captured[0]).toHaveLength(2);
+    expect(captured[0]).toEqual([userIdNode, userSecretNode]);
   });
 
   it('exposes only active fieldNodes when a conditional fragment wraps a merge peer', () => {
-    const captured: Array<number> = [];
+    const captured: Array<ReadonlyArray<unknown>> = [];
     const userType = new GraphQLObjectType({
       name: 'FragUser',
       fields: {
@@ -1200,7 +1203,7 @@ describe('execution plan', () => {
           user: {
             type: userType,
             resolve: (_src, _args, _ctx, info) => {
-              captured.push(info.fieldNodes.length);
+              captured.push(info.fieldNodes);
               return { id: '1', secret: 'shh' };
             },
           },
@@ -1215,6 +1218,10 @@ describe('execution plan', () => {
         }
       }
     `);
+    const op = document.definitions[0] as import('graphql').OperationDefinitionNode;
+    const userIdNode = op.selectionSet.selections[0]!;
+    const skipFrag = op.selectionSet.selections[1] as import('graphql').InlineFragmentNode;
+    const userSecretNode = skipFrag.selectionSet.selections[0]!;
     captured.length = 0;
     expect(
       executeSync({
@@ -1223,7 +1230,8 @@ describe('execution plan', () => {
         variableValues: { s: true },
       }),
     ).toEqual({ data: { user: { id: '1' } } });
-    expect(captured).toEqual([1]);
+    expect(captured).toHaveLength(1);
+    expect(captured[0]).toEqual([userIdNode]);
 
     captured.length = 0;
     expect(
@@ -1233,7 +1241,8 @@ describe('execution plan', () => {
         variableValues: { s: false },
       }),
     ).toEqual({ data: { user: { id: '1', secret: 'shh' } } });
-    expect(captured).toEqual([2]);
+    expect(captured).toHaveLength(1);
+    expect(captured[0]).toEqual([userIdNode, userSecretNode]);
   });
 
   it('returns a fresh static args object per read so mutations do not leak', () => {

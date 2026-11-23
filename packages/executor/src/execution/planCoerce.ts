@@ -9,6 +9,7 @@ import {
   isLeafType,
   isListType,
   isNonNullType,
+  Kind,
   typeFromAST,
   valueFromAST,
   type GraphQLInputType,
@@ -67,7 +68,10 @@ function newCoercedObject(): Record<string, unknown> {
 }
 
 /** True when any leaf under `type` defines GraphQL 17 `coerceInputLiteral`. */
-function typeUsesCoerceInputLiteral(type: GraphQLInputType): boolean {
+function typeUsesCoerceInputLiteral(
+  type: GraphQLInputType,
+  visited: Set<GraphQLInputType> = new Set(),
+): boolean {
   let t: GraphQLInputType = type;
   while (isNonNullType(t) || isListType(t)) {
     t = t.ofType;
@@ -79,8 +83,12 @@ function typeUsesCoerceInputLiteral(type: GraphQLInputType): boolean {
     );
   }
   if (isInputObjectType(t)) {
+    if (visited.has(t)) {
+      return false;
+    }
+    visited.add(t);
     for (const field of Object.values(t.getFields())) {
-      if (typeUsesCoerceInputLiteral(field.type)) {
+      if (typeUsesCoerceInputLiteral(field.type, visited)) {
         return true;
       }
     }
@@ -95,8 +103,14 @@ function coerceDefaultLiteral(literal: ValueNode, type: GraphQLInputType): unkno
   // the literal hook on leaves, and decline nested/list shapes that need it
   // so getVariableValues owns classic coercion.
   let unwrapped: GraphQLInputType = type;
+  let wasNonNull = false;
   while (isNonNullType(unwrapped)) {
+    wasNonNull = true;
     unwrapped = unwrapped.ofType;
+  }
+  // Classic handles NullValue before scalar hooks (nullable → null; NonNull → miss).
+  if (literal.kind === Kind.NULL) {
+    return wasNonNull ? undefined : null;
   }
   if (isLeafType(unwrapped)) {
     const leaf = unwrapped as GraphQLLeafType & {
@@ -462,14 +476,16 @@ function compileInputValueCoercer(
         return null;
       }
       const defaultValue = getInputFieldDefaultValue(field);
-      // Value-form defaults that fail coercion must not silently omit the field.
+      // Value-form or literal defaults that fail coercion must not silently omit
+      // the field (would drop `= [1]` when coerceInputLiteral declines lists).
       // GraphQL 16 typings have only `defaultValue`; GQL17 `default` is optional.
       const gql17Default = (field as { default?: { literal?: ValueNode; value?: unknown } })
         .default;
       if (
         defaultValue === undefined &&
         gql17Default != null &&
-        Object.prototype.hasOwnProperty.call(gql17Default, 'value')
+        (Object.prototype.hasOwnProperty.call(gql17Default, 'value') ||
+          gql17Default.literal != null)
       ) {
         cache.delete(type);
         return null;

@@ -1915,17 +1915,29 @@ function completePlannedObjectListValue(
       continue;
     }
     const itemPath = addPath(path, index, undefined);
-    const nested = executePlannedSyncObjectFields(
-      exeContext,
-      itemObjectType,
-      item,
-      itemPath,
-      subExecutions,
-    );
-    if (nested === undefined) {
-      return undefined;
+    try {
+      const nested = executePlannedSyncObjectFields(
+        exeContext,
+        itemObjectType,
+        item,
+        itemPath,
+        subExecutions,
+      );
+      if (nested === undefined || isThinObjectPartial(nested)) {
+        return undefined;
+      }
+      completedResults[index] = nested;
+    } catch (bubbled) {
+      // NonNull child bubbled from the item — null nullable items and continue.
+      if (itemNonNull) {
+        throw bubbled;
+      }
+      const error =
+        bubbled instanceof GraphQLError
+          ? bubbled
+          : locatedError(coerceError(bubbled), undefined, pathToArray(itemPath));
+      completedResults[index] = handleFieldError(error, itemObjectType, exeContext.errors);
     }
-    completedResults[index] = nested;
   }
   return completedResults;
 }
@@ -3952,13 +3964,43 @@ function invalidReturnTypeError(
   );
 }
 
+/** Thin walk finished some children (e.g. getter errors) then must miss; carry them. */
+type ThinObjectPartial = {
+  readonly partial: true;
+  readonly results: Record<string, unknown>;
+  readonly completed: ReadonlySet<string>;
+};
+
+function isThinObjectPartial(value: unknown): value is ThinObjectPartial {
+  return (
+    typeof value === 'object' &&
+    value != null &&
+    (value as ThinObjectPartial).partial === true &&
+    typeof (value as ThinObjectPartial).results === 'object'
+  );
+}
+
+function thinObjectMiss(
+  results: Record<string, unknown>,
+  recordedGetterError: boolean,
+): Record<string, unknown> | ThinObjectPartial | undefined {
+  if (!recordedGetterError) {
+    return undefined;
+  }
+  return {
+    partial: true,
+    results,
+    completed: new Set(Object.keys(results)),
+  };
+}
+
 function executePlannedSyncObjectFields(
   exeContext: ExecutionContext,
   parentType: GraphQLObjectType,
   sourceValue: unknown,
   path: Path,
   plannedExecutions: ReadonlyArray<PlannedFieldExecution>,
-): Record<string, unknown> | undefined {
+): Record<string, unknown> | ThinObjectPartial | undefined {
   if (exeContext.fieldResolver !== defaultFieldResolver) {
     return undefined;
   }
@@ -3967,10 +4009,11 @@ function executePlannedSyncObjectFields(
   }
   const source = sourceValue as Record<string, unknown>;
   const results: Record<string, unknown> = Object.create(null);
+  let recordedGetterError = false;
   for (const execution of plannedExecutions) {
     const { responseName, fieldNodes, fieldPlan } = execution;
     if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
-      return undefined;
+      return thinObjectMiss(results, recordedGetterError);
     }
     let property: unknown;
     try {
@@ -3979,27 +4022,48 @@ function executePlannedSyncObjectFields(
       // Handle at this child field without retrying the getter (classic
       // executeField would re-read and can lose a one-shot throw).
       const fieldPath = addPath(path, responseName, parentType.name);
-      const error = locatedError(
-        coerceError(rawError),
-        fieldNodes,
-        pathToArray(fieldPath),
-        exeContext.schemaCoordinateInErrors && schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
-      );
-      results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+      const errors = exeContext.errors;
+      if (rawError instanceof AggregateError) {
+        let handled: unknown;
+        for (let rawErrorItem of rawError.errors) {
+          rawErrorItem = coerceError(rawErrorItem);
+          const error = locatedError(
+            rawErrorItem,
+            fieldNodes,
+            pathToArray(fieldPath),
+            exeContext.schemaCoordinateInErrors &&
+              schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+          );
+          handled = handleFieldError(error, fieldPlan.returnType, errors);
+        }
+        results[responseName] = handled;
+      } else {
+        const error = locatedError(
+          coerceError(rawError),
+          fieldNodes,
+          pathToArray(fieldPath),
+          exeContext.schemaCoordinateInErrors &&
+            schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+        );
+        results[responseName] = handleFieldError(error, fieldPlan.returnType, errors);
+      }
+      recordedGetterError = true;
+      // Match classic field loops: honor abort before reading the next sibling.
+      exeContext.signal?.throwIfAborted();
       continue;
     }
     if (typeof property === 'function' || property instanceof Error) {
-      return undefined;
+      return thinObjectMiss(results, recordedGetterError);
     }
     // Avoid isPromise on plain data (nested bench); only gate real thenables.
     if (property != null && typeof property === 'object' && isPromise(property)) {
-      return undefined;
+      return thinObjectMiss(results, recordedGetterError);
     }
     if (fieldPlan.kind === 'leaf' && fieldPlan.leafType != null) {
       if (property == null) {
         if (fieldPlan.nonNull) {
           // NonNull bubble — classic path for exact error handling.
-          return undefined;
+          return thinObjectMiss(results, recordedGetterError);
         }
         results[responseName] = null;
         continue;
@@ -4007,48 +4071,69 @@ function executePlannedSyncObjectFields(
       try {
         const serialized = fieldPlan.leafType.serialize(property);
         if (serialized == null || isPromise(serialized)) {
-          return undefined;
+          return thinObjectMiss(results, recordedGetterError);
         }
         results[responseName] = serialized;
       } catch {
-        return undefined;
+        return thinObjectMiss(results, recordedGetterError);
       }
       continue;
     }
     if (fieldPlan.kind === 'object' && fieldPlan.skipIsTypeOf && fieldPlan.objectType != null) {
       if (property == null) {
         if (fieldPlan.nonNull) {
-          return undefined;
+          return thinObjectMiss(results, recordedGetterError);
         }
         results[responseName] = null;
         continue;
       }
       if (!isObjectLike(property)) {
-        return undefined;
+        return thinObjectMiss(results, recordedGetterError);
       }
       const plan = exeContext.plan;
       if (plan == null) {
-        return undefined;
+        return thinObjectMiss(results, recordedGetterError);
       }
       const rawSub = getPlannedSubfieldExecutions(plan, fieldNodes, fieldPlan.objectType);
       if (rawSub == null) {
-        return undefined;
+        return thinObjectMiss(results, recordedGetterError);
       }
-      const nested = executePlannedSyncObjectFields(
-        exeContext,
-        fieldPlan.objectType,
-        property,
-        addPath(path, responseName, parentType.name),
-        filterPlannedExecutions(rawSub, exeContext.variableValues),
-      );
-      if (nested === undefined) {
-        return undefined;
+      const childPath = addPath(path, responseName, parentType.name);
+      try {
+        const nested = executePlannedSyncObjectFields(
+          exeContext,
+          fieldPlan.objectType,
+          property,
+          childPath,
+          filterPlannedExecutions(rawSub, exeContext.variableValues),
+        );
+        if (nested === undefined || isThinObjectPartial(nested)) {
+          return thinObjectMiss(results, recordedGetterError);
+        }
+        results[responseName] = nested;
+      } catch (bubbled) {
+        // NonNull child bubbled — stop at this nullable object field.
+        if (fieldPlan.nonNull) {
+          throw bubbled;
+        }
+        const error =
+          bubbled instanceof GraphQLError
+            ? bubbled
+            : locatedError(
+                coerceError(bubbled),
+                fieldNodes,
+                pathToArray(childPath),
+                exeContext.schemaCoordinateInErrors &&
+                  schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+              );
+        results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+        recordedGetterError = true;
+        exeContext.signal?.throwIfAborted();
       }
-      results[responseName] = nested;
       continue;
     }
     // List / Abstract / LeafList — decline.
-    return undefined;
+    return thinObjectMiss(results, recordedGetterError);
   }
   return results;
 }
@@ -4099,8 +4184,32 @@ function collectAndExecuteSubfields(
           path,
           plannedExecutions,
         );
-        if (thin !== undefined) {
+        if (thin !== undefined && !isThinObjectPartial(thin)) {
           return thin;
+        }
+        if (isThinObjectPartial(thin)) {
+          // Getter errors already recorded — finish only remaining children.
+          const remaining = plannedExecutions.filter(e => !thin.completed.has(e.responseName));
+          if (remaining.length === 0) {
+            return thin.results;
+          }
+          const restFields = new Map<string, Array<FieldNode>>();
+          for (const execution of remaining) {
+            restFields.set(execution.responseName, execution.fieldNodes as Array<FieldNode>);
+          }
+          return handleMaybePromise(
+            () =>
+              executeFields(
+                exeContext,
+                returnType,
+                result,
+                path,
+                restFields,
+                asyncPayloadRecord,
+                remaining,
+              ),
+            rest => Object.assign(thin.results, rest),
+          );
         }
       }
       return executeFields(
