@@ -382,7 +382,10 @@ function installPackedExecutor(tarballPath, { label, requirePlanning }) {
   try {
     run('tar', ['-xzf', tarballPath, '-C', extractDir]);
     const pkgContent = join(extractDir, 'package');
-    if (!existsSync(join(pkgContent, 'cjs/index.js')) || !existsSync(join(pkgContent, 'package.json'))) {
+    if (
+      !existsSync(join(pkgContent, 'cjs/index.js')) ||
+      !existsSync(join(pkgContent, 'package.json'))
+    ) {
       throw new Error(
         `${label} pack is not publish layout (expected package/cjs/index.js): ${tarballPath}`,
       );
@@ -434,9 +437,7 @@ function assertExecutorPlanningApi({ label, requirePlanning }) {
     typeof ex.isExecutionPlanningEnabled === 'function' &&
     typeof ex.setExecutionPlanningEnabled === 'function' &&
     typeof ex.compileExecutionPlan === 'function';
-  console.log(
-    `  ${label} executor → ${resolved} planningAPI=${hasPlanning ? 'yes' : 'no'}`,
-  );
+  console.log(`  ${label} executor → ${resolved} planningAPI=${hasPlanning ? 'yes' : 'no'}`);
   if (requirePlanning && !hasPlanning) {
     throw new Error(
       `${label}: @graphql-tools/executor at ${resolved} is missing the planning API ` +
@@ -490,10 +491,14 @@ function assertTipPlanningEnvToggle() {
     ['0', false],
     ['1', true],
   ]) {
-    const result = spawnSync(process.execPath, ['-e', probe, hiveGatewayDir, expectOn ? '1' : '0'], {
-      encoding: 'utf8',
-      env: { ...process.env, GRAPHQL_TOOLS_EXECUTOR_PLANNING: flag },
-    });
+    const result = spawnSync(
+      process.execPath,
+      ['-e', probe, hiveGatewayDir, expectOn ? '1' : '0'],
+      {
+        encoding: 'utf8',
+        env: { ...process.env, GRAPHQL_TOOLS_EXECUTOR_PLANNING: flag },
+      },
+    );
     if (result.status !== 0) {
       throw new Error(
         `Tip PLANNING=${flag} toggle failed (${result.status}): ${result.stderr || result.stdout}`,
