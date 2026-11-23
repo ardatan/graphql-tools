@@ -4352,7 +4352,12 @@ function executePlannedSyncObjectFieldsFrom(
           return undefined; // signal: continue sync loop
         }
         if (nested === undefined) {
-          return thinObjectMiss(results, recordedGetterError, pendingLeaves);
+          // Nested walk fully declined. `thinObjectMiss(..., false)` can return
+          // `undefined`, which this helper also uses as "continue sync loop" —
+          // that collision skipped the current field (e.g. author with method
+          // children). Force a partial so the parent finishes this field and
+          // any later siblings via classic executeFields.
+          return thinObjectMiss(results, true, pendingLeaves);
         }
         results[responseName] = nested;
         return undefined; // continue sync loop

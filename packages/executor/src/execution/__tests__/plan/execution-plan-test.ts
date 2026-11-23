@@ -1038,6 +1038,70 @@ describe('execution plan', () => {
     expect(idReads).toBe(1);
   });
 
+  it('finishes a nested object via classic when the nested thin walk fully declines', () => {
+    // Nested Author thin-walk hits a method/args field and returns undefined
+    // (no recorded getter errors). Parent must not treat that undefined as
+    // "continue" and skip the author field entirely (schema-test regression).
+    let picCalls = 0;
+    const imageType = new GraphQLObjectType({
+      name: 'NestedMissImage',
+      fields: {
+        url: { type: GraphQLString },
+      },
+    });
+    const authorType = new GraphQLObjectType({
+      name: 'NestedMissAuthor',
+      fields: {
+        id: { type: GraphQLString },
+        pic: {
+          type: imageType,
+          args: { width: { type: GraphQLInt } },
+          resolve: (obj, { width }) => {
+            picCalls += 1;
+            return obj.pic(width);
+          },
+        },
+      },
+    });
+    const articleType = new GraphQLObjectType({
+      name: 'NestedMissArticle',
+      fields: {
+        title: { type: GraphQLString },
+        author: { type: authorType },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          article: {
+            type: articleType,
+            resolve: () => ({
+              title: 'Hello',
+              author: {
+                id: 'a1',
+                pic: (width: number) => ({ url: `cdn://${width}` }),
+              },
+            }),
+          },
+        },
+      }),
+    });
+    const result = executeSync({
+      schema,
+      document: parse('{ article { title author { id pic(width: 64) { url } } } }'),
+    });
+    expect(result).toEqual({
+      data: {
+        article: {
+          title: 'Hello',
+          author: { id: 'a1', pic: { url: 'cdn://64' } },
+        },
+      },
+    });
+    expect(picCalls).toBe(1);
+  });
+
   it('preserves nested partial when remaining sibling is async', async () => {
     let idReads = 0;
     let nameCalls = 0;
