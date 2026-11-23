@@ -796,7 +796,9 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
   const plan =
     knownPlan === undefined
       ? args.plan != null
-        ? args.plan
+        ? planMatchesExecuteArgs(args.plan, { schema, document, operationName })
+          ? args.plan
+          : resolvePlanForExecute({ schema, document, operationName })
         : resolvePlanForExecute({ schema, document, operationName })
       : (knownPlan ?? undefined);
 
