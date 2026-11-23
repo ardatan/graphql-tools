@@ -109,6 +109,12 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
    * opaque {@link ExecutionPlan} handle.
    */
   plan?: InternalExecutionPlan;
+  /**
+   * When true, every compiled `defaultProperty` field still has a default
+   * `fieldDef.resolve` at execute start. Thin hot paths may trust
+   * `resolveKind` without re-reading `fieldDef.resolve` per field.
+   */
+  defaultPropertyResolvesPristine?: boolean;
 }
 
 export interface FormattedExecutionResult<

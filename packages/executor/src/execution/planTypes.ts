@@ -247,6 +247,12 @@ export interface InternalExecutionPlan extends ExecutionPlan {
    * `@skip`/`@include` predicates (fields + fragments) instead of re-collecting.
    */
   skipIncludePredicates: boolean;
+  /**
+   * Strong list of `defaultProperty` field plans compiled for this document.
+   * Used once per execute to pin live `fieldDef.resolve` checks (nestedDefault
+   * hot path trusts `resolveKind` when still pristine).
+   */
+  defaultPropertyFieldPlans: Array<FieldPlan>;
 }
 
 /**

@@ -10,6 +10,7 @@ import {
   GraphQLAbstractType,
   GraphQLError,
   GraphQLField,
+  GraphQLFieldResolver,
   GraphQLLeafType,
   GraphQLList,
   GraphQLObjectType,
@@ -1061,6 +1062,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
 
   const collectDepends =
     trustedPlan?.collectionDependsOnVariables ?? getCollectFieldsDependsOnVariables(document);
+  const resolvedFieldResolver = fieldResolver ?? defaultFieldResolver;
   const exeContext: ExecutionContext = {
     schema,
     fragments,
@@ -1073,7 +1075,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     // on @defer/@stream and falls back to classic collect.
     skipIncludeFieldPredicates: collectDepends,
     resolveInfoVariableValues,
-    fieldResolver: fieldResolver ?? defaultFieldResolver,
+    fieldResolver: resolvedFieldResolver,
     typeResolver: typeResolver ?? defaultTypeResolver,
     subscribeFieldResolver: subscribeFieldResolver ?? defaultFieldResolver,
     subsequentPayloads: new Set(),
@@ -1087,6 +1089,11 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     detachSignalListener,
     schemaCoordinateInErrors,
     plan,
+    // Pin live defaultProperty resolve checks once per execute (nestedDefault).
+    defaultPropertyResolvesPristine: areDefaultPropertyResolvesPristine(
+      plan,
+      resolvedFieldResolver,
+    ),
   };
 
   if (ensureSignalPlumbing) {
@@ -1133,6 +1140,7 @@ export function buildPerEventExecutionContext(
     onSignalAbort: exeContext.onSignalAbort,
     schemaCoordinateInErrors: exeContext.schemaCoordinateInErrors,
     plan: exeContext.plan,
+    defaultPropertyResolvesPristine: exeContext.defaultPropertyResolvesPristine,
   };
   const parentDescriptor = Object.getOwnPropertyDescriptor(exeContext, 'signalPromise');
   if (parentDescriptor?.get) {
@@ -2208,11 +2216,9 @@ function executePlannedSyncObjectFieldsPlain(
     return undefined;
   }
   const source = sourceValue as Record<string, unknown>;
-  // Same compact null-prototype shape as executeFields (#8610).
-  const results: Record<string, unknown> = Object.setPrototypeOf(
-    new CompactExecutionResultMap(),
-    null,
-  );
+  // nestedDefault: Object.create(null) beats CompactExecutionResultMap+setPrototypeOf
+  // (~+22% Nested locally; matches pre-triage3 Plain shape).
+  const results: Record<string, unknown> = Object.create(null);
   let pendingLeaves: Map<string, PendingLeafEntry> | undefined;
   const signal = exeContext.signal;
   for (const execution of plannedExecutions) {
@@ -2220,7 +2226,12 @@ function executePlannedSyncObjectFieldsPlain(
       signal.throwIfAborted();
     }
     const { responseName, fieldNodes, fieldPlan } = execution;
-    if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
+    // Pristine plans: trust compile-time resolveKind (pre-triage3 nestedDefault shape).
+    if (exeContext.defaultPropertyResolvesPristine === true) {
+      if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
+        return thinObjectMiss(results, false, pendingLeaves);
+      }
+    } else if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
       return thinObjectMiss(results, false, pendingLeaves);
     }
     let property: unknown;
@@ -2477,81 +2488,84 @@ function executePlannedSyncObjectFieldsPlain(
           continue;
         }
       }
-      try {
-        const nested = executePlannedSyncObjectFieldsPlain(
+      // Nested NonNull boundary catch lives in a cold helper so this Plain
+      // function stays try/catch-free on the nestedDefault recurse (V8).
+      let nested: Record<string, unknown> | ThinObjectPartial | undefined | typeof NESTED_BOUNDARY_NULL;
+      if (plannedSubExecutionsMayBubbleNonNull(nestedSub)) {
+        nested = completeNestedPlainWithNonNullBoundary(
           exeContext,
-          fieldPlan.objectType,
+          parentType,
+          fieldPlan,
+          fieldNodes,
+          responseName,
+          property,
+          childPath,
+          nestedSub,
+          results,
+        );
+        if (nested === NESTED_BOUNDARY_NULL) {
+          continue;
+        }
+      } else {
+        nested = executePlannedSyncObjectFieldsPlain(
+          exeContext,
+          fieldPlan.objectType!,
           property,
           childPath,
           nestedSub,
         );
-        if (nested === undefined) {
-          return thinObjectMiss(results, false, pendingLeaves);
-        }
-        if (isThinObjectPartial(nested)) {
-          const finished = finishThinObjectPartial(
-            exeContext,
-            fieldPlan.objectType,
-            property,
-            addPath(path, responseName, parentType.name),
-            nestedSub,
-            nested,
-          );
-          if (isPromise(finished)) {
-            results[responseName] = undefined;
-            const parentPartial = thinObjectMiss(results, true, pendingLeaves) as ThinObjectPartial;
-            return {
-              ...parentPartial,
-              pendingFieldWork: [
-                ...(parentPartial.pendingFieldWork ?? []),
-                finished.then(
-                  value => {
-                    results[responseName] = value;
-                  },
-                  (bubbled: unknown) => {
-                    // Same nested-field boundary as sync throws (nullable profile).
-                    exeContext.signal?.throwIfAborted();
-                    if (fieldPlan.nonNull) {
-                      throw bubbled;
-                    }
-                    const error = locatedError(
-                      coerceError(bubbled),
-                      fieldNodes,
-                      pathToArray(childPath),
-                      exeContext.schemaCoordinateInErrors &&
-                        schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
-                    );
-                    results[responseName] = handleFieldError(
-                      error,
-                      fieldPlan.returnType,
-                      exeContext.errors,
-                    );
-                  },
-                ),
-              ],
-            };
-          }
-          results[responseName] = finished;
-          continue;
-        }
-        results[responseName] = nested;
-        continue;
-      } catch (bubbled) {
-        // NonNull child bubbled — stop at this nullable nested object field.
-        exeContext.signal?.throwIfAborted();
-        if (fieldPlan.nonNull) {
-          throw bubbled;
-        }
-        const error = locatedError(
-          coerceError(bubbled),
-          fieldNodes,
-          pathToArray(childPath),
-          exeContext.schemaCoordinateInErrors &&
-            schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+      }
+      if (nested === undefined) {
+        return thinObjectMiss(results, false, pendingLeaves);
+      }
+      if (isThinObjectPartial(nested)) {
+        const finished = finishThinObjectPartial(
+          exeContext,
+          fieldPlan.objectType,
+          property,
+          addPath(path, responseName, parentType.name),
+          nestedSub,
+          nested,
         );
-        results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+        if (isPromise(finished)) {
+          results[responseName] = undefined;
+          const parentPartial = thinObjectMiss(results, true, pendingLeaves) as ThinObjectPartial;
+          return {
+            ...parentPartial,
+            pendingFieldWork: [
+              ...(parentPartial.pendingFieldWork ?? []),
+              finished.then(
+                value => {
+                  results[responseName] = value;
+                },
+                (bubbled: unknown) => {
+                  // Same nested-field boundary as sync throws (nullable profile).
+                  exeContext.signal?.throwIfAborted();
+                  if (fieldPlan.nonNull) {
+                    throw bubbled;
+                  }
+                  const error = locatedError(
+                    coerceError(bubbled),
+                    fieldNodes,
+                    pathToArray(childPath),
+                    exeContext.schemaCoordinateInErrors &&
+                      schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+                  );
+                  results[responseName] = handleFieldError(
+                    error,
+                    fieldPlan.returnType,
+                    exeContext.errors,
+                  );
+                },
+              ),
+            ],
+          };
+        }
+        results[responseName] = finished;
         continue;
       }
+      results[responseName] = nested;
+      continue;
     }
     // List / Abstract / LeafList — decline without replaying completed fields.
     return thinObjectMiss(results, false, pendingLeaves);
@@ -2679,9 +2693,14 @@ function subExecutionsArePlainDefault(
   exeContext: ExecutionContext,
   subExecutions: ReadonlyArray<PlannedFieldExecution>,
 ): boolean {
+  const pristine = exeContext.defaultPropertyResolvesPristine === true;
   for (const execution of subExecutions) {
     const { fieldPlan } = execution;
-    if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
+    if (pristine) {
+      if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
+        return false;
+      }
+    } else if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
       return false;
     }
     // NonNull fields: getter throws need the remainder path for item-local nulling.
@@ -4163,8 +4182,32 @@ function schemaCoordinateInfo(
 }
 
 /**
+ * Once per execute: every compiled defaultProperty field still has a default
+ * live resolve, and the execution uses defaultFieldResolver. When true, thin
+ * hot paths trust `resolveKind` without re-reading `fieldDef.resolve` per field
+ * (nestedDefault). Monkey-patches after this check still need a re-execute.
+ */
+function areDefaultPropertyResolvesPristine(
+  plan: InternalExecutionPlan | undefined,
+  fieldResolver: GraphQLFieldResolver<unknown, unknown>,
+): boolean {
+  if (plan == null || fieldResolver !== defaultFieldResolver) {
+    return false;
+  }
+  const plans = plan.defaultPropertyFieldPlans;
+  for (let i = 0; i < plans.length; i++) {
+    const live = plans[i].fieldDef.resolve;
+    if (live != null && live !== defaultFieldResolver) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
  * True when the compiled plan still expects default-property resolve and the
  * live `fieldDef.resolve` / `fieldResolver` have not been swapped since compile.
+ * When `defaultPropertyResolvesPristine` is set, skip per-field live reads.
  */
 function isLiveDefaultPropertyResolve(
   fieldPlan: { resolveKind: string; fieldDef: GraphQLField<unknown, unknown> },
@@ -4176,8 +4219,82 @@ function isLiveDefaultPropertyResolve(
   if (exeContext.fieldResolver !== defaultFieldResolver) {
     return false;
   }
+  if (exeContext.defaultPropertyResolvesPristine === true) {
+    return true;
+  }
   const live = fieldPlan.fieldDef.resolve;
   return live == null || live === defaultFieldResolver;
+}
+
+/**
+ * True when a nested thin walk can throw past the child (NonNull bubble).
+ * When false, callers skip try/catch around nested recursion (nestedDefault).
+ * Cached on the stable plan execution array identity.
+ */
+const plannedSubExecutionsMayBubbleNonNullCache = new WeakMap<
+  ReadonlyArray<PlannedFieldExecution>,
+  boolean
+>();
+
+function plannedSubExecutionsMayBubbleNonNull(
+  executions: ReadonlyArray<PlannedFieldExecution>,
+): boolean {
+  const cached = plannedSubExecutionsMayBubbleNonNullCache.get(executions);
+  if (cached !== undefined) {
+    return cached;
+  }
+  let mayBubble = false;
+  for (let i = 0; i < executions.length; i++) {
+    if (executions[i].fieldPlan.nonNull) {
+      mayBubble = true;
+      break;
+    }
+  }
+  plannedSubExecutionsMayBubbleNonNullCache.set(executions, mayBubble);
+  return mayBubble;
+}
+
+/** Sentinel: nested NonNull bubble was nulled at this field; parent loop continues. */
+const NESTED_BOUNDARY_NULL: unique symbol = Symbol('NESTED_BOUNDARY_NULL');
+
+/**
+ * Cold path: recurse Plain with try/catch so NonNull children stop at this
+ * nullable nested object. Kept out of the nestedDefault Plain hot function.
+ */
+function completeNestedPlainWithNonNullBoundary(
+  exeContext: ExecutionContext,
+  parentType: GraphQLObjectType,
+  fieldPlan: ObjectFieldPlan,
+  fieldNodes: ReadonlyArray<FieldNode>,
+  responseName: string,
+  property: unknown,
+  childPath: Path,
+  nestedSub: ReadonlyArray<PlannedFieldExecution>,
+  results: Record<string, unknown>,
+): Record<string, unknown> | ThinObjectPartial | undefined | typeof NESTED_BOUNDARY_NULL {
+  try {
+    return executePlannedSyncObjectFieldsPlain(
+      exeContext,
+      fieldPlan.objectType,
+      property,
+      childPath,
+      nestedSub,
+    );
+  } catch (bubbled) {
+    exeContext.signal?.throwIfAborted();
+    if (fieldPlan.nonNull) {
+      throw bubbled;
+    }
+    const error = locatedError(
+      coerceError(bubbled),
+      fieldNodes,
+      pathToArray(childPath),
+      exeContext.schemaCoordinateInErrors &&
+        schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+    );
+    results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+    return NESTED_BOUNDARY_NULL;
+  }
 }
 
 /**
@@ -6202,89 +6319,101 @@ function executePlannedSyncObjectFieldsPreCR(
           continue;
         }
       }
-      try {
-        const nested = executePlannedSyncObjectFieldsPreCR(
+      let nested: Record<string, unknown> | ThinObjectPartial | undefined;
+      // Skip try/catch when no child can NonNull-bubble (nestedDefault hot path).
+      if (plannedSubExecutionsMayBubbleNonNull(subExecutions)) {
+        try {
+          nested = executePlannedSyncObjectFieldsPreCR(
+            exeContext,
+            fieldPlan.objectType!,
+            property,
+            childPath,
+            subExecutions,
+          );
+        } catch (bubbled) {
+          // NonNull child bubbled — stop at this nullable nested object field.
+          exeContext.signal?.throwIfAborted();
+          if (fieldPlan.nonNull) {
+            throw bubbled;
+          }
+          const error = locatedError(
+            coerceError(bubbled),
+            fieldNodes,
+            pathToArray(childPath),
+            exeContext.schemaCoordinateInErrors &&
+              schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+          );
+          results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+          recordedGetterError = true;
+          n++;
+          continue;
+        }
+      } else {
+        nested = executePlannedSyncObjectFieldsPreCR(
           exeContext,
-          fieldPlan.objectType,
+          fieldPlan.objectType!,
           property,
           childPath,
           subExecutions,
         );
-        if (nested === undefined) {
-          return n > 0 || recordedGetterError
-            ? thinObjectMiss(results, true, undefined)
-            : undefined;
-        }
-        if (
-          typeof nested === 'object' &&
-          nested != null &&
-          (nested as ThinObjectPartial)[THIN_OBJECT_PARTIAL] === true
-        ) {
-          const finished = finishThinObjectPartial(
-            exeContext,
-            fieldPlan.objectType,
-            property,
-            addPath(path, responseName, parentType.name),
-            subExecutions,
-            nested as ThinObjectPartial,
-          );
-          if (isPromise(finished)) {
-            results[responseName] = undefined;
-            const parentPartial = thinObjectMiss(results, true, undefined) as ThinObjectPartial;
-            return {
-              ...parentPartial,
-              pendingFieldWork: [
-                finished.then(
-                  value => {
-                    parentPartial.results[responseName] = value;
-                  },
-                  (bubbled: unknown) => {
-                    exeContext.signal?.throwIfAborted();
-                    if (fieldPlan.nonNull) {
-                      throw bubbled;
-                    }
-                    const error = locatedError(
-                      coerceError(bubbled),
-                      fieldNodes,
-                      pathToArray(childPath),
-                      exeContext.schemaCoordinateInErrors &&
-                        schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
-                    );
-                    parentPartial.results[responseName] = handleFieldError(
-                      error,
-                      fieldPlan.returnType,
-                      exeContext.errors,
-                    );
-                  },
-                ),
-              ],
-            };
-          }
-          results[responseName] = finished;
-          n++;
-          continue;
-        }
-        results[responseName] = nested;
-        n++;
-        continue;
-      } catch (bubbled) {
-        // NonNull child bubbled — stop at this nullable nested object field.
-        exeContext.signal?.throwIfAborted();
-        if (fieldPlan.nonNull) {
-          throw bubbled;
-        }
-        const error = locatedError(
-          coerceError(bubbled),
-          fieldNodes,
-          pathToArray(childPath),
-          exeContext.schemaCoordinateInErrors &&
-            schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+      }
+      if (nested === undefined) {
+        return n > 0 || recordedGetterError
+          ? thinObjectMiss(results, true, undefined)
+          : undefined;
+      }
+      if (
+        typeof nested === 'object' &&
+        nested != null &&
+        (nested as ThinObjectPartial)[THIN_OBJECT_PARTIAL] === true
+      ) {
+        const finished = finishThinObjectPartial(
+          exeContext,
+          fieldPlan.objectType,
+          property,
+          addPath(path, responseName, parentType.name),
+          subExecutions,
+          nested as ThinObjectPartial,
         );
-        results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
-        recordedGetterError = true;
+        if (isPromise(finished)) {
+          results[responseName] = undefined;
+          const parentPartial = thinObjectMiss(results, true, undefined) as ThinObjectPartial;
+          return {
+            ...parentPartial,
+            pendingFieldWork: [
+              finished.then(
+                value => {
+                  parentPartial.results[responseName] = value;
+                },
+                (bubbled: unknown) => {
+                  exeContext.signal?.throwIfAborted();
+                  if (fieldPlan.nonNull) {
+                    throw bubbled;
+                  }
+                  const error = locatedError(
+                    coerceError(bubbled),
+                    fieldNodes,
+                    pathToArray(childPath),
+                    exeContext.schemaCoordinateInErrors &&
+                      schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+                  );
+                  parentPartial.results[responseName] = handleFieldError(
+                    error,
+                    fieldPlan.returnType,
+                    exeContext.errors,
+                  );
+                },
+              ),
+            ],
+          };
+        }
+        results[responseName] = finished;
         n++;
         continue;
       }
+      results[responseName] = nested;
+      n++;
+      continue;
     }
     return n > 0 || recordedGetterError
       ? thinObjectMiss(results, recordedGetterError, undefined)
@@ -6614,104 +6743,116 @@ function tryExecutePlannedSyncObjectFieldsFast(
           continue;
         }
       }
-      try {
-        const nested = tryExecutePlannedSyncObjectFieldsFast(
+      let nested: ReturnType<typeof tryExecutePlannedSyncObjectFieldsFast>;
+      // Skip try/catch when no child can NonNull-bubble (nestedDefault hot path).
+      if (plannedSubExecutionsMayBubbleNonNull(nestedSubExecutions)) {
+        try {
+          nested = tryExecutePlannedSyncObjectFieldsFast(
+            exeContext,
+            fieldPlan.objectType!,
+            property,
+            childPath,
+            nestedSubExecutions,
+          );
+        } catch (bubbled) {
+          // NonNull child bubbled — stop at this nullable nested object field.
+          exeContext.signal?.throwIfAborted();
+          if (fieldPlan.nonNull) {
+            throw bubbled;
+          }
+          const error = locatedError(
+            coerceError(bubbled),
+            fieldNodes,
+            pathToArray(childPath),
+            exeContext.schemaCoordinateInErrors &&
+              schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+          );
+          results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+          recordedGetterError = true;
+          continue;
+        }
+      } else {
+        nested = tryExecutePlannedSyncObjectFieldsFast(
+          exeContext,
+          fieldPlan.objectType!,
+          property,
+          childPath,
+          nestedSubExecutions,
+        );
+      }
+      if (nested === SYNC_OBJECT_NEEDS_HEAVY) {
+        if (recordedGetterError || Object.keys(results).length > 0 || pendingLeaves != null) {
+          // Force partial so parent finishes this field via classic (no key skip).
+          return thinObjectMiss(results, true, pendingLeaves);
+        }
+        return SYNC_OBJECT_NEEDS_HEAVY;
+      }
+      if (isThinObjectPartial(nested)) {
+        // Finish nested partial here so completed children (e.g. one-shot
+        // getter errors) are not re-walked by a parent NEED_HEAVY / From.
+        const finished = finishThinObjectPartial(
           exeContext,
           fieldPlan.objectType,
           property,
           childPath,
           nestedSubExecutions,
+          nested,
         );
-        if (nested === SYNC_OBJECT_NEEDS_HEAVY) {
-          if (recordedGetterError || Object.keys(results).length > 0 || pendingLeaves != null) {
-            // Force partial so parent finishes this field via classic (no key skip).
-            return thinObjectMiss(results, true, pendingLeaves);
-          }
-          return SYNC_OBJECT_NEEDS_HEAVY;
+        if (isPromise(finished)) {
+          // Reserve the response key so finishThin does not classic-replay this
+          // nested field (one-shot safe). Always return a partial with
+          // pendingFieldWork — even when this is the first parent field — so
+          // remaining siblings (e.g. `name` after async `profile`) still start
+          // before the nested work is joined. Returning `finished.then(...)`
+          // as a complete map would omit those siblings.
+          results[responseName] = undefined;
+          const parentPartial = thinObjectMiss(results, true, pendingLeaves) as ThinObjectPartial;
+          return {
+            ...parentPartial,
+            pendingFieldWork: [
+              finished.then(
+                value => {
+                  parentPartial.results[responseName] = value;
+                },
+                (bubbled: unknown) => {
+                  exeContext.signal?.throwIfAborted();
+                  if (fieldPlan.nonNull) {
+                    throw bubbled;
+                  }
+                  const error = locatedError(
+                    coerceError(bubbled),
+                    fieldNodes,
+                    pathToArray(childPath),
+                    exeContext.schemaCoordinateInErrors &&
+                      schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+                  );
+                  parentPartial.results[responseName] = handleFieldError(
+                    error,
+                    fieldPlan.returnType,
+                    exeContext.errors,
+                  );
+                },
+              ),
+            ],
+          };
         }
-        if (isThinObjectPartial(nested)) {
-          // Finish nested partial here so completed children (e.g. one-shot
-          // getter errors) are not re-walked by a parent NEED_HEAVY / From.
-          const finished = finishThinObjectPartial(
-            exeContext,
-            fieldPlan.objectType,
-            property,
-            childPath,
-            nestedSubExecutions,
-            nested,
-          );
-          if (isPromise(finished)) {
-            // Reserve the response key so finishThin does not classic-replay this
-            // nested field (one-shot safe). Always return a partial with
-            // pendingFieldWork — even when this is the first parent field — so
-            // remaining siblings (e.g. `name` after async `profile`) still start
-            // before the nested work is joined. Returning `finished.then(...)`
-            // as a complete map would omit those siblings.
-            results[responseName] = undefined;
-            const parentPartial = thinObjectMiss(results, true, pendingLeaves) as ThinObjectPartial;
-            return {
-              ...parentPartial,
-              pendingFieldWork: [
-                finished.then(
-                  value => {
-                    parentPartial.results[responseName] = value;
-                  },
-                  (bubbled: unknown) => {
-                    exeContext.signal?.throwIfAborted();
-                    if (fieldPlan.nonNull) {
-                      throw bubbled;
-                    }
-                    const error = locatedError(
-                      coerceError(bubbled),
-                      fieldNodes,
-                      pathToArray(childPath),
-                      exeContext.schemaCoordinateInErrors &&
-                        schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
-                    );
-                    parentPartial.results[responseName] = handleFieldError(
-                      error,
-                      fieldPlan.returnType,
-                      exeContext.errors,
-                    );
-                  },
-                ),
-              ],
-            };
-          }
-          results[responseName] = finished;
-          recordedGetterError = true;
-          continue;
-        }
-        if (nested === undefined) {
-          return thinObjectMiss(results, true, pendingLeaves);
-        }
-        if (isPromise(nested)) {
-          // Should not happen on the fast path; escalate safely.
-          if (recordedGetterError || Object.keys(results).length > 0 || pendingLeaves != null) {
-            nested.then(undefined, () => undefined);
-            return thinObjectMiss(results, true, pendingLeaves);
-          }
-          return SYNC_OBJECT_NEEDS_HEAVY;
-        }
-        results[responseName] = nested;
-        continue;
-      } catch (bubbled) {
-        // NonNull child bubbled — stop at this nullable nested object field.
-        exeContext.signal?.throwIfAborted();
-        if (fieldPlan.nonNull) {
-          throw bubbled;
-        }
-        const error = locatedError(
-          coerceError(bubbled),
-          fieldNodes,
-          pathToArray(childPath),
-          exeContext.schemaCoordinateInErrors &&
-            schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
-        );
-        results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+        results[responseName] = finished;
         recordedGetterError = true;
         continue;
       }
+      if (nested === undefined) {
+        return thinObjectMiss(results, true, pendingLeaves);
+      }
+      if (isPromise(nested)) {
+        // Should not happen on the fast path; escalate safely.
+        if (recordedGetterError || Object.keys(results).length > 0 || pendingLeaves != null) {
+          nested.then(undefined, () => undefined);
+          return thinObjectMiss(results, true, pendingLeaves);
+        }
+        return SYNC_OBJECT_NEEDS_HEAVY;
+      }
+      results[responseName] = nested;
+      continue;
     }
 
     // List / abstract / leaf-list — miss or decline.
@@ -7172,87 +7313,99 @@ function executePlannedSyncObjectFieldsFrom(
         results[responseName] = nested;
         return undefined; // continue sync loop
       };
-      try {
-        const nested = executePlannedSyncObjectFields(
+      let nested: ReturnType<typeof executePlannedSyncObjectFields>;
+      // Skip try/catch when no child can NonNull-bubble (nestedDefault hot path).
+      if (plannedSubExecutionsMayBubbleNonNull(nestedSubExecutions)) {
+        try {
+          nested = executePlannedSyncObjectFields(
+            exeContext,
+            fieldPlan.objectType!,
+            property,
+            childPath,
+            nestedSubExecutions,
+          );
+        } catch (bubbled) {
+          // NonNull child bubbled — stop at this nullable object field.
+          nullNestedField(bubbled);
+          recordedGetterError = true;
+          exeContext.signal?.throwIfAborted();
+          continue;
+        }
+      } else {
+        nested = executePlannedSyncObjectFields(
           exeContext,
-          fieldPlan.objectType,
+          fieldPlan.objectType!,
           property,
           childPath,
           nestedSubExecutions,
         );
-        if (isPromise(nested)) {
-          // Continue parent siblings while nested completes; join at boundary.
-          // Parent has already moved on, so decline must classic-complete this
-          // field in place (cannot return a parent-level thinObjectMiss).
-          if (!Object.prototype.hasOwnProperty.call(results, responseName)) {
-            results[responseName] = undefined;
-          }
-          observePendingFieldWork(
-            nested.then(
-              value => {
-                try {
-                  if (isThinObjectPartial(value)) {
-                    // finishThin may throw sync (e.g. NonNull remaining) —
-                    // catch and route through the nested field boundary.
-                    return Promise.resolve(
-                      finishThinObjectPartial(
-                        exeContext,
-                        fieldPlan.objectType!,
-                        property,
-                        childPath,
-                        nestedSubExecutions,
-                        value,
-                      ),
-                    ).then(
-                      nestedResult => {
-                        results[responseName] = nestedResult;
-                      },
-                      (bubbled: unknown) => {
-                        nullNestedField(bubbled);
-                      },
-                    );
-                  }
-                  if (value === undefined) {
-                    return Promise.resolve(
-                      executeObjectItemViaFields(
-                        exeContext,
-                        fieldPlan.objectType!,
-                        property,
-                        childPath,
-                        nestedSubExecutions,
-                      ),
-                    ).then(
-                      nestedResult => {
-                        results[responseName] = nestedResult;
-                      },
-                      (bubbled: unknown) => {
-                        nullNestedField(bubbled);
-                      },
-                    );
-                  }
-                  results[responseName] = value;
-                } catch (bubbled) {
-                  nullNestedField(bubbled);
+      }
+      if (isPromise(nested)) {
+        // Continue parent siblings while nested completes; join at boundary.
+        // Parent has already moved on, so decline must classic-complete this
+        // field in place (cannot return a parent-level thinObjectMiss).
+        if (!Object.prototype.hasOwnProperty.call(results, responseName)) {
+          results[responseName] = undefined;
+        }
+        observePendingFieldWork(
+          nested.then(
+            value => {
+              try {
+                if (isThinObjectPartial(value)) {
+                  // finishThin may throw sync (e.g. NonNull remaining) —
+                  // catch and route through the nested field boundary.
+                  return Promise.resolve(
+                    finishThinObjectPartial(
+                      exeContext,
+                      fieldPlan.objectType!,
+                      property,
+                      childPath,
+                      nestedSubExecutions,
+                      value,
+                    ),
+                  ).then(
+                    nestedResult => {
+                      results[responseName] = nestedResult;
+                    },
+                    (bubbled: unknown) => {
+                      nullNestedField(bubbled);
+                    },
+                  );
                 }
-              },
-              (bubbled: unknown) => {
+                if (value === undefined) {
+                  return Promise.resolve(
+                    executeObjectItemViaFields(
+                      exeContext,
+                      fieldPlan.objectType!,
+                      property,
+                      childPath,
+                      nestedSubExecutions,
+                    ),
+                  ).then(
+                    nestedResult => {
+                      results[responseName] = nestedResult;
+                    },
+                    (bubbled: unknown) => {
+                      nullNestedField(bubbled);
+                    },
+                  );
+                }
+                results[responseName] = value;
+              } catch (bubbled) {
                 nullNestedField(bubbled);
-              },
-            ),
-          );
-          recordedGetterError = true;
-          continue;
-        }
-        const applied = applyNested(nested);
-        if (applied !== undefined) {
-          return applied;
-        }
-        continue;
-      } catch (bubbled) {
-        // NonNull child bubbled — stop at this nullable object field.
-        nullNestedField(bubbled);
+              }
+            },
+            (bubbled: unknown) => {
+              nullNestedField(bubbled);
+            },
+          ),
+        );
         recordedGetterError = true;
-        exeContext.signal?.throwIfAborted();
+        continue;
+      }
+      const applied = applyNested(nested);
+      if (applied !== undefined) {
+        return applied;
       }
       continue;
     }

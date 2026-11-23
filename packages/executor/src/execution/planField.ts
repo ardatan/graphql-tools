@@ -411,6 +411,10 @@ function compileFieldPlan(
       break;
     }
   }
+  // Strong list for once-per-execute pristine live-resolve pin (nestedDefault).
+  if (resolveKind === 'defaultProperty') {
+    plan.defaultPropertyFieldPlans.push(fieldPlan);
+  }
   return fieldPlan;
 }
 

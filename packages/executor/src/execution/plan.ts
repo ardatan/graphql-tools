@@ -399,6 +399,7 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
     coerceVariables: coerceVariables,
     rootExecutions: undefined,
     skipIncludePredicates: skipIncludePredicates,
+    defaultPropertyFieldPlans: [] as Array<FieldPlan>,
   } as MutablePlan;
 
   try {
