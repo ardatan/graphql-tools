@@ -110,9 +110,29 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    const viaPlan = executeSync({ schema, document, plan });
+    const viaPlan = executeSync({ plan });
     const viaExecute = executeSync({ schema, document });
     expect(viaPlan).toEqual(viaExecute);
+  });
+
+  it('plan-only executeSync and buildExecutionContext trust plan schema/document', () => {
+    const document = parse('{ items { name } a }');
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    expect(executeSync({ plan })).toEqual(
+      executeSync({
+        schema,
+        document,
+      }),
+    );
+    const exeContext = buildExecutionContext({ plan });
+    assertExeContext(exeContext);
+    expect(exeContext.plan).toBe(plan);
+    expect(exeContext.schema).toBe(plan.schema);
+    expect(exeContext.operation).toBe(plan.operation);
   });
 
   it('public execute get-or-compiles and attaches the plan', () => {
@@ -122,7 +142,7 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    expect(executeSync({ schema, document })).toEqual(executeSync({ schema, document, plan }));
+    expect(executeSync({ schema, document })).toEqual(executeSync({ plan }));
     const exeContext = buildExecutionContext({ schema, document });
     assertExeContext(exeContext);
     expect(exeContext.plan).toBe(plan);
@@ -590,7 +610,7 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    expect(executeSync({ schema: expiringSchema, document, plan })).toEqual({
+    expect(executeSync({ plan })).toEqual({
       data: { echo: 'ok' },
     });
 
@@ -603,7 +623,7 @@ describe('execution plan', () => {
     } else {
       expect(rejected.variableValues.coerced['ts']).not.toBe('ok');
     }
-    const result = executeSync({ schema: expiringSchema, document, plan });
+    const result = executeSync({ plan });
     expect(result).not.toEqual({ data: { echo: 'ok' } });
     expect(result.errors?.length).toBeGreaterThan(0);
   });
@@ -687,8 +707,6 @@ describe('execution plan', () => {
     expect('errors' in coerced).toBe(false);
     expect(
       executeSync({
-        schema: filterSchema,
-        document,
         plan,
         variableValues: { filter: { child: { ids: new Set([1, 2]) } } },
       }),
@@ -740,8 +758,6 @@ describe('execution plan', () => {
     }
     expect(
       executeSync({
-        schema: optionsSchema,
-        document,
         plan,
         variableValues: { n: 1, options: { limit: 2 } },
       }),
@@ -893,8 +909,6 @@ describe('execution plan', () => {
     }
     expect(
       executeSync({
-        schema: upperSchema,
-        document,
         plan,
         variableValues: {},
       }),

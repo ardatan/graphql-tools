@@ -695,6 +695,35 @@ describe('execution plan warm-path edges', () => {
 );
 
 describe('root runner + field-local leaf list settle', () => {
+  it('keeps async classic object list when a sibling leaf list is async', async () => {
+    const rowType = new GraphQLObjectType({
+      name: 'Row',
+      fields: {
+        label: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          rows: {
+            type: new GraphQLList(rowType),
+            resolve: () => [Promise.resolve({ label: 'r1' }), { label: 'r2' }],
+          },
+          scores: {
+            type: new GraphQLList(GraphQLInt),
+            resolve: () => [Promise.resolve(1), Promise.resolve(2)],
+          },
+        },
+      }),
+    });
+    const document = parse('{ rows { label } scores }');
+    compileExecutionPlan({ schema, document });
+    await expect(execute({ schema, document })).resolves.toEqual({
+      data: { rows: [{ label: 'r1' }, { label: 'r2' }], scores: [1, 2] },
+    });
+  });
+
   it('keeps async root leaf values when a sibling leaf list is also async', async () => {
     const schema = new GraphQLSchema({
       query: new GraphQLObjectType({
@@ -716,5 +745,65 @@ describe('root runner + field-local leaf list settle', () => {
     await expect(execute({ schema, document })).resolves.toEqual({
       data: { count: 7, scores: [1, 2] },
     });
+  });
+});
+
+describe('plan compile budget', () => {
+  it('marks oversized abstract nesting ineligible but classic execute still runs', () => {
+    const BudgetNode = new GraphQLInterfaceType({
+      name: 'BudgetNode',
+      fields: () => ({
+        id: { type: GraphQLID },
+        child: { type: BudgetNode },
+      }),
+    });
+
+    const implTypes: GraphQLObjectType[] = [];
+    for (let index = 0; index < 12; index++) {
+      const implName = `BudgetNode${index}`;
+      implTypes.push(
+        new GraphQLObjectType({
+          name: implName,
+          interfaces: [BudgetNode],
+          fields: () => ({
+            id: {
+              type: GraphQLID,
+              resolve: (src: { id?: string }) => src.id ?? implName,
+            },
+            child: {
+              type: BudgetNode,
+              resolve: (src: { id?: string; child?: unknown }) =>
+                src.child ?? {
+                  __typename: `BudgetNode${(index + 1) % 12}`,
+                  id: `child-${index}`,
+                },
+            },
+          }),
+        }),
+      );
+    }
+
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          root: {
+            type: BudgetNode,
+            resolve: () => ({ __typename: 'BudgetNode0', id: 'root' }),
+          },
+        },
+      }),
+      types: implTypes,
+    });
+
+    const depth = 6;
+    const childSelection = ' child { id'.repeat(depth - 1);
+    const closing = ' }'.repeat(depth - 1);
+    const document = parse(`{ root { id${childSelection}${closing} } }`);
+
+    expect(compileExecutionPlan({ schema, document })).toBeUndefined();
+    const result = executeSync({ schema, document });
+    expect(result.errors).toBeUndefined();
+    expect(result.data?.root).toMatchObject({ id: 'root' });
   });
 });

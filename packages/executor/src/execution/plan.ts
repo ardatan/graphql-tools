@@ -16,10 +16,13 @@ import {
 } from '@graphql-tools/utils';
 import { compileVariableCoercer } from './planCoerce.js';
 import {
+  beginPlanCompile,
   buildExecutionsFromSelectionSet,
   buildFieldExecutions,
   compileFieldMap,
   compilePatchFieldMaps,
+  endPlanCompile,
+  PlanCompileBudgetExceeded,
   unionFieldMaps,
 } from './planField.js';
 import { EMPTY_VARIABLE_VALUES, INCREMENTAL_DIRECTIVES } from './planShared.js';
@@ -51,7 +54,9 @@ export type {
 export { filterPlannedExecutions, getPlannedSubfieldExecutions } from './planField.js';
 
 type PlanCacheEntry =
-  { kind: 'plan'; plan: ExecutionPlan } | { kind: 'errors'; errors: ReadonlyArray<GraphQLError> };
+  | { kind: 'plan'; plan: ExecutionPlan }
+  | { kind: 'errors'; errors: ReadonlyArray<GraphQLError> }
+  | { kind: 'ineligible' };
 
 /**
  * document -> schema -> operationName -> compiled entry.
@@ -132,6 +137,9 @@ export function compileExecutionPlan(
     if (cached.kind === 'errors') {
       return cached.errors;
     }
+    if (cached.kind === 'ineligible') {
+      return undefined;
+    }
     return undefined;
   }
 
@@ -152,6 +160,9 @@ export function compileExecutionPlan(
   }
   if (entry.kind === 'errors') {
     return entry.errors;
+  }
+  if (entry.kind === 'ineligible') {
+    return undefined;
   }
   return undefined;
 }
@@ -345,37 +356,47 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
     skipIncludePredicates: skipIncludePredicates,
   };
 
-  compileFieldMap(plan, rootType, rootFields);
-  compilePatchFieldMaps(plan, rootType, rootPatches);
-  if (!hasIncremental) {
-    if (!collectionDependsOnVariables) {
-      plan.rootExecutions = buildFieldExecutions(plan, rootType, rootFields);
-    } else if (skipIncludePredicates) {
-      // Conditional mutations with duplicate response names need classic
-      // occurrence order (grouped plan executions preserve first-slot order).
-      if (operation.operation === 'mutation') {
-        plan.rootExecutions = undefined;
-      } else {
-        const rootExecutions = buildExecutionsFromSelectionSet(
-          plan,
-          rootType,
-          operation.selectionSet,
-          plan.rootFields,
-        );
-        if (rootExecutions === null) {
-          // Mixed-extreme / defer-shaped selection; disable predicate path.
-          plan.skipIncludePredicates = false;
-        } else if (rootExecutions === undefined) {
-          // Duplicate response names: classic root collect for first-active
-          // occurrence order; keep predicates for planned subfields.
+  try {
+    beginPlanCompile(plan);
+    compileFieldMap(plan, rootType, rootFields);
+    compilePatchFieldMaps(plan, rootType, rootPatches);
+    if (!hasIncremental) {
+      if (!collectionDependsOnVariables) {
+        plan.rootExecutions = buildFieldExecutions(plan, rootType, rootFields);
+      } else if (skipIncludePredicates) {
+        // Conditional mutations with duplicate response names need classic
+        // occurrence order (grouped plan executions preserve first-slot order).
+        if (operation.operation === 'mutation') {
           plan.rootExecutions = undefined;
         } else {
-          plan.rootExecutions = rootExecutions;
+          const rootExecutions = buildExecutionsFromSelectionSet(
+            plan,
+            rootType,
+            operation.selectionSet,
+            plan.rootFields,
+          );
+          if (rootExecutions === null) {
+            // Mixed-extreme / defer-shaped selection; disable predicate path.
+            plan.skipIncludePredicates = false;
+          } else if (rootExecutions === undefined) {
+            // Duplicate response names: classic root collect for first-active
+            // occurrence order; keep predicates for planned subfields.
+            plan.rootExecutions = undefined;
+          } else {
+            plan.rootExecutions = rootExecutions;
+          }
         }
       }
     }
+    return { kind: 'plan', plan };
+  } catch (error) {
+    if (error instanceof PlanCompileBudgetExceeded) {
+      return { kind: 'ineligible' };
+    }
+    throw error;
+  } finally {
+    endPlanCompile(plan);
   }
-  return { kind: 'plan', plan };
 }
 
 function makeBoolVariableValues(names: ReadonlySet<string>, value: boolean): VariableValues {

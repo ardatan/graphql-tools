@@ -48,6 +48,34 @@ import {
   type IncludePredicate,
 } from './skipIncludePredicates.js';
 
+export const PLAN_COMPILE_WORK_BUDGET = 10000;
+
+export class PlanCompileBudgetExceeded extends Error {
+  constructor() {
+    super('Plan compile work budget exceeded');
+    this.name = 'PlanCompileBudgetExceeded';
+  }
+}
+
+const compileWorkByPlan = new WeakMap<ExecutionPlan, number>();
+
+export function beginPlanCompile(plan: ExecutionPlan): void {
+  compileWorkByPlan.set(plan, 0);
+}
+
+export function endPlanCompile(plan: ExecutionPlan): void {
+  compileWorkByPlan.delete(plan);
+}
+
+function chargeCompileWork(plan: ExecutionPlan, amount = 1): void {
+  const used = compileWorkByPlan.get(plan) ?? 0;
+  const next = used + amount;
+  if (next > PLAN_COMPILE_WORK_BUDGET) {
+    throw new PlanCompileBudgetExceeded();
+  }
+  compileWorkByPlan.set(plan, next);
+}
+
 /** Local compile helper: leaf list item facts before flattening onto FieldPlan. */
 type CompiledLeafListItem = { leafType: GraphQLLeafType; itemNonNull: boolean };
 /** Local compile helper: object list item facts before flattening onto FieldPlan. */
@@ -248,6 +276,10 @@ export function compileFieldMap(
   fields: Map<string, Array<FieldNode>>,
 ): void {
   for (const [responseName, fieldNodes] of fields) {
+    if (resolveFieldPlanForParent(plan, parentType, fieldNodes)) {
+      continue;
+    }
+    chargeCompileWork(plan);
     const fieldPlan = compileFieldPlan(plan, parentType, responseName, fieldNodes);
     if (fieldPlan) {
       plan.fieldPlanByNodes.set(fieldNodes, fieldPlan);
@@ -813,10 +845,13 @@ function compileReturnTypeSubfields(plan: ExecutionPlan, fieldPlan: FieldPlan): 
   const namedType = unwrapToNamedOutputType(fieldPlan.fieldDef.type);
 
   if (isObjectType(namedType)) {
-    const subfields = collectAndStoreSubfields(plan, fieldPlan.fieldNodes, namedType);
+    const stored = plan.subfieldsByNodes.get(fieldPlan.fieldNodes)?.get(namedType);
+    const subfields = stored ?? collectAndStoreSubfields(plan, fieldPlan.fieldNodes, namedType);
     if (subfields) {
       compileFieldMap(plan, namedType, subfields);
-      storeSubfieldExecutions(plan, fieldPlan.fieldNodes, namedType, subfields);
+      if (!stored) {
+        storeSubfieldExecutions(plan, fieldPlan.fieldNodes, namedType, subfields);
+      }
     }
     return;
   }
@@ -824,6 +859,12 @@ function compileReturnTypeSubfields(plan: ExecutionPlan, fieldPlan: FieldPlan): 
   if (isAbstractType(namedType)) {
     const possibleTypes = plan.schema.getPossibleTypes(namedType as GraphQLAbstractType);
     for (const concrete of possibleTypes) {
+      chargeCompileWork(plan);
+      const stored = plan.subfieldsByNodes.get(fieldPlan.fieldNodes)?.get(concrete);
+      if (stored) {
+        compileFieldMap(plan, concrete, stored);
+        continue;
+      }
       const subfields = collectAndStoreSubfields(plan, fieldPlan.fieldNodes, concrete);
       if (subfields) {
         compileFieldMap(plan, concrete, subfields);

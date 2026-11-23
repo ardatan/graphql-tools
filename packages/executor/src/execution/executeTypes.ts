@@ -27,7 +27,6 @@ import {
   type DeferUsage,
   type DeferUsageSet,
 } from './incrementalCollect.js';
-import type { PlannedWorkRunner } from './plannedWorkRunner.js';
 import type { ExecutionPlan } from './planTypes.js';
 
 export type { ExecutionPlan } from './planTypes.js';
@@ -108,12 +107,6 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
    * still attach the plan for per-field facts via FieldNode keys.
    */
   plan?: ExecutionPlan;
-  /**
-   * Optional sync-first work runner. Only attached for the duration of a
-   * planned leaf-list field completion (field-local); nested object / skip
-   * field-sets stay on classic `promiseForObject`.
-   */
-  plannedRunner?: PlannedWorkRunner;
 }
 
 export interface FormattedExecutionResult<
@@ -237,13 +230,10 @@ export type FormattedIncrementalResult<
   | FormattedIncrementalDeferResult<TData, TExtensions>
   | FormattedIncrementalStreamResult<TData, TExtensions>;
 
-export interface ExecutionArgs<TData = any, TVariables = any, TContext = any> {
-  schema: GraphQLSchema;
-  document: TypedDocumentNode<TData, TVariables>;
+export interface ExecutionArgsShared<_TData = any, TVariables = any, TContext = any> {
   rootValue?: unknown;
   contextValue?: TContext;
   variableValues?: TVariables;
-  operationName?: Maybe<string>;
   fieldResolver?: Maybe<GraphQLFieldResolver<any, TContext>>;
   typeResolver?: Maybe<GraphQLTypeResolver<any, TContext>>;
   subscribeFieldResolver?: Maybe<GraphQLFieldResolver<any, TContext>>;
@@ -262,9 +252,29 @@ export interface ExecutionArgs<TData = any, TVariables = any, TContext = any> {
    * `'v0.1'` is the default.
    */
   incrementalSpec?: IncrementalSpec;
-  /**
-   * Optional precompiled plan. When omitted, `execute` get-or-compiles from the
-   * WeakMap cache for `(schema, document, operationName)`.
-   */
-  plan?: ExecutionPlan;
 }
+
+export interface ExecutionArgsWithDocument<
+  TData = any,
+  TVariables = any,
+  TContext = any,
+> extends ExecutionArgsShared<TData, TVariables, TContext> {
+  schema: GraphQLSchema;
+  document: TypedDocumentNode<TData, TVariables>;
+  operationName?: Maybe<string>;
+  plan?: undefined;
+}
+
+export interface ExecutionArgsWithPlan<
+  TVariables = any,
+  TContext = any,
+> extends ExecutionArgsShared<any, TVariables, TContext> {
+  plan: ExecutionPlan;
+  schema?: undefined;
+  document?: undefined;
+  operationName?: undefined;
+}
+
+export type ExecutionArgs<TData = any, TVariables = any, TContext = any> =
+  | ExecutionArgsWithDocument<TData, TVariables, TContext>
+  | ExecutionArgsWithPlan<TVariables, TContext>;

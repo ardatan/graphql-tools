@@ -1,4 +1,4 @@
-import { getOperationAST, GraphQLSchema } from 'graphql';
+import { DocumentNode, getOperationAST, GraphQLSchema } from 'graphql';
 import {
   ExecutionRequest,
   ExecutionResult,
@@ -17,7 +17,16 @@ import {
 export function normalizedExecutor<TData = any, TVariables = any, TContext = any>(
   args: ExecutionArgs<TData, TVariables, TContext>,
 ): MaybePromise<MaybeAsyncIterable<ExecutionResult<TData>>> {
-  const operationAST = getOperationAST(args.document, args.operationName);
+  let document: DocumentNode;
+  let operationName: string | undefined;
+  if ('document' in args && args.document != null) {
+    document = args.document;
+    operationName = args.operationName ?? undefined;
+  } else {
+    document = args.plan.document;
+    operationName = args.plan.operationName ?? undefined;
+  }
+  const operationAST = getOperationAST(document, operationName);
   if (operationAST == null) {
     throw new Error('Must provide an operation.');
   }

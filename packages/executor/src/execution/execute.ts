@@ -62,6 +62,7 @@ import {
 } from './conditionalCollect.js';
 import type {
   ExecutionArgs,
+  ExecutionArgsShared,
   ExecutionContext,
   ExecutionPlan,
   IncrementalExecutionResults,
@@ -120,6 +121,9 @@ export type { CompletedResult, PendingResult } from './incremental.js';
 
 export type {
   ExecutionArgs,
+  ExecutionArgsShared,
+  ExecutionArgsWithDocument,
+  ExecutionArgsWithPlan,
   ExecutionContext,
   ExecutionPlan,
   FormattedExecutionResult,
@@ -525,48 +529,79 @@ export function execute<TData = any, TVariables = any, TContext = any>(
   // Honor abort before cold plan compile (custom scalar literal work).
   args.signal?.throwIfAborted();
 
-  let knownPlan: ExecutionPlan | null = null;
-  if (args.plan != null) {
-    knownPlan = planMatchesExecuteArgs(args.plan, args)
-      ? args.plan
-      : (resolvePlanForExecute({
-          schema: args.schema,
-          document: args.document,
-          operationName: args.operationName,
-        }) ?? null);
-  } else {
-    knownPlan =
-      resolvePlanForExecute({
-        schema: args.schema,
-        document: args.document,
-        operationName: args.operationName,
-      }) ?? null;
-  }
-
-  const exeContext = buildExecutionContext(args, knownPlan);
+  const exeContext = buildExecutionContext(args);
   if (!('schema' in exeContext)) {
     return formatContextBuildErrors(exeContext);
   }
   return executeImpl(exeContext);
 }
 
-/** True when a caller-supplied plan is for this schema/document/operation. */
-function planMatchesExecuteArgs(
-  plan: ExecutionPlan,
-  args: {
-    schema: GraphQLSchema;
-    document: DocumentNode;
-    operationName?: string | null;
-  },
-): boolean {
-  if (plan.schema !== args.schema || plan.document !== args.document) {
-    return false;
+type ResolvedExecutionRequest<TVariables = any, TContext = any> = ExecutionArgsShared<
+  any,
+  TVariables,
+  TContext
+> & {
+  schema: GraphQLSchema;
+  document: DocumentNode;
+  operationName?: string | null;
+  knownPlan: ExecutionPlan | undefined;
+};
+
+function resolveExecutionRequest<TData = any, TVariables = any, TContext = any>(
+  args: ExecutionArgs<TData, TVariables, TContext>,
+): ResolvedExecutionRequest<TVariables, TContext> {
+  const {
+    rootValue,
+    contextValue,
+    variableValues,
+    fieldResolver,
+    typeResolver,
+    subscribeFieldResolver,
+    signal,
+    schemaCoordinateInErrors,
+    hideSuggestions,
+    incrementalSpec,
+  } = args;
+
+  const shared = {
+    rootValue,
+    contextValue,
+    variableValues,
+    fieldResolver,
+    typeResolver,
+    subscribeFieldResolver,
+    signal,
+    schemaCoordinateInErrors,
+    hideSuggestions,
+    incrementalSpec,
+  } satisfies ExecutionArgsShared<TData, TVariables, TContext>;
+
+  if ('plan' in args && args.plan != null) {
+    const plan = args.plan;
+    return {
+      ...shared,
+      schema: plan.schema,
+      document: plan.document,
+      operationName: plan.operationName ?? null,
+      knownPlan: plan,
+    };
   }
-  const requested = args.operationName ?? null;
-  if (requested == null) {
-    return true;
-  }
-  return (plan.operation.name?.value ?? null) === requested;
+
+  const { schema, document, operationName } = args;
+  const knownPlan =
+    resolvePlanForExecute({
+      schema,
+      document,
+      operationName,
+    }) ?? undefined;
+
+  return {
+    ...shared,
+    schema,
+    document,
+    operationName,
+    knownPlan,
+  };
 }
 
 export function executeImpl<TData = any, TVariables = any, TContext = any>(
@@ -720,21 +755,21 @@ function getCollectFieldsDependsOnVariables(document: DocumentNode): boolean {
  * @internal
  */
 /**
- * @param knownPlan When an {@link ExecutionPlan} is passed, use it.
- *   Pass `null` to skip plan resolve (classic fallback). Omit to
- *   resolve/compile from the WeakMap cache (or `args.plan` when set).
+ * @param knownPlan When passed, overrides {@link resolveExecutionRequest}'s plan.
+ *   Pass `null` to skip plan attachment (classic fallback).
  */
 export function buildExecutionContext<TData = any, TVariables = any, TContext = any>(
   args: ExecutionArgs<TData, TVariables, TContext>,
   knownPlan?: ExecutionPlan | null,
 ): ReadonlyArray<GraphQLError> | ExecutionContext {
+  const resolved = resolveExecutionRequest(args);
   const {
     schema,
     document,
+    operationName,
     rootValue,
     contextValue,
     variableValues: rawVariableValues,
-    operationName,
     fieldResolver,
     typeResolver,
     subscribeFieldResolver,
@@ -742,78 +777,73 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     schemaCoordinateInErrors,
     hideSuggestions,
     incrementalSpec = 'v0.1',
-  } = args;
+  } = { ...resolved, incrementalSpec: resolved.incrementalSpec ?? 'v0.1' };
+
+  const trustedPlan =
+    knownPlan === undefined ? resolved.knownPlan : knownPlan === null ? undefined : knownPlan;
+  const plan = trustedPlan;
 
   signal?.throwIfAborted();
 
   // If the schema used for execution is invalid, throw an error.
   assertValidSchema(schema);
 
-  const fragments: Record<string, FragmentDefinitionNode> = getFragmentsFromDocument(document);
+  let operation: OperationDefinitionNode;
+  let fragments: Record<string, FragmentDefinitionNode>;
 
-  let operation: OperationDefinitionNode | undefined;
-  for (const definition of document.definitions) {
-    switch (definition.kind) {
-      case Kind.OPERATION_DEFINITION:
-        if (operationName == null) {
-          if (operation !== undefined) {
-            return [
-              new GraphQLError(
-                'Must provide operation name if query contains multiple operations.',
-                {
-                  extensions: {
-                    code: 'OPERATION_RESOLUTION_FAILURE',
+  if (trustedPlan != null) {
+    operation = trustedPlan.operation;
+    fragments = trustedPlan.fragments;
+  } else {
+    fragments = getFragmentsFromDocument(document);
+
+    let resolvedOperation: OperationDefinitionNode | undefined;
+    for (const definition of document.definitions) {
+      switch (definition.kind) {
+        case Kind.OPERATION_DEFINITION:
+          if (operationName == null) {
+            if (resolvedOperation !== undefined) {
+              return [
+                new GraphQLError(
+                  'Must provide operation name if query contains multiple operations.',
+                  {
+                    extensions: {
+                      code: 'OPERATION_RESOLUTION_FAILURE',
+                    },
                   },
-                },
-              ),
-            ];
+                ),
+              ];
+            }
+            resolvedOperation = definition;
+          } else if (definition.name?.value === operationName) {
+            resolvedOperation = definition;
           }
-          operation = definition;
-        } else if (definition.name?.value === operationName) {
-          operation = definition;
-        }
-        break;
-      default:
-      // ignore non-executable definitions
+          break;
+        default:
+        // ignore non-executable definitions
+      }
     }
-  }
 
-  if (operation == null) {
-    if (operationName != null) {
+    if (resolvedOperation == null) {
+      if (operationName != null) {
+        return [
+          new GraphQLError(`Unknown operation named "${operationName}".`, {
+            extensions: {
+              code: 'OPERATION_RESOLUTION_FAILURE',
+            },
+          }),
+        ];
+      }
       return [
-        new GraphQLError(`Unknown operation named "${operationName}".`, {
+        new GraphQLError('Must provide an operation.', {
           extensions: {
             code: 'OPERATION_RESOLUTION_FAILURE',
           },
         }),
       ];
     }
-    return [
-      new GraphQLError('Must provide an operation.', {
-        extensions: {
-          code: 'OPERATION_RESOLUTION_FAILURE',
-        },
-      }),
-    ];
+    operation = resolvedOperation;
   }
-
-  // Planned path: use the known plan. Classic fallback: `null` skips resolve.
-  // Direct callers that omit knownPlan use `args.plan` or get-or-compile.
-  // Explicit knownPlan is validated like args.plan (mismatched schema/document
-  // /operation must not reuse another request's coercer or field maps).
-  const planMatchArgs = { schema, document, operationName };
-  const plan =
-    knownPlan === undefined
-      ? args.plan != null
-        ? planMatchesExecuteArgs(args.plan, planMatchArgs)
-          ? args.plan
-          : resolvePlanForExecute(planMatchArgs)
-        : resolvePlanForExecute(planMatchArgs)
-      : knownPlan == null
-        ? undefined
-        : planMatchesExecuteArgs(knownPlan, planMatchArgs)
-          ? knownPlan
-          : resolvePlanForExecute(planMatchArgs);
 
   // FIXME: https://github.com/graphql/graphql-js/issues/2203
   /* c8 ignore next */
@@ -935,7 +965,8 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     detachSignalListener = removeAbortListener;
   }
 
-  const collectDepends = getCollectFieldsDependsOnVariables(document);
+  const collectDepends =
+    trustedPlan?.collectionDependsOnVariables ?? getCollectFieldsDependsOnVariables(document);
   const exeContext: ExecutionContext = {
     schema,
     fragments,
@@ -2043,13 +2074,11 @@ function executeLeafListFieldWithLocalRunner(
   results: Record<string, unknown>,
   responseName: string,
 ): MaybePromise<unknown> | undefined {
-  const parentRunner = exeContext.plannedRunner;
   // Lazy: sync lists never allocate a PlannedWorkRunner.
   let runner: PlannedWorkRunner | undefined;
   const getRunner = (): PlannedWorkRunner => {
     if (runner == null) {
       runner = new PlannedWorkRunner();
-      exeContext.plannedRunner = runner;
     }
     return runner;
   };
@@ -2088,10 +2117,9 @@ function executeLeafListFieldWithLocalRunner(
             writeField(value);
           }
           if (runner == null) {
-            exeContext.plannedRunner = parentRunner;
             return fieldValue;
           }
-          return settleLocalLeafList(runner, parentRunner, exeContext, () => fieldValue);
+          return settleLocalLeafList(runner, () => fieldValue);
         },
         rawError => {
           const error = locatedError(
@@ -2104,7 +2132,6 @@ function executeLeafListFieldWithLocalRunner(
           writeField(handleFieldError(error, fieldPlan.returnType, exeContext.errors));
           filterSubsequentPayloads(exeContext, fieldPath, undefined);
           runner?.forceSettle();
-          exeContext.plannedRunner = parentRunner;
           return fieldValue;
         },
       );
@@ -2116,48 +2143,38 @@ function executeLeafListFieldWithLocalRunner(
       writeField(completed);
     }
     if (runner == null) {
-      exeContext.plannedRunner = parentRunner;
       return fieldValue;
     }
     // Iterator throw / field error can return null after registering item
     // thenables. Do not wait on those items (they may never settle).
     if (fieldValue == null) {
       runner.forceSettle();
-      exeContext.plannedRunner = parentRunner;
       return fieldValue;
     }
-    const settled = settleLocalLeafList(runner, parentRunner, exeContext, () => fieldValue);
+    const settled = settleLocalLeafList(runner, () => fieldValue);
     if (isPromise(settled)) {
       results[responseName] = settled;
     }
     return settled;
   } catch (rawError) {
     runner?.forceSettle();
-    exeContext.plannedRunner = parentRunner;
     throw rawError;
   }
 }
 
 function settleLocalLeafList(
   runner: PlannedWorkRunner,
-  parentRunner: PlannedWorkRunner | undefined,
-  exeContext: ExecutionContext,
   readField: () => unknown,
 ): MaybePromise<unknown> {
   const settled = runner.runUntilSettled();
   if (isPromise(settled)) {
     return settled.then(
-      () => {
-        exeContext.plannedRunner = parentRunner;
-        return readField();
-      },
+      () => readField(),
       error => {
-        exeContext.plannedRunner = parentRunner;
         throw error;
       },
     );
   }
-  exeContext.plannedRunner = parentRunner;
   return readField();
 }
 /**
@@ -3690,36 +3707,15 @@ function completeListValue(
 }
 
 /**
- * Sync iterable lists: when a planned runner is active, lift thenable slots
- * onto `awaitValue` so the field-set's `runUntilSettled` waits (no Promise.all).
- * Async-iterator lists keep real Promise elements and use `Promise.all` below.
+ * List item completion: always `Promise.all` when any slot is async.
+ * Leaf-list fields use a field-local {@link PlannedWorkRunner} instead.
  */
 function settleListResults(
-  exeContext: ExecutionContext,
+  _exeContext: ExecutionContext,
   completedResults: Array<unknown>,
   containsPromise: boolean,
 ): MaybePromise<ReadonlyArray<unknown>> {
   if (!containsPromise) {
-    return completedResults;
-  }
-  const runner = exeContext.plannedRunner;
-  if (runner != null) {
-    for (let index = 0; index < completedResults.length; index++) {
-      const value = completedResults[index];
-      if (isPromise(value)) {
-        const slot = index;
-        runner.awaitValue(
-          value,
-          resolved => {
-            completedResults[slot] = resolved;
-          },
-          _reason => {
-            completedResults[slot] = null;
-          },
-        );
-        completedResults[slot] = undefined;
-      }
-    }
     return completedResults;
   }
   return Promise.all(completedResults);
