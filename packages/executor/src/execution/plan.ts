@@ -114,8 +114,13 @@ export function getPlannedSubfields(
 /**
  * Compile a cacheable execution plan for a validated operation.
  *
- * Returns an {@link ExecutionPlan} for `execute({ plan })`. WeakMap / FieldPlan
- * indexes use a `__` prefix.
+ * Variable `@skip` / `@include` use union collection + FieldNode keys.
+ * `@defer` / `@stream` set `hasIncremental`; runtime keeps the incremental
+ * interpreter while still using per-field plan facts. Returns a GraphQL error
+ * list when the operation cannot be resolved.
+ *
+ * `execute` compiles/caches via {@link resolvePlanForExecute}. WeakMap /
+ * FieldPlan indexes on the returned {@link ExecutionPlan} use a `__` prefix.
  */
 export function compileExecutionPlan(
   args: CompileExecutionPlanArgs,

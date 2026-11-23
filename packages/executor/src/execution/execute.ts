@@ -141,8 +141,11 @@ export { flattenIncrementalResults, isIncrementalResults, subscribe } from './ex
 /**
  * Compile a cacheable {@link ExecutionPlan}.
  *
- * Pass the result to `execute({ plan })` for warm reuse. WeakMap / FieldPlan
- * indexes use a `__` prefix.
+ * Variable `@skip` / `@include` use union collection + FieldNode keys.
+ * `@defer` / `@stream` set `hasIncremental`; runtime keeps the incremental
+ * interpreter while still using per-field plan facts. Pass the result to
+ * `execute({ plan })` for warm reuse. WeakMap / FieldPlan indexes use a
+ * `__` prefix.
  */
 export function compileExecutionPlan(
   args: CompileExecutionPlanArgs,

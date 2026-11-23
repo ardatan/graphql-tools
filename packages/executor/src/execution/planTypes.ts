@@ -162,11 +162,15 @@ export interface ExecutionPlan {
   rootType: GraphQLObjectType;
   /**
    * True when `@skip` / `@include` (or variable `@defer` label/`if`) make
-   * collected field sets depend on runtime variables.
+   * collected field sets depend on runtime variables. Root/subfield maps on
+   * the plan are a union over both boolean extremes; runtime still collects
+   * with real variables and looks up field plans by FieldNode identity.
    */
   collectionDependsOnVariables: boolean;
   /**
-   * True when the document uses `@defer` / `@stream`.
+   * True when the document uses `@defer` / `@stream`. Runtime keeps the
+   * incremental interpreter; the plan still supplies per-field facts via
+   * FieldNode keys.
    */
   hasIncremental: boolean;
   /** Pre-collected root field map (stable docs) or union over bool extremes. */
@@ -206,6 +210,9 @@ export interface ExecutionPlan {
   hasVariables: boolean;
   /**
    * Compiled variable coercer closed over schema + variableDefinitions.
+   * Empty ops return EMPTY_VARIABLE_VALUES; builtin-leaf / hoisted input
+   * coercers try a fast path then fall back to getVariableValues for identical
+   * GraphQLError shapes.
    */
   coerceVariables: CoerceVariables;
   /**
