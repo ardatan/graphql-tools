@@ -534,9 +534,9 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   signalPromise?: Promise<never>;
   schemaCoordinateInErrors?: boolean;
   /**
-   * Execution plan when the document is eligible (stable field collection,
-   * no `@defer` / `@stream`). Shared across warm executions via the
-   * `compileExecutionPlan` plan cache.
+   * Execution plan from `compileExecutionPlan` when available. Stable docs
+   * reuse planned field maps; incremental / variable-collect docs still attach
+   * the plan for per-field facts via FieldNode keys.
    */
   plan?: ExecutionPlan;
 }
@@ -1177,10 +1177,15 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
     );
   }
 
-  // Warm plan path: reuse pre-collected root fields when collection is stable.
-  // Variable @skip/@include: filter the union execution list (field + fragment
-  // predicates) instead of re-collecting.
-  if (plan && plan.operation === operation && plan.rootType === rootType) {
+  // Warm plan path: reuse pre-collected root fields when bound executions exist.
+  // Incremental plans leave `rootExecutions` unset (classic collect + patches);
+  // avoid a `hasIncremental` read on the stable/skip warm path.
+  if (
+    plan &&
+    plan.operation === operation &&
+    plan.rootType === rootType &&
+    plan.rootExecutions != null
+  ) {
     if (!plan.collectionDependsOnVariables) {
       const path = undefined;
       if (operation.operation === 'mutation') {
@@ -1203,7 +1208,7 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
         plan.rootExecutions,
       ) as TData;
     }
-    if (plan.skipIncludePredicates && plan.rootExecutions != null) {
+    if (plan.skipIncludePredicates) {
       const path = undefined;
       const filtered = filterPlannedExecutions(
         plan.rootExecutions,
@@ -2206,14 +2211,36 @@ function getStreamValues(
       initialCount: number | undefined;
       label: string | undefined;
     } {
-  // Plan-eligible documents never include @stream; skip directive walks.
-  if (exeContext.plan != null) {
+  // Stage A shape: non-incremental plan attached ⇒ no @stream.
+  const plan = exeContext.plan;
+  if (plan != null && !plan.hasIncremental) {
     return;
   }
 
   // do not stream inner lists of multi-dimensional lists
   if (typeof path.key === 'number') {
     return;
+  }
+
+  // Incremental plan: use compiled stream facts when present.
+  if (plan != null) {
+    const planned =
+      plan.fieldPlanByNodes.get(fieldNodes) ?? plan.fieldPlanByFieldNode.get(fieldNodes[0]!);
+    const stream = planned?.stream;
+    if (stream == null || stream.kind === 'none') {
+      return;
+    }
+    if (stream.kind === 'static') {
+      const initialCount = stream.initialCount;
+      // Same validation as getStreamUsageMemo (thrown as field errors upstream).
+      invariant(typeof initialCount === 'number', 'initialCount must be a number');
+      invariant(initialCount >= 0, 'initialCount must be a positive integer');
+      return {
+        initialCount,
+        label: stream.label,
+      };
+    }
+    // dynamic → getDirectiveValues below
   }
 
   // validation only allows equivalent streams on multiple fields, so it is
@@ -2808,9 +2835,12 @@ function collectAndExecuteSubfields(
   // Warm path: planned subfields for this fieldNodes + concrete type.
   // Variable @skip/@include: filter union subfield executions when predicates
   // are available; otherwise collect with real variables.
+  // Incremental plans still store non-patch subfield maps — do not use them.
   const plan = exeContext.plan;
   const plannedSubfields =
-    plan != null && (!plan.collectionDependsOnVariables || plan.skipIncludePredicates)
+    plan != null &&
+    !plan.hasIncremental &&
+    (!plan.collectionDependsOnVariables || plan.skipIncludePredicates)
       ? getPlannedSubfields(plan, fieldNodes, returnType)
       : undefined;
   if (plannedSubfields && exeContext.nulledPaths == null) {
