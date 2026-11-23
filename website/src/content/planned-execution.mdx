@@ -209,22 +209,24 @@ Deltas are from the sticky bench matrix (planned warm vs classic on the same tip
 Hive federation end-to-end rows are omitted here when they do not show a clear planned win (network
 and gateway work dominate).
 
-## Testing
+## Classic and planned parity
 
-Correctness lives under `packages/executor/src/execution/__tests__/`:
+Planned execution is meant to match classic results. Trust that by running the **same** core
+correctness suite in both modes:
 
-| Area                         | Where                                                                 |
-| ---------------------------- | --------------------------------------------------------------------- |
-| Core GraphQL semantics       | `__tests__/core/` (run planned by default)                            |
-| Classic dual-mode            | Same suite with `GRAPHQL_TOOLS_EXECUTOR_PLANNING=0`                   |
-| Plan compile / cache / reuse | `__tests__/plan/` (e.g. `execution-plan-test.ts`, dual-mode planning) |
-| Lists, NonNull, incremental  | Neighboring suites under `__tests__/`                                 |
+| Mode                  | How                                                                        | What it proves                                     |
+| --------------------- | -------------------------------------------------------------------------- | -------------------------------------------------- |
+| **Planned** (default) | `npm run test:executor:core`                                               | Core GraphQL semantics under the warm plan path    |
+| **Classic**           | `npm run test:executor:core:classic` (`GRAPHQL_TOOLS_EXECUTOR_PLANNING=0`) | Same suite on the classic interpreter              |
+| **Dual-mode (CI)**    | `npm run test:executor:dual-mode`                                          | Both modes pass the same expectations back-to-back |
 
 ```sh
 npm run test:executor:core         # planned (default)
-npm run test:executor:core:classic # classic interpreter only
-npm run test:executor:dual-mode    # both (also run in CI)
+npm run test:executor:core:classic # classic only
+npm run test:executor:dual-mode    # planned then classic (also run in CI)
 ```
 
-CI runs dual-mode so planned and classic stay aligned on the core suite. Prefer those scripts over
-hand-rolled mode switches in application code.
+CI runs dual-mode on every change so planned and classic stay aligned on lists, NonNull, variables,
+abstract types, incremental delivery, and the rest of `__tests__/core/`. Plan-specific coverage
+(compile, cache, reuse, dual-mode switches) lives under `__tests__/plan/`. Prefer these scripts over
+hand-rolled mode toggles in application code.
