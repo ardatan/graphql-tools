@@ -13,6 +13,7 @@ on:
   push:
     branches:
       - master
+      - planned-execution
   pull_request:
 
 jobs:
@@ -42,12 +43,12 @@ jobs:
         run: node scripts/bench-ci.mjs
 
       - name: Run benches on master
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
           npm run build
           BENCH_WRITE=1 npm run test:bench
 
-      - name: Upload bench results
+      - name: Upload Vitest bench results
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -55,3 +56,88 @@ jobs:
           path: benchmarks/results
           if-no-files-found: ignore
           retention-days: 7
+
+  # Process-isolated claim floors + classic KS / executeSync + Yoga authors +
+  # Hive Gateway federation-example. Sticky PR comment upsert
+  # (marker <!-- graphql-tools-claim-floors-v1 -->).
+  claim-floors:
+    name: Claim floors vs master
+    # PR #8683 / planned-execution head, or pushes to planned-execution.
+    if: |
+      (github.event_name == 'pull_request' && (
+        github.event.pull_request.number == 8683 ||
+        github.head_ref == 'planned-execution' ||
+        github.base_ref == 'planned-execution'
+      )) ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/planned-execution')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup env
+        uses: the-guild-org/shared-config/setup@v1
+        with:
+          node-version-file: .node-version
+
+      - name: Enable Corepack (Hive Gateway yarn)
+        run: corepack enable
+
+      - name: Run process-isolated claim / KS / Yoga / Hive benches
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref || 'master' }}
+          CLAIM_BENCH_FAIL_ON_FLOOR: '1'
+          CLAIM_BENCH_SAMPLES: '3'
+          CLAIM_BENCH_HTTP_SAMPLES: '2'
+          CLAIM_BENCH_WARM_MS: '300'
+          CLAIM_BENCH_MEASURE_MS: '900'
+          CLAIM_BENCH_HIVE_GATEWAY_DIR: ${{ runner.temp }}/hive-gateway
+          CLAIM_BENCH_HIVE_DURATION_MS: '5000'
+          CLAIM_BENCH_HIVE_WARMUP_MS: '1000'
+          CLAIM_BENCH_HIVE_PRODUCTS_SIZE: '1000'
+        run: node scripts/claim-bench-ci.mjs
+
+      - name: Resolve PR number for sticky comment
+        id: pr
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+          else
+            # Prefer open PR for this head; fall back to #8683 for planned-execution.
+            head="${GITHUB_REF_NAME}"
+            number="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$head" --state open --json number --jq '.[0].number // empty')"
+            if [ -z "$number" ] && [ "$head" = "planned-execution" ]; then
+              number=8683
+            fi
+            echo "number=$number" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upsert sticky claim-floors PR comment
+        if: always() && steps.pr.outputs.number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          CLAIM_BENCH_PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: node scripts/upsert-pr-bench-comment.mjs
+
+      - name: Upload claim-floor results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: claim-floors-${{ github.event.pull_request.number || github.sha }}
+          path: |
+            benchmarks/results/claim-floors.json
+            benchmarks/results/claim-floors.md
+            benchmarks/results/claim-http.json
+          if-no-files-found: ignore
+          retention-days: 14

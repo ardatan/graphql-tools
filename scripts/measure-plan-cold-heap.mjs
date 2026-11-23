@@ -241,7 +241,7 @@ const report = {
     'T_classic / T_planned are warm means with planning disabled / enabled.',
     'amortizationBreakEvenN uses classic−planned savings; coldOverWarmRatio is illustrative only.',
     'Retained heap: parse N distinct docs (AST), then compileExecutionPlan each (plan incremental).',
-    'GC noise applies; prefer --expose-gc. Not a Yaacov / gateway comparison.',
+    'GC noise applies; prefer --expose-gc. Executor micro-probe only (not a gateway comparison).',
   ],
 };
 
