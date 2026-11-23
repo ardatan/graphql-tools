@@ -2207,7 +2207,11 @@ function executePlannedSyncObjectFieldsPlain(
     return undefined;
   }
   const source = sourceValue as Record<string, unknown>;
-  const results: Record<string, unknown> = Object.create(null);
+  // Same compact null-prototype shape as executeFields (#8610).
+  const results: Record<string, unknown> = Object.setPrototypeOf(
+    new CompactExecutionResultMap(),
+    null,
+  );
   let pendingLeaves: Map<string, PendingLeafEntry> | undefined;
   const signal = exeContext.signal;
   for (const execution of plannedExecutions) {
@@ -5724,7 +5728,11 @@ function executePlannedSyncObjectFieldsPreCR(
     return undefined;
   }
   const source = sourceValue as Record<string, unknown>;
-  const results: Record<string, unknown> = Object.create(null);
+  // Same compact null-prototype shape as executeFields (#8610).
+  const results: Record<string, unknown> = Object.setPrototypeOf(
+    new CompactExecutionResultMap(),
+    null,
+  );
   let n = 0;
   let recordedGetterError = false;
   for (const execution of plannedExecutions) {
@@ -6036,7 +6044,11 @@ function tryExecutePlannedSyncObjectFieldsFast(
 ):
   | MaybePromise<Record<string, unknown> | ThinObjectPartial | undefined>
   | typeof SYNC_OBJECT_NEEDS_HEAVY {
-  const results: Record<string, unknown> = Object.create(null);
+  // Same compact null-prototype shape as executeFields (#8610).
+  const results: Record<string, unknown> = Object.setPrototypeOf(
+    new CompactExecutionResultMap(),
+    null,
+  );
   let recordedGetterError = false;
   let pendingLeaves: Map<string, PendingLeafEntry> | undefined;
   const signal = exeContext.signal;
@@ -6404,7 +6416,8 @@ function executePlannedSyncObjectFields(
         path,
         plannedExecutions,
         0,
-        Object.create(null) as Record<string, unknown>,
+        // Same compact null-prototype shape as executeFields (#8610).
+        Object.setPrototypeOf(new CompactExecutionResultMap(), null) as Record<string, unknown>,
         false,
         undefined,
         pendingFieldWork,
