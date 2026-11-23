@@ -103,6 +103,7 @@ import {
   getPlannedSubfieldExecutions,
   getPlannedSubfields,
   isExecutionPlan as isCompiledExecutionPlan,
+  isExecutionPlanningEnabled,
   resolvePlanForExecute,
   type ArgumentReader,
   type CompileExecutionPlanArgs,
@@ -810,8 +811,9 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
 ): ReadonlyArray<GraphQLError> | ExecutionContext {
   // Honor explicit null before automatic lookup so classic helpers never
   // compile/cache a plan (and never double-run custom scalar parseLiteral).
+  // Public kill-switch (planning disabled) also skips resolvePlanForExecute.
   const resolved = resolveExecutionRequest(args, {
-    skipPlan: knownPlan === null,
+    skipPlan: knownPlan === null || !isExecutionPlanningEnabled(),
   });
   const {
     schema,
@@ -1447,7 +1449,9 @@ function executeFieldsClassic(
     for (const [responseName, fieldNodes] of fields) {
       exeContext.signal?.throwIfAborted();
       const fieldPath = addPath(path, responseName, parentType.name);
-      const result = executeField(
+      // Call classic directly — avoid executeField's plan-null redirect hop
+      // on every field (nestedDefault pays hundreds of extra frames).
+      const result = executeFieldClassic(
         exeContext,
         parentType,
         sourceValue,
@@ -1459,7 +1463,9 @@ function executeFieldsClassic(
         results[responseName] = result;
         if (isPromise(result)) {
           containsPromise = true;
-          observeFieldLocalPromise(result);
+          // Classic: promiseForObject (or the catch path below) always attaches
+          // handlers — do not pay observeFieldLocalPromise per async field
+          // (asyncRoot / mixedSyncAsync kill-switch tax).
         }
       }
     }
@@ -6694,6 +6700,17 @@ function collectAndExecuteSubfields(
   );
 
   if (subPatches.length === 0 && exeContext.nulledPaths == null) {
+    // Classic / planning-disabled: skip executeFields plan-null redirect.
+    if (exeContext.plan == null) {
+      return executeFieldsClassic(
+        exeContext,
+        returnType,
+        result,
+        path,
+        subFieldNodes,
+        asyncPayloadRecord,
+      );
+    }
     return executeFields(exeContext, returnType, result, path, subFieldNodes, asyncPayloadRecord);
   }
 
