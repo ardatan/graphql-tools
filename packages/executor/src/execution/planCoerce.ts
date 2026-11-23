@@ -350,10 +350,13 @@ function compileInputValueCoercer(
       }
       const defaultValue = getInputFieldDefaultValue(field);
       // Value-form defaults that fail coercion must not silently omit the field.
+      // GraphQL 16 typings have only `defaultValue`; GQL17 `default` is optional.
+      const gql17Default = (field as { default?: { literal?: ValueNode; value?: unknown } })
+        .default;
       if (
         defaultValue === undefined &&
-        field.default != null &&
-        Object.prototype.hasOwnProperty.call(field.default, 'value')
+        gql17Default != null &&
+        Object.prototype.hasOwnProperty.call(gql17Default, 'value')
       ) {
         cache.delete(type);
         return null;
