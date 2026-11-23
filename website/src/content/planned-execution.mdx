@@ -137,10 +137,11 @@ classic is **not** the cold/warm ratio. Break-even request count is approximatel
 `N = ceil(T_compile / (T_classic − T_planned))` when classic warm is slower than planned warm.
 `T_compile` is the one-time plan compile cost (cold first execute minus planned warm); include
 classic warm time — a cold/warm wall-time ratio alone is only a compile-vs-warm illustration, not
-amortization. On a dense `@skip`/`@include` probe (Node 22, process-isolated), that break-even is on
-the order of a few hundred executes (cold/warm can look ~100× while true `N` is much smaller because
-classic and planned warms are close). Retained heap grows with document complexity; the probe
-separates AST retention from plan-incremental overhead across several plan counts (see
+amortization. Closer classic and planned warm times shrink the denominator and **raise** `N`, so
+break-even can exceed the cold/warm ratio (e.g. cold≈100×warm while `N`≈200 when classic is only
+slightly slower than planned). On a dense `@skip`/`@include` probe (Node 22, process-isolated), `N`
+is often a few hundred executes. Retained heap grows with document complexity; the probe separates
+AST retention from plan-incremental overhead across several plan counts (see
 `scripts/measure-plan-cold-heap.mjs`). The numbers in the table above are warm-path deltas vs
 master, not cold-start cost.
 

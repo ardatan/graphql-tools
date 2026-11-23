@@ -1476,6 +1476,116 @@ describe('list completion: retain preflight item reads', () => {
     expect(reads).toBe(1);
   });
 
+  it('does not reread Int-list accessors when mid-list null forces allPrimitive fallback', () => {
+    let reads = 0;
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(GraphQLInt),
+            resolve: () => {
+              const values: Array<number | null> = [1, null];
+              Object.defineProperty(values, '0', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  reads += 1;
+                  return reads === 1 ? 1 : 2;
+                },
+              });
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    reads = 0;
+    const planned = executeSync({ schema, document });
+    expect(planned).toEqual({ data: { values: [1, null] } });
+    expect(reads).toBe(1);
+  });
+
+  it('does not read later object-list accessors after NonNull null item', () => {
+    const Item = new GraphQLObjectType({
+      name: 'StopAfterNullItem',
+      fields: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+      },
+    });
+    let read2 = 0;
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: {
+            type: new GraphQLList(new GraphQLNonNull(Item)),
+            resolve: () => {
+              const users: Array<{ id: string } | null> = [{ id: '1' }, null, { id: '3' }];
+              Object.defineProperty(users, '2', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  read2 += 1;
+                  throw new Error('Unexpected read');
+                },
+              });
+              return users;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ users { id } }');
+    read2 = 0;
+    const planned = executeSync({ schema, document });
+    const classic = executeClassicSync({ schema, document });
+    expect(planned).toMatchObject({
+      data: { users: null },
+      errors: [{ path: ['users', 1] }],
+    });
+    expect(planned).toEqual(classic);
+    expect(read2).toBe(0);
+  });
+
+  it('does not replay completed custom-scalar serializes when a later item returns null', () => {
+    let serializeCalls = 0;
+    const CountingScalar = new GraphQLScalarType({
+      name: 'CountingScalar',
+      serialize(value: unknown) {
+        serializeCalls += 1;
+        if (value === 'fail') {
+          return null;
+        }
+        return String(value);
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(CountingScalar),
+            resolve: () => ['ok', 'fail'],
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    serializeCalls = 0;
+    const planned = executeSync({ schema, document });
+    const plannedCalls = serializeCalls;
+    serializeCalls = 0;
+    const classic = executeClassicSync({ schema, document });
+    const classicCalls = serializeCalls;
+    // Mid-list null serialize must not re-invoke serialize on the completed prefix.
+    expect(planned).toEqual(classic);
+    expect(plannedCalls).toBe(classicCalls);
+    // One serialize per item (ok + fail) — no replay of the completed prefix.
+    expect(plannedCalls).toBe(2);
+  });
+
   it('does not use String fast-path when GraphQLString.serialize is replaced', () => {
     const originalSerialize = GraphQLString.serialize;
     GraphQLString.serialize = (value: unknown) =>

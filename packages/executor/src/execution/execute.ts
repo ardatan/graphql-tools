@@ -1976,35 +1976,79 @@ function completePlannedObjectListValue(
   // Snapshot each slot once during preflight. Accessor-backed arrays can
   // return a different value on a later read; completion must reuse the same
   // item that passed classification (including classic fallback).
+  // Unread tail slots stay holes — classic reads them lazily so a NonNull null
+  // mid-list does not touch later accessors (classic stops at the failing index).
   const items: Array<unknown> = new Array(result.length);
-  const finishUnreadSlots = (fromIndex: number): void => {
-    for (let j = fromIndex; j < result.length; j++) {
-      items[j] = result[j];
-    }
-  };
-  const classicFromSnapshot = (): MaybePromise<ReadonlyArray<unknown> | null> => {
-    // Plain dense array — classic completion must not re-hit accessors already
-    // observed during preflight (including the failing slot).
+  const classicFromRetained = (): MaybePromise<ReadonlyArray<unknown> | null> => {
     const info = buildPlannedResolveInfo(exeContext, fieldPlan, path, fieldNodes);
     const returnType = fieldPlan.returnType;
     const listType = (
       isNonNullType(returnType) ? returnType.ofType : returnType
     ) as GraphQLList<GraphQLOutputType>;
-    return completeListValue(exeContext, listType, fieldNodes, info, path, items);
+    const lazyItems = new Proxy(items, {
+      get(target, prop, receiver) {
+        if (prop === 'length') {
+          return result.length;
+        }
+        if (typeof prop === 'string') {
+          const idx = Number(prop);
+          if (Number.isInteger(idx) && idx >= 0 && idx < result.length) {
+            if (!Object.prototype.hasOwnProperty.call(target, idx)) {
+              target[idx] = result[idx];
+            }
+            return target[idx];
+          }
+        }
+        return Reflect.get(target, prop, receiver);
+      },
+      has(target, prop) {
+        if (typeof prop === 'string') {
+          const idx = Number(prop);
+          if (Number.isInteger(idx) && idx >= 0 && idx < result.length) {
+            return true;
+          }
+        }
+        return Reflect.has(target, prop);
+      },
+      getOwnPropertyDescriptor(target, prop) {
+        if (prop === 'length') {
+          return {
+            configurable: false,
+            enumerable: false,
+            writable: true,
+            value: result.length,
+          };
+        }
+        if (typeof prop === 'string') {
+          const idx = Number(prop);
+          if (Number.isInteger(idx) && idx >= 0 && idx < result.length) {
+            if (!Object.prototype.hasOwnProperty.call(target, idx)) {
+              target[idx] = result[idx];
+            }
+            return {
+              configurable: true,
+              enumerable: true,
+              writable: true,
+              value: target[idx],
+            };
+          }
+        }
+        return Reflect.getOwnPropertyDescriptor(target, prop);
+      },
+    });
+    return completeListValue(exeContext, listType, fieldNodes, info, path, lazyItems);
   };
   for (let index = 0; index < result.length; index++) {
     const item = result[index];
     items[index] = item;
     if (item == null) {
       if (itemNonNull) {
-        finishUnreadSlots(index + 1);
-        return classicFromSnapshot();
+        return classicFromRetained();
       }
       continue;
     }
     if (!isObjectLike(item) || isPromise(item) || item instanceof Error) {
-      finishUnreadSlots(index + 1);
-      return classicFromSnapshot();
+      return classicFromRetained();
     }
   }
   const completedResults: Array<unknown> = new Array(result.length);
@@ -2456,9 +2500,12 @@ function completePlannedLeafListValue(
     // Snapshot once for the serialize loop so accessor slots cannot change
     // between classification and leafType.serialize. Skip when String fast
     // already retained a prefix — general path resumes from that index.
+    // Same retainedResume contract as String: never rewind past an observed slot.
     if (retainedResume == null) {
       const items: Array<unknown> = new Array(result.length);
       let allPrimitive = true;
+      let failIndex = -1;
+      let failItem: unknown;
       for (let i = 0; i < result.length; i++) {
         const item = result[i];
         items[i] = item;
@@ -2468,18 +2515,93 @@ function completePlannedLeafListValue(
           (t !== 'number' && t !== 'string' && t !== 'boolean' && t !== 'bigint')
         ) {
           allPrimitive = false;
+          failIndex = i;
+          failItem = item;
           break;
         }
       }
-      if (allPrimitive) {
+      if (!allPrimitive) {
+        // Serialize the retained primitive prefix (no re-read), then resume at fail.
+        const completedResults: Array<unknown> = new Array(result.length);
+        for (let i = 0; i < failIndex; i++) {
+          try {
+            const serialized = leafType.serialize(items[i]);
+            if (serialized == null) {
+              const itemPath = addPath(path, i, undefined);
+              const error = locatedError(
+                new Error(
+                  `Expected \`${inspect(leafType)}.serialize(${inspect(items[i])})\` to ` +
+                    `return non-nullable value, returned: ${inspect(serialized)}`,
+                ),
+                fieldNodes,
+                pathToArray(itemPath),
+                coordinateInfo,
+              );
+              filterSubsequentPayloads(exeContext, itemPath, undefined);
+              try {
+                completedResults[i] = handleFieldError(error, itemType, errors);
+              } catch (bubble) {
+                writeField(handleFieldError(bubble as GraphQLError, returnType, errors));
+                return null;
+              }
+              continue;
+            }
+            if (isPromise(serialized)) {
+              pendingSerialize = { index: i, promise: serialized, completedResults };
+              break;
+            }
+            completedResults[i] = serialized;
+          } catch (rawError) {
+            const itemPath = addPath(path, i, undefined);
+            const error = locatedError(
+              coerceError(rawError),
+              fieldNodes,
+              pathToArray(itemPath),
+              coordinateInfo,
+            );
+            filterSubsequentPayloads(exeContext, itemPath, undefined);
+            try {
+              completedResults[i] = handleFieldError(error, itemType, errors);
+            } catch (bubble) {
+              writeField(handleFieldError(bubble as GraphQLError, returnType, errors));
+              return null;
+            }
+          }
+        }
+        if (pendingSerialize == null) {
+          retainedResume = {
+            index: failIndex,
+            item: failItem,
+            completedResults,
+          };
+        }
+      } else {
         const completedResults: Array<unknown> = new Array(result.length);
         let ok = true;
         for (let i = 0; i < result.length; i++) {
           try {
             const serialized = leafType.serialize(items[i]);
             if (serialized == null) {
-              ok = false;
-              break;
+              // Same as serialize throwing — null the slot from this invocation;
+              // do not fall through to general (would re-serialize completed prefix).
+              const itemPath = addPath(path, i, undefined);
+              const error = locatedError(
+                new Error(
+                  `Expected \`${inspect(leafType)}.serialize(${inspect(items[i])})\` to ` +
+                    `return non-nullable value, returned: ${inspect(serialized)}`,
+                ),
+                fieldNodes,
+                pathToArray(itemPath),
+                coordinateInfo,
+              );
+              filterSubsequentPayloads(exeContext, itemPath, undefined);
+              try {
+                completedResults[i] = handleFieldError(error, itemType, errors);
+              } catch (bubble) {
+                writeField(handleFieldError(bubble as GraphQLError, returnType, errors));
+                return null;
+              }
+              continue;
             }
             if (isPromise(serialized)) {
               // Keep the first thenable; general path settles it (no re-serialize).
