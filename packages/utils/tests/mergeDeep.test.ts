@@ -210,6 +210,16 @@ describe('mergeDeep', () => {
     ]);
   });
 
+  it('skips undefined sources after arrays of different lengths', () => {
+    expect(
+      mergeDeep([[1], [2, 3], [4, 5, 6], undefined], { respectArrayLength: true }),
+    ).toStrictEqual([1, 2, 3, 4, 5, 6]);
+  });
+
+  it('merges an object after a scalar output', () => {
+    expect(mergeDeep([[1], [2, 3], 'last', { a: 1 }])).toEqual({ a: 1 });
+  });
+
   it('overrides property value with null from later source', () => {
     expect(mergeDeep([{ a: 'foo' }, { a: null }])).toEqual({ a: null });
   });
