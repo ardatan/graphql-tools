@@ -1982,6 +1982,9 @@ function completePlannedObjectListValue(
   const itemType = listType.ofType;
   const info = buildPlannedResolveInfo(exeContext, fieldPlan, path, fieldNodes);
   const completedResults: Array<unknown> = new Array(result.length);
+  // If a completed item truncates `result`, the indexed loop stops early; trim
+  // to visited slots so we do not serialize trailing holes as null (classic).
+  let visitedCount = 0;
   const asyncUpdates: Promise<void>[] = [];
   const nullNullableItem = (bubbled: unknown, itemPath: Path, itemIndex: number): void => {
     exeContext.signal?.throwIfAborted();
@@ -2081,6 +2084,7 @@ function completePlannedObjectListValue(
   };
 
   for (let index = 0; index < result.length; index++) {
+    visitedCount = index + 1;
     let item: unknown;
     try {
       item = result[index];
@@ -2215,10 +2219,14 @@ function completePlannedObjectListValue(
       trackAsync(done);
     }
   }
+  const trimVisited = (): Array<unknown> => {
+    completedResults.length = visitedCount;
+    return completedResults;
+  };
   if (asyncUpdates.length > 0) {
-    return Promise.all(asyncUpdates).then(() => completedResults);
+    return Promise.all(asyncUpdates).then(trimVisited);
   }
-  return completedResults;
+  return trimVisited();
 }
 
 /**
@@ -3880,6 +3888,9 @@ function completeListValue(
   // protocol. Custom array iterators must use for-of (yielded values).
   // Planned listItemLeaf skips repeated isLeafType classification.
   if (usesDefaultArrayIterator(result) && !stream) {
+    // Record derived item promises from completeListItemValue's boolean — do not
+    // re-inspect completedResults on sync abort (thenable getters can throw / flip).
+    const pendingItemPromises: Array<PromiseLike<unknown>> = [];
     try {
       for (let index = 0; index < result.length; index++) {
         if (leafItemType) {
@@ -3899,6 +3910,9 @@ function completeListValue(
             )
           ) {
             containsPromise = true;
+            pendingItemPromises.push(
+              completedResults[completedResults.length - 1] as PromiseLike<unknown>,
+            );
           }
         } else if (
           completeListItemValue(
@@ -3914,18 +3928,17 @@ function completeListValue(
           )
         ) {
           containsPromise = true;
+          pendingItemPromises.push(
+            completedResults[completedResults.length - 1] as PromiseLike<unknown>,
+          );
         }
       }
     } catch (syncAbort) {
       // A later sync failure (accessor throw / NonNull bubble) can exit before
-      // Promise.all. Observe derived item promises so their rejections are not
-      // unhandled when settleListResults never runs.
-      if (containsPromise) {
-        for (const slot of completedResults) {
-          if (isPromise(slot)) {
-            Promise.resolve(slot).then(undefined, () => undefined);
-          }
-        }
+      // Promise.all. Observe only the recorded derived promises so their
+      // rejections are not unhandled when settleListResults never runs.
+      for (const pending of pendingItemPromises) {
+        Promise.resolve(pending).then(undefined, () => undefined);
       }
       throw syncAbort;
     }

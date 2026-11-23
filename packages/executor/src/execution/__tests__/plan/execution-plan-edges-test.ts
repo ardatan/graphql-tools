@@ -1988,4 +1988,139 @@ describe('object-list thin path: r8 differential matrix', () => {
       ],
     });
   });
+
+  it('trims completedResults when an item truncates the array mid-loop', () => {
+    const TruncItem = new GraphQLObjectType({
+      name: 'TruncItem',
+      fields: {
+        id: {
+          type: new GraphQLNonNull(GraphQLString),
+          resolve(source: { id: string; shrink?: () => void }) {
+            source.shrink?.();
+            return source.id;
+          },
+        },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(new GraphQLNonNull(TruncItem)) },
+        },
+      }),
+    });
+    const document = parse('{ users { id } }');
+    const makeUsers = (): Array<{ id: string; shrink?: () => void }> => {
+      const users: Array<{ id: string; shrink?: () => void }> = [
+        {
+          id: '1',
+          shrink() {
+            users.length = 1;
+          },
+        },
+        { id: '2' },
+      ];
+      return users;
+    };
+    const planned = executeSync({ schema, document, rootValue: { users: makeUsers() } });
+    const classic = executeClassicSync({
+      schema,
+      document,
+      rootValue: { users: makeUsers() },
+    });
+    expect(planned).toEqual(classic);
+    // Preallocated output must not keep a trailing hole as null.
+    expect(planned).toEqual({ data: { users: [{ id: '1' }] } });
+  });
+});
+
+describe('list completion: observe pending without re-inspect', () => {
+  it('observes recorded item promises on sync abort without re-isPromise slots', async () => {
+    let thenReads = 0;
+    let flip = false;
+    const Custom = new GraphQLScalarType({
+      name: 'ObserveCustom',
+      serialize(value: unknown) {
+        if (value === 'pending') {
+          return Promise.reject(Object.assign(new Error('pending fail'), { name: 'PendingFail' }));
+        }
+        if (value === 'thenable') {
+          const obj: Record<string, unknown> = { ok: true };
+          Object.defineProperty(obj, 'then', {
+            configurable: true,
+            enumerable: false,
+            get() {
+              thenReads += 1;
+              if (flip) {
+                throw new Error('then re-read');
+              }
+              // First isPromise: undefined → sync completed value.
+              return undefined;
+            },
+          });
+          return obj;
+        }
+        return String(value);
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(new GraphQLNonNull(Custom)),
+            resolve: () => {
+              const values: Array<unknown> = ['thenable', 'pending', 'tail'];
+              Object.defineProperty(values, '2', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  flip = true;
+                  throw new Error('tail accessor');
+                },
+              });
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    let unhandled = 0;
+    const onUnhandled = (): void => {
+      unhandled += 1;
+    };
+    process.on('unhandledRejection', onUnhandled);
+    try {
+      // Classic completeListValue owns the sync-abort observe path under test.
+      thenReads = 0;
+      flip = false;
+      const classic = await executeClassic({ schema, document });
+      await new Promise<void>(resolve => {
+        setImmediate(resolve);
+      });
+      expect(unhandled).toBe(0);
+      expect(classic).toMatchObject({
+        data: { values: null },
+        errors: [{ message: 'tail accessor', path: ['values'] }],
+      });
+      // Cleanup must not re-read the sync thenable slot (would throw 'then re-read').
+      expect(thenReads).toBe(1);
+
+      unhandled = 0;
+      thenReads = 0;
+      flip = false;
+      const planned = await execute({ schema, document });
+      await new Promise<void>(resolve => {
+        setImmediate(resolve);
+      });
+      expect(unhandled).toBe(0);
+      expect(planned).toMatchObject({
+        errors: [{ message: 'tail accessor', path: ['values'] }],
+      });
+    } finally {
+      process.off('unhandledRejection', onUnhandled);
+    }
+  });
 });
