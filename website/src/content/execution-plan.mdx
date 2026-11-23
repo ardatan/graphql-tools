@@ -1,6 +1,6 @@
 ---
 description:
-  Cacheable execution plans in @graphql-tools/executor — compile once per document, reuse on warm
+  Cacheable execution plans in @graphql-tools/executor: compile once per document, reuse on warm
   executes, and why it helps.
 ---
 
@@ -10,7 +10,7 @@ import { Callout } from '@theguild/components'
 
 `@graphql-tools/executor` can compile a cacheable **execution plan** for a GraphQL operation and
 reuse it across repeated `execute` / `executeSync` calls. The plan is an in-memory structure
-interpreted by the default executor — not a generated executor or codegen path.
+interpreted by the default executor, not a generated executor or codegen path.
 
 On a warm hit, field collection, type classification, variable coercion, resolveInfo statics, and
 safe argument reads are already prepared, so each request does less AST work.
@@ -53,8 +53,8 @@ flowchart TB
 ## Document parser cache (compile once)
 
 Plans are cached in a `WeakMap` keyed by **`DocumentNode` identity** (then schema, then operation
-name). That pairs naturally with a **document parser cache** (for example Yoga’s
-`useParserAndValidationCache`, or Envelop’s parser-cache plugin): the same query string keeps
+name). That pairs naturally with a **document parser cache** (for example Yoga's
+`useParserAndValidationCache`, or Envelop's parser-cache plugin): the same query string keeps
 returning the same `DocumentNode`, so the plan is compiled on the first execute and reused on every
 later request for that document.
 
@@ -66,16 +66,16 @@ sequenceDiagram
   participant PlanCache as Plan WeakMap
 
   Client->>ParserCache: query string (1st)
-  ParserCache->>ParserCache: parse → DocumentNode A
+  ParserCache->>ParserCache: parse -> DocumentNode A
   Client->>Execute: execute(document A)
-  Execute->>PlanCache: miss → compileExecutionPlan
+  Execute->>PlanCache: miss -> compileExecutionPlan
   PlanCache-->>Execute: ExecutionPlan P
   Execute-->>Client: result
 
   Client->>ParserCache: same query string (2nd)
   ParserCache-->>Client: DocumentNode A (cached)
   Client->>Execute: execute(document A)
-  Execute->>PlanCache: hit → same plan P
+  Execute->>PlanCache: hit -> same plan P
   Execute-->>Client: result (warm path)
 ```
 
@@ -86,19 +86,19 @@ sequenceDiagram
 </Callout>
 
 Cold first-hit (compile + execute) can be slower than classic execute on some documents; the wins
-below are for the **warm** path after the plan is cached. Speculative “classic on miss, compile in
-the background” is intentionally out of scope for this release.
+below are for the **warm** path after the plan is cached. Speculative "classic on miss, compile in
+the background" is intentionally out of scope for this release.
 
 ## How to use it effectively
 
-1. **Keep document identity stable** — use Yoga / Envelop parser cache, persisted queries, or any
+1. **Keep document identity stable**: use Yoga / Envelop parser cache, persisted queries, or any
    layer that returns the same `DocumentNode` for the same source.
-2. **Call the default executor** — `execute` / `executeSync` / `normalizedExecutor` compile and
+2. **Call the default executor**: `execute` / `executeSync` / `normalizedExecutor` compile and
    attach the plan automatically via `buildExecutionContext`. You can also call
    `compileExecutionPlan` yourself to warm the cache.
-3. **Prefer stable schemas** — plans close over field configs; if you mutate a schema object in
+3. **Prefer stable schemas**: plans close over field configs; if you mutate a schema object in
    place, call `clearExecutionPlanCache(document)` (or use a new schema identity).
-4. **No API change required** — eligible operations get the warm path by default; ineligible or
+4. **No API change required**: eligible operations get the warm path by default; ineligible or
    error cases fall back to classic coerce / collect behavior with the same GraphQL error shapes.
 
 ```ts
@@ -118,25 +118,25 @@ throughput deltas after the plan is cached.
 
 ### Warm classics (plan amortizes collect / resolveInfo / args)
 
-| Bench                                          | Approx. Δ vs master |
-| ---------------------------------------------- | ------------------: |
-| Dense synchronous float list                   |          **~+112%** |
-| Default-resolver property bag (400 Int fields) |           **~+33%** |
-| Many repeated fields                           |           **~+38%** |
-| Asynchronous list field                        |           **~+22%** |
-| Nested default-resolver objects                |           **~+16%** |
-| Collect stable (unused variables)              |           **~+16%** |
-| Synchronous list field                         |       ~flat (noise) |
+| Bench                                          | Approx. delta vs master |
+| ---------------------------------------------- | ----------------------: |
+| Dense synchronous float list                   |              **~+112%** |
+| Default-resolver property bag (400 Int fields) |               **~+33%** |
+| Many repeated fields                           |               **~+38%** |
+| Asynchronous list field                        |               **~+22%** |
+| Nested default-resolver objects                |               **~+16%** |
+| Collect stable (unused variables)              |               **~+16%** |
+| Synchronous list field                         |           ~flat (noise) |
 
 **Why:** `FieldPlan` and `rootExecutions` remove repeated field collection, type classification,
 resolveInfo static setup, and safe argument coercion on every request.
 
 ### Hoisted variable coercers
 
-| Bench                                    |                        Approx. Δ |
-| ---------------------------------------- | -------------------------------: |
-| Coerce+execute heavy nested input-object |                     **~+67–74%** |
-| Coerce-only heavy nested input-object    | **~+130–140%** (stage isolation) |
+| Bench                                    |                     Approx. delta |
+| ---------------------------------------- | --------------------------------: |
+| Coerce+execute heavy nested input-object |                     **~+67-74%** |
+| Coerce-only heavy nested input-object    | **~+130-140%** (stage isolation) |
 | Coerce+execute small nested input-object |        ~flat (execute-dominated) |
 
 **Why:** plan-bound per-input-type `InputValueCoercer` closures avoid rebuilding coercion work
@@ -145,11 +145,11 @@ fallback.
 
 ### Skip / include predicates
 
-| Bench                                      | Approx. Δ vs master |
-| ------------------------------------------ | ------------------: |
-| Dense `@skip` / `@include` variable fields |        **~+63–67%** |
+| Bench                                      | Approx. delta vs master |
+| ------------------------------------------ | ----------------------: |
+| Dense `@skip` / `@include` variable fields |            **~+63-67%** |
 
-**Why:** on top of master’s collect-layer field predicates, the plan path keeps union
+**Why:** on top of master's collect-layer field predicates, the plan path keeps union
 `rootExecutions` / subfield executions and filters with compiled include predicates instead of
 re-`collectFields` every time.
 

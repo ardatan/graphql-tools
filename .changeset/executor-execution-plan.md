@@ -8,6 +8,6 @@ Eligible operations compile once per `(schema, document, operationName)` into a 
 
 Plans are `WeakMap`-cached by `DocumentNode` identity. Pair with a document parser cache (e.g. Yoga `useParserAndValidationCache`) so the same query string keeps the same document and the plan compiles once, then hits the warm path on later requests.
 
-Measured warm-path wins vs previous master (interleaved vitest, Node 22): dense float list ~+112%, property-bag ~+33%, async list ~+22%, nested default-resolver ~+16%, dense `@skip`/`@include` ~+63–67% (plan-extra on top of collect-layer predicates), heavy coerce+execute ~+67–74%. Sync list and small coerce+execute stay ~flat. Cold first-hit can be slower than classic execute; wins assume a cached plan.
+Measured warm-path wins vs previous master (interleaved vitest, Node 22): dense float list ~+112%, property-bag ~+33%, async list ~+22%, nested default-resolver ~+16%, dense `@skip`/`@include` ~+63-67% (plan-extra on top of collect-layer predicates), heavy coerce+execute ~+67-74%. Sync list and small coerce+execute stay ~flat. Cold first-hit can be slower than classic execute; wins assume a cached plan.
 
-This is an in-memory execution plan interpreted by the default executor — not a generated executor / codegen path. Docs: [Execution Plan](https://www.graphql-tools.com/docs/execution-plan).
+This is an in-memory execution plan interpreted by the default executor, not a generated executor / codegen path. Docs: [Execution Plan](https://www.graphql-tools.com/docs/execution-plan).
