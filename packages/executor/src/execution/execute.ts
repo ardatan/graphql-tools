@@ -2090,8 +2090,12 @@ function completePlannedObjectListValue(
     const itemPath = addPath(path, index, undefined);
     if (item == null) {
       if (itemNonNull) {
-        throw new Error(
-          `Cannot return null for non-nullable field ${fieldPlan.parentType.name}.${fieldPlan.fieldDef.name}.`,
+        throw locatedError(
+          new Error(
+            `Cannot return null for non-nullable field ${fieldPlan.parentType.name}.${fieldPlan.fieldDef.name}.`,
+          ),
+          fieldNodes,
+          pathToArray(itemPath),
         );
       }
       completedResults[index] = null;
@@ -2488,7 +2492,14 @@ function completePlannedLeafListValue(
   // Seed for a mid-list thenable serialize so the general path does not
   // re-invoke the serializer on that index.
   let pendingSerialize:
-    { index: number; promise: PromiseLike<unknown>; completedResults: Array<unknown> } | undefined;
+    | {
+        index: number;
+        promise: PromiseLike<unknown>;
+        completedResults: Array<unknown>;
+        /** Slots already read into the preflight snapshot — general resume must not re-index them. */
+        retainedItems: Array<unknown>;
+      }
+    | undefined;
   // When String fast-path fails mid-list, resume general completion from that
   // index with the already-read value (do not re-hit earlier accessors).
   let retainedResume:
@@ -2569,32 +2580,18 @@ function completePlannedLeafListValue(
       }
       if (!allPrimitive) {
         // Serialize the retained primitive prefix (no re-read), then resume at fail.
+        // Use completeLeafValue so GraphQLError extensions match classic (stripped).
         const completedResults: Array<unknown> = new Array(result.length);
         for (let i = 0; i < failIndex; i++) {
           try {
-            const serialized = leafType.serialize(items[i]);
-            if (serialized == null) {
-              const itemPath = addPath(path, i, undefined);
-              const error = locatedError(
-                new Error(
-                  `Expected \`${inspect(leafType)}.serialize(${inspect(items[i])})\` to ` +
-                    `return non-nullable value, returned: ${inspect(serialized)}`,
-                ),
-                fieldNodes,
-                pathToArray(itemPath),
-                coordinateInfo,
-              );
-              filterSubsequentPayloads(exeContext, itemPath, undefined);
-              try {
-                completedResults[i] = handleFieldError(error, itemType, errors);
-              } catch (bubble) {
-                writeField(handleFieldError(bubble as GraphQLError, returnType, errors));
-                return null;
-              }
-              continue;
-            }
+            const serialized = completeLeafValue(leafType, items[i]);
             if (isPromise(serialized)) {
-              pendingSerialize = { index: i, promise: serialized, completedResults };
+              pendingSerialize = {
+                index: i,
+                promise: serialized,
+                completedResults,
+                retainedItems: items,
+              };
               break;
             }
             completedResults[i] = serialized;
@@ -2627,32 +2624,16 @@ function completePlannedLeafListValue(
         let ok = true;
         for (let i = 0; i < result.length; i++) {
           try {
-            const serialized = leafType.serialize(items[i]);
-            if (serialized == null) {
-              // Same as serialize throwing — null the slot from this invocation;
-              // do not fall through to general (would re-serialize completed prefix).
-              const itemPath = addPath(path, i, undefined);
-              const error = locatedError(
-                new Error(
-                  `Expected \`${inspect(leafType)}.serialize(${inspect(items[i])})\` to ` +
-                    `return non-nullable value, returned: ${inspect(serialized)}`,
-                ),
-                fieldNodes,
-                pathToArray(itemPath),
-                coordinateInfo,
-              );
-              filterSubsequentPayloads(exeContext, itemPath, undefined);
-              try {
-                completedResults[i] = handleFieldError(error, itemType, errors);
-              } catch (bubble) {
-                writeField(handleFieldError(bubble as GraphQLError, returnType, errors));
-                return null;
-              }
-              continue;
-            }
+            // completeLeafValue: one serialize, strips GraphQLError extensions (classic).
+            const serialized = completeLeafValue(leafType, items[i]);
             if (isPromise(serialized)) {
-              // Keep the first thenable; general path settles it (no re-serialize).
-              pendingSerialize = { index: i, promise: serialized, completedResults };
+              // Keep the first thenable + snapshot; general path settles it (no re-serialize / re-read).
+              pendingSerialize = {
+                index: i,
+                promise: serialized,
+                completedResults,
+                retainedItems: items,
+              };
               ok = false;
               break;
             }
@@ -2908,6 +2889,7 @@ function completePlannedLeafListValue(
   }
   if (usesDefaultArrayIterator(result)) {
     let startIndex = 0;
+    const snapshotItems = pendingSerialize?.retainedItems;
     if (pendingSerialize) {
       startIndex = pendingSerialize.index + 1;
     } else if (retainedResume) {
@@ -2919,7 +2901,11 @@ function completePlannedLeafListValue(
       }
     }
     for (let index = startIndex; index < result.length; index++) {
-      if (!consumeItem(index, result[index])) {
+      const item =
+        snapshotItems != null && Object.prototype.hasOwnProperty.call(snapshotItems, index)
+          ? snapshotItems[index]
+          : result[index];
+      if (!consumeItem(index, item)) {
         break;
       }
     }

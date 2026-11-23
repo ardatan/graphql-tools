@@ -5,6 +5,7 @@
  */
 import {
   GraphQLBoolean,
+  GraphQLError,
   GraphQLID,
   GraphQLInt,
   GraphQLInterfaceType,
@@ -1362,34 +1363,34 @@ describe('list completion: retain preflight item reads', () => {
       query: new GraphQLObjectType({
         name: 'Query',
         fields: {
-          users: {
-            type: new GraphQLList(new GraphQLNonNull(Item)),
-            resolve: () => {
-              const base: Array<{ id: string } | null> = [{ id: '1' }];
-              return new Proxy(base, {
-                get(target, prop, receiver) {
-                  if (prop === '0') {
-                    reads += 1;
-                    return reads === 1 ? { id: '1' } : null;
-                  }
-                  return Reflect.get(target, prop, receiver);
-                },
-              });
-            },
-          },
+          users: { type: new GraphQLList(new GraphQLNonNull(Item)) },
         },
       }),
     });
     const document = parse('{ users { id } }');
+    const rootValue = {
+      users() {
+        const base: Array<{ id: string } | null> = [{ id: '1' }];
+        return new Proxy(base, {
+          get(target, prop, receiver) {
+            if (prop === '0') {
+              reads += 1;
+              return reads === 1 ? { id: '1' } : null;
+            }
+            return Reflect.get(target, prop, receiver);
+          },
+        });
+      },
+    };
     reads = 0;
-    const planned = executeSync({ schema, document });
+    const planned = executeSync({ schema, document, rootValue });
     const plannedReads = reads;
     reads = 0;
-    const classic = executeClassicSync({ schema, document });
+    const classic = executeClassicSync({ schema, document, rootValue });
     // Classic reads once; planned must match (not store null from a second read).
     expect(planned).toEqual(classic);
     expect(planned).toEqual({ data: { users: [{ id: '1' }] } });
-    // Preflight + completion must not double-hit the accessor (one retained read).
+    // Single-pass must not double-hit the accessor (one retained read).
     expect(plannedReads).toBe(1);
   });
 
@@ -1406,39 +1407,39 @@ describe('list completion: retain preflight item reads', () => {
       query: new GraphQLObjectType({
         name: 'Query',
         fields: {
-          users: {
-            // Nullable list of NonNull items: null item → list field null + error.
-            type: new GraphQLList(new GraphQLNonNull(Item)),
-            resolve: () => {
-              const base: Array<{ id: string } | null> = [{ id: '1' }, null];
-              return new Proxy(base, {
-                get(target, prop, receiver) {
-                  if (prop === '0') {
-                    reads0 += 1;
-                    // Second read would flip the value — must not happen.
-                    return reads0 === 1 ? { id: '1' } : { id: 'CHANGED' };
-                  }
-                  if (prop === '1') {
-                    reads1 += 1;
-                    return null;
-                  }
-                  return Reflect.get(target, prop, receiver);
-                },
-              });
-            },
-          },
+          // Nullable list of NonNull items: null item → list field null + error.
+          users: { type: new GraphQLList(new GraphQLNonNull(Item)) },
         },
       }),
     });
     const document = parse('{ users { id } }');
+    const rootValue = {
+      users() {
+        const base: Array<{ id: string } | null> = [{ id: '1' }, null];
+        return new Proxy(base, {
+          get(target, prop, receiver) {
+            if (prop === '0') {
+              reads0 += 1;
+              // Second read would flip the value — must not happen.
+              return reads0 === 1 ? { id: '1' } : { id: 'CHANGED' };
+            }
+            if (prop === '1') {
+              reads1 += 1;
+              return null;
+            }
+            return Reflect.get(target, prop, receiver);
+          },
+        });
+      },
+    };
     reads0 = 0;
     reads1 = 0;
-    const planned = executeSync({ schema, document });
+    const planned = executeSync({ schema, document, rootValue });
     expect(planned).toMatchObject({
       data: { users: null },
       errors: [{ path: ['users', 1] }],
     });
-    // Index 0 was observed during preflight; classic must use the snapshot.
+    // Index 0 observed once; index 1 once — no double-read of retained slots.
     expect(reads0).toBe(1);
     expect(reads1).toBe(1);
   });
@@ -1519,28 +1520,29 @@ describe('list completion: retain preflight item reads', () => {
       query: new GraphQLObjectType({
         name: 'Query',
         fields: {
-          users: {
-            type: new GraphQLList(new GraphQLNonNull(Item)),
-            resolve: () => {
-              const users: Array<{ id: string } | null> = [{ id: '1' }, null, { id: '3' }];
-              Object.defineProperty(users, '2', {
-                configurable: true,
-                enumerable: true,
-                get() {
-                  read2 += 1;
-                  throw new Error('Unexpected read');
-                },
-              });
-              return users;
-            },
-          },
+          // Default property resolve — thin object-list path (not schemaResolve).
+          users: { type: new GraphQLList(new GraphQLNonNull(Item)) },
         },
       }),
     });
     const document = parse('{ users { id } }');
-    read2 = 0;
-    const planned = executeSync({ schema, document });
-    const classic = executeClassicSync({ schema, document });
+    const rootValue = {
+      users() {
+        read2 = 0;
+        const users: Array<{ id: string } | null> = [{ id: '1' }, null, { id: '3' }];
+        Object.defineProperty(users, '2', {
+          configurable: true,
+          enumerable: true,
+          get() {
+            read2 += 1;
+            throw new Error('Unexpected read');
+          },
+        });
+        return users;
+      },
+    };
+    const planned = executeSync({ schema, document, rootValue });
+    const classic = executeClassicSync({ schema, document, rootValue });
     expect(planned).toMatchObject({
       data: { users: null },
       errors: [{ path: ['users', 1] }],
@@ -1564,28 +1566,28 @@ describe('list completion: retain preflight item reads', () => {
       query: new GraphQLObjectType({
         name: 'Query',
         fields: {
-          users: {
-            type: new GraphQLList(new GraphQLNonNull(Item)),
-            resolve: () => {
-              const users: Array<Record<string, never>> = [{}, {}];
-              Object.defineProperty(users, '1', {
-                configurable: true,
-                enumerable: true,
-                get() {
-                  read1 += 1;
-                  throw new Error('Unexpected later read');
-                },
-              });
-              return users;
-            },
-          },
+          users: { type: new GraphQLList(new GraphQLNonNull(Item)) },
         },
       }),
     });
     const document = parse('{ users { id } }');
-    read1 = 0;
-    const planned = executeSync({ schema, document });
-    const classic = executeClassicSync({ schema, document });
+    const rootValue = {
+      users() {
+        read1 = 0;
+        const users: Array<Record<string, never>> = [{}, {}];
+        Object.defineProperty(users, '1', {
+          configurable: true,
+          enumerable: true,
+          get() {
+            read1 += 1;
+            throw new Error('Unexpected later read');
+          },
+        });
+        return users;
+      },
+    };
+    const planned = executeSync({ schema, document, rootValue });
+    const classic = executeClassicSync({ schema, document, rootValue });
     expect(planned).toMatchObject({
       data: { users: null },
       errors: [{ path: ['users', 0, 'id'] }],
@@ -1611,12 +1613,7 @@ describe('list completion: retain preflight item reads', () => {
       }),
     });
     const document = parse('{ users { id } }');
-    let unhandled = 0;
-    const onUnhandled = (): void => {
-      unhandled += 1;
-    };
-    process.on('unhandledRejection', onUnhandled);
-    try {
+    const makeRoot = (): { rootValue: { users: Array<unknown> }; getRead2: () => number } => {
       let read2 = 0;
       const users: Array<unknown> = [
         Promise.reject(Object.assign(new Error('pending fail'), { name: 'PendingFail' })),
@@ -1631,19 +1628,136 @@ describe('list completion: retain preflight item reads', () => {
           throw new Error('tail accessor');
         },
       });
-      const planned = await execute({ schema, document, rootValue: { users } });
+      return { rootValue: { users }, getRead2: () => read2 };
+    };
+    const expected = {
+      data: { users: null },
+      errors: [{ message: 'tail accessor', path: ['users'] }],
+    };
+    let unhandled = 0;
+    const onUnhandled = (): void => {
+      unhandled += 1;
+    };
+    process.on('unhandledRejection', onUnhandled);
+    try {
+      const plannedRoot = makeRoot();
+      const planned = await execute({ schema, document, rootValue: plannedRoot.rootValue });
+      const classicRoot = makeRoot();
+      const classicCtx = buildExecutionContext(
+        { schema, document, rootValue: classicRoot.rootValue },
+        null,
+      );
+      expect('schema' in classicCtx).toBe(true);
+      if (!('schema' in classicCtx)) {
+        throw new Error('expected classic execution context');
+      }
+      const classic = await executeImpl(classicCtx);
       // Flush microtasks so a leaked derived rejection would surface.
       await new Promise<void>(resolve => {
         setImmediate(resolve);
       });
       expect(unhandled).toBe(0);
-      expect(read2).toBe(1);
-      expect(planned).toMatchObject({
-        errors: expect.any(Array),
-      });
+      expect(plannedRoot.getRead2()).toBe(1);
+      expect(classicRoot.getRead2()).toBe(1);
+      expect(planned).toMatchObject(expected);
+      expect(classic).toMatchObject(expected);
+      expect(planned).toEqual(classic);
     } finally {
       process.off('unhandledRejection', onUnhandled);
     }
+  });
+
+  it('strips GraphQLError extensions from retained-prefix leaf serialize (sibling fields survive)', () => {
+    const ExtScalar = new GraphQLScalarType({
+      name: 'ExtScalar',
+      serialize(value: unknown) {
+        if (value === 1) {
+          throw new GraphQLError('boom', { extensions: { CRITICAL_ERROR: true } });
+        }
+        if (value == null) {
+          return null;
+        }
+        return String(value);
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          // Mid-list null forces retained-prefix serialize of index 0.
+          values: {
+            type: new GraphQLList(ExtScalar),
+            resolve: () => [1, null],
+          },
+          ok: {
+            type: GraphQLString,
+            resolve: () => 'yes',
+          },
+        },
+      }),
+    });
+    const document = parse('{ values ok }');
+    const planned = executeSync({ schema, document });
+    const classic = executeClassicSync({ schema, document });
+    // completeLeafValue strips CRITICAL_ERROR so only the item nulls — not the root.
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { values: [null, null], ok: 'yes' },
+      errors: [{ message: 'boom', path: ['values', 0] }],
+    });
+    expect(planned.errors?.[0]?.extensions?.CRITICAL_ERROR).toBeUndefined();
+  });
+
+  it('does not reread snapshot slots when a prefix serialize returns a thenable', async () => {
+    let reads = 0;
+    const AsyncScalar = new GraphQLScalarType({
+      name: 'AsyncScalar',
+      serialize(value: unknown) {
+        if (value === 'first') {
+          return Promise.resolve('FIRST');
+        }
+        return String(value);
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(AsyncScalar),
+            resolve: () => {
+              const values: Array<unknown> = ['first', 'second'];
+              Object.defineProperty(values, '1', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  reads += 1;
+                  if (reads > 1) {
+                    throw new Error('second re-read');
+                  }
+                  return 'second';
+                },
+              });
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    reads = 0;
+    const planned = await execute({ schema, document });
+    const plannedReads = reads;
+    reads = 0;
+    const classicCtx = buildExecutionContext({ schema, document }, null);
+    expect('schema' in classicCtx).toBe(true);
+    if (!('schema' in classicCtx)) {
+      throw new Error('expected classic execution context');
+    }
+    const classic = await executeImpl(classicCtx);
+    expect(planned).toEqual(classic);
+    expect(planned).toEqual({ data: { values: ['FIRST', 'second'] } });
+    expect(plannedReads).toBe(1);
   });
 
   it('does not replay completed custom-scalar serializes when a later item returns null', () => {
