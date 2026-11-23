@@ -66,4 +66,23 @@ describe('PlannedWorkRunner', () => {
     await Promise.resolve();
     expect(() => runner.runUntilSettled()).toThrow(boom);
   });
+
+  it('forceSettle resolves waiters without waiting for remaining thenables', async () => {
+    const runner = new PlannedWorkRunner();
+    const never = new Promise<void>(() => undefined);
+    let sawReject = false;
+    runner.awaitValue(
+      never,
+      () => undefined,
+      () => {
+        sawReject = true;
+      },
+    );
+    const settled = runner.runUntilSettled();
+    expect(settled).toBeInstanceOf(Promise);
+    runner.forceSettle();
+    await settled;
+    expect(sawReject).toBe(false);
+    expect(runner.isBusy).toBe(false);
+  });
 });

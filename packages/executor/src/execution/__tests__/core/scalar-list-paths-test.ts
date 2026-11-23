@@ -73,6 +73,29 @@ describe('scalar list completion paths', () => {
     });
   });
 
+  it('does not wait for remaining items after an async non-null item rejects', async () => {
+    const { schema, document } = setup(false);
+    const hang = new Promise<number>(() => undefined);
+    const resultPromise = execute({
+      schema,
+      document,
+      rootValue: { values: [Promise.reject(new Error('bad')), hang] },
+    });
+    const timeout = new Promise<string>(resolve => {
+      setTimeout(() => resolve('TIMEOUT'), 500);
+    });
+    const raced = await Promise.race([
+      resultPromise.then(result => ({ result })),
+      timeout.then(timeout => ({ timeout })),
+    ]);
+    expect(raced).toMatchObject({
+      result: {
+        data: { alias: null },
+        errors: [{ message: 'bad', path: ['alias', 0] }],
+      },
+    });
+  });
+
   it('retains the existing null and promised input behavior', async () => {
     const { schema, type, document } = setup();
     const seen: unknown[] = [];
