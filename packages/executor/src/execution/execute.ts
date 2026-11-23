@@ -2340,9 +2340,11 @@ function executePlannedSyncObjectFieldsPlain(
         results[responseName] = serialized;
       } catch (rawError) {
         // First serialize throw completes this field — do not re-serialize.
+        // Match completeLeafValue: GraphQLError → Error (drop CRITICAL_ERROR).
+        const err = rawError instanceof GraphQLError ? new Error(rawError.message) : rawError;
         const fieldPath = addPath(path, responseName, parentType.name);
         const error = locatedError(
-          coerceError(rawError),
+          coerceError(err),
           fieldNodes,
           pathToArray(fieldPath),
           exeContext.schemaCoordinateInErrors &&
@@ -5450,25 +5452,8 @@ function mapThinLeafPromise(
       }
       return null;
     }
-    const serialized = leafType.serialize(value);
-    if (isPromise(serialized)) {
-      return serialized.then((resolved: unknown) => {
-        if (resolved == null) {
-          throw new Error(
-            `Expected \`${inspect(leafType)}.serialize(${inspect(value)})\` to ` +
-              `return non-nullable value, returned: ${inspect(resolved)}`,
-          );
-        }
-        return resolved;
-      });
-    }
-    if (serialized == null) {
-      throw new Error(
-        `Expected \`${inspect(leafType)}.serialize(${inspect(value)})\` to ` +
-          `return non-nullable value, returned: ${inspect(serialized)}`,
-      );
-    }
-    return serialized;
+    // completeLeafValue strips GraphQLError extensions (CRITICAL_ERROR) like classic.
+    return completeLeafValue(leafType, value);
   });
 }
 
@@ -5855,9 +5840,11 @@ function executePlannedSyncObjectFieldsPreCR(
         n++;
       } catch (rawError) {
         // First serialize throw completes this field — do not re-serialize.
+        // Match completeLeafValue: GraphQLError → Error (drop CRITICAL_ERROR).
+        const err = rawError instanceof GraphQLError ? new Error(rawError.message) : rawError;
         const fieldPath = addPath(path, responseName, parentType.name);
         const error = locatedError(
-          coerceError(rawError),
+          coerceError(err),
           fieldNodes,
           pathToArray(fieldPath),
           exeContext.schemaCoordinateInErrors &&
@@ -6159,9 +6146,11 @@ function tryExecutePlannedSyncObjectFieldsFast(
         }
         results[responseName] = serialized;
       } catch (rawError) {
+        // Match completeLeafValue: GraphQLError → Error (drop CRITICAL_ERROR).
+        const err = rawError instanceof GraphQLError ? new Error(rawError.message) : rawError;
         const fieldPath = addPath(path, responseName, parentType.name);
         const error = locatedError(
-          coerceError(rawError),
+          coerceError(err),
           fieldNodes,
           pathToArray(fieldPath),
           exeContext.schemaCoordinateInErrors &&
@@ -6584,8 +6573,10 @@ function executePlannedSyncObjectFieldsFrom(
         results[responseName] = serialized;
       } catch (rawError) {
         // First serialize throw completes this field — do not re-serialize.
+        // Match completeLeafValue: GraphQLError → Error (drop CRITICAL_ERROR).
+        const err = rawError instanceof GraphQLError ? new Error(rawError.message) : rawError;
         const fieldPath = addPath(path, responseName, parentType.name);
-        recordThinFieldError(responseName, rawError, fieldNodes, fieldPlan, fieldPath);
+        recordThinFieldError(responseName, err, fieldNodes, fieldPlan, fieldPath);
         recordedGetterError = true;
         exeContext.signal?.throwIfAborted();
       }
