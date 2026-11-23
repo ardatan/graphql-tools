@@ -2490,7 +2490,8 @@ function executePlannedSyncObjectFieldsPlain(
       }
       // Nested NonNull boundary catch lives in a cold helper so this Plain
       // function stays try/catch-free on the nestedDefault recurse (V8).
-      let nested: Record<string, unknown> | ThinObjectPartial | undefined | typeof NESTED_BOUNDARY_NULL;
+      let nested:
+        Record<string, unknown> | ThinObjectPartial | undefined | typeof NESTED_BOUNDARY_NULL;
       if (plannedSubExecutionsMayBubbleNonNull(nestedSub)) {
         nested = completeNestedPlainWithNonNullBoundary(
           exeContext,
@@ -4289,8 +4290,7 @@ function completeNestedPlainWithNonNullBoundary(
       coerceError(bubbled),
       fieldNodes,
       pathToArray(childPath),
-      exeContext.schemaCoordinateInErrors &&
-        schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+      exeContext.schemaCoordinateInErrors && schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
     );
     results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
     return NESTED_BOUNDARY_NULL;
@@ -6358,9 +6358,7 @@ function executePlannedSyncObjectFieldsPreCR(
         );
       }
       if (nested === undefined) {
-        return n > 0 || recordedGetterError
-          ? thinObjectMiss(results, true, undefined)
-          : undefined;
+        return n > 0 || recordedGetterError ? thinObjectMiss(results, true, undefined) : undefined;
       }
       if (
         typeof nested === 'object' &&
