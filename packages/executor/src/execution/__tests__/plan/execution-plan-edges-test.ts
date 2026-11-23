@@ -811,7 +811,7 @@ describe('root runner + field-local leaf list settle', () => {
     async () => {
       const document = parse('{ container { scores stop } }');
 
-      const makeSchema = (controller: AbortController) => {
+      const makeSchema = (controller: AbortController, reason: Error) => {
         const Container = new GraphQLObjectType({
           name: 'LeafObserveContainer',
           fields: {
@@ -821,8 +821,8 @@ describe('root runner + field-local leaf list settle', () => {
             stop: {
               type: new GraphQLNonNull(GraphQLString),
               resolve: () => {
-                controller.abort();
-                throw controller.signal.reason;
+                controller.abort(reason);
+                throw reason;
               },
             },
           },
@@ -842,10 +842,13 @@ describe('root runner + field-local leaf list settle', () => {
         },
       });
 
-      // Same controller for schema stop resolve and execute signal — abort must
-      // equal signal.reason so executeFields skips the promise join.
+      // Unique abort reason — `.rejects.toBe(reason)` fails if execute fulfills
+      // (both undefined) or if stop never runs.
+      const abortReasonP = Object.assign(new Error('leaf observe abort'), {
+        name: 'LeafObserveAbort',
+      });
       const controllerP = new AbortController();
-      const schemaP = makeSchema(controllerP);
+      const schemaP = makeSchema(controllerP, abortReasonP);
       const plan = compileExecutionPlan({ schema: schemaP, document });
       expect(isExecutionPlan(plan)).toBe(true);
       if (!isExecutionPlan(plan)) {
@@ -876,40 +879,34 @@ describe('root runner + field-local leaf list settle', () => {
       process.on('unhandledRejection', onUnhandled);
       try {
         // Abort may throw sync from executeFields (signal.reason path) or reject.
-        // Compare reason after settle — signal.reason is undefined before abort().
-        let plannedErr: unknown;
-        try {
-          await Promise.resolve().then(() =>
+        await expect(
+          Promise.resolve().then(() =>
             execute({
               plan,
               rootValue: makeRoot(pendingScore),
               signal: controllerP.signal,
             }),
-          );
-        } catch (err) {
-          plannedErr = err;
-        }
-        expect(plannedErr).toBe(controllerP.signal.reason);
+          ),
+        ).rejects.toBe(abortReasonP);
 
+        const abortReasonC = Object.assign(new Error('leaf observe abort classic'), {
+          name: 'LeafObserveAbortC',
+        });
         const controllerC = new AbortController();
         let rejectClassic!: (reason: Error) => void;
         const pendingClassic = new Promise<number>((_resolve, reject) => {
           rejectClassic = reject;
         });
-        let classicErr: unknown;
-        try {
-          await Promise.resolve().then(() =>
+        await expect(
+          Promise.resolve().then(() =>
             executeClassic({
-              schema: makeSchema(controllerC),
+              schema: makeSchema(controllerC, abortReasonC),
               document,
               rootValue: makeRoot(pendingClassic),
               signal: controllerC.signal,
             }),
-          );
-        } catch (err) {
-          classicErr = err;
-        }
-        expect(classicErr).toBe(controllerC.signal.reason);
+          ),
+        ).rejects.toBe(abortReasonC);
 
         rejectScore(Object.assign(new Error('score late'), { name: 'ScoreLate' }));
         rejectClassic(Object.assign(new Error('score late classic'), { name: 'ScoreLateC' }));
@@ -934,7 +931,7 @@ describe('root runner + field-local leaf list settle', () => {
       });
       const document = parse('{ container { users { id } stop } }');
 
-      const makeSchema = (controller: AbortController) => {
+      const makeSchema = (controller: AbortController, reason: Error) => {
         const Container = new GraphQLObjectType({
           name: 'ObjectObserveContainer',
           fields: {
@@ -945,8 +942,8 @@ describe('root runner + field-local leaf list settle', () => {
             stop: {
               type: new GraphQLNonNull(GraphQLString),
               resolve: () => {
-                controller.abort();
-                throw controller.signal.reason;
+                controller.abort(reason);
+                throw reason;
               },
             },
           },
@@ -966,8 +963,11 @@ describe('root runner + field-local leaf list settle', () => {
         },
       });
 
+      const abortReasonP = Object.assign(new Error('object-list observe abort'), {
+        name: 'ObjectObserveAbort',
+      });
       const controllerP = new AbortController();
-      const schemaP = makeSchema(controllerP);
+      const schemaP = makeSchema(controllerP, abortReasonP);
       const plan = compileExecutionPlan({ schema: schemaP, document });
       expect(isExecutionPlan(plan)).toBe(true);
       if (!isExecutionPlan(plan)) {
@@ -997,39 +997,34 @@ describe('root runner + field-local leaf list settle', () => {
       };
       process.on('unhandledRejection', onUnhandled);
       try {
-        let plannedErr: unknown;
-        try {
-          await Promise.resolve().then(() =>
+        await expect(
+          Promise.resolve().then(() =>
             execute({
               plan,
               rootValue: makeRoot(pendingUser),
               signal: controllerP.signal,
             }),
-          );
-        } catch (err) {
-          plannedErr = err;
-        }
-        expect(plannedErr).toBe(controllerP.signal.reason);
+          ),
+        ).rejects.toBe(abortReasonP);
 
+        const abortReasonC = Object.assign(new Error('object-list observe abort classic'), {
+          name: 'ObjectObserveAbortC',
+        });
         const controllerC = new AbortController();
         let rejectClassic!: (reason: Error) => void;
         const pendingClassic = new Promise<unknown>((_resolve, reject) => {
           rejectClassic = reject;
         });
-        let classicErr: unknown;
-        try {
-          await Promise.resolve().then(() =>
+        await expect(
+          Promise.resolve().then(() =>
             executeClassic({
-              schema: makeSchema(controllerC),
+              schema: makeSchema(controllerC, abortReasonC),
               document,
               rootValue: makeRoot(pendingClassic),
               signal: controllerC.signal,
             }),
-          );
-        } catch (err) {
-          classicErr = err;
-        }
-        expect(classicErr).toBe(controllerC.signal.reason);
+          ),
+        ).rejects.toBe(abortReasonC);
 
         rejectUser(Object.assign(new Error('user late'), { name: 'UserLate' }));
         rejectClassic(Object.assign(new Error('user late classic'), { name: 'UserLateC' }));
@@ -1046,17 +1041,18 @@ describe('root runner + field-local leaf list settle', () => {
   // Retain NonNull sync-fail parity (join path); abort tests above cover observe.
   it('nested NonNull sibling sync fail still nulls container (parity)', async () => {
     const document = parse('{ container { scores stop } }');
-    const makeSchema = () => {
+    const makeSchema = (getScores: () => unknown[], onStop: () => void) => {
       const Container = new GraphQLObjectType({
         name: 'ParityLeafContainer',
         fields: {
           scores: {
             type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLInt))),
-            resolve: () => [Promise.resolve(1)],
+            resolve: () => getScores(),
           },
           stop: {
             type: new GraphQLNonNull(GraphQLString),
             resolve: () => {
+              onStop();
               throw new Error('stop sync');
             },
           },
@@ -1070,8 +1066,74 @@ describe('root runner + field-local leaf list settle', () => {
       });
     };
     const rootValue = { container: {} };
-    const planned = await execute({ schema: makeSchema(), document, rootValue });
-    const classic = await executeClassic({ schema: makeSchema(), document, rootValue });
+
+    let resolvePlanned!: (value: number) => void;
+    const pendingPlanned = new Promise<number>(resolve => {
+      resolvePlanned = resolve;
+    });
+    let stopPlanned = false;
+    const schemaP = makeSchema(
+      () => [pendingPlanned],
+      () => {
+        stopPlanned = true;
+      },
+    );
+    const plan = compileExecutionPlan({ schema: schemaP, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    const plannedPromise = execute({ plan: plan!, rootValue });
+    // stop runs sync after scores starts; execution must stay pending until item settles.
+    await new Promise<void>(resolve => {
+      setImmediate(resolve);
+    });
+    expect(stopPlanned).toBe(true);
+    let plannedSettled = false;
+    void plannedPromise.then(
+      () => {
+        plannedSettled = true;
+      },
+      () => {
+        plannedSettled = true;
+      },
+    );
+    await new Promise<void>(resolve => {
+      setImmediate(resolve);
+    });
+    expect(plannedSettled).toBe(false);
+    resolvePlanned(1);
+    const planned = await plannedPromise;
+
+    let resolveClassic!: (value: number) => void;
+    const pendingClassic = new Promise<number>(resolve => {
+      resolveClassic = resolve;
+    });
+    let stopClassic = false;
+    const schemaC = makeSchema(
+      () => [pendingClassic],
+      () => {
+        stopClassic = true;
+      },
+    );
+    const classicPromise = executeClassic({ schema: schemaC, document, rootValue });
+    await new Promise<void>(resolve => {
+      setImmediate(resolve);
+    });
+    expect(stopClassic).toBe(true);
+    let classicSettled = false;
+    void classicPromise.then(
+      () => {
+        classicSettled = true;
+      },
+      () => {
+        classicSettled = true;
+      },
+    );
+    await new Promise<void>(resolve => {
+      setImmediate(resolve);
+    });
+    expect(classicSettled).toBe(false);
+    resolveClassic(1);
+    const classic = await classicPromise;
+
     expect(planned).toEqual(classic);
     expect(planned).toMatchObject({
       data: { container: null },
