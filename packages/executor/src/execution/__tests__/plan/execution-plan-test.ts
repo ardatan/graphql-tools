@@ -1485,6 +1485,52 @@ describe('execution plan', () => {
     expect(nameCalls).toBe(1);
   });
 
+  it('continues parent siblings after an async nested first child', async () => {
+    // `{ user { profile { id } name } }` with fulfilling promise from profile.id
+    // must still resolve user.name — returning a complete map from the nested
+    // finish would omit the sibling.
+    const profileType = new GraphQLObjectType({
+      name: 'AsyncFirstChildProfile',
+      fields: {
+        id: { type: GraphQLString },
+      },
+    });
+    const userType = new GraphQLObjectType({
+      name: 'AsyncFirstChildUser',
+      fields: {
+        profile: { type: profileType },
+        name: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          user: { type: userType },
+        },
+      }),
+    });
+    const result = await execute({
+      schema,
+      document: parse('{ user { profile { id } name } }'),
+      rootValue: {
+        user: {
+          profile: {
+            id() {
+              return Promise.resolve('p1');
+            },
+          },
+          name: 'Ada',
+        },
+      },
+    });
+    expect(result).toEqual({
+      data: {
+        user: { profile: { id: 'p1' }, name: 'Ada' },
+      },
+    });
+  });
+
   it('preserves completed list items when a later item finishes async', async () => {
     let firstIdReads = 0;
     let secondIdCalls = 0;
