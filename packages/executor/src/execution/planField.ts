@@ -123,8 +123,8 @@ export function buildExecutionsFromSelectionSet(
   const entries: ConditionalFieldEntry[] = [];
   if (
     !compileConditionalSelectionSet(
-      plan.__schema,
-      plan.__fragments,
+      plan.schema,
+      plan.fragments,
       runtimeType,
       selectionSet,
       entries,
@@ -155,8 +155,8 @@ function buildExecutionsFromParentFieldNodes(
     const parentInclude = compileSkipIncludePredicate(fieldNode);
     if (
       !compileConditionalSelectionSet(
-        plan.__schema,
-        plan.__fragments,
+        plan.schema,
+        plan.fragments,
         returnType,
         fieldNode.selectionSet,
         entries,
@@ -246,7 +246,7 @@ function compileFieldPlan(
   responseName: string,
   fieldNodes: Array<FieldNode>,
 ): FieldPlan | undefined {
-  const fieldDef = getFieldDefForPlan(plan.__schema, parentType, fieldNodes[0]);
+  const fieldDef = getFieldDefForPlan(plan.schema, parentType, fieldNodes[0]);
   if (!fieldDef) {
     return undefined;
   }
@@ -292,7 +292,7 @@ function compileFieldPlan(
       returnType,
       parentType,
     },
-    ...(plan.__hasIncremental ? { stream: compileStreamPlan(fieldNodes[0]!) } : {}),
+    ...(plan.hasIncremental ? { stream: compileStreamPlan(fieldNodes[0]!) } : {}),
   };
 
   let fieldPlan: FieldPlan;
@@ -774,7 +774,7 @@ function compileReturnTypeSubfields(plan: ExecutionPlan, fieldPlan: FieldPlan): 
   }
 
   if (isAbstractType(namedType)) {
-    const possibleTypes = plan.__schema.getPossibleTypes(namedType as GraphQLAbstractType);
+    const possibleTypes = plan.schema.getPossibleTypes(namedType as GraphQLAbstractType);
     for (const concrete of possibleTypes) {
       const subfields = collectAndStoreSubfields(plan, fieldPlan.fieldNodes, concrete);
       if (subfields) {
@@ -792,13 +792,13 @@ function storeSubfieldExecutions(
   subfields: Map<string, Array<FieldNode>>,
 ): void {
   // Incremental docs keep classic collect / deferred groups at runtime.
-  if (plan.__hasIncremental) {
+  if (plan.hasIncremental) {
     return;
   }
   let executions: PlannedFieldExecution[] | undefined;
-  if (!plan.__collectionDependsOnVariables) {
+  if (!plan.collectionDependsOnVariables) {
     executions = buildFieldExecutions(plan, returnType, subfields);
-  } else if (plan.__skipIncludePredicates) {
+  } else if (plan.skipIncludePredicates) {
     executions = buildExecutionsFromParentFieldNodes(plan, returnType, parentFieldNodes, subfields);
     if (executions == null) {
       // Defer/stream inside a sub-selection , leave unset so runtime collects.
@@ -841,18 +841,18 @@ function collectAndStoreSubfields(
     fields: Map<string, Array<FieldNode>>;
     patches?: ReadonlyArray<any>;
   }> = [];
-  if (plan.__collectionDependsOnVariables) {
+  if (plan.collectionDependsOnVariables) {
     const a = collectSubFields(
-      plan.__schema,
-      plan.__fragments,
-      plan.__collectVariablesFalse,
+      plan.schema,
+      plan.fragments,
+      plan.collectVariablesFalse,
       returnType,
       fieldNodes,
     );
     const b = collectSubFields(
-      plan.__schema,
-      plan.__fragments,
-      plan.__collectVariablesTrue,
+      plan.schema,
+      plan.fragments,
+      plan.collectVariablesTrue,
       returnType,
       fieldNodes,
     );
@@ -860,8 +860,8 @@ function collectAndStoreSubfields(
     patches = [...a.patches, ...b.patches];
   } else {
     const collected = collectSubFields(
-      plan.__schema,
-      plan.__fragments,
+      plan.schema,
+      plan.fragments,
       EMPTY_VARIABLE_VALUES,
       returnType,
       fieldNodes,

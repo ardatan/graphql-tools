@@ -73,8 +73,8 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    expect([...plan.__rootFields.keys()]).toEqual(['items', 'a']);
-    expect(plan.__fieldPlanByNodes.get(plan.__rootFields.get('items')!)).toMatchObject({
+    expect([...plan.rootFields.keys()]).toEqual(['items', 'a']);
+    expect(plan.__fieldPlanByNodes.get(plan.rootFields.get('items')!)).toMatchObject({
       responseName: 'items',
       hasArgs: false,
     });
@@ -163,14 +163,12 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    expect(plan.__collectionDependsOnVariables).toBe(true);
-    expect(plan.__skipIncludePredicates).toBe(true);
-    expect(plan.__rootExecutions).toBeDefined();
-    expect(plan.__rootExecutions!.some(e => e.responseName === 'b' && e.include != null)).toBe(
-      true,
-    );
-    expect(plan.__rootFields.has('a')).toBe(true);
-    expect(plan.__rootFields.has('b')).toBe(true);
+    expect(plan.collectionDependsOnVariables).toBe(true);
+    expect(plan.skipIncludePredicates).toBe(true);
+    expect(plan.rootExecutions).toBeDefined();
+    expect(plan.rootExecutions!.some(e => e.responseName === 'b' && e.include != null)).toBe(true);
+    expect(plan.rootFields.has('a')).toBe(true);
+    expect(plan.rootFields.has('b')).toBe(true);
     expect(
       executeSync({
         schema,
@@ -201,9 +199,9 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    expect(plan.__hasIncremental).toBe(true);
-    expect(plan.__rootExecutions).toBeUndefined();
-    expect(plan.__fieldPlanByFieldNode.get(plan.__rootFields.get('a')![0]!)).toBeDefined();
+    expect(plan.hasIncremental).toBe(true);
+    expect(plan.rootExecutions).toBeUndefined();
+    expect(plan.__fieldPlanByFieldNode.get(plan.rootFields.get('a')![0]!)).toBeDefined();
   });
 
   it('compiles static @stream facts on incremental plans', () => {
@@ -221,8 +219,8 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    expect(plan.__hasIncremental).toBe(true);
-    const valuesPlan = plan.__fieldPlanByNodes.get(plan.__rootFields.get('values')!);
+    expect(plan.hasIncremental).toBe(true);
+    const valuesPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('values')!);
     expect(valuesPlan?.stream).toEqual({
       kind: 'static',
       initialCount: 1,
@@ -237,8 +235,8 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    expect(plan.__hasIncremental).toBe(false);
-    const aPlan = plan.__fieldPlanByNodes.get(plan.__rootFields.get('a')!);
+    expect(plan.hasIncremental).toBe(false);
+    const aPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('a')!);
     expect(aPlan).toBeDefined();
     expect(Object.prototype.hasOwnProperty.call(aPlan, 'stream')).toBe(false);
   });
@@ -283,8 +281,8 @@ describe('execution plan', () => {
     if (!isExecutionPlan(one) || !isExecutionPlan(two)) {
       return;
     }
-    expect([...one.__rootFields.keys()]).toEqual(['a']);
-    expect([...two.__rootFields.keys()]).toEqual(['b']);
+    expect([...one.rootFields.keys()]).toEqual(['a']);
+    expect([...two.rootFields.keys()]).toEqual(['b']);
   });
 
   it('precompiles static argument maps when args have no variables', () => {
@@ -294,7 +292,7 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    const fieldPlan = plan.__fieldPlanByNodes.get(plan.__rootFields.get('hello')!);
+    const fieldPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('hello')!);
     expect(fieldPlan?.staticArgs).toEqual({ name: 'Ada' });
     expect(fieldPlan?.argumentReader).toEqual({
       kind: 'static',
@@ -309,7 +307,7 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    const fieldPlan = plan.__fieldPlanByNodes.get(plan.__rootFields.get('hello')!);
+    const fieldPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('hello')!);
     expect(fieldPlan?.hasArgs).toBe(true);
     expect(fieldPlan?.staticArgs).toBeUndefined();
     expect(fieldPlan?.argumentReader?.kind).toBe('coercer');
@@ -329,9 +327,9 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    expect(plan.__rootExecutions).toBeDefined();
-    expect(plan.__rootExecutions!.map(e => e.responseName).sort()).toEqual(['a', 'b']);
-    expect(plan.__rootExecutions!.every(e => e.fieldPlan != null)).toBe(true);
+    expect(plan.rootExecutions).toBeDefined();
+    expect(plan.rootExecutions!.map(e => e.responseName).sort()).toEqual(['a', 'b']);
+    expect(plan.rootExecutions!.every(e => e.fieldPlan != null)).toBe(true);
   });
 
   it('uses planned rootExecutions on the mutation serial path', () => {
@@ -365,8 +363,8 @@ describe('execution plan', () => {
     const plan = compileExecutionPlan({ schema: mutationSchema, document });
     expect(isExecutionPlan(plan)).toBe(true);
     if (isExecutionPlan(plan)) {
-      expect(plan.__rootExecutions).toBeDefined();
-      expect(plan.__rootExecutions!.map(e => e.responseName)).toEqual(['first', 'second']);
+      expect(plan.rootExecutions).toBeDefined();
+      expect(plan.rootExecutions!.map(e => e.responseName)).toEqual(['first', 'second']);
     }
     expect(executeSync({ schema: mutationSchema, document })).toEqual({
       data: { first: '1', second: '2' },
@@ -397,10 +395,10 @@ describe('execution plan', () => {
     const plan = compileExecutionPlan({ schema: mutationSchema, document });
     expect(isExecutionPlan(plan)).toBe(true);
     if (isExecutionPlan(plan)) {
-      expect(plan.__skipIncludePredicates).toBe(true);
+      expect(plan.skipIncludePredicates).toBe(true);
       // Conditional mutations leave rootExecutions unset so classic collect
       // preserves occurrence order for duplicate response names.
-      expect(plan.__rootExecutions).toBeUndefined();
+      expect(plan.rootExecutions).toBeUndefined();
     }
     expect(
       executeSync({
@@ -424,8 +422,8 @@ describe('execution plan', () => {
     if (!isExecutionPlan(emptyPlan)) {
       return;
     }
-    expect(emptyPlan.__hasVariables).toBe(false);
-    expect(emptyPlan.__coerceVariables(undefined)).toEqual({
+    expect(emptyPlan.hasVariables).toBe(false);
+    expect(emptyPlan.coerceVariables(undefined)).toEqual({
       variableValues: expect.objectContaining({ coerced: expect.any(Object) }),
     });
 
@@ -435,8 +433,8 @@ describe('execution plan', () => {
     if (!isExecutionPlan(leafPlan)) {
       return;
     }
-    expect(leafPlan.__hasVariables).toBe(true);
-    const coerced = leafPlan.__coerceVariables({ name: 'GraphQL' });
+    expect(leafPlan.hasVariables).toBe(true);
+    const coerced = leafPlan.coerceVariables({ name: 'GraphQL' });
     expect('variableValues' in coerced).toBe(true);
     if ('variableValues' in coerced) {
       expect(coerced.variableValues.coerced).toMatchObject({ name: 'GraphQL' });
@@ -488,12 +486,12 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    expect(plan.__hasVariables).toBe(true);
+    expect(plan.hasVariables).toBe(true);
 
     const raw = {
       filter: { a: 7, b: 'x', nested: { x: 1.5, y: [1, 2, 3] } },
     };
-    const coerced = plan.__coerceVariables(raw);
+    const coerced = plan.coerceVariables(raw);
     expect('variableValues' in coerced).toBe(true);
     if (!('variableValues' in coerced)) {
       return;
@@ -507,7 +505,7 @@ describe('execution plan', () => {
     });
 
     // Invalid nested value falls back to getVariableValues (errors, not throw).
-    const bad = plan.__coerceVariables({
+    const bad = plan.coerceVariables({
       filter: { a: 7, b: 'x', nested: { x: 1.5, y: ['nope'] } },
     });
     expect('errors' in bad).toBe(true);
@@ -528,7 +526,7 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    const omitted = plan.__coerceVariables({});
+    const omitted = plan.coerceVariables({});
     expect('variableValues' in omitted).toBe(true);
     if ('variableValues' in omitted) {
       expect(omitted.variableValues.coerced).toMatchObject({ name: 'Ada' });
@@ -577,13 +575,13 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    const ok = plan.__coerceVariables({ input: { a: 'hi' } });
+    const ok = plan.coerceVariables({ input: { a: 'hi' } });
     expect('variableValues' in ok).toBe(true);
     if ('variableValues' in ok) {
       expect(ok.variableValues.coerced).toEqual({ input: { a: 'hi' } });
     }
     // Bad oneOf (two keys) falls back to getVariableValues errors.
-    const bad = plan.__coerceVariables({ input: { a: 'hi', b: 1 } });
+    const bad = plan.coerceVariables({ input: { a: 'hi', b: 1 } });
     expect('errors' in bad).toBe(true);
     expect(
       executeSync({
@@ -601,13 +599,13 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    const fieldPlan = plan.__fieldPlanByNodes.get(plan.__rootFields.get('hello')!);
+    const fieldPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('hello')!);
     expect(fieldPlan?.resolveInfoStatic).toMatchObject({
       fieldName: 'hello',
       returnType: fieldPlan?.returnType,
-      parentType: plan.__rootType,
+      parentType: plan.rootType,
     });
-    expect(fieldPlan?.resolveInfoStatic.fieldNodes).toBe(plan.__rootFields.get('hello'));
+    expect(fieldPlan?.resolveInfoStatic.fieldNodes).toBe(plan.rootFields.get('hello'));
   });
 
   it('records kind and skipIsTypeOf for object fields', () => {
@@ -617,13 +615,13 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    const itemsPlan = plan.__fieldPlanByNodes.get(plan.__rootFields.get('items')!);
+    const itemsPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('items')!);
     expect(itemsPlan?.kind).toBe('List');
     if (itemsPlan?.kind === 'List') {
       expect(itemsPlan.objectType).toBe(itemType);
       expect(itemsPlan.itemNonNull).toBe(false);
     }
-    const itemFields = plan.__subfieldsByNodes.get(plan.__rootFields.get('items')!)?.get(itemType);
+    const itemFields = plan.__subfieldsByNodes.get(plan.rootFields.get('items')!)?.get(itemType);
     expect(itemFields).toBeDefined();
     const namePlan = plan.__fieldPlanByNodes.get(itemFields!.get('name')!);
     expect(namePlan?.kind).toBe('Leaf');
@@ -647,7 +645,7 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    const fieldPlan = plan.__fieldPlanByNodes.get(plan.__rootFields.get('values')!);
+    const fieldPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('values')!);
     expect(fieldPlan?.kind).toBe('LeafList');
     if (fieldPlan?.kind === 'LeafList') {
       expect(fieldPlan.itemNonNull).toBe(false);
@@ -765,9 +763,9 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    const fieldPlan = plan.__fieldPlanByNodes.get(plan.__rootFields.get('hello')!);
+    const fieldPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('hello')!);
     expect(fieldPlan).toBeDefined();
-    const coerced = plan.__coerceVariables({});
+    const coerced = plan.coerceVariables({});
     expect('variableValues' in coerced).toBe(true);
     if (!('variableValues' in coerced)) {
       return;

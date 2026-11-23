@@ -69,8 +69,8 @@ export function isExecutionPlan(
     value != null &&
     !Array.isArray(value) &&
     typeof value === 'object' &&
-    '__rootFields' in value &&
-    '__schema' in value
+    'rootFields' in value &&
+    'schema' in value
   );
 }
 
@@ -114,8 +114,8 @@ export function getPlannedSubfields(
 /**
  * Compile a cacheable execution plan for a validated operation.
  *
- * Returns an {@link ExecutionPlan} for `execute({ plan })`. Fields are
- * `__`-prefixed and `@internal` — do not use from application code.
+ * Returns an {@link ExecutionPlan} for `execute({ plan })`. WeakMap / FieldPlan
+ * indexes use a `__` prefix.
  */
 export function compileExecutionPlan(
   args: CompileExecutionPlanArgs,
@@ -305,50 +305,50 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
   const skipIncludePredicates = collectionDependsOnVariables && !hasIncremental;
 
   const plan: ExecutionPlan = {
-    __schema: schema,
-    __document: document,
-    __operation: operation,
-    __operationName: operationName ?? undefined,
-    __fragments: fragments,
-    __rootType: rootType,
-    __collectionDependsOnVariables: collectionDependsOnVariables,
-    __hasIncremental: hasIncremental,
-    __rootFields: rootFields,
+    schema: schema,
+    document: document,
+    operation: operation,
+    operationName: operationName ?? undefined,
+    fragments: fragments,
+    rootType: rootType,
+    collectionDependsOnVariables: collectionDependsOnVariables,
+    hasIncremental: hasIncremental,
+    rootFields: rootFields,
     __fieldPlanByNodes: fieldPlanByNodes,
     __fieldPlanByFieldNode: fieldPlanByFieldNode,
     __subfieldsByNodes: subfieldsByNodes,
     __subfieldsByFieldNode: subfieldsByFieldNode,
     __subfieldExecutionsByNodes: subfieldExecutionsByNodes,
-    __collectVariablesFalse: collectVariablesFalse,
-    __collectVariablesTrue: collectVariablesTrue,
-    __hasVariables: variableDefinitions.length > 0,
-    __coerceVariables: coerceVariables,
-    __rootExecutions: undefined,
-    __skipIncludePredicates: skipIncludePredicates,
+    collectVariablesFalse: collectVariablesFalse,
+    collectVariablesTrue: collectVariablesTrue,
+    hasVariables: variableDefinitions.length > 0,
+    coerceVariables: coerceVariables,
+    rootExecutions: undefined,
+    skipIncludePredicates: skipIncludePredicates,
   };
 
   compileFieldMap(plan, rootType, rootFields);
   compilePatchFieldMaps(plan, rootType, rootPatches);
   if (!hasIncremental) {
     if (!collectionDependsOnVariables) {
-      plan.__rootExecutions = buildFieldExecutions(plan, rootType, rootFields);
+      plan.rootExecutions = buildFieldExecutions(plan, rootType, rootFields);
     } else if (skipIncludePredicates) {
       // Conditional mutations with duplicate response names need classic
       // occurrence order (grouped plan executions preserve first-slot order).
       if (operation.operation === 'mutation') {
-        plan.__rootExecutions = undefined;
+        plan.rootExecutions = undefined;
       } else {
         const rootExecutions = buildExecutionsFromSelectionSet(
           plan,
           rootType,
           operation.selectionSet,
-          plan.__rootFields,
+          plan.rootFields,
         );
         if (rootExecutions == null) {
           // Mixed-extreme / defer-shaped selection; disable predicate path.
-          plan.__skipIncludePredicates = false;
+          plan.skipIncludePredicates = false;
         } else {
-          plan.__rootExecutions = rootExecutions;
+          plan.rootExecutions = rootExecutions;
         }
       }
     }

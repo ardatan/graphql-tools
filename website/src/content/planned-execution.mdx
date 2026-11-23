@@ -18,8 +18,8 @@ safe argument reads are already prepared, so each request does less AST work.
 ## What is compiled
 
 For an eligible `(schema, document, operationName)`, public `execute` get-or-compiles an
-`ExecutionPlan` (or uses `args.plan` when you pass one from `compileExecutionPlan`). Plan fields are
-`__`-prefixed and marked `@internal` (do not use from app code). The warm interpreter holds:
+`ExecutionPlan` (or uses `args.plan` when you pass one from `compileExecutionPlan`). WeakMap /
+FieldPlan indexes use a `__` prefix (`__fieldPlanByNodes`, …). The warm interpreter holds:
 
 | Piece                | Role                                                                                                                                                |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -101,7 +101,7 @@ import { compileExecutionPlan, execute, isExecutionPlan } from '@graphql-tools/e
 // Same DocumentNode identity → get-or-compile plan, then execute
 const result = await execute({ schema, document, variableValues })
 
-// Explicit compile + warm reuse (`__` fields are @internal — do not use)
+// Explicit compile + warm reuse
 const plan = compileExecutionPlan({ schema, document })
 if (isExecutionPlan(plan)) {
   const warm = await execute({ schema, document, plan, variableValues })

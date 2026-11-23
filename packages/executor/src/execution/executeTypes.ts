@@ -106,7 +106,6 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
    * Execution plan when compile succeeded for this operation.
    * Stable docs reuse planned field maps; incremental / variable-collect docs
    * still attach the plan for per-field facts via FieldNode keys.
-   * Plan `__` fields are `@internal`.
    */
   plan?: ExecutionPlan;
   /**
@@ -265,8 +264,7 @@ export interface ExecutionArgs<TData = any, TVariables = any, TContext = any> {
   incrementalSpec?: IncrementalSpec;
   /**
    * Optional precompiled plan. When omitted, `execute` get-or-compiles from the
-   * WeakMap cache for `(schema, document, operationName)`. Plan `__` fields are
-   * `@internal` — do not use from application code.
+   * WeakMap cache for `(schema, document, operationName)`.
    */
   plan?: ExecutionPlan;
 }
