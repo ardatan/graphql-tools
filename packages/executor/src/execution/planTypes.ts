@@ -148,6 +148,13 @@ export type FieldPlan =
 
 /**
  * Compiled execution plan for `compileExecutionPlan` / `execute({ plan })`.
+ *
+ * Treat as an **opaque, read-only** handle shared across requests via the plan
+ * WeakMap cache. `compileExecutionPlan` only shallow-freezes the plan object
+ * (not nested Maps, arrays, or FieldPlans). Do not mutate any field or nested
+ * structure: changes would affect every concurrent execute that reuses the
+ * same cached plan. Prefer `execute({ schema, document })` unless you need
+ * plan-only warm reuse.
  */
 export interface ExecutionPlan {
   schema: GraphQLSchema;
@@ -174,8 +181,8 @@ export interface ExecutionPlan {
   /** Field plan keyed by the exact `fieldNodes` array identity from this plan. */
   fieldPlanByNodes: WeakMap<ReadonlyArray<FieldNode>, FieldPlan>;
   /**
-   * Field plan keyed by the primary AST `FieldNode` so runtime-collected
-   * fieldNodes arrays (variable skip/include) still hit the warm plan.
+   * Field plan keyed by a singleton group's primary AST `FieldNode`.
+   * Multi-node merged groups are not indexed here (exact array identity only).
    */
   fieldPlanByFieldNode: WeakMap<FieldNode, FieldPlan>;
   /**
@@ -186,7 +193,10 @@ export interface ExecutionPlan {
     ReadonlyArray<FieldNode>,
     WeakMap<GraphQLObjectType, Map<string, Array<FieldNode>>>
   >;
-  /** Subfield maps keyed by parent field's primary AST node (variable collect). */
+  /**
+   * Subfield maps keyed by a singleton parent field's primary AST node.
+   * Multi-node parents are not indexed here.
+   */
   subfieldsByFieldNode: WeakMap<
     FieldNode,
     WeakMap<GraphQLObjectType, Map<string, Array<FieldNode>>>

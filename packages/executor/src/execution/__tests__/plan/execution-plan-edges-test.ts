@@ -19,13 +19,35 @@ import {
   valueFromASTUntyped,
   versionInfo,
 } from 'graphql';
-import { execute, executeSync } from '../../execute.js';
+import {
+  buildExecutionContext,
+  execute,
+  executeImpl,
+  executeSync,
+  type SingularExecutionResult,
+} from '../../execute.js';
 import {
   compileExecutionPlan,
   getPlannedFieldPlan,
   getPlannedSubfields,
   isExecutionPlan,
 } from '../../plan.js';
+
+/** Classic interpreter only (skip plan attachment). */
+function executeClassicSync(args: Parameters<typeof executeSync>[0]): SingularExecutionResult {
+  const ctx = buildExecutionContext(args, null);
+  if (!('schema' in ctx)) {
+    return { errors: [...ctx] };
+  }
+  const result = executeImpl(ctx);
+  if (result != null && typeof result === 'object' && 'then' in result) {
+    throw new Error('expected synchronous classic result');
+  }
+  if (result != null && typeof result === 'object' && 'initialResult' in result) {
+    throw new Error('expected singular classic result');
+  }
+  return result as SingularExecutionResult;
+}
 
 describe('execution plan warm-path edges', () => {
   describe('union / interface FieldNode keys', () => {
@@ -980,5 +1002,230 @@ describe('plan compile budget', () => {
     const document = parse(`{ bad { echo(msg: "hi") } }`);
     expect(() => executeSync({ schema, document })).toThrow();
     expect(parseLiteralCalls).toBe(0);
+  });
+});
+
+describe('merged sibling fields with @include (external review)', () => {
+  it('does not leak name into user when the name sibling is skipped', () => {
+    // Same primary FieldNode shape as `user { id }` vs `user @include { name }`.
+    let idResolves = 0;
+    let nameResolves = 0;
+    const User = new GraphQLObjectType({
+      name: 'IncludeUser',
+      fields: {
+        id: {
+          type: GraphQLString,
+          resolve: () => {
+            idResolves += 1;
+            return '1';
+          },
+        },
+        name: {
+          type: GraphQLString,
+          resolve: () => {
+            nameResolves += 1;
+            return 'Ada';
+          },
+        },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          user: { type: User, resolve: () => ({}) },
+        },
+      }),
+    });
+    const document = parse(`
+      query ($includeExtra: Boolean!) {
+        user {
+          id
+        }
+        user @include(if: $includeExtra) {
+          name
+        }
+      }
+    `);
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+
+    idResolves = 0;
+    nameResolves = 0;
+    const skipped = executeSync({
+      schema,
+      document,
+      variableValues: { includeExtra: false },
+    });
+    expect(skipped).toEqual({ data: { user: { id: '1' } } });
+    expect(idResolves).toBe(1);
+    expect(nameResolves).toBe(0);
+
+    idResolves = 0;
+    nameResolves = 0;
+    const included = executeSync({
+      schema,
+      document,
+      variableValues: { includeExtra: true },
+    });
+    expect(included).toEqual({ data: { user: { id: '1', name: 'Ada' } } });
+    expect(idResolves).toBe(1);
+    expect(nameResolves).toBe(1);
+  });
+});
+
+describe('thin-walk fallback invocation counts', () => {
+  it('does not re-invoke a completed leaf resolver when a sibling forces classic', () => {
+    let idResolves = 0;
+    let nameResolves = 0;
+    const User = new GraphQLObjectType({
+      name: 'ThinCountUser',
+      fields: {
+        id: {
+          type: GraphQLString,
+          resolve: (obj: { id: string; name: string }) => {
+            idResolves += 1;
+            return obj.id;
+          },
+        },
+        // Args decline the thin default-property path after `id` may complete.
+        name: {
+          type: GraphQLString,
+          args: { lang: { type: GraphQLString } },
+          resolve: (obj: { id: string; name: string }, args: { lang?: string | null }) => {
+            nameResolves += 1;
+            return args.lang ? `${obj.name}:${args.lang}` : obj.name;
+          },
+        },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          user: {
+            type: User,
+            resolve: () => ({ id: '1', name: 'Ada' }),
+          },
+        },
+      }),
+    });
+    const document = parse('{ user { id name(lang: "en") } }');
+    const result = executeSync({ schema, document });
+    expect(result).toEqual({
+      data: { user: { id: '1', name: 'Ada:en' } },
+    });
+    expect(idResolves).toBe(1);
+    expect(nameResolves).toBe(1);
+  });
+
+  it('does not re-read a completed getter when a sibling forces classic', () => {
+    let idReads = 0;
+    let nameReads = 0;
+    const User = new GraphQLObjectType({
+      name: 'ThinGetterUser',
+      fields: {
+        id: { type: GraphQLString },
+        name: {
+          type: GraphQLString,
+          args: { lang: { type: GraphQLString } },
+          resolve: (obj: { name: string }, args: { lang?: string | null }) => {
+            nameReads += 1;
+            return args.lang ? `${obj.name}:${args.lang}` : obj.name;
+          },
+        },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        // Default property resolve so the thin object walk runs on `user`.
+        fields: {
+          user: { type: User },
+        },
+      }),
+    });
+    const document = parse('{ user { id name(lang: "en") } }');
+    const result = executeSync({
+      schema,
+      document,
+      rootValue: {
+        user: {
+          get id() {
+            idReads += 1;
+            return '1';
+          },
+          name: 'Ada',
+        },
+      },
+    });
+    expect(result).toEqual({
+      data: { user: { id: '1', name: 'Ada:en' } },
+    });
+    expect(idReads).toBe(1);
+    expect(nameReads).toBe(1);
+  });
+});
+
+describe('classic vs planned differential', () => {
+  it('matches classic results, errors, and null bubbling on a focused schema', () => {
+    const User = new GraphQLObjectType({
+      name: 'DiffUser',
+      fields: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+        name: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          user: {
+            type: User,
+            args: { boom: { type: GraphQLBoolean } },
+            resolve: (_source, args: { boom?: boolean | null }) => {
+              if (args.boom) {
+                throw new Error('user boom');
+              }
+              return { id: '1', name: 'Ada' };
+            },
+          },
+          nullableUser: {
+            type: User,
+            resolve: () => ({
+              id: '2',
+              get name() {
+                throw new Error('name boom');
+              },
+            }),
+          },
+        },
+      }),
+    });
+
+    const cases: Array<{
+      document: string;
+      variableValues?: Record<string, unknown>;
+    }> = [
+      { document: '{ user { id name } }' },
+      { document: '{ user(boom: true) { id name } }' },
+      { document: '{ nullableUser { id name } }' },
+      {
+        document: 'query ($extra: Boolean!) { user { id } user @include(if: $extra) { name } }',
+        variableValues: { extra: false },
+      },
+      {
+        document: 'query ($extra: Boolean!) { user { id } user @include(if: $extra) { name } }',
+        variableValues: { extra: true },
+      },
+    ];
+
+    for (const { document: source, variableValues } of cases) {
+      const document = parse(source);
+      const args = { schema, document, variableValues };
+      const planned = executeSync(args);
+      const classic = executeClassicSync(args);
+      expect(planned).toEqual(classic);
+    }
   });
 });

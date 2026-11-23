@@ -145,8 +145,9 @@ export function compileExecutionPlan(
     setCachedPlanEntry(args.schema, args.document, args.operationName, entry);
   }
   if (entry.kind === 'plan') {
-    // Public boundary: callers must not mutate cached plan fields (e.g.
-    // `rootExecutions`); shallow freeze keeps the shared WeakMap entry stable.
+    // Public boundary: the plan object is shared via WeakMap. Shallow-freeze
+    // the plan shell only (nested Maps/arrays/FieldPlans stay mutable by
+    // design; do not deep-freeze). Treat as opaque/read-only and do not mutate.
     Object.freeze(entry.plan);
     return entry.plan;
   }
