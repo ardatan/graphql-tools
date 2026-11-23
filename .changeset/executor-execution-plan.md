@@ -8,9 +8,6 @@ Eligible plans hold field maps, completion/resolve kinds, leaf and list-of-leaf 
 
 Pair with a document parser cache (e.g. Yoga `useParserAndValidationCache`) so the same query string keeps the same `DocumentNode` and the plan stays warm.
 
-Dual-gate microbenches (process-isolated, Node 22):
-
-- **vs master**: sync list ~+200%, async list ~+100%, async root ~+80%, nested default-resolver ~+137%, dense `@skip`/`@include` ~+45%+.
-- **Absolute parity** (compile-style baseline): sync list ~+27%, async list ~match, async root ~+29%, nested ~+19%.
+Measured warm-path wins vs previous master (process-isolated microbenches, Node 22): sync list ~+200%, async list ~+100%, async root fields ~+80%, nested default-resolver ~+137%, dense `@skip`/`@include` ~+45%+. Property-bag and related benches stay ahead of master on the warm planned path.
 
 Docs: [Planned execution](https://www.graphql-tools.com/docs/execution-plan).
