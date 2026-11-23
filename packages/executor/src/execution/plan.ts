@@ -41,6 +41,7 @@ export type {
   CompileExecutionPlanArgs,
   FieldPlanKind,
   ExecutionPlan,
+  // @internal — plan module / tests only; not re-exported from package entry.
   InternalExecutionPlan,
   FieldPlan,
   LeafFieldPlan,

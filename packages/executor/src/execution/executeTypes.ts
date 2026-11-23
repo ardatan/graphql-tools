@@ -29,7 +29,7 @@ import {
 } from './incrementalCollect.js';
 import type { ExecutionPlan, InternalExecutionPlan } from './planTypes.js';
 
-export type { ExecutionPlan, InternalExecutionPlan } from './planTypes.js';
+export type { ExecutionPlan } from './planTypes.js';
 
 export interface SingularExecutionResult<TData = any, TExtensions = any> {
   errors?: ReadonlyArray<GraphQLError>;

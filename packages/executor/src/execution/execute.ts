@@ -129,7 +129,6 @@ export type {
   ExecutionArgsWithPlan,
   ExecutionContext,
   ExecutionPlan,
-  InternalExecutionPlan,
   FormattedExecutionResult,
   FormattedIncrementalDeferResult,
   FormattedIncrementalResult,
@@ -770,7 +769,7 @@ function getCollectFieldsDependsOnVariables(document: DocumentNode): boolean {
  */
 export function buildExecutionContext<TData = any, TVariables = any, TContext = any>(
   args: ExecuteArgs<TData, TVariables, TContext>,
-  knownPlan?: InternalExecutionPlan | null,
+  knownPlan?: ExecutionPlan | null,
 ): ReadonlyArray<GraphQLError> | ExecutionContext {
   const resolved = resolveExecutionRequest(args);
   const {
@@ -789,8 +788,12 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     incrementalSpec = 'v0.1',
   } = { ...resolved, incrementalSpec: resolved.incrementalSpec ?? 'v0.1' };
 
-  const trustedPlan =
-    knownPlan === undefined ? resolved.knownPlan : knownPlan === null ? undefined : knownPlan;
+  const trustedPlan: InternalExecutionPlan | undefined =
+    knownPlan === undefined
+      ? resolved.knownPlan
+      : knownPlan === null
+        ? undefined
+        : asInternalExecutionPlan(knownPlan);
   const plan = trustedPlan;
 
   signal?.throwIfAborted();
@@ -4100,23 +4103,6 @@ function isThinObjectPartial(value: unknown): value is ThinObjectPartial {
   );
 }
 
-/**
- * Test-only counter: thin-walk declines that already completed at least one
- * sibling field (partial → classic finish). Reset via
- * {@link resetThinObjectPartialFallbackCount}.
- */
-let thinObjectPartialFallbackCount = 0;
-
-/** @internal Count of partial thin-walk → classic fallbacks since last reset. */
-export function getThinObjectPartialFallbackCount(): number {
-  return thinObjectPartialFallbackCount;
-}
-
-/** @internal */
-export function resetThinObjectPartialFallbackCount(): void {
-  thinObjectPartialFallbackCount = 0;
-}
-
 function thinObjectMiss(
   results: Record<string, unknown>,
   recordedGetterError: boolean,
@@ -4129,9 +4115,6 @@ function thinObjectMiss(
   const hasCompleted = Object.keys(results).length > 0;
   if (!hasCompleted && !recordedGetterError && !hasPending) {
     return undefined;
-  }
-  if (hasCompleted) {
-    thinObjectPartialFallbackCount += 1;
   }
   const partial: ThinObjectPartial = {
     [THIN_OBJECT_PARTIAL]: true,
