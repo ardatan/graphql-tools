@@ -1797,6 +1797,18 @@ function executeObjectListFieldThin(
         subExecutions,
       );
       if (thin !== undefined) {
+        // NonNull item bubbles reject the thin promise — handle at this list
+        // field so a nullable `[User!]` becomes null without wiping sibling root
+        // fields (`data: null`).
+        if (isPromise(thin)) {
+          return thin.then(
+            value => value,
+            rawError => {
+              exeContext.signal?.throwIfAborted();
+              return handleFieldError(locate(rawError), fieldPlan.returnType, exeContext.errors);
+            },
+          );
+        }
         return thin;
       }
       // Already invoked user code / held a thenable; finish via classic list
@@ -4279,11 +4291,80 @@ function executePlannedSyncObjectFieldsFrom(
       exeContext.signal?.throwIfAborted();
       continue;
     }
-    if (typeof property === 'function' || property instanceof Error) {
-      return thinObjectMiss(results, recordedGetterError, pendingLeaves);
+    if (property instanceof Error) {
+      // Already read — record as a field error; do not re-read on classic fallback.
+      const fieldPath = addPath(path, responseName, parentType.name);
+      const error = locatedError(
+        property,
+        fieldNodes,
+        pathToArray(fieldPath),
+        exeContext.schemaCoordinateInErrors && schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+      );
+      results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+      recordedGetterError = true;
+      exeContext.signal?.throwIfAborted();
+      continue;
+    }
+    if (typeof property === 'function') {
+      // Property was already read (e.g. one-shot getter returning a method).
+      // Invoke here so classic fallback does not re-read the getter.
+      const fieldPath = addPath(path, responseName, parentType.name);
+      try {
+        const info = buildPlannedResolveInfo(exeContext, fieldPlan, fieldPath, fieldNodes);
+        property = (
+          property as (
+            this: unknown,
+            fieldArgs: Record<string, unknown>,
+            contextValue: unknown,
+            resolveInfo: GraphQLResolveInfo,
+          ) => unknown
+        ).call(source, Object.create(null), exeContext.contextValue, info);
+      } catch (rawError) {
+        const error = locatedError(
+          coerceError(rawError),
+          fieldNodes,
+          pathToArray(fieldPath),
+          exeContext.schemaCoordinateInErrors &&
+            schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+        );
+        results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+        recordedGetterError = true;
+        exeContext.signal?.throwIfAborted();
+        continue;
+      }
+      // Fall through to leaf/object/promise handling with the method result.
     }
     // Avoid isPromise on plain data (nested bench); only gate real thenables.
     if (property != null && typeof property === 'object' && isPromise(property)) {
+      if (fieldPlan.kind === 'leaf' && fieldPlan.leafType != null) {
+        // Method/property already produced a thenable — serialize through
+        // pendingLeaves so classic fallback does not re-invoke the method and
+        // a rejection is settled (with a sink if finish never runs).
+        const leafType = fieldPlan.leafType;
+        const nonNull = fieldPlan.nonNull === true;
+        const settled = property.then((value: unknown) => {
+          if (value == null) {
+            if (nonNull) {
+              throw new Error(
+                `Cannot return null for non-nullable field ${parentType.name}.${fieldPlan.fieldDef.name}.`,
+              );
+            }
+            return null;
+          }
+          return leafType.serialize(value);
+        });
+        settled.then(undefined, () => undefined);
+        const leaves = pendingLeaves ?? new Map();
+        leaves.set(responseName, {
+          promise: settled,
+          fieldNodes,
+          returnType: fieldPlan.returnType,
+        });
+        pendingLeaves = leaves;
+        recordedGetterError = true;
+        continue;
+      }
+      property.then(undefined, () => undefined);
       return thinObjectMiss(results, recordedGetterError, pendingLeaves);
     }
     if (fieldPlan.kind === 'leaf' && fieldPlan.leafType != null) {
@@ -4302,6 +4383,9 @@ function executePlannedSyncObjectFieldsFrom(
         }
         if (isPromise(serialized)) {
           // Carry the already-started promise; do not re-invoke serialize on fallback.
+          // Attach a sink so a rejection is not unhandled if a later NonNull
+          // sibling bubbles before finishThinObjectPartial settles pendingLeaves.
+          serialized.then(undefined, () => undefined);
           const leaves = pendingLeaves ?? new Map();
           leaves.set(responseName, {
             promise: serialized,

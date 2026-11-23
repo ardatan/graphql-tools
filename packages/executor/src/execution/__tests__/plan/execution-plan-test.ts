@@ -1033,6 +1033,49 @@ describe('execution plan', () => {
     expect(nameCalls).toBe(1);
   });
 
+  it('does not re-read a one-shot getter that returns a method (default list)', () => {
+    // Default-resolved list hits executeObjectListFieldThin. Getter returns a
+    // method once — thin walk must invoke that value, not re-read the getter.
+    let nameReads = 0;
+    const userType = new GraphQLObjectType({
+      name: 'GetterMethodUser',
+      fields: {
+        id: { type: GraphQLString },
+        name: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(userType) },
+        },
+      }),
+    });
+    const result = executeSync({
+      schema,
+      document: parse('{ users { id name } }'),
+      rootValue: {
+        users: [
+          {
+            id: 'u1',
+            get name() {
+              nameReads += 1;
+              if (nameReads > 1) {
+                throw new Error('read twice');
+              }
+              return () => 'Ada';
+            },
+          },
+        ],
+      },
+    });
+    expect(result).toEqual({
+      data: { users: [{ id: 'u1', name: 'Ada' }] },
+    });
+    expect(nameReads).toBe(1);
+  });
+
   it('nulls a nullable list item when an async NonNull child rejects', async () => {
     // Async rejection inside one item must not reject Promise.all and null the
     // whole `users: [User]` field — sibling items stay.
@@ -1070,6 +1113,99 @@ describe('execution plan', () => {
       },
       errors: [expect.objectContaining({ message: 'id rejected' })],
     });
+  });
+
+  it('nulls a NonNull-item list field without wiping sibling root fields', async () => {
+    // users: [User!] — item NonNull child reject must null `users`, not `data`.
+    const userType = new GraphQLObjectType({
+      name: 'AsyncNullListFieldUser',
+      fields: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: {
+            type: new GraphQLList(new GraphQLNonNull(userType)),
+            resolve: () => [
+              {
+                id() {
+                  return Promise.reject(new Error('nn item id'));
+                },
+              },
+            ],
+          },
+          other: {
+            type: GraphQLString,
+            resolve: () => 'ok',
+          },
+        },
+      }),
+    });
+    const result = await execute({
+      schema,
+      document: parse('{ users { id } other }'),
+    });
+    expect(result).toEqual({
+      data: { users: null, other: 'ok' },
+      errors: [expect.objectContaining({ message: 'nn item id' })],
+    });
+  });
+
+  it('does not leave an unhandled rejection when pending serialize is abandoned', async () => {
+    // Rejected serialize promise stored in pendingLeaves must not become an
+    // unhandled rejection if a later NonNull getter bubbles before finish.
+    const unhandled: unknown[] = [];
+    const onUnhandled = (reason: unknown) => {
+      unhandled.push(reason);
+    };
+    process.on('unhandledRejection', onUnhandled);
+    try {
+      const AsyncSer = new GraphQLScalarType({
+        name: 'AsyncSerAbandon',
+        serialize(value) {
+          return Promise.reject(new Error(`ser ${String(value)}`));
+        },
+      });
+      const objType = new GraphQLObjectType({
+        name: 'SerAbandonObj',
+        fields: {
+          a: { type: AsyncSer },
+          b: { type: new GraphQLNonNull(GraphQLString) },
+        },
+      });
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            obj: {
+              type: objType,
+              resolve: () => ({
+                a: 'x',
+                get b() {
+                  throw new Error('b boom');
+                },
+              }),
+            },
+          },
+        }),
+      });
+      const result = await execute({
+        schema,
+        document: parse('{ obj { a b } }'),
+      });
+      // Allow microtasks from the sunk rejection to flush.
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(unhandled).toEqual([]);
+      expect(result).toMatchObject({
+        errors: expect.arrayContaining([expect.objectContaining({ message: 'b boom' })]),
+      });
+    } finally {
+      process.off('unhandledRejection', onUnhandled);
+    }
   });
 
   it('preserves nested partial thin results when a sibling needs classic', () => {
