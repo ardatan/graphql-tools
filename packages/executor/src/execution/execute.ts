@@ -4142,8 +4142,10 @@ function finishThinObjectPartial(
             partial.results[responseName] = value;
           },
           rawError => {
-            // Unwrap AggregateError so CRITICAL_ERROR constituents propagate.
-            if (rawError instanceof AggregateError) {
+            // Unwrap nonempty AggregateError so CRITICAL_ERROR constituents
+            // propagate. Empty aggregates keep the aggregate message/path via
+            // the single-error handler (and still apply the non-null boundary).
+            if (rawError instanceof AggregateError && rawError.errors.length > 0) {
               let handled: unknown;
               for (let rawErrorItem of rawError.errors) {
                 rawErrorItem = coerceError(rawErrorItem);
@@ -4347,7 +4349,8 @@ function executePlannedSyncObjectFieldsFrom(
     fieldPlan: FieldPlan,
     fieldPath: Path,
   ): void => {
-    if (rawError instanceof AggregateError) {
+    // Empty AggregateError → single-error path (preserve message + NonNull).
+    if (rawError instanceof AggregateError && rawError.errors.length > 0) {
       let handled: unknown;
       for (let rawErrorItem of rawError.errors) {
         rawErrorItem = coerceError(rawErrorItem);
@@ -4388,7 +4391,8 @@ function executePlannedSyncObjectFieldsFrom(
       // executeField would re-read and can lose a one-shot throw).
       const fieldPath = addPath(path, responseName, parentType.name);
       const errors = exeContext.errors;
-      if (rawError instanceof AggregateError) {
+      // Empty AggregateError → single-error path (preserve message + NonNull).
+      if (rawError instanceof AggregateError && rawError.errors.length > 0) {
         let handled: unknown;
         for (let rawErrorItem of rawError.errors) {
           rawErrorItem = coerceError(rawErrorItem);
@@ -4494,6 +4498,19 @@ function executePlannedSyncObjectFieldsFrom(
             return null;
           }
           const serialized = leafType.serialize(value);
+          // Async serialize must validate the fulfilled value the same way
+          // as the sync path (nullish serialize is always an error).
+          if (isPromise(serialized)) {
+            return serialized.then((resolved: unknown) => {
+              if (resolved == null) {
+                throw new Error(
+                  `Expected \`${inspect(leafType)}.serialize(${inspect(value)})\` to ` +
+                    `return non-nullable value, returned: ${inspect(resolved)}`,
+                );
+              }
+              return resolved;
+            });
+          }
           if (serialized == null) {
             throw new Error(
               `Expected \`${inspect(leafType)}.serialize(${inspect(value)})\` to ` +

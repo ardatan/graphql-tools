@@ -1225,6 +1225,84 @@ describe('execution plan', () => {
     }
   });
 
+  it('reports empty AggregateError on a NonNull thin leaf and nulls the parent', async () => {
+    const objType = new GraphQLObjectType({
+      name: 'EmptyAggObj',
+      fields: {
+        score: { type: new GraphQLNonNull(GraphQLInt) },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          obj: {
+            type: objType,
+            resolve: () => ({
+              score() {
+                return Promise.reject(new AggregateError([], 'failed'));
+              },
+            }),
+          },
+          other: { type: GraphQLString, resolve: () => 'ok' },
+        },
+      }),
+    });
+    const result = await execute({
+      schema,
+      document: parse('{ obj { score } other }'),
+    });
+    expect(result).toEqual({
+      data: { obj: null, other: 'ok' },
+      errors: [expect.objectContaining({ message: 'failed' })],
+    });
+  });
+
+  it('errors when async serialize fulfills null after a promise leaf resolve', async () => {
+    // Resolver returns a promise; serialize returns Promise.resolve(null).
+    // Must match sync-path nullish-serialize error + NonNull parent nulling.
+    const Custom = new GraphQLScalarType({
+      name: 'AsyncNullSer',
+      serialize() {
+        return Promise.resolve(null);
+      },
+    });
+    const objType = new GraphQLObjectType({
+      name: 'AsyncNullSerObj',
+      fields: {
+        score: { type: new GraphQLNonNull(Custom) },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          obj: {
+            type: objType,
+            resolve: () => ({
+              score() {
+                return Promise.resolve(1);
+              },
+            }),
+          },
+          other: { type: GraphQLString, resolve: () => 'ok' },
+        },
+      }),
+    });
+    const result = await execute({
+      schema,
+      document: parse('{ obj { score } other }'),
+    });
+    expect(result).toEqual({
+      data: { obj: null, other: 'ok' },
+      errors: [
+        expect.objectContaining({
+          message: expect.stringMatching(/serialize.*non-nullable value.*null/s),
+        }),
+      ],
+    });
+  });
+
   it('preserves nested partial thin results when a sibling needs classic', () => {
     let idReads = 0;
     const profileType = new GraphQLObjectType({
