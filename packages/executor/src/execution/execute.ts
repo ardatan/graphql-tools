@@ -2391,10 +2391,7 @@ function executePlannedSyncObjectFieldsPlain(
         try {
           nestedSub = filterPlannedExecutions(rawSub, exeContext.variableValues);
         } catch (bubbled) {
-          // Directive errors at the nested field boundary (preserve siblings).
-          if (fieldPlan.nonNull) {
-            throw bubbled;
-          }
+          // Locate at nested field before NonNull bubble (classic path parity).
           const error = locatedError(
             coerceError(bubbled),
             fieldNodes,
@@ -5921,9 +5918,7 @@ function executePlannedSyncObjectFieldsPreCR(
         try {
           subExecutions = filterPlannedExecutions(rawSubExecutions, exeContext.variableValues);
         } catch (bubbled) {
-          if (fieldPlan.nonNull) {
-            throw bubbled;
-          }
+          // Locate at nested field before NonNull bubble (classic path parity).
           const error = locatedError(
             coerceError(bubbled),
             fieldNodes,
@@ -6227,9 +6222,7 @@ function tryExecutePlannedSyncObjectFieldsFast(
         try {
           nestedSubExecutions = filterPlannedExecutions(rawSub, exeContext.variableValues);
         } catch (bubbled) {
-          if (fieldPlan.nonNull) {
-            throw bubbled;
-          }
+          // Locate at nested field before NonNull bubble (classic path parity).
           const error = locatedError(
             coerceError(bubbled),
             fieldNodes,
@@ -6650,9 +6643,7 @@ function executePlannedSyncObjectFieldsFrom(
       const childPath = addPath(path, responseName, parentType.name);
       const nullNestedField = (bubbled: unknown): void => {
         exeContext.signal?.throwIfAborted();
-        if (fieldPlan.nonNull) {
-          throw bubbled;
-        }
+        // Locate at nested field before NonNull bubble (classic path parity).
         const error = locatedError(
           coerceError(bubbled),
           fieldNodes,

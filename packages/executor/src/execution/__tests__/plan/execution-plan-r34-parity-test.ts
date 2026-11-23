@@ -248,5 +248,44 @@ describe('R34 classic parity (CR f26 reds)', () => {
       await executeClassic({ schema, document, rootValue, variableValues: vars }),
     );
     expect(planned).toEqual(classic);
+    expect(planned.errors?.[0]?.path).toEqual(['user', 'profile']);
+    expect(planned.data).toEqual({ user: { profile: null, label: 'L' } });
+  });
+
+  it('M8b Major NonNull nested @include path matches classic', async () => {
+    const Profile = new GraphQLObjectType({
+      name: 'Profile',
+      fields: { name: { type: GraphQLString } },
+    });
+    const User = new GraphQLObjectType({
+      name: 'User',
+      fields: {
+        profile: { type: new GraphQLNonNull(Profile) },
+        label: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: { user: { type: User } },
+      }),
+    });
+    const document = parse(
+      'query ($show: Boolean = true) { user { profile { name @include(if: $show) } label } }',
+    );
+    const rootValue = {
+      user: { profile: { name: 'n' }, label: 'L' },
+    };
+    const vars = { show: null };
+    // Classic first (true classic = buildExecutionContext(..., null) + executeImpl).
+    const classic = singular(
+      await executeClassic({ schema, document, rootValue, variableValues: vars }),
+    );
+    const planned = singular(await execute({ schema, document, rootValue, variableValues: vars }));
+    expect(classic.errors?.[0]?.path).toEqual(['user', 'profile']);
+    expect(planned.errors?.[0]?.path).toEqual(['user', 'profile']);
+    expect(planned.data).toEqual(classic.data);
+    expect(planned.data).toEqual({ user: null });
+    expect(JSON.stringify(planned.errors)).toEqual(JSON.stringify(classic.errors));
   });
 });
