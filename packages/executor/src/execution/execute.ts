@@ -2439,9 +2439,30 @@ function executePlannedSyncObjectFieldsPlain(
               ...parentPartial,
               pendingFieldWork: [
                 ...(parentPartial.pendingFieldWork ?? []),
-                finished.then(value => {
-                  results[responseName] = value;
-                }),
+                finished.then(
+                  value => {
+                    results[responseName] = value;
+                  },
+                  (bubbled: unknown) => {
+                    // Same nested-field boundary as sync throws (nullable profile).
+                    exeContext.signal?.throwIfAborted();
+                    if (fieldPlan.nonNull) {
+                      throw bubbled;
+                    }
+                    const error = locatedError(
+                      coerceError(bubbled),
+                      fieldNodes,
+                      pathToArray(childPath),
+                      exeContext.schemaCoordinateInErrors &&
+                        schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+                    );
+                    results[responseName] = handleFieldError(
+                      error,
+                      fieldPlan.returnType,
+                      exeContext.errors,
+                    );
+                  },
+                ),
               ],
             };
           }
@@ -2526,6 +2547,19 @@ function tryCompletePlannedObjectListPlain(
       continue;
     }
     if (!isObjectLike(item) || isPromise(item) || item instanceof Error) {
+      return {
+        kind: 'handoff',
+        completedResults,
+        index,
+        stashedNested: undefined,
+        hasStash: false,
+        pendingBubbled: undefined,
+        stashedItem: item,
+        hasStashedItem: true,
+      };
+    }
+    // Live isTypeOf may appear mid-list — hand off this already-read item.
+    if (itemObjectType.isTypeOf != null) {
       return {
         kind: 'handoff',
         completedResults,
@@ -2735,6 +2769,12 @@ function completePlannedObjectListValue(
       continue;
     }
     if (!isObjectLike(item) || isPromise(item) || item instanceof Error) {
+      stashedItem = item;
+      hasStashedItem = true;
+      break;
+    }
+    // Live isTypeOf may appear mid-list — hand off this already-read item.
+    if (itemObjectType.isTypeOf != null) {
       stashedItem = item;
       hasStashedItem = true;
       break;
@@ -3127,6 +3167,41 @@ function completePlannedObjectListValuePhaseB(
 
     // Sync object — hot path: slim/tryFast plain Record assign (nestedDefault).
     const syncItem = item as Record<string, unknown>;
+    // Live isTypeOf mid-list / after handoff: generic item completion (classic).
+    if (itemObjectType.isTypeOf != null) {
+      const heavy = ensureHeavy();
+      const one: Array<unknown> = [];
+      try {
+        const asyncItem = completeListItemValue(
+          syncItem,
+          one,
+          exeContext.errors,
+          exeContext,
+          heavy.itemType,
+          fieldNodes,
+          getInfo(),
+          itemPath,
+        );
+        if (asyncItem) {
+          const itemIndex = index;
+          heavy.trackAsync(
+            Promise.resolve(one[0]).then(
+              value => {
+                completedResults[itemIndex] = value;
+              },
+              (bubbled: unknown) => {
+                heavy.nullNullableItem(bubbled, itemPath, itemIndex);
+              },
+            ),
+          );
+        } else {
+          completedResults[index] = one[0];
+        }
+      } catch (bubbled) {
+        heavy.nullNullableItem(bubbled, itemPath, index);
+      }
+      continue;
+    }
     try {
       let nested: MaybePromise<Record<string, unknown> | ThinObjectPartial | undefined>;
       if (hasStash) {
@@ -5931,6 +6006,12 @@ function executePlannedSyncObjectFieldsPreCR(
           ? thinObjectMiss(results, recordedGetterError, undefined)
           : undefined;
       }
+      // Live isTypeOf after compile: decline thin; classic runs the predicate.
+      if (fieldPlan.objectType.isTypeOf != null) {
+        return n > 0 || recordedGetterError
+          ? thinObjectMiss(results, recordedGetterError, undefined)
+          : undefined;
+      }
       const plan = exeContext.plan;
       if (plan == null) {
         return n > 0 || recordedGetterError
@@ -5994,9 +6075,29 @@ function executePlannedSyncObjectFieldsPreCR(
             return {
               ...parentPartial,
               pendingFieldWork: [
-                finished.then(value => {
-                  parentPartial.results[responseName] = value;
-                }),
+                finished.then(
+                  value => {
+                    parentPartial.results[responseName] = value;
+                  },
+                  (bubbled: unknown) => {
+                    exeContext.signal?.throwIfAborted();
+                    if (fieldPlan.nonNull) {
+                      throw bubbled;
+                    }
+                    const error = locatedError(
+                      coerceError(bubbled),
+                      fieldNodes,
+                      pathToArray(childPath),
+                      exeContext.schemaCoordinateInErrors &&
+                        schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+                    );
+                    parentPartial.results[responseName] = handleFieldError(
+                      error,
+                      fieldPlan.returnType,
+                      exeContext.errors,
+                    );
+                  },
+                ),
               ],
             };
           }
@@ -6263,6 +6364,10 @@ function tryExecutePlannedSyncObjectFieldsFast(
       if (!isObjectLike(property)) {
         return thinObjectMiss(results, recordedGetterError, pendingLeaves);
       }
+      // Live isTypeOf after compile: decline thin; classic runs the predicate.
+      if (fieldPlan.objectType.isTypeOf != null) {
+        return thinObjectMiss(results, recordedGetterError, pendingLeaves);
+      }
       const plan = exeContext.plan;
       if (plan == null) {
         return thinObjectMiss(results, recordedGetterError, pendingLeaves);
@@ -6327,9 +6432,29 @@ function tryExecutePlannedSyncObjectFieldsFast(
             return {
               ...parentPartial,
               pendingFieldWork: [
-                finished.then(value => {
-                  parentPartial.results[responseName] = value;
-                }),
+                finished.then(
+                  value => {
+                    parentPartial.results[responseName] = value;
+                  },
+                  (bubbled: unknown) => {
+                    exeContext.signal?.throwIfAborted();
+                    if (fieldPlan.nonNull) {
+                      throw bubbled;
+                    }
+                    const error = locatedError(
+                      coerceError(bubbled),
+                      fieldNodes,
+                      pathToArray(childPath),
+                      exeContext.schemaCoordinateInErrors &&
+                        schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+                    );
+                    parentPartial.results[responseName] = handleFieldError(
+                      error,
+                      fieldPlan.returnType,
+                      exeContext.errors,
+                    );
+                  },
+                ),
               ],
             };
           }
@@ -6704,6 +6829,10 @@ function executePlannedSyncObjectFieldsFrom(
         continue;
       }
       if (!isObjectLike(property)) {
+        return thinObjectMiss(results, recordedGetterError, pendingLeaves);
+      }
+      // Live isTypeOf after compile: decline thin; classic runs the predicate.
+      if (fieldPlan.objectType.isTypeOf != null) {
         return thinObjectMiss(results, recordedGetterError, pendingLeaves);
       }
       const plan = exeContext.plan;
