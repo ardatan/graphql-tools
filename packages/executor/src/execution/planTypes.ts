@@ -150,6 +150,11 @@ export type FieldPlan =
  * `execute.ts` (`compileExecutionPlan` + `execute({ plan })`).
  */
 export interface InternalExecutionPlan {
+  /**
+   * Matches the public opaque {@link import('./executeTypes.js').ExecutionPlan}
+   * brand so the same runtime object is assignable when passed as `args.plan`.
+   */
+  readonly __executionPlanBrand?: never;
   schema: GraphQLSchema;
   document: DocumentNode;
   operation: OperationDefinitionNode;
