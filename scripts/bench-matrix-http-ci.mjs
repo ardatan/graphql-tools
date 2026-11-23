@@ -66,21 +66,28 @@ query authors {
 }
 `;
 
-/** Deterministic Yoga benchmark schema (same shape as graphql-yoga/benchmark/schema.ts). */
-function yogaAuthorsChildSource({ tipPkgRoot, executorRoot, planning, warm, measure }) {
+/**
+ * Deterministic Yoga benchmark schema (same shape as graphql-yoga/benchmark/schema.ts).
+ *
+ * packageRoot must be the same worktree that owns both graphql-yoga and the executor
+ * dist under test. Mixing tip Yoga (tip graphql) with a master worktree executor
+ * (master graphql after npm ci) yields "GraphQLSchema from another module" → Yoga
+ * INTERNAL_SERVER_ERROR.
+ */
+function yogaAuthorsChildSource({ packageRoot, planning, warm, measure }) {
   return `
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { performance } from 'node:perf_hooks';
+import { inspect } from 'node:util';
 
-const tipPkgRoot = ${JSON.stringify(tipPkgRoot)};
-const executorRoot = ${JSON.stringify(executorRoot)};
+const packageRoot = ${JSON.stringify(packageRoot)};
 const planning = ${JSON.stringify(planning)};
-const require = createRequire(tipPkgRoot + '/package.json');
+const require = createRequire(packageRoot + '/package.json');
 const { createSchema, createYoga } = await import(
   pathToFileURL(require.resolve('graphql-yoga')).href
 );
-const ex = require(executorRoot + '/packages/executor/dist/cjs/index.js');
+const ex = require(packageRoot + '/packages/executor/dist/cjs/index.js');
 if (typeof ex.setExecutionPlanningEnabled === 'function') {
   ex.setExecutionPlanningEnabled(planning);
   ex.clearExecutionPlanCache?.();
@@ -127,11 +134,24 @@ const schema = createSchema({
   },
 });
 
+function formatGraphqlError(err) {
+  const bits = [inspect(err, { depth: 6, breakLength: 120 })];
+  if (err?.originalError) {
+    bits.push('originalError: ' + inspect(err.originalError, { depth: 6, breakLength: 120 }));
+  }
+  if (err?.extensions) {
+    bits.push('extensions: ' + inspect(err.extensions, { depth: 6, breakLength: 120 }));
+  }
+  return bits.join('\\n');
+}
+
 const body = JSON.stringify({ query: ${JSON.stringify(AUTHORS_QUERY)} });
 const yoga = createYoga({
   schema,
   logging: false,
   multipart: false,
+  // Surface the real execute error (e.g. dual-graphql realm mismatch) in CI logs.
+  maskedErrors: false,
   plugins: [
     {
       onExecute({ setExecuteFn }) {
@@ -148,13 +168,18 @@ let t = performance.now();
 while (performance.now() - t < warmMs) {
   const r = await yoga.fetch(url, init);
   const json = await r.json();
-  if (json.errors) throw new Error(JSON.stringify(json.errors[0]));
+  if (json.errors?.length) {
+    throw new Error('Yoga authors warm failed:\\n' + formatGraphqlError(json.errors[0]));
+  }
 }
 let ops = 0;
 const t0 = performance.now();
 while (performance.now() - t0 < measureMs) {
   const r = await yoga.fetch(url, init);
-  await r.json();
+  const json = await r.json();
+  if (json.errors?.length) {
+    throw new Error('Yoga authors measure failed:\\n' + formatGraphqlError(json.errors[0]));
+  }
   ops++;
 }
 const elapsed = performance.now() - t0;
@@ -174,7 +199,9 @@ function runEsmChild(source, cwd) {
   });
   rmSync(dir, { recursive: true, force: true });
   if (result.status !== 0) {
-    throw new Error(`HTTP child failed: ${result.stderr || result.stdout}`);
+    throw new Error(
+      `HTTP child failed (status=${result.status}):\n--- stderr ---\n${result.stderr || ''}\n--- stdout ---\n${result.stdout || ''}`,
+    );
   }
   const line = result.stdout.trim().split('\n').filter(Boolean).pop();
   const parsed = JSON.parse(line);
@@ -218,16 +245,16 @@ function threeWay(measureFn) {
 }
 
 function measureYogaAuthors({ side, planning }) {
-  const executorRoot = side === 'master' ? masterRoot : tipRoot;
+  // Same worktree for Yoga + executor so both share one `graphql` instance.
+  const packageRoot = side === 'master' ? masterRoot : tipRoot;
   return runEsmChild(
     yogaAuthorsChildSource({
-      tipPkgRoot: tipRoot,
-      executorRoot,
+      packageRoot,
       planning,
       warm: warmMs,
       measure: measureMs,
     }),
-    tipRoot,
+    packageRoot,
   );
 }
 
