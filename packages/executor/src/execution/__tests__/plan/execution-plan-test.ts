@@ -1,4 +1,5 @@
 import {
+  getVariableValues,
   GraphQLError,
   GraphQLFloat,
   GraphQLInputObjectType,
@@ -12,6 +13,7 @@ import {
   Kind,
   parse,
   versionInfo,
+  type OperationDefinitionNode,
   type ValueNode,
 } from 'graphql';
 import {
@@ -921,23 +923,39 @@ describe('execution plan', () => {
     expect(coerced.errors[1]?.message).toMatch(/\$b/);
   });
 
-  it('P1-05: honors maxErrors like classic getVariableValues', () => {
-    const varDefs = Array.from({ length: 60 }, (_, i) => `$v${i}: Int!`).join(', ');
-    const document = parse(`query (${varDefs}) { n }`);
-    const plan = compileExecutionPlan({ schema, document });
-    expect(isExecutionPlan(plan)).toBe(true);
-    if (!isExecutionPlan(plan)) {
-      return;
+  it('P1-05: honors maxErrors boundary like classic (49/50/51)', () => {
+    for (const n of [49, 50, 51] as const) {
+      const varDefs = Array.from({ length: n }, (_, i) => `$v${i}: Int!`).join(', ');
+      const document = parse(`query (${varDefs}) { n }`);
+      const plan = compileExecutionPlan({ schema, document });
+      expect(isExecutionPlan(plan)).toBe(true);
+      if (!isExecutionPlan(plan)) {
+        return;
+      }
+      const vars = Object.fromEntries(Array.from({ length: n }, (_, i) => [`v${i}`, null]));
+      const planned = plan.coerceVariables(vars);
+      const op = document.definitions[0] as OperationDefinitionNode;
+      const classic = getVariableValues(schema, op.variableDefinitions ?? [], vars, {
+        maxErrors: 50,
+      });
+      expect('errors' in planned).toBe(true);
+      if (!('errors' in planned) || !classic.errors) {
+        return;
+      }
+      expect(planned.errors.map(e => e.message)).toEqual(classic.errors.map(e => e.message));
+      if (n === 51) {
+        // Fresh abort GraphQLError each coerce (no shared singleton).
+        const again = plan.coerceVariables(vars);
+        expect('errors' in again).toBe(true);
+        if ('errors' in again) {
+          const a1 = planned.errors.at(-1);
+          const a2 = again.errors.at(-1);
+          expect(a1?.message).toContain('Too many errors processing variables');
+          expect(a2?.message).toContain('Too many errors processing variables');
+          expect(a1).not.toBe(a2);
+        }
+      }
     }
-    const vars = Object.fromEntries(Array.from({ length: 60 }, (_, i) => [`v${i}`, null]));
-    const coerced = plan.coerceVariables(vars);
-    expect('errors' in coerced).toBe(true);
-    if (!('errors' in coerced)) {
-      return;
-    }
-    // 50 content errors + classic abort message.
-    expect(coerced.errors).toHaveLength(51);
-    expect(coerced.errors.at(-1)?.message).toContain('Too many errors processing variables');
   });
 
   // R25 P1-06: custom scalar + unsafe list → classic only (no coerce-then-fallback replay).

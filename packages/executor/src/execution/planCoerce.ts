@@ -27,9 +27,8 @@ import type { CoerceVariables, CoerceVariablesResult } from './planTypes.js';
 /** Match graphql-js getVariableValues default (`maxErrors: 50`). */
 const MAX_VARIABLE_COERCE_ERRORS = 50;
 
-const TOO_MANY_VARIABLE_ERRORS = new GraphQLError(
-  'Too many errors processing variables, error limit reached. Execution aborted.',
-);
+const TOO_MANY_VARIABLE_ERRORS_MESSAGE =
+  'Too many errors processing variables, error limit reached. Execution aborted.';
 
 /** Nested property access threw; carry the error without re-reading the getter. */
 const INPUT_COERCE_THROWN = Symbol.for('@graphql-tools/executor.inputCoerceThrown');
@@ -263,15 +262,17 @@ function tryCompileBuiltinLeafVariableBindings(
 }
 
 /**
- * Push a variable error; returns true when the classic maxErrors limit is hit
- * (caller should stop and return `aggregated`, which includes the abort message).
+ * Push a variable error. Classic `getVariableValues` allows up to `maxErrors`
+ * content errors; only the *next* error (would-be maxErrors+1) becomes the abort
+ * message. Returns true when the caller should stop aggregating.
  */
 function pushVariableError(aggregated: GraphQLError[], error: GraphQLError): boolean {
-  aggregated.push(error);
   if (aggregated.length >= MAX_VARIABLE_COERCE_ERRORS) {
-    aggregated.push(TOO_MANY_VARIABLE_ERRORS);
+    // Fresh instance each time — do not share a module-level GraphQLError (R26).
+    aggregated.push(new GraphQLError(TOO_MANY_VARIABLE_ERRORS_MESSAGE));
     return true;
   }
+  aggregated.push(error);
   return false;
 }
 
