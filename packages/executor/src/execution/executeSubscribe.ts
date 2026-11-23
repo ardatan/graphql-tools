@@ -1,14 +1,5 @@
-import {
-  GraphQLError,
-  OperationDefinitionNode,
-} from 'graphql';
-import {
-  addPath,
-  inspect,
-  isAsyncIterable,
-  locatedError,
-  pathToArray,
-} from '@graphql-tools/utils';
+import { GraphQLError, OperationDefinitionNode } from 'graphql';
+import { addPath, inspect, isAsyncIterable, locatedError, pathToArray } from '@graphql-tools/utils';
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
 import {
   fakePromise,

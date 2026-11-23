@@ -27,6 +27,7 @@ import {
   type DeferUsage,
   type DeferUsageSet,
 } from './incrementalCollect.js';
+import type { PlannedWorkRunner } from './plannedWorkRunner.js';
 import type { ExecutionPlan } from './planTypes.js';
 
 export interface SingularExecutionResult<TData = any, TExtensions = any> {
@@ -105,6 +106,12 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
    * still attach the plan for per-field facts via FieldNode keys.
    */
   plan?: ExecutionPlan;
+  /**
+   * Sync-first work runner for the current planned field-set. Each planned
+   * `executeFields` owns a runner (save/restore around nested sets) so
+   * thenables use `awaitValue` instead of `Promise.all` within that set.
+   */
+  plannedRunner?: PlannedWorkRunner;
 }
 
 export interface FormattedExecutionResult<

@@ -177,7 +177,9 @@ export function clearExecutionPlanCache(document?: DocumentNode): void {
 }
 
 function operationCacheKey(operationName: string | null | undefined): string {
-  return operationName ?? '';
+  // Omitted vs empty string must not share a key: `operationName: ''` is an
+  // explicit unknown-name lookup, while omitted selects the lone anonymous op.
+  return operationName == null ? 'omitted' : `name:${operationName}`;
 }
 
 function getCachedPlanEntry(
@@ -324,17 +326,23 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
     if (!collectionDependsOnVariables) {
       plan.rootExecutions = buildFieldExecutions(plan, rootType, rootFields);
     } else if (skipIncludePredicates) {
-      const rootExecutions = buildExecutionsFromSelectionSet(
-        plan,
-        rootType,
-        operation.selectionSet,
-        plan.rootFields,
-      );
-      if (rootExecutions == null) {
-        // Unexpected for non-incremental plans; disable predicate path.
-        plan.skipIncludePredicates = false;
+      // Conditional mutations with duplicate response names need classic
+      // occurrence order (grouped plan executions preserve first-slot order).
+      if (operation.operation === 'mutation') {
+        plan.rootExecutions = undefined;
       } else {
-        plan.rootExecutions = rootExecutions;
+        const rootExecutions = buildExecutionsFromSelectionSet(
+          plan,
+          rootType,
+          operation.selectionSet,
+          plan.rootFields,
+        );
+        if (rootExecutions == null) {
+          // Mixed-extreme / defer-shaped selection; disable predicate path.
+          plan.skipIncludePredicates = false;
+        } else {
+          plan.rootExecutions = rootExecutions;
+        }
       }
     }
   }

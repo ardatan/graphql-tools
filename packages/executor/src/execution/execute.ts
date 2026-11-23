@@ -101,6 +101,7 @@ import {
   type FieldPlan,
   type PlannedFieldExecution,
 } from './plan.js';
+import { PlannedWorkRunner } from './plannedWorkRunner.js';
 import { EMPTY_ARGS, EMPTY_VARIABLE_VALUES, isGraphQL17 } from './planShared.js';
 import { promiseForObject } from './promiseForObject.js';
 
@@ -1260,13 +1261,26 @@ function executeFields(
   asyncPayloadRecord?: AsyncPayloadRecord,
   plannedExecutions?: ReadonlyArray<PlannedFieldExecution>,
 ): MaybePromise<Record<string, unknown>> {
+  // Warm non-incremental plan: sync-first runner over bound executions.
+  // Nested field-sets reuse the root runner so list/async thenables share one
+  // pending counter (no nested Promise.all / promiseForObject).
+  if (plannedExecutions != null && exeContext.plan != null && !exeContext.plan.hasIncremental) {
+    return executePlannedFields(
+      exeContext,
+      parentType,
+      sourceValue,
+      path,
+      plannedExecutions,
+      asyncPayloadRecord,
+    );
+  }
+
   const results = Object.setPrototypeOf(new CompactExecutionResultMap(), null);
   let containsPromise = false;
 
   try {
     if (plannedExecutions != null) {
-      // Bound execution list: skip Map iteration + WeakMap field-plan lookup.
-      // Empty array is intentional (e.g. all fields filtered by @skip/@include).
+      // Incremental / fallback bound list: still skip Map + WeakMap lookup.
       for (const { responseName, fieldNodes, fieldPlan } of plannedExecutions) {
         exeContext.signal?.throwIfAborted();
         const fieldPath = addPath(path, responseName, parentType.name);
@@ -1333,6 +1347,541 @@ function executeFields(
   // field, which is possibly a promise. Return a promise that will return this
   // same map, but with any promises replaced with the values they resolved to.
   return promiseForObject(results, exeContext.signal, exeContext.signalPromise);
+}
+
+/**
+ * Bound field-set on PlannedWorkRunner: sync loop over executions, thenables
+ * via runner.awaitValue (no Promise.all of N field results).
+ *
+ * Each field-set owns its runner and settles before returning. Nested sets
+ * save/restore the parent runner so NonNull bubbles reject this set's settle
+ * Promise and parent `executeField` can null a nullable ancestor (same as
+ * classic promiseForObject rejection). Sharing one runner across nested sets
+ * turned those bubbles into root `data: null` / deadlocks.
+ */
+function executePlannedFields(
+  exeContext: ExecutionContext,
+  parentType: GraphQLObjectType,
+  sourceValue: unknown,
+  path: Path | undefined,
+  plannedExecutions: ReadonlyArray<PlannedFieldExecution>,
+  asyncPayloadRecord?: AsyncPayloadRecord,
+): MaybePromise<Record<string, unknown>> {
+  const results = Object.setPrototypeOf(new CompactExecutionResultMap(), null);
+  const parentRunner = exeContext.plannedRunner;
+  const runner = new PlannedWorkRunner();
+  exeContext.plannedRunner = runner;
+
+  const restoreRunner = (): void => {
+    exeContext.plannedRunner = parentRunner;
+  };
+
+  try {
+    for (const execution of plannedExecutions) {
+      exeContext.signal?.throwIfAborted();
+      executePlannedFieldInto(
+        exeContext,
+        parentType,
+        sourceValue,
+        path,
+        execution,
+        results,
+        runner,
+        asyncPayloadRecord,
+      );
+    }
+
+    const settled = runner.runUntilSettled();
+    if (isPromise(settled)) {
+      const done = exeContext.signalPromise
+        ? Promise.race([exeContext.signalPromise, settled])
+        : settled;
+      return done.then(
+        () => {
+          restoreRunner();
+          return results;
+        },
+        error => {
+          restoreRunner();
+          throw error;
+        },
+      );
+    }
+    restoreRunner();
+    return results;
+  } catch (error) {
+    if (error !== exeContext.signal?.reason && runner.isBusy) {
+      return handleMaybePromise(
+        () => runner.runUntilSettled(),
+        () => {
+          restoreRunner();
+          throw error;
+        },
+        () => {
+          restoreRunner();
+          throw error;
+        },
+      );
+    }
+    restoreRunner();
+    throw error;
+  }
+}
+
+/**
+ * Dispatch one bound execution into `results`. Specialized leaf / leaf-list
+ * paths skip generic completeValue framing; everything else uses executeField
+ * and registers thenables on the shared runner.
+ */
+function executePlannedFieldInto(
+  exeContext: ExecutionContext,
+  parentType: GraphQLObjectType,
+  sourceValue: unknown,
+  path: Path | undefined,
+  execution: PlannedFieldExecution,
+  results: Record<string, unknown>,
+  runner: PlannedWorkRunner,
+  asyncPayloadRecord?: AsyncPayloadRecord,
+): void {
+  const { responseName, fieldNodes, fieldPlan } = execution;
+  const fieldPath = addPath(path, responseName, parentType.name);
+
+  // Leaf-list with planned item facts: resolve once, then thin leaf-list loop.
+  if (
+    fieldPlan.completionKind === 'leafList' &&
+    fieldPlan.listItemLeaf != null &&
+    asyncPayloadRecord == null
+  ) {
+    const writeField = (value: unknown): void => {
+      results[responseName] = value;
+    };
+    const completed = executePlannedLeafListField(
+      exeContext,
+      parentType,
+      sourceValue,
+      fieldNodes,
+      fieldPath,
+      fieldPlan,
+      runner,
+      writeField,
+    );
+    if (completed !== undefined) {
+      if (isPromise(completed)) {
+        // Leave undefined until resolve; item-level NonNull bubbles may write
+        // null first (already-resolved item promises). Do not overwrite that.
+        results[responseName] = undefined;
+        runner.awaitValue(
+          completed,
+          value => {
+            if (results[responseName] === undefined) {
+              writeField(value);
+            }
+          },
+          rawError => {
+            const error = locatedError(
+              coerceError(rawError),
+              fieldNodes,
+              pathToArray(fieldPath),
+              exeContext.schemaCoordinateInErrors &&
+                schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+            );
+            writeField(handleFieldError(error, fieldPlan.returnType, exeContext.errors));
+            filterSubsequentPayloads(exeContext, fieldPath, undefined);
+          },
+        );
+      } else {
+        writeField(completed);
+      }
+      return;
+    }
+    // Fall through when specialized path declines (e.g. unexpected resolve shape).
+  }
+
+  const result = executeField(
+    exeContext,
+    parentType,
+    sourceValue,
+    fieldNodes,
+    fieldPath,
+    asyncPayloadRecord,
+    fieldPlan,
+  );
+  if (result === undefined) {
+    return;
+  }
+  if (isPromise(result)) {
+    results[responseName] = undefined;
+    runner.awaitValue(
+      result,
+      value => {
+        results[responseName] = value;
+      },
+      rawError => {
+        const error = locatedError(
+          coerceError(rawError),
+          fieldNodes,
+          pathToArray(fieldPath),
+          exeContext.schemaCoordinateInErrors &&
+            schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+        );
+        results[responseName] = handleFieldError(
+          error,
+          fieldPlan.returnType,
+          asyncPayloadRecord?.errors ?? exeContext.errors,
+        );
+        filterSubsequentPayloads(exeContext, fieldPath, asyncPayloadRecord);
+      },
+    );
+  } else {
+    results[responseName] = result;
+  }
+}
+
+/**
+ * Resolve a planned leaf-list field and complete items with the shared runner.
+ * Returns `undefined` to signal fall-through to generic `executeField`.
+ */
+function executePlannedLeafListField(
+  exeContext: ExecutionContext,
+  parentType: GraphQLObjectType,
+  source: unknown,
+  fieldNodes: Array<FieldNode>,
+  path: Path,
+  fieldPlan: FieldPlan,
+  runner: PlannedWorkRunner,
+  writeField: (value: unknown) => void,
+): MaybePromise<ReadonlyArray<unknown> | null> | undefined {
+  const listItemLeaf = fieldPlan.listItemLeaf;
+  if (listItemLeaf == null) {
+    return undefined;
+  }
+
+  const errors = exeContext.errors;
+  const locate = (rawError: unknown): GraphQLError =>
+    locatedError(
+      coerceError(rawError),
+      fieldNodes,
+      pathToArray(path),
+      exeContext.schemaCoordinateInErrors && schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+    );
+
+  let result: unknown;
+  try {
+    exeContext.signal?.throwIfAborted();
+    const resolveKind = fieldPlan.resolveKind;
+    if (
+      resolveKind === 'defaultProperty' &&
+      (isObjectLike(source) || typeof source === 'function')
+    ) {
+      if (fieldPlan.hasArgs) {
+        getFieldArgumentValues(
+          fieldPlan.fieldDef,
+          fieldNodes[0],
+          exeContext.variableValues,
+          fieldPlan.argumentReader,
+          fieldPlan.readArguments,
+        );
+      }
+      const property = (source as Record<string, unknown>)[fieldPlan.fieldDef.name];
+      if (typeof property === 'function') {
+        const info = buildPlannedResolveInfo(exeContext, fieldPlan, path);
+        const args = getFieldArgumentValues(
+          fieldPlan.fieldDef,
+          fieldNodes[0],
+          exeContext.variableValues,
+          fieldPlan.argumentReader,
+          fieldPlan.readArguments,
+        );
+        result = (
+          property as (
+            this: unknown,
+            fieldArgs: typeof args,
+            contextValue: unknown,
+            resolveInfo: GraphQLResolveInfo,
+          ) => unknown
+        ).call(source, args, exeContext.contextValue, info);
+      } else if (property instanceof Error) {
+        throw property;
+      } else if (property == null) {
+        if (fieldPlan.nonNull) {
+          throw new Error(
+            `Cannot return null for non-nullable field ${parentType.name}.${fieldPlan.fieldDef.name}.`,
+          );
+        }
+        return null;
+      } else {
+        result = property;
+      }
+    } else {
+      const info = buildPlannedResolveInfo(exeContext, fieldPlan, path);
+      const args = getFieldArgumentValues(
+        fieldPlan.fieldDef,
+        fieldNodes[0],
+        exeContext.variableValues,
+        fieldPlan.argumentReader,
+        fieldPlan.readArguments,
+      );
+      const resolveFn = fieldPlan.fieldDef.resolve ?? exeContext.fieldResolver;
+      result = resolveFn(source, args, exeContext.contextValue, info);
+    }
+
+    if (isPromise(result)) {
+      return result.then(
+        resolved =>
+          completePlannedLeafListValue(
+            exeContext,
+            fieldPlan,
+            fieldNodes,
+            path,
+            resolved,
+            runner,
+            writeField,
+          ),
+        rawError => handleFieldError(locate(rawError), fieldPlan.returnType, errors),
+      );
+    }
+    return completePlannedLeafListValue(
+      exeContext,
+      fieldPlan,
+      fieldNodes,
+      path,
+      result,
+      runner,
+      writeField,
+    );
+  } catch (rawError) {
+    // Non-null list-item failures throw out of completion; handle against the
+    // field's return type so nullable lists become null (same as executeField).
+    return handleFieldError(locate(rawError), fieldPlan.returnType, errors);
+  }
+}
+
+/**
+ * Thin leaf-list completion: indexed serialize loop + runner.awaitValue for
+ * thenable items (no Promise.all, no per-item completeValue / plan lookup).
+ */
+function completePlannedLeafListValue(
+  exeContext: ExecutionContext,
+  fieldPlan: FieldPlan,
+  fieldNodes: Array<FieldNode>,
+  path: Path,
+  result: unknown,
+  runner: PlannedWorkRunner,
+  writeField: (value: unknown) => void,
+): MaybePromise<ReadonlyArray<unknown> | null> {
+  const listItemLeaf = fieldPlan.listItemLeaf!;
+  const errors = exeContext.errors;
+  const returnType = fieldPlan.returnType;
+  const listType = (
+    isNonNullType(returnType) ? returnType.ofType : returnType
+  ) as GraphQLList<GraphQLOutputType>;
+  const itemType = listType.ofType;
+
+  if (result == null) {
+    if (fieldPlan.nonNull) {
+      throw new Error(
+        `Cannot return null for non-nullable field ${fieldPlan.parentType.name}.${fieldPlan.fieldDef.name}.`,
+      );
+    }
+    return null;
+  }
+  if (result instanceof Error) {
+    throw result;
+  }
+
+  if (isAsyncIterable(result)) {
+    // Async iterables keep the classic path (stream / incremental aware).
+    const info = buildPlannedResolveInfo(exeContext, fieldPlan, path);
+    return completeListValue(exeContext, listType, fieldNodes, info, path, result);
+  }
+
+  if (!isIterableObject(result)) {
+    const info = buildPlannedResolveInfo(exeContext, fieldPlan, path);
+    throw new GraphQLError(
+      `Expected Iterable, but did not find one for field "${info.parentType.name}.${info.fieldName}".`,
+    );
+  }
+
+  const leafType = listItemLeaf.leafType;
+  const itemNonNull = listItemLeaf.itemNonNull;
+  const parentFieldName = fieldPlan.fieldDef.name;
+  const parentTypeName = fieldPlan.parentType.name;
+  const completedResults: Array<unknown> = Array.isArray(result) ? new Array(result.length) : [];
+
+  let listBubbled: unknown;
+  const bubbleListField = (rawError: unknown, index: number): void => {
+    if (listBubbled !== undefined) {
+      return;
+    }
+    const itemPath = addPath(path, index, undefined);
+    const error = locatedError(coerceError(rawError), fieldNodes, pathToArray(itemPath));
+    filterSubsequentPayloads(exeContext, itemPath, undefined);
+    // Non-null item failure nulls the whole list field (field return type).
+    listBubbled = handleFieldError(error, returnType, errors);
+    writeField(listBubbled);
+  };
+
+  const writeItem = (index: number, item: unknown): void => {
+    if (listBubbled !== undefined) {
+      return;
+    }
+    try {
+      const completed = completePlannedLeafListItemAtIndex(
+        item,
+        leafType,
+        itemNonNull,
+        itemType,
+        fieldNodes,
+        path,
+        index,
+        errors,
+        exeContext,
+        parentFieldName,
+        parentTypeName,
+      );
+      // serialize() may return a thenable (async scalars).
+      if (isPromise(completed)) {
+        runner.awaitValue(
+          completed,
+          resolved => {
+            if (listBubbled === undefined) {
+              completedResults[index] = resolved;
+            }
+          },
+          rawError => {
+            try {
+              completedResults[index] = handlePlannedLeafListItemError(
+                rawError,
+                itemType,
+                fieldNodes,
+                path,
+                index,
+                errors,
+                exeContext,
+              );
+            } catch (bubble) {
+              bubbleListField(bubble, index);
+            }
+          },
+        );
+      } else {
+        completedResults[index] = completed;
+      }
+    } catch (rawError) {
+      bubbleListField(rawError, index);
+    }
+  };
+
+  const consumeItem = (index: number, item: unknown): boolean => {
+    if (listBubbled !== undefined) {
+      return false;
+    }
+    if (isPromise(item)) {
+      runner.awaitValue(
+        item,
+        resolved => {
+          writeItem(index, resolved);
+        },
+        rawError => {
+          try {
+            completedResults[index] = handlePlannedLeafListItemError(
+              rawError,
+              itemType,
+              fieldNodes,
+              path,
+              index,
+              errors,
+              exeContext,
+            );
+          } catch (bubble) {
+            bubbleListField(bubble, index);
+          }
+        },
+      );
+      return true;
+    }
+    writeItem(index, item);
+    return listBubbled === undefined;
+  };
+
+  // Prefer indexed arrays; for other iterables use for-of so a NonNull bubble
+  // can stop without eagerly consuming the rest (generators' `finally`).
+  if (Array.isArray(result)) {
+    for (let index = 0; index < result.length; index++) {
+      if (!consumeItem(index, result[index])) {
+        break;
+      }
+    }
+  } else {
+    let index = 0;
+    for (const item of result as Iterable<unknown>) {
+      if (!consumeItem(index, item)) {
+        break;
+      }
+      index++;
+    }
+  }
+
+  if (listBubbled !== undefined) {
+    return listBubbled as null;
+  }
+  return completedResults;
+}
+
+function completePlannedLeafListItemAtIndex(
+  result: unknown,
+  leafType: GraphQLLeafType,
+  itemNonNull: boolean,
+  itemType: GraphQLOutputType,
+  fieldNodes: Array<FieldNode>,
+  path: Path,
+  index: number,
+  errors: Array<GraphQLError>,
+  exeContext: ExecutionContext,
+  parentFieldName: string,
+  parentTypeName: string,
+): unknown {
+  try {
+    if (result instanceof Error) {
+      throw result;
+    }
+    if (result == null) {
+      if (itemNonNull) {
+        throw new Error(
+          `Cannot return null for non-nullable field ${parentTypeName}.${parentFieldName}.`,
+        );
+      }
+      return null;
+    }
+    return completeLeafValue(leafType, result);
+  } catch (rawError) {
+    return handlePlannedLeafListItemError(
+      rawError,
+      itemType,
+      fieldNodes,
+      path,
+      index,
+      errors,
+      exeContext,
+    );
+  }
+}
+
+function handlePlannedLeafListItemError(
+  rawError: unknown,
+  itemType: GraphQLOutputType,
+  fieldNodes: Array<FieldNode>,
+  path: Path,
+  index: number,
+  errors: Array<GraphQLError>,
+  exeContext: ExecutionContext,
+): unknown {
+  const itemPath = addPath(path, index, undefined);
+  const error = locatedError(coerceError(rawError), fieldNodes, pathToArray(itemPath));
+  // NonNull item types throw here — caller catches and nulls the list field.
+  const handled = handleFieldError(error, itemType, errors);
+  filterSubsequentPayloads(exeContext, itemPath, undefined);
+  return handled;
 }
 
 /**
@@ -1993,10 +2542,13 @@ function getStreamValues(
     const planned =
       plan.fieldPlanByNodes.get(fieldNodes) ?? plan.fieldPlanByFieldNode.get(fieldNodes[0]!);
     const stream = planned?.stream;
-    if (stream == null || stream.kind === 'none') {
+    // Only trust an explicit `none`. Missing stream metadata can happen when
+    // mixed @skip/@include extremes omitted the field at compile time; fall
+    // through to directive parsing so runtime @stream still works.
+    if (stream?.kind === 'none') {
       return;
     }
-    if (stream.kind === 'static') {
+    if (stream != null && stream.kind === 'static') {
       const initialCount = stream.initialCount;
       // Same validation as getStreamUsageMemo (thrown as field errors upstream).
       invariant(typeof initialCount === 'number', 'initialCount must be a number');
@@ -2206,7 +2758,7 @@ function completeListValue(
         containsPromise = true;
       }
     }
-    return containsPromise ? Promise.all(completedResults) : completedResults;
+    return settleListResults(exeContext, completedResults, containsPromise);
   }
 
   let index = 0;
@@ -2259,7 +2811,43 @@ function completeListValue(
     index++;
   }
 
-  return containsPromise ? Promise.all(completedResults) : completedResults;
+  return settleListResults(exeContext, completedResults, containsPromise);
+}
+
+/**
+ * Sync iterable lists: when a planned runner is active, lift thenable slots
+ * onto `awaitValue` so the field-set's `runUntilSettled` waits (no Promise.all).
+ * Async-iterator lists keep real Promise elements and use `Promise.all` below.
+ */
+function settleListResults(
+  exeContext: ExecutionContext,
+  completedResults: Array<unknown>,
+  containsPromise: boolean,
+): MaybePromise<ReadonlyArray<unknown>> {
+  if (!containsPromise) {
+    return completedResults;
+  }
+  const runner = exeContext.plannedRunner;
+  if (runner != null) {
+    for (let index = 0; index < completedResults.length; index++) {
+      const value = completedResults[index];
+      if (isPromise(value)) {
+        const slot = index;
+        runner.awaitValue(
+          value,
+          resolved => {
+            completedResults[slot] = resolved;
+          },
+          _reason => {
+            completedResults[slot] = null;
+          },
+        );
+        completedResults[slot] = undefined;
+      }
+    }
+    return completedResults;
+  }
+  return Promise.all(completedResults);
 }
 
 /**
@@ -2342,6 +2930,8 @@ function completeListItemValue(
       const completedItemPath = itemPath;
       // Note: we don't rely on a `catch` method, but we do expect "thenable"
       // to take a second callback for the error case.
+      // Always push a real Promise so async-iterator paths can `Promise.all`.
+      // Sync iterables lift these onto the planned runner in `settleListResults`.
       completedResults.push(
         completedItem.then(undefined, rawError => {
           rawError = coerceError(rawError);

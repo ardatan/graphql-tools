@@ -371,7 +371,9 @@ describe('execution plan', () => {
     expect(isExecutionPlan(plan)).toBe(true);
     if (isExecutionPlan(plan)) {
       expect(plan.skipIncludePredicates).toBe(true);
-      expect(plan.rootExecutions).toBeDefined();
+      // Conditional mutations leave rootExecutions unset so classic collect
+      // preserves occurrence order for duplicate response names.
+      expect(plan.rootExecutions).toBeUndefined();
     }
     expect(
       executeSync({

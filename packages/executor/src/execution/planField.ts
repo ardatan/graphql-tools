@@ -174,7 +174,7 @@ function buildExecutionsFromConditionalEntries(
    * `fieldPlanByNodes` WeakMap hits stay exact on the warm path.
    */
   preferredFieldMap?: Map<string, Array<FieldNode>>,
-): PlannedFieldExecution[] {
+): PlannedFieldExecution[] | undefined {
   const grouped = groupConditionalEntriesByResponseName(entries);
   const executions: PlannedFieldExecution[] = [];
   for (const [responseName, group] of grouped) {
@@ -187,7 +187,9 @@ function buildExecutionsFromConditionalEntries(
         : group.fieldNodes;
     const fieldPlan = resolveFieldPlanForParent(plan, parentType, fieldNodes);
     if (fieldPlan == null) {
-      continue;
+      // Field reachable only under mixed directive values may be absent from
+      // the bool-extreme field maps — abandon bound executions for classic collect.
+      return undefined;
     }
     executions.push({
       responseName,
@@ -595,8 +597,17 @@ function getFieldArgDefaultValue(argDef: GraphQLArgument): unknown | undefined {
   if (argDef.defaultValue !== undefined) {
     return argDef.defaultValue;
   }
-  const gql17Default = (argDef as GraphQLArgument & { default?: { literal?: ValueNode } }).default;
-  if (gql17Default?.literal != null) {
+  const gql17Default = (
+    argDef as GraphQLArgument & { default?: { literal?: ValueNode; value?: unknown } }
+  ).default;
+  if (gql17Default == null) {
+    return undefined;
+  }
+  // GraphQL 17 value-form defaults (`default: { value }`).
+  if (Object.prototype.hasOwnProperty.call(gql17Default, 'value')) {
+    return gql17Default.value;
+  }
+  if (gql17Default.literal != null) {
     const compiled = valueFromAST(gql17Default.literal, argDef.type);
     if (compiled !== undefined) {
       return compiled;

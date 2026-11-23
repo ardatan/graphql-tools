@@ -14,6 +14,7 @@ import {
   type ValueNode,
   type VariableDefinitionNode,
 } from 'graphql';
+import { isIterableObject } from 'graphql/jsutils/isIterableObject.js';
 import { VariableValues } from '@graphql-tools/utils';
 import { diagnoseLeafParseMiss, diagnoseVariableCoerceMiss } from './coerceDiagnose.js';
 import {
@@ -23,6 +24,14 @@ import {
   isGraphQL17,
 } from './planShared.js';
 import type { CoerceVariables, CoerceVariablesResult } from './planTypes.js';
+
+function coerceDefaultLiteral(literal: ValueNode, type: GraphQLInputType): unknown {
+  // valueFromAST shares this module's graphql instance (avoid require()-ing a
+  // second copy under vitest). Custom GraphQL 17 scalars that only normalize
+  // via coerceInputLiteral fall through to getVariableValues when the fast
+  // path cannot compile the default (tryCompile* returns undefined).
+  return valueFromAST(literal, type);
+}
 
 /**
  * Compile a variableValues coercer for the operation.
@@ -146,7 +155,8 @@ function tryCompileHoistedVariableBindings(
     let defaultValue: unknown;
     const defaultLiteral = def.defaultValue ?? undefined;
     if (def.defaultValue != null) {
-      const compiledDefault = valueFromAST(def.defaultValue, inputType);
+      // GraphQL 17: prefer coerceInputLiteral so custom scalars match classic.
+      const compiledDefault = coerceDefaultLiteral(def.defaultValue, inputType);
       if (compiledDefault === undefined) {
         // Invalid default , leave to getVariableValues for exact errors.
         return undefined;
@@ -184,21 +194,23 @@ function tryCoerceHoistedVariables(
       type: binding.variableType,
       default: binding.hasDefault ? { literal: binding.defaultLiteral } : undefined,
     };
-    if (!Object.prototype.hasOwnProperty.call(raw, binding.name)) {
+    const read = readRawVariable(raw, binding.name);
+    if (read.kind === 'fallback') {
+      return undefined;
+    }
+    if (read.kind === 'missing') {
       sources[binding.name] = { signature };
       if (binding.hasDefault) {
-        coerced[binding.name] = binding.defaultValue;
+        coerced[binding.name] = clonePlanDefaultValue(binding.defaultValue);
         continue;
       }
       if (binding.nonNull) {
-        const parts = binding.nonNullErrors!;
-        return {
-          errors: [new GraphQLError(parts.missingMessage, { nodes: parts.nodes })],
-        };
+        // Fall through to getVariableValues so all missing vars are reported.
+        return undefined;
       }
       continue;
     }
-    const value = raw[binding.name];
+    const value = read.value;
     sources[binding.name] = { signature, value };
     if (value == null && binding.nonNull) {
       const parts = binding.nonNullErrors!;
@@ -263,8 +275,8 @@ function compileInputValueCoercer(
       if (raw == null) {
         return null;
       }
-      // graphql-js wraps singular values as a single-element list.
-      const list = Array.isArray(raw) ? raw : [raw];
+      // graphql-js: arrays as-is; other iterables expand; else singleton wrap.
+      const list = Array.isArray(raw) ? raw : isIterableObject(raw) ? Array.from(raw) : [raw];
       const out: unknown[] = [];
       for (let i = 0; i < list.length; i++) {
         const item = itemCoercer(list[i]);
@@ -280,14 +292,20 @@ function compileInputValueCoercer(
   }
 
   if (isLeafType(type)) {
-    const leafType = type;
+    const leafType = type as GraphQLLeafType & {
+      coerceInputValue?: (v: unknown, hide?: boolean | null) => unknown;
+    };
     const coercer: InputValueCoercer = raw => {
       if (raw == null) {
         return null;
       }
       try {
-        const parsed = leafType.parseValue(raw);
-        // parseValue returning undefined is treated as failure → fallback.
+        // GraphQL 17 prefers coerceInputValue when present (builtin path parity).
+        const parsed =
+          typeof leafType.coerceInputValue === 'function'
+            ? leafType.coerceInputValue(raw)
+            : leafType.parseValue(raw);
+        // parseValue / coerceInputValue returning undefined → fallback.
         return parsed === undefined ? undefined : parsed;
       } catch {
         return undefined;
@@ -356,6 +374,13 @@ function compileInputValueCoercer(
         if (definedFieldCount !== 1 || onlyKey == null) {
           return undefined;
         }
+        // GraphQL.js also rejects when another declared field has an inherited
+        // defined value (Object.keys only sees own keys).
+        for (const field of fieldEntries) {
+          if (field.name !== onlyKey && obj[field.name] !== undefined) {
+            return undefined;
+          }
+        }
         const field = fieldEntries.find(f => f.name === onlyKey);
         if (field == null) {
           return undefined;
@@ -417,18 +442,72 @@ function compileInputValueCoercer(
 function getInputFieldDefaultValue(field: {
   type: GraphQLInputType;
   defaultValue?: unknown;
-  default?: { literal?: ValueNode };
+  default?: { literal?: ValueNode; value?: unknown };
 }): unknown | undefined {
   if (field.defaultValue !== undefined) {
     return field.defaultValue;
   }
-  if (field.default?.literal != null) {
-    const compiled = valueFromAST(field.default.literal, field.type);
+  if (field.default == null) {
+    return undefined;
+  }
+  // GraphQL 17 value-form defaults (`default: { value }`).
+  if (Object.prototype.hasOwnProperty.call(field.default, 'value')) {
+    return field.default.value;
+  }
+  if (field.default.literal != null) {
+    const compiled = coerceDefaultLiteral(field.default.literal, field.type);
     if (compiled !== undefined) {
       return compiled;
     }
   }
   return undefined;
+}
+
+/** Fresh copy of plan-held defaults so resolvers cannot mutate shared state. */
+function clonePlanDefaultValue(value: unknown): unknown {
+  if (value == null || typeof value !== 'object') {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    const out = new Array(value.length);
+    for (let i = 0; i < value.length; i++) {
+      out[i] = clonePlanDefaultValue(value[i]);
+    }
+    return out;
+  }
+  const src = value as Record<string, unknown>;
+  const out = Object.create(null) as Record<string, unknown>;
+  for (const key of Object.keys(src)) {
+    out[key] = clonePlanDefaultValue(src[key]);
+  }
+  return out;
+}
+
+/**
+ * Read one variable from the raw map. Getter throws fall back to classic
+ * getVariableValues (undefined). GraphQL 17 treats own `undefined` as missing.
+ */
+function readRawVariable(
+  raw: { readonly [key: string]: unknown },
+  name: string,
+): { kind: 'missing' } | { kind: 'value'; value: unknown } | { kind: 'fallback' } {
+  let supplied: boolean;
+  let value: unknown;
+  try {
+    supplied = Object.prototype.hasOwnProperty.call(raw, name);
+    if (supplied) {
+      value = raw[name];
+    }
+  } catch {
+    return { kind: 'fallback' };
+  }
+  if (!supplied) {
+    return { kind: 'missing' };
+  }
+  if (value === undefined && isGraphQL17) {
+    return { kind: 'missing' };
+  }
+  return { kind: 'value', value };
 }
 type BuiltinLeafVariableBinding = {
   name: string;
@@ -504,21 +583,23 @@ function tryCoerceBuiltinLeafVariables(
       type: binding.variableType,
       default: binding.hasDefault ? { literal: binding.defaultLiteral } : undefined,
     };
-    if (!Object.prototype.hasOwnProperty.call(raw, binding.name)) {
+    const read = readRawVariable(raw, binding.name);
+    if (read.kind === 'fallback') {
+      return undefined;
+    }
+    if (read.kind === 'missing') {
       sources[binding.name] = { signature };
       if (binding.hasDefault) {
-        coerced[binding.name] = binding.defaultValue;
+        coerced[binding.name] = clonePlanDefaultValue(binding.defaultValue);
         continue;
       }
       if (binding.nonNull) {
-        const parts = binding.nonNullErrors!;
-        return {
-          errors: [new GraphQLError(parts.missingMessage, { nodes: parts.nodes })],
-        };
+        // Fall through to getVariableValues so all missing vars are reported.
+        return undefined;
       }
       continue;
     }
-    const value = raw[binding.name];
+    const value = read.value;
     sources[binding.name] = { signature, value };
     if (value == null) {
       if (binding.nonNull) {

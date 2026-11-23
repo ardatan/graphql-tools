@@ -21,7 +21,7 @@ import { execute } from '../../execute.js';
  * `src/execution/incremental/__tests__/defer-test.ts`.
  *
  * Subsequent payloads that would write into a nulled subtree are dropped
- * (Yaacov / IncrementalGraph). IncrementalExecutor / WorkQueue is not ported.
+ * IncrementalGraph-style delivery. A separate incremental work-queue is not ported.
  */
 
 const c = new GraphQLObjectType({
