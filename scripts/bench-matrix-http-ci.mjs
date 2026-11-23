@@ -7,8 +7,9 @@
  *
  * - Yoga: graphql-yoga benchmark schema shape + `authors` query
  *   (https://github.com/graphql-hive/graphql-yoga/tree/main/benchmark)
- * - Hive: gateway `e2e/federation-example` (TestQuery) with executor resolutions
- *   (clone + yarn as needed; no proxy path)
+ * - Hive: gateway `e2e/federation-example` (TestQuery); tip/master executor via
+ *   publish-layout pack overwritten into all Hive `node_modules` copies
+ *   (clone + yarn as needed; no proxy path). Tip must expose the planning API.
  *
  * Env (BENCH_MATRIX_* preferred; CLAIM_BENCH_* aliases accepted):
  *   BENCH_MATRIX_TIP_ROOT / BENCH_MATRIX_MASTER_ROOT
@@ -19,10 +20,10 @@
  *   BENCH_MATRIX_OUT_JSON — write path (default benchmarks/results/bench-matrix-http.json)
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 function env(name, fallback = undefined) {
@@ -299,14 +300,22 @@ function run(cmd, args, opts = {}) {
   return result;
 }
 
+/**
+ * Pack the **publish** layout (`packages/executor/dist`), not the source package
+ * root. Source `npm pack` nests files under `dist/` and yarn resolutions leave
+ * published npm 4.1.8 installed — PLANNING=0|1 then becomes a no-op.
+ */
 function packExecutor(packageRoot, label) {
-  const pkgDir = join(packageRoot, 'packages/executor');
-  const dist = join(pkgDir, 'dist/cjs/index.js');
-  if (!existsSync(dist)) {
-    throw new Error(`${label} missing executor dist at ${dist}`);
+  const distDir = join(packageRoot, 'packages/executor/dist');
+  const distEntry = join(distDir, 'cjs/index.js');
+  const distPkg = join(distDir, 'package.json');
+  if (!existsSync(distEntry) || !existsSync(distPkg)) {
+    throw new Error(
+      `${label} missing executor publish layout at ${distDir} (need dist/cjs/index.js + dist/package.json)`,
+    );
   }
   const outDir = mkdtempSync(join(tmpdir(), `executor-pack-${label}-`));
-  const packed = run('npm', ['pack', '--pack-destination', outDir], { cwd: pkgDir });
+  const packed = run('npm', ['pack', '--pack-destination', outDir], { cwd: distDir });
   const name = packed.stdout.trim().split('\n').filter(Boolean).pop();
   return join(outDir, name);
 }
@@ -347,15 +356,151 @@ function ensureHiveGatewayInstall() {
   });
 }
 
-function applyExecutorResolution(tarballPath) {
-  // Yarn 4: set resolution then install to refresh nested copies.
-  run('yarn', ['set', 'resolution', '@graphql-tools/executor@*', `file:${tarballPath}`], {
-    cwd: hiveGatewayDir,
-  });
-  run('yarn', ['install'], {
-    cwd: hiveGatewayDir,
-    timeout: 15 * 60_000,
-  });
+/** Every `node_modules/@graphql-tools/executor` install under the Hive clone (incl. nested). */
+function findExecutorInstallDirs(root) {
+  const result = spawnSync(
+    'find',
+    [root, '-path', '*/node_modules/@graphql-tools/executor/package.json'],
+    { encoding: 'utf8' },
+  );
+  if (result.status !== 0) {
+    throw new Error(`find executor installs failed: ${result.stderr || result.stdout}`);
+  }
+  return (result.stdout || '')
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(pkgJson => dirname(pkgJson));
+}
+
+/**
+ * Overwrite all Hive `@graphql-tools/executor` installs with a publish-layout tarball.
+ * Yarn `set resolution file:…` does not reliably replace nested copies here.
+ */
+function installPackedExecutor(tarballPath, { label, requirePlanning }) {
+  const extractDir = mkdtempSync(join(tmpdir(), `executor-extract-${label}-`));
+  try {
+    run('tar', ['-xzf', tarballPath, '-C', extractDir]);
+    const pkgContent = join(extractDir, 'package');
+    if (!existsSync(join(pkgContent, 'cjs/index.js')) || !existsSync(join(pkgContent, 'package.json'))) {
+      throw new Error(
+        `${label} pack is not publish layout (expected package/cjs/index.js): ${tarballPath}`,
+      );
+    }
+    const installs = findExecutorInstallDirs(hiveGatewayDir);
+    if (installs.length === 0) {
+      throw new Error(
+        `${label}: no node_modules/@graphql-tools/executor installs under ${hiveGatewayDir}`,
+      );
+    }
+    console.log(`  Installing ${label} executor into ${installs.length} location(s)`);
+    for (const dir of installs) {
+      rmSync(dir, { recursive: true, force: true });
+      mkdirSync(dir, { recursive: true });
+      cpSync(pkgContent, dir, { recursive: true });
+    }
+    assertExecutorPlanningApi({ label, requirePlanning });
+  } finally {
+    rmSync(extractDir, { recursive: true, force: true });
+  }
+}
+
+/** Drop cached `@graphql-tools/executor` modules after overwriting on disk. */
+function bustExecutorRequireCache() {
+  const cache = createRequire(join(hiveGatewayDir, 'package.json')).cache;
+  for (const key of Object.keys(cache)) {
+    if (key.includes('@graphql-tools/executor')) {
+      delete cache[key];
+    }
+  }
+}
+
+/**
+ * Confirm the Hive tree resolves the installed executor. Tip must expose the
+ * planning API so GRAPHQL_TOOLS_EXECUTOR_PLANNING=0|1 is meaningful.
+ */
+function assertExecutorPlanningApi({ label, requirePlanning }) {
+  bustExecutorRequireCache();
+  const requireFromHive = createRequire(join(hiveGatewayDir, 'package.json'));
+  let resolved;
+  let ex;
+  try {
+    resolved = requireFromHive.resolve('@graphql-tools/executor');
+    ex = requireFromHive('@graphql-tools/executor');
+  } catch (error) {
+    throw new Error(`${label}: cannot require @graphql-tools/executor: ${error.message}`);
+  }
+  const hasPlanning =
+    typeof ex.isExecutionPlanningEnabled === 'function' &&
+    typeof ex.setExecutionPlanningEnabled === 'function' &&
+    typeof ex.compileExecutionPlan === 'function';
+  console.log(
+    `  ${label} executor → ${resolved} planningAPI=${hasPlanning ? 'yes' : 'no'}`,
+  );
+  if (requirePlanning && !hasPlanning) {
+    throw new Error(
+      `${label}: @graphql-tools/executor at ${resolved} is missing the planning API ` +
+        `(isExecutionPlanningEnabled / setExecutionPlanningEnabled / compileExecutionPlan). ` +
+        `Hive sticky must not fall back to npm 4.1.8 without planning.`,
+    );
+  }
+
+  // Nested Yoga copy is on the gateway hot path — must match.
+  const yogaExecPkg = join(
+    hiveGatewayDir,
+    'node_modules/graphql-yoga/node_modules/@graphql-tools/executor/package.json',
+  );
+  if (existsSync(yogaExecPkg)) {
+    bustExecutorRequireCache();
+    const yogaDir = dirname(yogaExecPkg);
+    const yogaRequire = createRequire(yogaExecPkg);
+    const yogaEx = yogaRequire(yogaDir);
+    const yogaHas =
+      typeof yogaEx.isExecutionPlanningEnabled === 'function' &&
+      typeof yogaEx.compileExecutionPlan === 'function';
+    if (requirePlanning && !yogaHas) {
+      throw new Error(
+        `${label}: nested graphql-yoga @graphql-tools/executor is missing the planning API`,
+      );
+    }
+  }
+}
+
+/** Tip only: env toggle must flip planning in a fresh process. */
+function assertTipPlanningEnvToggle() {
+  const probe = `
+    const { createRequire } = require('module');
+    const path = require('path');
+    const root = process.argv[1];
+    const expect = process.argv[2] === '1';
+    const ex = createRequire(path.join(root, 'package.json'))('@graphql-tools/executor');
+    if (typeof ex.isExecutionPlanningEnabled !== 'function') {
+      console.error('missing isExecutionPlanningEnabled');
+      process.exit(2);
+    }
+    const got = ex.isExecutionPlanningEnabled();
+    if (got !== expect) {
+      console.error('planningEnabled=' + got + ' expected=' + expect +
+        ' env=' + process.env.GRAPHQL_TOOLS_EXECUTOR_PLANNING);
+      process.exit(3);
+    }
+    console.log('ok planningEnabled=' + got);
+  `;
+  for (const [flag, expectOn] of [
+    ['0', false],
+    ['1', true],
+  ]) {
+    const result = spawnSync(process.execPath, ['-e', probe, hiveGatewayDir, expectOn ? '1' : '0'], {
+      encoding: 'utf8',
+      env: { ...process.env, GRAPHQL_TOOLS_EXECUTOR_PLANNING: flag },
+    });
+    if (result.status !== 0) {
+      throw new Error(
+        `Tip PLANNING=${flag} toggle failed (${result.status}): ${result.stderr || result.stdout}`,
+      );
+    }
+  }
+  console.log('  Tip GRAPHQL_TOOLS_EXECUTOR_PLANNING=0|1 toggle ok');
 }
 
 /**
@@ -442,6 +587,9 @@ if (!skipYoga) {
   );
 }
 
+/** Non-null when Hive must fail the CI job after JSON is written (keeps Yoga results). */
+let hiveFatalError = null;
+
 if (!skipHive) {
   try {
     ensureHiveGatewayClone();
@@ -449,14 +597,20 @@ if (!skipHive) {
     const tipPack = packExecutor(tipRoot, 'tip');
     const masterPack = packExecutor(masterRoot, 'master');
 
-    console.log('\n==> Hive federation-example (TestQuery) — tip executor resolution\n');
-    applyExecutorResolution(tipPack);
+    console.log('\n==> Hive federation-example (TestQuery) — tip executor install\n');
+    // Overwrite every nested copy; require planning API so PLANNING=0|1 is real.
+    installPackedExecutor(tipPack, { label: 'tip', requirePlanning: true });
+    assertTipPlanningEnvToggle();
     // Same tip package for classic vs planned; only GRAPHQL_TOOLS_EXECUTOR_PLANNING differs.
     const tipClassic = runHiveFederationToolsHz({ planning: false });
     const tipPlanned = runHiveFederationToolsHz({ planning: true });
 
-    console.log('\n==> Hive federation-example — master executor resolution\n');
-    applyExecutorResolution(masterPack);
+    console.log('\n==> Hive federation-example — master executor install\n');
+    installPackedExecutor(masterPack, {
+      label: 'master',
+      // Master may be pre-planning npm; do not require the API.
+      requirePlanning: Boolean(masterHasPlanning),
+    });
     const masterClassic = runHiveFederationToolsHz({ planning: false });
     const masterPlanned = masterHasPlanning ? runHiveFederationToolsHz({ planning: true }) : null;
     const masterForPlannedHz = masterPlanned?.hz ?? masterClassic.hz;
@@ -475,6 +629,7 @@ if (!skipHive) {
       deltaPlannedVsMasterPct: (tipPlanned.hz / masterForPlannedHz - 1) * 100,
       deltaClassicVsMasterPct: (tipClassic.hz / masterClassic.hz - 1) * 100,
       productsSize: Number(process.env.CLAIM_BENCH_HIVE_PRODUCTS_SIZE || '1000'),
+      tipPlanningApi: true,
       raw: {
         masterClassic: masterClassic.rawLine,
         masterPlanned: masterPlanned?.rawLine ?? null,
@@ -483,7 +638,10 @@ if (!skipHive) {
       },
     };
     payload.hiveNote =
-      'Hive Gateway `e2e/federation-example` (federation TestQuery, PRODUCTS_SIZE configurable). Executor via yarn resolution to packed `@graphql-tools/executor`. Tip classic uses `GRAPHQL_TOOLS_EXECUTOR_PLANNING=0`. No proxy path. ' +
+      'Hive Gateway `e2e/federation-example` (federation TestQuery, PRODUCTS_SIZE configurable). ' +
+      'Executor: publish-layout pack of `@graphql-tools/executor` overwritten into all Hive ' +
+      '`node_modules` copies (incl. nested Yoga). Tip requires planning API; classic uses ' +
+      '`GRAPHQL_TOOLS_EXECUTOR_PLANNING=0`. No proxy path. ' +
       (masterHasPlanning
         ? 'Δ planned vs master uses master planned.'
         : 'Δ planned vs master uses master classic (baseline has no planning API).');
@@ -493,9 +651,15 @@ if (!skipHive) {
   } catch (error) {
     payload.hiveNote = `Hive federation-example bench failed: ${error.message}`;
     console.warn(payload.hiveNote);
+    hiveFatalError = error;
   }
 }
 
 mkdirSync(join(outJson, '..'), { recursive: true });
 writeFileSync(outJson, `${JSON.stringify(payload, null, 2)}\n`);
 console.log(`\nWrote ${outJson}\n`);
+
+if (hiveFatalError) {
+  console.error('\nHive sticky CI failed (tip executor / planning must load):\n', hiveFatalError);
+  process.exit(1);
+}
