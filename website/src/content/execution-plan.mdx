@@ -1,5 +1,5 @@
 ---
-description:
+description: >-
   Planned execution in @graphql-tools/executor: compile once per document, reuse on warm executes,
   and why it helps.
 ---
@@ -101,45 +101,39 @@ const result = await execute({ schema, document, variableValues })
 
 ## Why it helps (benchmarks)
 
-Measured on interleaved vitest benches vs `master` (Node 22, same machine). Numbers are warm-path
-throughput deltas after the plan is cached.
+Process-isolated microbenches on Node 22 (separate process per side, warm plan). Two gates:
 
-### Warm classics (plan amortizes collect / resolveInfo / args)
+1. **vs `master`**: no dips on the core benches below.
+2. **Absolute parity**: match or beat a compile-style absolute baseline on sync list, async list,
+   async root fields, and nested default-resolver.
+
+### vs master (Gate 1)
 
 | Bench                                          | Approx. delta vs master |
 | ---------------------------------------------- | ----------------------: |
-| Dense synchronous float list                   |              **~+112%** |
-| Default-resolver property bag (400 Int fields) |               **~+33%** |
-| Many repeated fields                           |               **~+38%** |
-| Asynchronous list field                        |               **~+22%** |
-| Nested default-resolver objects                |               **~+16%** |
-| Collect stable (unused variables)              |               **~+16%** |
-| Synchronous list field                         |           ~flat (noise) |
+| Synchronous leaf list (1000)                   |             **~+200%** |
+| Asynchronous leaf list (1000)                  |             **~+100%** |
+| Asynchronous root fields (1000)                |              **~+80%** |
+| Nested default-resolver objects (200)          |             **~+137%** |
+| Dense `@skip` / `@include` variable fields     |           **~+45%+** |
+| Default-resolver property bag (400 Int fields) |               ahead |
 
-**Why:** `FieldPlan` and `rootExecutions` remove repeated field collection, type classification,
-resolveInfo static setup, and safe argument coercion on every request.
+**Why:** always-on planned execute, leaf-list / object-list thin walks, field-local async settle,
+and String primitive fast-paths cut collect / resolveInfo / serialize work on the warm path.
 
-### Hoisted variable coercers
+### Absolute parity (Gate 2)
 
-| Bench                                    |                    Approx. delta |
-| ---------------------------------------- | -------------------------------: |
-| Coerce+execute heavy nested input-object |                     **~+67-74%** |
-| Coerce-only heavy nested input-object    | **~+130-140%** (stage isolation) |
-| Coerce+execute small nested input-object |        ~flat (execute-dominated) |
+Same four benches vs a compile-style absolute baseline (process-isolated):
 
-**Why:** plan-bound per-input-type `InputValueCoercer` closures avoid rebuilding coercion work
-through `getVariableValues` on the happy path; error shapes still match graphql-js via diagnose /
-fallback.
+| Bench                               | Approx. delta vs absolute |
+| ----------------------------------- | ------------------------: |
+| Synchronous leaf list (1000)        |                **~+27%** |
+| Asynchronous leaf list (1000)       |           ~match (~0%) |
+| Asynchronous root fields (1000)     |                **~+29%** |
+| Nested default-resolver objects     |                **~+19%** |
 
-### Skip / include predicates
-
-| Bench                                      | Approx. delta vs master |
-| ------------------------------------------ | ----------------------: |
-| Dense `@skip` / `@include` variable fields |            **~+63-67%** |
-
-**Why:** on top of master's collect-layer field predicates, the plan path keeps union
-`rootExecutions` / subfield executions and filters with compiled include predicates instead of
-re-`collectFields` every time.
+**Why:** field-local leaf-list runners, zero-arg default-property method roots, and GraphQLString
+primitive completion keep the interpreter path competitive with a compiled executor on those shapes.
 
 <img
   src="/assets/execution-plan-all-kinds.jpg"
