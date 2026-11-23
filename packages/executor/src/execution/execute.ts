@@ -107,7 +107,7 @@ import {
   type FieldPlan,
   type InternalExecutionPlan,
   type LeafListFieldPlan,
-  type ListFieldPlan,
+  type ObjectListFieldPlan,
   type PlannedFieldExecution,
 } from './plan.js';
 import { PlannedWorkRunner } from './plannedWorkRunner.js';
@@ -1394,7 +1394,7 @@ function executeFields(
               }
               continue;
             }
-          } else if (fieldPlan.completionKind === 'list' && fieldPlan.listItemObject != null) {
+          } else if (fieldPlan.completionKind === 'objectList') {
             const objectListResult = executeObjectListFieldThin(
               exeContext,
               parentType,
@@ -1706,10 +1706,10 @@ function executeObjectListFieldThin(
   source: unknown,
   fieldNodes: Array<FieldNode>,
   path: Path,
-  fieldPlan: ListFieldPlan,
+  fieldPlan: ObjectListFieldPlan,
 ): MaybePromise<ReadonlyArray<unknown> | null> | undefined {
   const listItemObject = fieldPlan.listItemObject;
-  if (listItemObject == null || fieldPlan.resolveKind !== 'defaultProperty') {
+  if (fieldPlan.resolveKind !== 'defaultProperty') {
     return undefined;
   }
   const plan = exeContext.plan;
@@ -2948,6 +2948,7 @@ function completeValue(
       case 'leaf':
         return completeLeafValue(fieldPlan.leafType, result);
       case 'leafList':
+      case 'objectList':
       case 'list':
         if (!isListType(returnType)) {
           break;
@@ -3786,7 +3787,7 @@ function executePlannedSyncObjectFields(
       results[responseName] = nested;
       continue;
     }
-    // list / abstract / leafList — decline.
+    // list / objectList / abstract / leafList — decline.
     return undefined;
   }
   return results;

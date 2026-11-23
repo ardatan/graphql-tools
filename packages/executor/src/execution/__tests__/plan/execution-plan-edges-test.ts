@@ -319,7 +319,7 @@ describe('execution plan warm-path edges', () => {
       expect(isExecutionPlan(plan)).toBe(true);
       if (isExecutionPlan(plan)) {
         expect(plan.fieldPlanByNodes.get(plan.rootFields.get('items')!)?.completionKind).toBe(
-          'list',
+          'objectList',
         );
       }
       // Warm execute: nested object fields must not inherit list completionKind.

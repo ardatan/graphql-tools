@@ -43,7 +43,7 @@ export interface PlannedObjectList {
 /**
  * How the warm path completes this field's return value (after NonNull unwrap).
  */
-export type CompletionKind = 'leaf' | 'leafList' | 'object' | 'abstract' | 'list';
+export type CompletionKind = 'leaf' | 'leafList' | 'objectList' | 'object' | 'abstract' | 'list';
 
 /**
  * How the warm path obtains the field value.
@@ -126,6 +126,15 @@ export interface LeafListFieldPlan extends FieldPlanBase {
   skipIsTypeOf: false;
 }
 
+/**
+ * List of concrete objects without `isTypeOf` (thin nested object-list walk).
+ */
+export interface ObjectListFieldPlan extends FieldPlanBase {
+  completionKind: 'objectList';
+  listItemObject: PlannedObjectList;
+  skipIsTypeOf: false;
+}
+
 /** Concrete object completion. */
 export interface ObjectFieldPlan extends FieldPlanBase {
   completionKind: 'object';
@@ -140,11 +149,12 @@ export interface AbstractFieldPlan extends FieldPlanBase {
   skipIsTypeOf: false;
 }
 
-/** List of objects / abstracts (or other non-leaf lists). */
+/**
+ * Other lists (abstract item types, objects with `isTypeOf`, nested lists, etc.).
+ * No thin object-list facts; classic list completion.
+ */
 export interface ListFieldPlan extends FieldPlanBase {
   completionKind: 'list';
-  /** Set when items are concrete objects without `isTypeOf`. */
-  listItemObject?: PlannedObjectList;
   skipIsTypeOf: false;
 }
 
@@ -153,8 +163,12 @@ export interface ListFieldPlan extends FieldPlanBase {
  * Discriminated by `completionKind` so kind-specific data is required, not optional.
  */
 export type FieldPlan =
-  LeafFieldPlan | LeafListFieldPlan | ObjectFieldPlan | AbstractFieldPlan | ListFieldPlan;
-
+  | LeafFieldPlan
+  | LeafListFieldPlan
+  | ObjectListFieldPlan
+  | ObjectFieldPlan
+  | AbstractFieldPlan
+  | ListFieldPlan;
 /**
  * @internal Runtime execution plan data used by the warm interpreter.
  * Not a public API. Prefer the opaque {@link ExecutionPlan} surface from

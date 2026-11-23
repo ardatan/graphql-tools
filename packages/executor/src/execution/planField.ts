@@ -327,17 +327,22 @@ function compileFieldPlan(
         skipIsTypeOf: false,
       };
       break;
-    case 'list':
-    default: {
-      const listItemObject = compileListItemObject(type);
+    case 'objectList':
       fieldPlan = {
         ...base,
-        completionKind: 'list',
-        ...(listItemObject != null ? { listItemObject } : {}),
+        completionKind: 'objectList',
+        listItemObject: compileListItemObject(type)!,
         skipIsTypeOf: false,
       };
       break;
-    }
+    case 'list':
+    default:
+      fieldPlan = {
+        ...base,
+        completionKind: 'list',
+        skipIsTypeOf: false,
+      };
+      break;
   }
   return fieldPlan;
 }
@@ -413,7 +418,13 @@ function classifyCompletionKind(
     return 'leaf';
   }
   if (isListType(typeAfterNonNull)) {
-    return listItemLeaf ? 'leafList' : 'list';
+    if (listItemLeaf != null) {
+      return 'leafList';
+    }
+    if (compileListItemObject(typeAfterNonNull) != null) {
+      return 'objectList';
+    }
+    return 'list';
   }
   if (isObjectType(typeAfterNonNull)) {
     return 'object';

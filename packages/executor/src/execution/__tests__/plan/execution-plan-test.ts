@@ -619,7 +619,11 @@ describe('execution plan', () => {
       return;
     }
     const itemsPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('items')!);
-    expect(itemsPlan?.completionKind).toBe('list');
+    expect(itemsPlan?.completionKind).toBe('objectList');
+    if (itemsPlan?.completionKind === 'objectList') {
+      expect(itemsPlan.listItemObject.objectType).toBe(itemType);
+      expect(itemsPlan.listItemObject.itemNonNull).toBe(false);
+    }
     const itemFields = plan.subfieldsByNodes.get(plan.rootFields.get('items')!)?.get(itemType);
     expect(itemFields).toBeDefined();
     const namePlan = plan.fieldPlanByNodes.get(itemFields!.get('name')!);

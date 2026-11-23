@@ -21,13 +21,13 @@ For an eligible `(schema, document, operationName)`, public `execute` get-or-com
 `ExecutionPlan` and runs it with `plan.execute(...)` (or call `compileExecutionPlan` yourself).
 Internally the warm interpreter holds:
 
-| Piece                | Role                                                                                                                                                |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Field maps**       | Pre-collected root / subfield maps (or a union over `@skip`/`@include` bool extremes)                                                               |
-| **`FieldPlan`**      | Per-field static facts discriminated by `completionKind` (leaf / leafList / object / abstract / list), plus resolve kind, `resolveInfoStatic`, args |
-| **Coercers**         | Plan-bound `coerceVariables` (empty / builtin-leaf / hoisted input-object closures) and per-field argument readers                                  |
-| **Skip / include**   | Path-aware predicates on planned field executions when variables gate fields or fragments                                                           |
-| **`rootExecutions`** | Bound root (and subfield) execution lists the warm path walks instead of re-collecting                                                              |
+| Piece                | Role                                                                                                                                                             |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Field maps**       | Pre-collected root / subfield maps (or a union over `@skip`/`@include` bool extremes)                                                                            |
+| **`FieldPlan`**      | Per-field static facts discriminated by `completionKind` (leaf / leafList / objectList / object / abstract / list), plus resolve kind, `resolveInfoStatic`, args |
+| **Coercers**         | Plan-bound `coerceVariables` (empty / builtin-leaf / hoisted input-object closures) and per-field argument readers                                               |
+| **Skip / include**   | Path-aware predicates on planned field executions when variables gate fields or fragments                                                                        |
+| **`rootExecutions`** | Bound root (and subfield) execution lists the warm path walks instead of re-collecting                                                                           |
 
 Documents that use `@defer` / `@stream` still compile per-field plan facts where useful; the
 incremental interpreter remains the runtime for patches.

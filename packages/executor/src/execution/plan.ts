@@ -40,6 +40,7 @@ export type {
   FieldPlan,
   LeafFieldPlan,
   LeafListFieldPlan,
+  ObjectListFieldPlan,
   ListFieldPlan,
   ObjectFieldPlan,
   AbstractFieldPlan,
