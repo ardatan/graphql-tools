@@ -10,10 +10,11 @@ concurrency:
   cancel-in-progress: true
 
 on:
+  # Master push: write Vitest bench artifacts. PR branches (incl. planned-execution /
+  # #8683) use pull_request only — avoid duplicate push + synchronize runs.
   push:
     branches:
       - master
-      - planned-execution
   pull_request:
 
 jobs:
@@ -62,14 +63,14 @@ jobs:
   # Sticky PR comment upsert (marker <!-- graphql-tools-bench-matrix-v1 -->).
   bench-matrix:
     name: Bench matrix vs master
-    # PR #8683 / planned-execution head, or pushes to planned-execution.
+    # Sticky matrix for #8683 / planned-execution PRs only (pull_request). No push
+    # trigger — same-repo PR head already runs this on synchronize.
     if: |
-      (github.event_name == 'pull_request' && (
+      github.event_name == 'pull_request' && (
         github.event.pull_request.number == 8683 ||
         github.head_ref == 'planned-execution' ||
         github.base_ref == 'planned-execution'
-      )) ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/planned-execution')
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 90
     permissions:
@@ -107,20 +108,7 @@ jobs:
       - name: Resolve PR number for sticky comment
         id: pr
         if: always()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
-          else
-            # Prefer open PR for this head; fall back to #8683 for planned-execution.
-            head="${GITHUB_REF_NAME}"
-            number="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$head" --state open --json number --jq '.[0].number // empty')"
-            if [ -z "$number" ] && [ "$head" = "planned-execution" ]; then
-              number=8683
-            fi
-            echo "number=$number" >> "$GITHUB_OUTPUT"
-          fi
+        run: echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
 
       - name: Upsert sticky bench-matrix PR comment
         if: always() && steps.pr.outputs.number != ''
