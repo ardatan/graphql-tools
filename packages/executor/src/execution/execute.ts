@@ -2386,6 +2386,71 @@ function executePlannedSyncObjectFieldsPlain(
       if (!isObjectLike(property)) {
         return thinObjectMiss(results, false, pendingLeaves);
       }
+      const childPath = addPath(path, responseName, parentType.name);
+      // Live isTypeOf after compile: classic-complete the already-read value
+      // (do not re-read a one-shot parent getter).
+      if (fieldPlan.objectType.isTypeOf != null) {
+        try {
+          const completed = completeAlreadyReadObjectWithLiveIsTypeOf(
+            exeContext,
+            fieldPlan,
+            fieldNodes,
+            parentType,
+            path,
+            responseName,
+            property,
+          );
+          if (isPromise(completed)) {
+            results[responseName] = undefined;
+            const parentPartial = thinObjectMiss(results, true, pendingLeaves) as ThinObjectPartial;
+            return {
+              ...parentPartial,
+              pendingFieldWork: [
+                ...(parentPartial.pendingFieldWork ?? []),
+                completed.then(
+                  value => {
+                    results[responseName] = value;
+                  },
+                  (bubbled: unknown) => {
+                    exeContext.signal?.throwIfAborted();
+                    if (fieldPlan.nonNull) {
+                      throw bubbled;
+                    }
+                    const error = locatedError(
+                      coerceError(bubbled),
+                      fieldNodes,
+                      pathToArray(childPath),
+                      exeContext.schemaCoordinateInErrors &&
+                        schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+                    );
+                    results[responseName] = handleFieldError(
+                      error,
+                      fieldPlan.returnType,
+                      exeContext.errors,
+                    );
+                  },
+                ),
+              ],
+            };
+          }
+          results[responseName] = completed;
+          continue;
+        } catch (bubbled) {
+          exeContext.signal?.throwIfAborted();
+          if (fieldPlan.nonNull) {
+            throw bubbled;
+          }
+          const error = locatedError(
+            coerceError(bubbled),
+            fieldNodes,
+            pathToArray(childPath),
+            exeContext.schemaCoordinateInErrors &&
+              schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+          );
+          results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+          continue;
+        }
+      }
       const plan = exeContext.plan;
       if (plan == null) {
         return thinObjectMiss(results, false, pendingLeaves);
@@ -2394,7 +2459,6 @@ function executePlannedSyncObjectFieldsPlain(
       if (rawSub == null) {
         return thinObjectMiss(results, false, pendingLeaves);
       }
-      const childPath = addPath(path, responseName, parentType.name);
       let nestedSub = rawSub;
       if (plan.skipIncludePredicates === true) {
         try {
@@ -3167,8 +3231,18 @@ function completePlannedObjectListValuePhaseB(
 
     // Sync object — hot path: slim/tryFast plain Record assign (nestedDefault).
     const syncItem = item as Record<string, unknown>;
-    // Live isTypeOf mid-list / after handoff: generic item completion (classic).
-    if (itemObjectType.isTypeOf != null) {
+    // A retained Phase A partial means object completion already started for
+    // this item (e.g. pending leaf). Classic checks isTypeOf before subfields,
+    // so a predicate installed mid-item must not invalidate that stash — finish
+    // it first. Apply live isTypeOf only when completion has not started.
+    const retainedPartial =
+      hasStash && stashedNested !== undefined && stashedNested !== STASH_SLIM_DECLINED;
+    if (itemObjectType.isTypeOf != null && !retainedPartial) {
+      // Discard a non-retained slim decline so the next item does not consume it.
+      if (hasStash) {
+        hasStash = false;
+        stashedNested = undefined;
+      }
       const heavy = ensureHeavy();
       const one: Array<unknown> = [];
       try {
@@ -5530,6 +5604,32 @@ function invalidReturnTypeError(
 }
 
 /**
+ * Live `isTypeOf` appeared after compile. Complete the already-read nested
+ * property through classic object completion (predicate + subfields) so a
+ * one-shot parent getter is not re-read.
+ */
+function completeAlreadyReadObjectWithLiveIsTypeOf(
+  exeContext: ExecutionContext,
+  fieldPlan: FieldPlan,
+  fieldNodes: Array<FieldNode>,
+  parentType: GraphQLObjectType,
+  path: Path,
+  responseName: string,
+  property: unknown,
+): MaybePromise<Record<string, unknown>> {
+  const childPath = addPath(path, responseName, parentType.name);
+  const info = buildPlannedResolveInfo(exeContext, fieldPlan, childPath, fieldNodes);
+  return completeObjectValue(
+    exeContext,
+    fieldPlan.objectType!,
+    fieldNodes,
+    info,
+    childPath,
+    property,
+  );
+}
+
+/**
  * Thin walk finished some children (e.g. getter errors) then must miss; carry them.
  * Tagged with a module-private symbol so ordinary GraphQL response objects
  * (including keys named `partial` / `results`) cannot be mistaken for a miss.
@@ -6006,11 +6106,72 @@ function executePlannedSyncObjectFieldsPreCR(
           ? thinObjectMiss(results, recordedGetterError, undefined)
           : undefined;
       }
-      // Live isTypeOf after compile: decline thin; classic runs the predicate.
+      const childPath = addPath(path, responseName, parentType.name);
+      // Live isTypeOf after compile: classic-complete the already-read value
+      // (do not re-read a one-shot parent getter).
       if (fieldPlan.objectType.isTypeOf != null) {
-        return n > 0 || recordedGetterError
-          ? thinObjectMiss(results, recordedGetterError, undefined)
-          : undefined;
+        try {
+          const completed = completeAlreadyReadObjectWithLiveIsTypeOf(
+            exeContext,
+            fieldPlan,
+            fieldNodes,
+            parentType,
+            path,
+            responseName,
+            property,
+          );
+          if (isPromise(completed)) {
+            results[responseName] = undefined;
+            const parentPartial = thinObjectMiss(results, true, undefined) as ThinObjectPartial;
+            return {
+              ...parentPartial,
+              pendingFieldWork: [
+                completed.then(
+                  value => {
+                    parentPartial.results[responseName] = value;
+                  },
+                  (bubbled: unknown) => {
+                    exeContext.signal?.throwIfAborted();
+                    if (fieldPlan.nonNull) {
+                      throw bubbled;
+                    }
+                    const error = locatedError(
+                      coerceError(bubbled),
+                      fieldNodes,
+                      pathToArray(childPath),
+                      exeContext.schemaCoordinateInErrors &&
+                        schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+                    );
+                    parentPartial.results[responseName] = handleFieldError(
+                      error,
+                      fieldPlan.returnType,
+                      exeContext.errors,
+                    );
+                  },
+                ),
+              ],
+            };
+          }
+          results[responseName] = completed;
+          n++;
+          continue;
+        } catch (bubbled) {
+          exeContext.signal?.throwIfAborted();
+          if (fieldPlan.nonNull) {
+            throw bubbled;
+          }
+          const error = locatedError(
+            coerceError(bubbled),
+            fieldNodes,
+            pathToArray(childPath),
+            exeContext.schemaCoordinateInErrors &&
+              schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+          );
+          results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+          recordedGetterError = true;
+          n++;
+          continue;
+        }
       }
       const plan = exeContext.plan;
       if (plan == null) {
@@ -6024,7 +6185,6 @@ function executePlannedSyncObjectFieldsPreCR(
           ? thinObjectMiss(results, recordedGetterError, undefined)
           : undefined;
       }
-      const childPath = addPath(path, responseName, parentType.name);
       let subExecutions = rawSubExecutions;
       if (plan.skipIncludePredicates === true) {
         try {
@@ -6364,9 +6524,71 @@ function tryExecutePlannedSyncObjectFieldsFast(
       if (!isObjectLike(property)) {
         return thinObjectMiss(results, recordedGetterError, pendingLeaves);
       }
-      // Live isTypeOf after compile: decline thin; classic runs the predicate.
+      const childPath = addPath(path, responseName, parentType.name);
+      // Live isTypeOf after compile: classic-complete the already-read value
+      // (do not re-read a one-shot parent getter).
       if (fieldPlan.objectType.isTypeOf != null) {
-        return thinObjectMiss(results, recordedGetterError, pendingLeaves);
+        try {
+          const completed = completeAlreadyReadObjectWithLiveIsTypeOf(
+            exeContext,
+            fieldPlan,
+            fieldNodes,
+            parentType,
+            path,
+            responseName,
+            property,
+          );
+          if (isPromise(completed)) {
+            results[responseName] = undefined;
+            const parentPartial = thinObjectMiss(results, true, pendingLeaves) as ThinObjectPartial;
+            return {
+              ...parentPartial,
+              pendingFieldWork: [
+                ...(parentPartial.pendingFieldWork ?? []),
+                completed.then(
+                  value => {
+                    results[responseName] = value;
+                  },
+                  (bubbled: unknown) => {
+                    exeContext.signal?.throwIfAborted();
+                    if (fieldPlan.nonNull) {
+                      throw bubbled;
+                    }
+                    const error = locatedError(
+                      coerceError(bubbled),
+                      fieldNodes,
+                      pathToArray(childPath),
+                      exeContext.schemaCoordinateInErrors &&
+                        schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+                    );
+                    results[responseName] = handleFieldError(
+                      error,
+                      fieldPlan.returnType,
+                      exeContext.errors,
+                    );
+                  },
+                ),
+              ],
+            };
+          }
+          results[responseName] = completed;
+          continue;
+        } catch (bubbled) {
+          exeContext.signal?.throwIfAborted();
+          if (fieldPlan.nonNull) {
+            throw bubbled;
+          }
+          const error = locatedError(
+            coerceError(bubbled),
+            fieldNodes,
+            pathToArray(childPath),
+            exeContext.schemaCoordinateInErrors &&
+              schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+          );
+          results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+          recordedGetterError = true;
+          continue;
+        }
       }
       const plan = exeContext.plan;
       if (plan == null) {
@@ -6376,7 +6598,6 @@ function tryExecutePlannedSyncObjectFieldsFast(
       if (rawSub == null) {
         return thinObjectMiss(results, recordedGetterError, pendingLeaves);
       }
-      const childPath = addPath(path, responseName, parentType.name);
       let nestedSubExecutions = rawSub;
       if (plan.skipIncludePredicates === true) {
         try {
@@ -6831,18 +7052,6 @@ function executePlannedSyncObjectFieldsFrom(
       if (!isObjectLike(property)) {
         return thinObjectMiss(results, recordedGetterError, pendingLeaves);
       }
-      // Live isTypeOf after compile: decline thin; classic runs the predicate.
-      if (fieldPlan.objectType.isTypeOf != null) {
-        return thinObjectMiss(results, recordedGetterError, pendingLeaves);
-      }
-      const plan = exeContext.plan;
-      if (plan == null) {
-        return thinObjectMiss(results, recordedGetterError, pendingLeaves);
-      }
-      const rawSub = getPlannedSubfieldExecutions(plan, fieldNodes, fieldPlan.objectType);
-      if (rawSub == null) {
-        return thinObjectMiss(results, recordedGetterError, pendingLeaves);
-      }
       const childPath = addPath(path, responseName, parentType.name);
       const nullNestedField = (bubbled: unknown): void => {
         exeContext.signal?.throwIfAborted();
@@ -6856,6 +7065,55 @@ function executePlannedSyncObjectFieldsFrom(
         );
         results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
       };
+      // Live isTypeOf after compile: classic-complete the already-read value
+      // (do not re-read a one-shot parent getter).
+      if (fieldPlan.objectType.isTypeOf != null) {
+        try {
+          const completed = completeAlreadyReadObjectWithLiveIsTypeOf(
+            exeContext,
+            fieldPlan,
+            fieldNodes,
+            parentType,
+            path,
+            responseName,
+            property,
+          );
+          if (isPromise(completed)) {
+            if (!Object.prototype.hasOwnProperty.call(results, responseName)) {
+              results[responseName] = undefined;
+            }
+            observePendingFieldWork(
+              completed.then(
+                value => {
+                  results[responseName] = value;
+                },
+                (bubbled: unknown) => {
+                  nullNestedField(bubbled);
+                },
+              ),
+            );
+            recordedGetterError = true;
+            continue;
+          }
+          results[responseName] = completed;
+          continue;
+        } catch (bubbled) {
+          if (fieldPlan.nonNull) {
+            throw bubbled;
+          }
+          nullNestedField(bubbled);
+          recordedGetterError = true;
+          continue;
+        }
+      }
+      const plan = exeContext.plan;
+      if (plan == null) {
+        return thinObjectMiss(results, recordedGetterError, pendingLeaves);
+      }
+      const rawSub = getPlannedSubfieldExecutions(plan, fieldNodes, fieldPlan.objectType);
+      if (rawSub == null) {
+        return thinObjectMiss(results, recordedGetterError, pendingLeaves);
+      }
       // Filter inside the nested field boundary so directive throws null only
       // this nullable field (siblings like `label` survive).
       let nestedSubExecutions = rawSub;
