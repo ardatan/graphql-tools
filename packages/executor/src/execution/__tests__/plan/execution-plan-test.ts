@@ -869,7 +869,7 @@ describe('execution plan', () => {
     expect(reads).toBe(1);
   });
 
-  // R24 P1-05: multiple Int! nulls must aggregate like classic (not early-return one).
+  // R24/R25 P1-05: aggregate like classic — dual-null, null+invalid, invalid+null, maxErrors.
   it('P1-05: aggregates multiple Int! null variable errors like classic', () => {
     const document = parse('query ($x: Int!, $y: Int!) { n }');
     const plan = compileExecutionPlan({ schema, document });
@@ -887,33 +887,136 @@ describe('execution plan', () => {
     expect(coerced.errors.some(e => e.message.includes('$y'))).toBe(true);
   });
 
-  // R24 P1-06: coerce fallback must not re-read prior one-shot variable getters.
-  it('P1-06: coerce fallback does not re-consume a prior one-shot variable getter', () => {
-    // `$b: [Int]` as a Set forces INPUT_COERCE_DEFER → getVariableValues after `$a` was read.
-    const document = parse('query ($a: Int, $b: [Int]) { n }');
+  it('P1-05: aggregates null + invalid Int! errors like classic', () => {
+    const document = parse('query ($a: Int!, $b: Int!) { n }');
     const plan = compileExecutionPlan({ schema, document });
     expect(isExecutionPlan(plan)).toBe(true);
     if (!isExecutionPlan(plan)) {
       return;
     }
-    let aReads = 0;
-    const raw = {
-      get a() {
-        aReads += 1;
-        if (aReads > 1) {
-          throw new Error('a getter re-consumed');
-        }
-        return 1;
-      },
-      b: new Set([1, 2]),
-    };
-    const coerced = plan.coerceVariables(raw);
-    expect('variableValues' in coerced).toBe(true);
-    if ('variableValues' in coerced) {
-      expect(coerced.variableValues.coerced['a']).toBe(1);
-      expect(coerced.variableValues.coerced['b']).toEqual([1, 2]);
+    const coerced = plan.coerceVariables({ a: null, b: 'invalid' });
+    expect('errors' in coerced).toBe(true);
+    if (!('errors' in coerced)) {
+      return;
     }
-    expect(aReads).toBe(1);
+    expect(coerced.errors).toHaveLength(2);
+    expect(coerced.errors[0]?.message).toMatch(/\$a/);
+    expect(coerced.errors[1]?.message).toMatch(/\$b/);
+  });
+
+  it('P1-05: aggregates invalid + null Int! errors like classic', () => {
+    const document = parse('query ($a: Int!, $b: Int!) { n }');
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    const coerced = plan.coerceVariables({ a: 'invalid', b: null });
+    expect('errors' in coerced).toBe(true);
+    if (!('errors' in coerced)) {
+      return;
+    }
+    expect(coerced.errors).toHaveLength(2);
+    expect(coerced.errors[0]?.message).toMatch(/\$a/);
+    expect(coerced.errors[1]?.message).toMatch(/\$b/);
+  });
+
+  it('P1-05: honors maxErrors like classic getVariableValues', () => {
+    const varDefs = Array.from({ length: 60 }, (_, i) => `$v${i}: Int!`).join(', ');
+    const document = parse(`query (${varDefs}) { n }`);
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    const vars = Object.fromEntries(Array.from({ length: 60 }, (_, i) => [`v${i}`, null]));
+    const coerced = plan.coerceVariables(vars);
+    expect('errors' in coerced).toBe(true);
+    if (!('errors' in coerced)) {
+      return;
+    }
+    // 50 content errors + classic abort message.
+    expect(coerced.errors).toHaveLength(51);
+    expect(coerced.errors.at(-1)?.message).toContain('Too many errors processing variables');
+  });
+
+  // R25 P1-06: custom scalar + unsafe list → classic only (no coerce-then-fallback replay).
+  it('P1-06: custom scalar parseValue is not replayed when a sibling forces classic', () => {
+    let parseCalls = 0;
+    const Custom = new GraphQLScalarType({
+      name: 'P106Custom',
+      parseValue(value) {
+        parseCalls += 1;
+        return value;
+      },
+      serialize: v => v,
+    });
+    const customSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          test: {
+            type: GraphQLString,
+            args: {
+              a: { type: Custom },
+              b: { type: new GraphQLList(GraphQLInt) },
+            },
+            resolve: () => 'ok',
+          },
+        },
+      }),
+    });
+    const document = parse('query ($a: P106Custom, $b: [Int]) { test(a: $a, b: $b) }');
+    const plan = compileExecutionPlan({ schema: customSchema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    parseCalls = 0;
+    const coerced = plan.coerceVariables({ a: 'hello', b: new Set([1, 2]) });
+    expect('variableValues' in coerced).toBe(true);
+    expect(parseCalls).toBe(1);
+  });
+
+  // R25: no compile-time custom variable default parseLiteral.
+  it('P1-07b: does not parseLiteral custom variable defaults at compile time', () => {
+    let parseLiteralCalls = 0;
+    const Echo = new GraphQLScalarType({
+      name: 'EchoDefR25',
+      parseValue: v => v,
+      serialize: v => v,
+      parseLiteral(ast) {
+        parseLiteralCalls += 1;
+        return ast.kind === Kind.STRING ? ast.value : null;
+      },
+    });
+    const echoSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          echo: {
+            type: Echo,
+            args: { v: { type: Echo } },
+            resolve: (_s, a: { v: unknown }) => a.v,
+          },
+        },
+      }),
+    });
+    const document = parse('query ($v: EchoDefR25 = "def") { echo(v: $v) }');
+    parseLiteralCalls = 0;
+    const plan = compileExecutionPlan({ schema: echoSchema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    expect(parseLiteralCalls).toBe(0);
+    parseLiteralCalls = 0;
+    expect(
+      executeSync({
+        schema: echoSchema,
+        document,
+        variableValues: { v: 'explicit' },
+      }),
+    ).toEqual({ data: { echo: 'explicit' } });
+    // Explicit runtime value — parseLiteral still unused.
+    expect(parseLiteralCalls).toBe(0);
   });
 
   it('applies GraphQL 17 coerceInputLiteral for variable defaults', () => {

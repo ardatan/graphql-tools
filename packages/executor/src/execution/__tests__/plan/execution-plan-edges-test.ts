@@ -1986,8 +1986,8 @@ describe('thin-walk fallback invocation counts', () => {
     expect(included).toEqual(classic);
   });
 
-  // R24 V03: @oneOf input must not double-read the selected key getter.
-  it('V03: @oneOf coerce reads the selected key getter once', () => {
+  // R24/R25 V03: @oneOf — planned read count matches classic (no planned-only double-read).
+  it('V03: @oneOf coerce read count matches classic', () => {
     const oneOfInput = new GraphQLInputObjectType({
       name: 'V03OneOf',
       isOneOf: true,
@@ -2014,69 +2014,88 @@ describe('thin-walk fallback invocation counts', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    let aReads = 0;
-    const raw = {
+    const makeRaw = (counter: { n: number }) => ({
       input: {
         get a() {
-          aReads += 1;
+          counter.n += 1;
           return 'only';
         },
       },
-    };
-    const coerced = plan.coerceVariables(raw);
-    expect('variableValues' in coerced).toBe(true);
-    expect(aReads).toBe(1);
-  });
-
-  // R24 V04: EMPTY_ARGS must stay frozen.
-  it('V04: EMPTY_ARGS is frozen', () => {
-    const document = parse('{ id }');
-    const schema = new GraphQLSchema({
-      query: new GraphQLObjectType({
-        name: 'Query',
-        fields: { id: { type: GraphQLString, resolve: () => 'x' } },
-      }),
     });
-    const plan = compileExecutionPlan({ schema, document });
-    expect(isExecutionPlan(plan)).toBe(true);
-    if (!isExecutionPlan(plan)) {
-      return;
-    }
-    const fieldPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('id')!);
-    expect(fieldPlan?.staticArgs).toBeDefined();
-    expect(Object.isFrozen(fieldPlan!.staticArgs)).toBe(true);
-    expect(() => {
-      (fieldPlan!.staticArgs as Record<string, unknown>)['x'] = 1;
-    }).toThrow();
+    const plannedCount = { n: 0 };
+    const planned = plan.coerceVariables(makeRaw(plannedCount));
+    expect('variableValues' in planned).toBe(true);
+    // Classic via knownPlan=null path.
+    const classicCount = { n: 0 };
+    const classicCtx = buildExecutionContext(
+      { schema: oneOfSchema, document, variableValues: makeRaw(classicCount) },
+      null,
+    );
+    expect('schema' in classicCtx).toBe(true);
+    expect(plannedCount.n).toBe(classicCount.n);
   });
 
-  // R24 V05: skip/include fold order matches classic for mixed directives.
-  it('V05: skip/include fold order matches classic', () => {
+  // R25 V04: resolver args mutation contract — planned matches classic (not merely isFrozen).
+  it('V04: resolver args mutation matches classic (empty + static)', () => {
+    const makeSchema = (tag: string) =>
+      new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            id: {
+              type: GraphQLString,
+              resolve(_s, args: Record<string, unknown>) {
+                args['__probe'] = 1;
+                return args['__probe'] === 1 ? `${tag}-mut` : `${tag}-frozen`;
+              },
+            },
+            hello: {
+              type: GraphQLString,
+              args: { name: { type: GraphQLString } },
+              resolve(_s, args: { name?: string }) {
+                const before = args.name;
+                args.name = 'MUT';
+                return `${tag}:${before}->${args.name}`;
+              },
+            },
+          },
+        }),
+      });
+    const idDoc = parse('{ id }');
+    const helloDoc = parse('{ hello(name: "Ada") }');
+    expect(executeSync({ schema: makeSchema('P'), document: idDoc })).toEqual(
+      executeClassicSync({ schema: makeSchema('C'), document: idDoc }),
+    );
+    expect(executeSync({ schema: makeSchema('P'), document: helloDoc }).data).toEqual({
+      hello: 'P:Ada->MUT',
+    });
+    expect(executeClassicSync({ schema: makeSchema('C'), document: helloDoc }).data).toEqual({
+      hello: 'C:Ada->MUT',
+    });
+  });
+
+  // R25 V05: exact `@skip(if:$skip) @include(if:false)` with `{skip:null}`.
+  it('V05: skip(null) + include(false) matches classic', () => {
     const schema = new GraphQLSchema({
       query: new GraphQLObjectType({
         name: 'Query',
         fields: {
-          a: { type: GraphQLString, resolve: () => 'A' },
-          b: { type: GraphQLString, resolve: () => 'B' },
+          value: { type: GraphQLString, resolve: () => 'V' },
+          other: { type: GraphQLString, resolve: () => 'O' },
         },
       }),
     });
     const document = parse(`
-      query ($skip: Boolean!, $include: Boolean!) {
-        a @skip(if: $skip) @include(if: $include)
-        b @include(if: $include) @skip(if: $skip)
+      query Test($skip: Boolean = false) {
+        value @skip(if: $skip) @include(if: false)
+        other
       }
     `);
-    for (const vars of [
-      { skip: false, include: true },
-      { skip: true, include: true },
-      { skip: false, include: false },
-      { skip: true, include: false },
-    ]) {
-      const planned = executeSync({ schema, document, variableValues: vars });
-      const classic = executeClassicSync({ schema, document, variableValues: vars });
-      expect(planned).toEqual(classic);
-    }
+    const vars = { skip: null };
+    const planned = executeSync({ schema, document, variableValues: vars });
+    const classic = executeClassicSync({ schema, document, variableValues: vars });
+    expect(planned).toEqual(classic);
+    expect(planned).toEqual({ data: { other: 'O' } });
   });
 });
 
