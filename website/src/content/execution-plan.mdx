@@ -1,16 +1,16 @@
 ---
 description:
-  Cacheable execution plans in @graphql-tools/executor: compile once per document, reuse on warm
-  executes, and why it helps.
+  Planned execution in @graphql-tools/executor: compile once per document, reuse on warm executes,
+  and why it helps.
 ---
 
 import { Callout } from '@theguild/components'
 
-# Execution Plan
+# Planned execution
 
 `@graphql-tools/executor` can compile a cacheable **execution plan** for a GraphQL operation and
 reuse it across repeated `execute` / `executeSync` calls. The plan is an in-memory structure
-interpreted by the default executor, not a generated executor or codegen path.
+interpreted by the default executor on the warm path.
 
 On a warm hit, field collection, type classification, variable coercion, resolveInfo statics, and
 safe argument reads are already prepared, so each request does less AST work.
@@ -86,8 +86,8 @@ sequenceDiagram
 </Callout>
 
 Cold first-hit (compile + execute) can be slower than classic execute on some documents; the wins
-below are for the **warm** path after the plan is cached. Speculative "classic on miss, compile in
-the background" is intentionally out of scope for this release.
+below are for the **warm** path after the plan is cached. Default mode is speculative: classic
+execute on a cache miss, with a background compile so later hits are warm.
 
 ## How to use it effectively
 
