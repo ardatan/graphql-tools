@@ -123,11 +123,19 @@ export function composeResolvers<Resolvers extends Record<string, any>>(
     }
   }
 
+  const composedResolvers: Record<string, any> = { ...resolvers };
   for (const path in mappingResult) {
     const fns = chainFunctions([...asArray(mappingResult[path]), () => _.get(resolvers, path)]);
+    const pathParts = path.split('.');
+    let target = composedResolvers;
 
-    _.set(resolvers, path, fns());
+    for (const part of pathParts.slice(0, -1)) {
+      target[part] = { ...target[part] };
+      target = target[part];
+    }
+
+    target[pathParts[pathParts.length - 1]] = fns();
   }
 
-  return resolvers;
+  return composedResolvers as Resolvers;
 }
