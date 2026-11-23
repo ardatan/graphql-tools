@@ -28,7 +28,7 @@ import {
   isExecutionPlanningEnabled,
   setExecutionPlanningEnabled,
 } from '../../execute.js';
-import { compileExecutionPlan, getExecutionPlan } from '../../plan.js';
+import { compileExecutionPlan, getExecutionPlan, isExecutionPlan } from '../../plan.js';
 
 describe('execution planning dual-mode switch', () => {
   const schema = new GraphQLSchema({
@@ -177,7 +177,7 @@ describe('classic independent expected results (planning off)', () => {
     expect(executeSync({ schema, document })).toEqual({ data: { hello: 'x' } });
     expect(getExecutionPlan(schema, document)).toBeUndefined();
     // Explicit compile is independent of the kill-switched execute path.
-    expect(compileExecutionPlan({ schema, document })).toBeDefined();
+    expect(isExecutionPlan(compileExecutionPlan({ schema, document }))).toBe(true);
   });
 
   it('async list reject localizes path without planning', async () => {

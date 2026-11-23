@@ -30,6 +30,7 @@ import {
 } from '../../execute.js';
 import {
   compileExecutionPlan,
+  getExecutionPlan,
   getPlannedFieldPlan,
   getPlannedSubfields,
   isExecutionPlan,
@@ -2198,6 +2199,109 @@ describe('object-list thin path: r8 differential matrix', () => {
     expect(planned).toEqual({ data: { values: ['1', '3'] } });
     expect(planned).toEqual(classic);
   });
+
+  it('trims leaf-list output when serialize truncates the input array', () => {
+    let values: Array<unknown> = [];
+    const Truncating = new GraphQLScalarType({
+      name: 'TruncatingSer',
+      serialize(value: unknown) {
+        if (value === 1) {
+          values.length = 1;
+          return '1';
+        }
+        return String(value);
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(new GraphQLNonNull(Truncating)),
+            resolve() {
+              values = [1, 2];
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    const planned = executeSync({ schema, document });
+    const classic = executeClassicSync({ schema, document });
+    expect(planned).toEqual({ data: { values: ['1'] } });
+    expect(planned).toEqual(classic);
+  });
+
+  it('keeps indexed traversal when serialize installs a custom iterator', async () => {
+    const document = parse('{ values }');
+    const makeSchema = () => {
+      let values: Array<unknown> = [];
+      const FlipIter = new GraphQLScalarType({
+        name: 'FlipIterSer',
+        serialize(value: unknown) {
+          if (value === 1) {
+            (values as { [Symbol.iterator]: () => Iterator<unknown> })[Symbol.iterator] =
+              function* () {
+                yield 9;
+              };
+            return Promise.resolve('1');
+          }
+          return String(value);
+        },
+      });
+      return new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            values: {
+              type: new GraphQLList(FlipIter),
+              resolve() {
+                values = [1, 2];
+                return values;
+              },
+            },
+          },
+        }),
+      });
+    };
+    const planned = await execute({ schema: makeSchema(), document });
+    const classic = await executeClassic({ schema: makeSchema(), document });
+    expect(planned).toEqual({ data: { values: ['1', '2'] } });
+    expect(planned).toEqual(classic);
+  });
+
+  it('classic knownPlan=null does not compile or cache a plan', () => {
+    let parseLiteralCalls = 0;
+    const Echo = new GraphQLScalarType({
+      name: 'EchoClassicNull',
+      serialize: value => value,
+      parseValue: value => value,
+      parseLiteral(ast) {
+        parseLiteralCalls += 1;
+        return valueFromASTUntyped(ast);
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          echo: {
+            type: Echo,
+            args: { msg: { type: Echo } },
+            resolve: (_s, args: { msg: unknown }) => args.msg,
+          },
+        },
+      }),
+    });
+    const document = parse(`{ echo(msg: "hi") }`);
+    clearExecutionPlanCache(document);
+    const classic = executeClassicSync({ schema, document });
+    expect(classic).toEqual({ data: { echo: 'hi' } });
+    expect(getExecutionPlan(schema, document)).toBeUndefined();
+    // Classic coercion ran parseLiteral once; plan compile did not add another.
+    expect(parseLiteralCalls).toBe(1);
+  });
 });
 
 describe('list completion: observe pending without re-inspect', () => {
@@ -2403,17 +2507,20 @@ describe('differential parity: classic vs planned (R9)', () => {
         }),
       });
       const document = parse('query ($v: String) { echo(v: $v) }');
-      clearExecutionPlanCache();
+      clearExecutionPlanCache(document);
       const cold = executeSync({
         schema,
         document,
         variableValues: { v: 'cold' },
       });
+      const coldPlan = getExecutionPlan(schema, document);
+      expect(isExecutionPlan(coldPlan)).toBe(true);
       const warm = executeSync({
         schema,
         document,
         variableValues: { v: 'warm' },
       });
+      expect(getExecutionPlan(schema, document)).toBe(coldPlan);
       const classicCold = executeClassicSync({
         schema,
         document,

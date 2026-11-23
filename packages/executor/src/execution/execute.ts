@@ -118,6 +118,18 @@ import { promiseForObject } from './promiseForObject.js';
 import { ALWAYS_INCLUDE } from './skipIncludePredicates.js';
 
 export { defaultFieldResolver, defaultTypeResolver };
+
+/**
+ * Mark a field-local thenable's rejection as observed without consuming it for
+ * the normal join. Needed when a root runner can throw / settle before
+ * `promiseForObject` attaches handlers.
+ */
+function observeFieldLocalPromise(promise: PromiseLike<unknown>): void {
+  Promise.resolve(promise).then(
+    () => undefined,
+    () => undefined,
+  );
+}
 /** Drop cached plans for a document (schema mutation / tests / benches). */
 export {
   clearExecutionPlanCache,
@@ -565,6 +577,7 @@ type ResolvedExecutionRequest<TVariables = any, TContext = any> = ExecutionArgsS
 
 function resolveExecutionRequest<TData = any, TVariables = any, TContext = any>(
   args: ExecuteArgs<TData, TVariables, TContext>,
+  options?: { skipPlan?: boolean },
 ): ResolvedExecutionRequest<TVariables, TContext> {
   const {
     rootValue,
@@ -610,6 +623,17 @@ function resolveExecutionRequest<TData = any, TVariables = any, TContext = any>(
   // Validate before cold plan compile so custom scalar parseLiteral (and
   // similar) never runs against an invalid schema.
   assertValidSchema(schema);
+  // Classic differential helpers pass knownPlan=null: skip compile/cache so
+  // parseLiteral (and friends) only run once during classic coercion.
+  if (options?.skipPlan) {
+    return {
+      ...shared,
+      schema,
+      document,
+      operationName,
+      knownPlan: undefined,
+    };
+  }
   const knownPlan =
     resolvePlanForExecute({
       schema,
@@ -784,7 +808,11 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
   args: ExecuteArgs<TData, TVariables, TContext>,
   knownPlan?: ExecutionPlan | null,
 ): ReadonlyArray<GraphQLError> | ExecutionContext {
-  const resolved = resolveExecutionRequest(args);
+  // Honor explicit null before automatic lookup so classic helpers never
+  // compile/cache a plan (and never double-run custom scalar parseLiteral).
+  const resolved = resolveExecutionRequest(args, {
+    skipPlan: knownPlan === null,
+  });
   const {
     schema,
     document,
@@ -1431,6 +1459,7 @@ function executeFieldsClassic(
         results[responseName] = result;
         if (isPromise(result)) {
           containsPromise = true;
+          observeFieldLocalPromise(result);
         }
       }
     }
@@ -1766,6 +1795,7 @@ function executeFields(
             results[responseName] = result;
             if (isPromise(result)) {
               containsPromise = true;
+              observeFieldLocalPromise(result);
             }
           }
         }
@@ -1786,6 +1816,7 @@ function executeFields(
           results[responseName] = result;
           if (isPromise(result)) {
             containsPromise = true;
+            observeFieldLocalPromise(result);
           }
         }
       }
@@ -1830,6 +1861,11 @@ function executeFields(
     throw error;
   }
   if (rootRunner != null) {
+    // Keys that were field-local thenables at join time — do not let the
+    // promiseForObject snapshot overwrite root-runner writes.
+    const fieldLocalKeys: Array<string> | undefined = containsPromise
+      ? Object.keys(results).filter(key => isPromise(results[key]))
+      : undefined;
     const settled = rootRunner.runUntilSettled();
     if (isPromise(settled)) {
       // Observe field-local promises immediately (not after the root runner),
@@ -1839,14 +1875,12 @@ function executeFields(
       const done =
         fieldLocal != null && isPromise(fieldLocal)
           ? Promise.all([settled, fieldLocal]).then(([, fields]) => {
-              // `fields` is a snapshot that may still hold root-runner
-              // placeholders (`count: undefined`). Merge only slots that are
-              // still thenables in the live `results` map (field-local lists);
-              // root-runner writes into `results` directly.
               const fieldMap = fields as Record<string, unknown>;
-              for (const key of Object.keys(fieldMap)) {
-                if (isPromise(results[key])) {
-                  results[key] = fieldMap[key];
+              if (fieldLocalKeys != null) {
+                for (const key of fieldLocalKeys) {
+                  if (isPromise(results[key])) {
+                    results[key] = fieldMap[key];
+                  }
                 }
               }
               return results;
@@ -2577,6 +2611,9 @@ function completePlannedLeafListValue(
   const coordinateInfo =
     exeContext.schemaCoordinateInErrors &&
     schemaCoordinateInfo(fieldPlan.fieldDef, fieldPlan.parentType);
+  // Capture before any serialize — a serialize that installs a custom iterator
+  // must not flip an in-flight indexed walk to for-of from index 0.
+  const indexedTraversal = usesDefaultArrayIterator(result);
   // Built-in GraphQLString serializer only (module-load identity). A replaced
   // GraphQLString.serialize or any other scalar must take the normal leaf path.
   const stringLeafFast = leafType.serialize === GRAPHQL_STRING_SERIALIZE;
@@ -2596,7 +2633,7 @@ function completePlannedLeafListValue(
   // index with the already-read value (do not re-hit earlier accessors).
   let retainedResume:
     { index: number; item: unknown; completedResults: Array<unknown> } | undefined;
-  if (usesDefaultArrayIterator(result)) {
+  if (indexedTraversal) {
     // Hot path: GraphQLString + primitives in one pass (single slot read, no
     // intermediate items[]). On mid-list unsupported value, keep the prefix
     // and resume below with the already-read failing slot.
@@ -2655,8 +2692,10 @@ function completePlannedLeafListValue(
     if (retainedResume == null) {
       const completedResults: Array<unknown> = new Array(result.length);
       let ok = true;
+      let visited = 0;
       for (let i = 0; i < result.length; i++) {
         const item = result[i];
+        visited = i + 1;
         const t = typeof item;
         if (
           item == null ||
@@ -2707,6 +2746,10 @@ function completePlannedLeafListValue(
         }
       }
       if (ok) {
+        // Serializer may truncate the input mid-walk; do not keep unread holes.
+        if (visited < completedResults.length) {
+          completedResults.length = visited;
+        }
         return completedResults;
       }
       // Thenable serialize or non-primitive mid-list — continue below.
@@ -2717,7 +2760,7 @@ function completePlannedLeafListValue(
     ? pendingSerialize.completedResults
     : retainedResume
       ? retainedResume.completedResults
-      : usesDefaultArrayIterator(result)
+      : indexedTraversal
         ? new Array(result.length)
         : [];
   let listBubbled: unknown;
@@ -2936,7 +2979,7 @@ function completePlannedLeafListValue(
   if (pendingSerialize) {
     settleSerializedPromise(pendingSerialize.index, pendingSerialize.promise);
   }
-  if (usesDefaultArrayIterator(result)) {
+  if (indexedTraversal) {
     let startIndex = 0;
     if (pendingSerialize) {
       // First thenable serialize is settled above; unread later slots are read
@@ -2950,14 +2993,28 @@ function completePlannedLeafListValue(
         startIndex = retainedResume.index + 1;
       }
     }
+    let visitedIndex = startIndex;
     for (let index = startIndex; index < result.length; index++) {
-      if (!consumeItem(index, result[index])) {
+      // After an earlier NonNull bubble, do not touch later accessors (classic).
+      if (listBubbled !== undefined) {
         break;
       }
+      if (!consumeItem(index, result[index])) {
+        visitedIndex = index + 1;
+        break;
+      }
+      visitedIndex = index + 1;
+    }
+    // Serializer may truncate the input; trim unread preallocated holes.
+    if (listBubbled === undefined && visitedIndex < completedResults.length) {
+      completedResults.length = visitedIndex;
     }
   } else {
     let index = 0;
     for (const item of result as Iterable<unknown>) {
+      if (listBubbled !== undefined) {
+        break;
+      }
       if (!consumeItem(index, item)) {
         break;
       }
