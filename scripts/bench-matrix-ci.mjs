@@ -51,6 +51,8 @@ const EXECUTE_CASES = {
   asyncRoot: { label: 'Async root fields (1000)' },
   nested: { label: 'Nested default-resolver (200)' },
   denseSkip: { label: 'Dense @skip/@include (40)' },
+  fragmentsAbstract: { label: 'fragmentsAbstract' },
+  mixedSyncMethods: { label: 'mixedSyncMethods' },
 };
 
 /** executeSync key rows (same three-way matrix). */
