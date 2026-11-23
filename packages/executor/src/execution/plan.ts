@@ -232,14 +232,16 @@ function setCachedPlanEntry(
 function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCacheEntry {
   const { schema, document, operationName } = args;
 
-  const hasIncremental = documentHasIncrementalDirectives(document);
-
-  const fragments = collectFragments(document);
+  // Resolve the operation first so unknown names reject without scanning the
+  // whole document for incremental directives / fragments.
   const operationResult = resolveOperation(document, operationName);
   if ('errors' in operationResult) {
     return { kind: 'errors', errors: operationResult.errors };
   }
   const { operation } = operationResult;
+
+  const hasIncremental = documentHasIncrementalDirectives(document);
+  const fragments = collectFragments(document);
 
   let rootType: GraphQLObjectType;
   try {

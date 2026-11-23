@@ -41,14 +41,34 @@ export class PlannedWorkRunner {
       return;
     }
     this._pending++;
+    // One completion per registration: sync throw from `.then`, fulfillment,
+    // and rejection must not double-decrement `_pending`.
+    let completed = false;
+    const complete = (callback: () => void): void => {
+      if (completed) {
+        return;
+      }
+      completed = true;
+      if (this._settled) {
+        this._pending--;
+        return;
+      }
+      try {
+        callback();
+        this._pending--;
+        this._drainIfReadyOrQueued();
+      } catch (error) {
+        this._pending--;
+        this._fail(error);
+      }
+    };
     try {
       promise.then(
-        value => this._completeResolved(value, onResolve),
-        (reason: unknown) => this._completeRejected(reason, onReject),
+        value => complete(() => onResolve(value)),
+        (reason: unknown) => complete(() => onReject(reason)),
       );
     } catch (error) {
-      this._pending--;
-      onReject(error);
+      complete(() => onReject(error));
     }
   }
 
@@ -167,38 +187,6 @@ export class PlannedWorkRunner {
     this._reject = undefined;
     if (reject !== undefined) {
       reject(error);
-    }
-  }
-
-  private _completeResolved<T>(value: T, onResolve: (value: T) => void): void {
-    if (this._settled) {
-      this._pending--;
-      return;
-    }
-    try {
-      onResolve(value);
-      this._pending--;
-      this._drainIfReadyOrQueued();
-    } catch (error) {
-      this._pending--;
-      this._fail(error);
-    }
-  }
-
-  private _completeRejected(reason: unknown, onReject: (reason: unknown) => void): void {
-    if (this._settled) {
-      this._pending--;
-      return;
-    }
-    try {
-      onReject(reason);
-      this._pending--;
-      this._drainIfReadyOrQueued();
-    } catch (error) {
-      // Non-null field bubbles from onReject must fail the runner (same as
-      // sync onResolve throws) — never escape as an unhandled rejection.
-      this._pending--;
-      this._fail(error);
     }
   }
 

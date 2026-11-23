@@ -110,6 +110,7 @@ import {
 import { PlannedWorkRunner } from './plannedWorkRunner.js';
 import { EMPTY_ARGS, EMPTY_VARIABLE_VALUES, isGraphQL17 } from './planShared.js';
 import { promiseForObject } from './promiseForObject.js';
+import { ALWAYS_INCLUDE } from './skipIncludePredicates.js';
 
 export { defaultFieldResolver, defaultTypeResolver };
 /** Drop cached plans for a document (schema mutation / tests / benches). */
@@ -352,6 +353,9 @@ const getConditionalSubfieldProgram = memoize4(function getConditionalSubfieldPr
 ): ConditionalCollectProgram {
   const entries: ConditionalFieldEntry[] = [];
   const visitedFragmentNames = new Set<string>();
+  // Shared across merged field nodes so a conditional then unconditional
+  // spread of the same fragment bails to classic collect (spec merge).
+  const conditionalVisits = new Set<string>();
   for (const fieldNode of fieldNodes) {
     if (fieldNode.selectionSet == null) {
       continue;
@@ -364,6 +368,8 @@ const getConditionalSubfieldProgram = memoize4(function getConditionalSubfieldPr
         fieldNode.selectionSet,
         entries,
         visitedFragmentNames,
+        ALWAYS_INCLUDE,
+        conditionalVisits,
       )
     ) {
       return null;
@@ -1400,6 +1406,10 @@ function executeFields(
                 if (rootAsync) {
                   rootRunner ??= new PlannedWorkRunner();
                   const slot = responseName;
+                  // Placeholder before awaitValue: inline-fulfilled thenables
+                  // write the slot inside registration; a trailing undefined
+                  // would clobber that value.
+                  results[slot] = undefined;
                   rootRunner.awaitValue(
                     objectListResult,
                     value => {
@@ -1409,7 +1419,6 @@ function executeFields(
                       throw coerceError(reason);
                     },
                   );
-                  results[slot] = undefined;
                 } else {
                   containsPromise = true;
                 }
@@ -1469,6 +1478,7 @@ function executeFields(
               const serialized = leafType.serialize(value);
               if (isPromise(serialized)) {
                 rootRunner ??= new PlannedWorkRunner();
+                results[slot] = undefined;
                 rootRunner.awaitValue(
                   serialized,
                   resolved => {
@@ -1489,7 +1499,6 @@ function executeFields(
                     );
                   },
                 );
-                results[slot] = undefined;
                 return;
               }
               if (serialized == null) {
@@ -1544,6 +1553,7 @@ function executeFields(
               if (isPromise(raw)) {
                 rootRunner ??= new PlannedWorkRunner();
                 const slot = responseName;
+                results[slot] = undefined;
                 rootRunner.awaitValue(
                   raw,
                   value => {
@@ -1564,7 +1574,6 @@ function executeFields(
                     );
                   },
                 );
-                results[slot] = undefined;
                 rootLeafHandled = true;
               } else {
                 completeRootLeafValue(raw, responseName);
@@ -1574,6 +1583,7 @@ function executeFields(
           } else if (isPromise(property)) {
             rootRunner ??= new PlannedWorkRunner();
             const slot = responseName;
+            results[slot] = undefined;
             rootRunner.awaitValue(
               property,
               value => {
@@ -1590,7 +1600,6 @@ function executeFields(
                 results[slot] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
               },
             );
-            results[slot] = undefined;
             rootLeafHandled = true;
           } else {
             completeRootLeafValue(property, responseName);
@@ -1613,6 +1622,7 @@ function executeFields(
           if (rootAsync && isPromise(result)) {
             rootRunner ??= new PlannedWorkRunner();
             const slot = responseName;
+            results[slot] = undefined;
             rootRunner.awaitValue(
               result,
               value => {
@@ -1622,7 +1632,6 @@ function executeFields(
                 throw coerceError(reason);
               },
             );
-            results[slot] = undefined;
           } else {
             results[responseName] = result;
             if (isPromise(result)) {
@@ -1656,8 +1665,18 @@ function executeFields(
       // Ensure that any promises returned by other fields are handled, as they may also reject.
       if (rootRunner != null) {
         const settled = rootRunner.runUntilSettled();
+        const fieldLocal = containsPromise
+          ? promiseForObject(results, exeContext.signal)
+          : undefined;
+        const waits: Array<PromiseLike<unknown>> = [];
         if (isPromise(settled)) {
-          return settled.then(
+          waits.push(settled);
+        }
+        if (fieldLocal != null && isPromise(fieldLocal)) {
+          waits.push(fieldLocal);
+        }
+        if (waits.length > 0) {
+          return Promise.all(waits).then(
             () => {
               throw error;
             },
@@ -1683,14 +1702,17 @@ function executeFields(
   if (rootRunner != null) {
     const settled = rootRunner.runUntilSettled();
     if (isPromise(settled)) {
-      // Field-local leaf lists may also leave promises in `results`; wait for
-      // both the root runner and those slots (unobserved rejections otherwise).
-      const done = settled.then(() =>
-        containsPromise
-          ? promiseForObject(results, exeContext.signal, exeContext.signalPromise)
-          : results,
-      );
-      if (exeContext.signalPromise && !containsPromise) {
+      // Observe field-local promises immediately (not after the root runner),
+      // so a rejecting leaf list cannot hang / go unhandled while a root field
+      // is still pending.
+      const fieldLocal = containsPromise
+        ? promiseForObject(results, exeContext.signal)
+        : undefined;
+      const done =
+        fieldLocal != null && isPromise(fieldLocal)
+          ? Promise.all([settled, fieldLocal]).then(([, fields]) => fields)
+          : settled.then(() => results);
+      if (exeContext.signalPromise) {
         return Promise.race([exeContext.signalPromise, done]);
       }
       return done;
