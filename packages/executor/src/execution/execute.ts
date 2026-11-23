@@ -2191,10 +2191,7 @@ function completePlannedLeafListValue(
             const rt = typeof resolved;
             if (rt !== 'object' && rt !== 'function') {
               try {
-                if (
-                  stringLeafFast &&
-                  (rt !== 'number' || Number.isFinite(resolved as number))
-                ) {
+                if (stringLeafFast && (rt !== 'number' || Number.isFinite(resolved as number))) {
                   completedResults[index] =
                     rt === 'string'
                       ? resolved
