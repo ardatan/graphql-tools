@@ -2009,3 +2009,340 @@ describe('execution plan', () => {
     expect(second).toEqual({ name: 'Ada' });
   });
 });
+
+describe('plain object-list single-pass (no speculative replay)', () => {
+  it('does not re-read a completed prefix when a later list item is a thenable', async () => {
+    let firstIdReads = 0;
+    let firstNameReads = 0;
+    let secondIdReads = 0;
+    const userType = new GraphQLObjectType({
+      name: 'PlainReplayUser',
+      fields: {
+        id: { type: GraphQLString },
+        name: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(userType) },
+        },
+      }),
+    });
+    const result = await execute({
+      schema,
+      document: parse('{ users { id name } }'),
+      rootValue: {
+        users: [
+          {
+            get id() {
+              firstIdReads += 1;
+              if (firstIdReads > 1) {
+                throw new Error('first id re-read');
+              }
+              return 'u1';
+            },
+            get name() {
+              firstNameReads += 1;
+              if (firstNameReads > 1) {
+                throw new Error('first name re-read');
+              }
+              return 'Ada';
+            },
+          },
+          {
+            get id() {
+              secondIdReads += 1;
+              return Promise.resolve('u2');
+            },
+            name: 'Grace',
+          },
+        ],
+      },
+    });
+    expect(result).toEqual({
+      data: {
+        users: [
+          { id: 'u1', name: 'Ada' },
+          { id: 'u2', name: 'Grace' },
+        ],
+      },
+    });
+    expect(firstIdReads).toBe(1);
+    expect(firstNameReads).toBe(1);
+    expect(secondIdReads).toBe(1);
+  });
+
+  it('invokes a leaf method once when a sibling list item declines', async () => {
+    let methodCalls = 0;
+    let nameReads = 0;
+    const userType = new GraphQLObjectType({
+      name: 'PlainMethodUser',
+      fields: {
+        id: { type: GraphQLString },
+        name: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(userType) },
+        },
+      }),
+    });
+    const result = await execute({
+      schema,
+      document: parse('{ users { id name } }'),
+      rootValue: {
+        users: [
+          {
+            get id() {
+              return () => {
+                methodCalls += 1;
+                if (methodCalls > 1) {
+                  throw new Error('id method re-invoked');
+                }
+                return 'u1';
+              };
+            },
+            get name() {
+              nameReads += 1;
+              if (nameReads > 1) {
+                throw new Error('name re-read');
+              }
+              return 'Ada';
+            },
+          },
+          {
+            id: Promise.resolve('u2'),
+            name: 'Grace',
+          },
+        ],
+      },
+    });
+    expect(result).toEqual({
+      data: {
+        users: [
+          { id: 'u1', name: 'Ada' },
+          { id: 'u2', name: 'Grace' },
+        ],
+      },
+    });
+    expect(methodCalls).toBe(1);
+    expect(nameReads).toBe(1);
+  });
+
+  it('serializes a custom scalar once when a later list item declines', async () => {
+    let serializeCount = 0;
+    const CountingScalar = new GraphQLScalarType({
+      name: 'CountingScalar',
+      serialize(value: unknown) {
+        serializeCount += 1;
+        return String(value);
+      },
+    });
+    const userType = new GraphQLObjectType({
+      name: 'PlainScalarUser',
+      fields: {
+        id: { type: CountingScalar },
+        name: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(userType) },
+        },
+      }),
+    });
+    const result = await execute({
+      schema,
+      document: parse('{ users { id name } }'),
+      rootValue: {
+        users: [
+          { id: 1, name: 'Ada' },
+          // Thenable list item declines the plain lane after the first item
+          // already serialized — must not re-serialize the completed prefix.
+          Promise.resolve({ id: 2, name: 'Grace' }),
+        ],
+      },
+    });
+    expect(result).toEqual({
+      data: {
+        users: [
+          { id: '1', name: 'Ada' },
+          { id: '2', name: 'Grace' },
+        ],
+      },
+    });
+    expect(serializeCount).toBe(2);
+  });
+
+  it('preserves partial nested object completion without re-reading getters', async () => {
+    let profileIdReads = 0;
+    let userNameReads = 0;
+    const profileType = new GraphQLObjectType({
+      name: 'PlainNestedProfile',
+      fields: {
+        id: { type: GraphQLString },
+        bio: { type: GraphQLString },
+      },
+    });
+    const userType = new GraphQLObjectType({
+      name: 'PlainNestedUser',
+      fields: {
+        profile: { type: profileType },
+        name: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(userType) },
+        },
+      }),
+    });
+    const result = await execute({
+      schema,
+      document: parse('{ users { profile { id bio } name } }'),
+      rootValue: {
+        users: [
+          {
+            profile: {
+              get id() {
+                profileIdReads += 1;
+                if (profileIdReads > 1) {
+                  throw new Error('profile.id re-read');
+                }
+                return 'p1';
+              },
+              bio: 'ok',
+            },
+            get name() {
+              userNameReads += 1;
+              if (userNameReads > 1) {
+                throw new Error('name re-read');
+              }
+              return 'Ada';
+            },
+          },
+          {
+            profile: Promise.resolve({ id: 'p2', bio: 'later' }),
+            name: 'Grace',
+          },
+        ],
+      },
+    });
+    expect(result).toEqual({
+      data: {
+        users: [
+          { profile: { id: 'p1', bio: 'ok' }, name: 'Ada' },
+          { profile: { id: 'p2', bio: 'later' }, name: 'Grace' },
+        ],
+      },
+    });
+    expect(profileIdReads).toBe(1);
+    expect(userNameReads).toBe(1);
+  });
+
+  it('reports a method-returned Error on a list field instead of Expected Iterable', () => {
+    const userType = new GraphQLObjectType({
+      name: 'PlainErrorListUser',
+      fields: {
+        id: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(userType) },
+        },
+      }),
+    });
+    const result = executeSync({
+      schema,
+      document: parse('{ users { id } }'),
+      rootValue: {
+        users() {
+          return new Error('missing');
+        },
+      },
+    });
+    expect(result).toEqual({
+      data: { users: null },
+      errors: [expect.objectContaining({ message: 'missing' })],
+    });
+  });
+
+  it('invokes a resolver installed after plan compile on a list field', () => {
+    const userType = new GraphQLObjectType({
+      name: 'LiveResolveUser',
+      fields: {
+        id: { type: GraphQLString },
+      },
+    });
+    const query = new GraphQLObjectType({
+      name: 'Query',
+      fields: {
+        users: { type: new GraphQLList(userType) },
+      },
+    });
+    const schema = new GraphQLSchema({ query });
+    const document = parse('{ users { id } }');
+    // Warm the plan while users still uses default property resolve.
+    expect(
+      executeSync({
+        schema,
+        document,
+        rootValue: { users: [{ id: 'warm' }] },
+      }),
+    ).toEqual({ data: { users: [{ id: 'warm' }] } });
+    // Install a field resolver after compile; live check must invoke it.
+    query.getFields().users.resolve = () => [{ id: 'live' }];
+    const result = executeSync({
+      schema,
+      document,
+      rootValue: { users: [{ id: 'stale-default' }] },
+    });
+    expect(result).toEqual({ data: { users: [{ id: 'live' }] } });
+  });
+
+  it('stops at live list length when a getter truncates remaining slots', () => {
+    const userType = new GraphQLObjectType({
+      name: 'PlainTruncateUser',
+      fields: {
+        id: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(userType) },
+        },
+      }),
+    });
+    const users: Array<{ id: string } | undefined> = [
+      {
+        get id() {
+          users.length = 1;
+          return 'u1';
+        },
+      },
+      { id: 'u2-should-not-read' },
+    ];
+    const result = executeSync({
+      schema,
+      document: parse('{ users { id } }'),
+      rootValue: { users },
+    });
+    expect(result).toEqual({
+      data: { users: [{ id: 'u1' }] },
+    });
+  });
+});

@@ -1923,12 +1923,10 @@ function executeObjectListFieldThin(
   fieldPlan: ListFieldPlan,
 ): MaybePromise<ReadonlyArray<unknown> | null> | undefined {
   const objectType = fieldPlan.objectType;
-  // Match pre-CR gate: compile-time defaultProperty. Skip live fieldDef.resolve
-  // on the hot nestedDefault path (same as tryFast / d98).
-  if (objectType == null || fieldPlan.resolveKind !== 'defaultProperty') {
-    return undefined;
-  }
-  if (exeContext.fieldResolver !== defaultFieldResolver) {
+  // Live default-property check: a resolver installed after plan compile must
+  // still be invoked. Unchanged default-resolved fields (nestedDefault) keep
+  // the direct property path via isLiveDefaultPropertyResolve.
+  if (objectType == null || !isLiveDefaultPropertyResolve(fieldPlan, exeContext)) {
     return undefined;
   }
   const plan = exeContext.plan;
@@ -2036,7 +2034,12 @@ function executeObjectListFieldThin(
         },
       );
     }
-    // Sync hot path (nestedDefault): call list complete directly — match d98.
+    // Method / property returned an Error — throw so handleFieldError applies
+    // nullability (do not pass Error into list completion as a fake iterable).
+    if (result instanceof Error) {
+      throw result;
+    }
+    // Sync hot path (nestedDefault): call list complete directly.
     // Promise results still go through handleFieldError like thinResolved.
     const thin = completePlannedObjectListValue(
       exeContext,
@@ -2075,6 +2078,9 @@ function completeObjectListThinResolved(
   locate: (rawError: unknown) => GraphQLError,
 ): MaybePromise<ReadonlyArray<unknown> | null> {
   try {
+    if (resolved instanceof Error) {
+      throw resolved;
+    }
     const thin = completePlannedObjectListValue(
       exeContext,
       fieldPlan,
@@ -2119,28 +2125,38 @@ function completeObjectListThinResolved(
   }
 }
 
-function executePlannedSyncObjectFieldsD98(
+/**
+ * Plain default-property sync object walk (nullable leaves/objects, no args).
+ * Happy path stays lean (nestedDefault). On mid-walk decline after completed
+ * fields or side effects, returns ThinObjectPartial so callers do not replay.
+ */
+function executePlannedSyncObjectFieldsPlain(
   exeContext: ExecutionContext,
   parentType: GraphQLObjectType,
   sourceValue: unknown,
   path: Path,
   plannedExecutions: ReadonlyArray<PlannedFieldExecution>,
-): Record<string, unknown> | undefined {
+): Record<string, unknown> | ThinObjectPartial | undefined {
   if (!isObjectLike(sourceValue) && typeof sourceValue !== 'function') {
     return undefined;
   }
   const source = sourceValue as Record<string, unknown>;
   const results: Record<string, unknown> = Object.create(null);
+  let pendingLeaves: Map<string, PendingLeafEntry> | undefined;
+  const signal = exeContext.signal;
   for (const execution of plannedExecutions) {
+    if (signal != null) {
+      signal.throwIfAborted();
+    }
     const { responseName, fieldNodes, fieldPlan } = execution;
     if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
-      return undefined;
+      return thinObjectMiss(results, false, pendingLeaves);
     }
     let property: unknown = source[fieldPlan.fieldDef.name];
     if (typeof property === 'function') {
       // One-shot getters may return a method — invoke leaf methods once.
       if (fieldPlan.kind !== 'leaf' || fieldPlan.leafType == null) {
-        return undefined;
+        return thinObjectMiss(results, false, pendingLeaves);
       }
       try {
         property = (
@@ -2162,83 +2178,159 @@ function executePlannedSyncObjectFieldsD98(
           ),
         );
       } catch {
-        return undefined;
+        return thinObjectMiss(results, false, pendingLeaves);
       }
       if (property != null && typeof property === 'object' && isPromise(property)) {
-        // Fast lane declines; CR Phase A/B / PreCR carries pendingLeaves.
-        (property as Promise<unknown>).then(undefined, () => undefined);
-        return undefined;
+        pendingLeaves = registerThinPendingLeaf(
+          results,
+          pendingLeaves,
+          parentType,
+          responseName,
+          property as Promise<unknown>,
+          fieldNodes,
+          fieldPlan,
+        );
+        continue;
       }
     } else if (property instanceof Error) {
-      return undefined;
+      return thinObjectMiss(results, false, pendingLeaves);
     }
     // Avoid isPromise on plain data (nested bench); only gate real thenables.
     if (property != null && typeof property === 'object' && isPromise(property)) {
-      return undefined;
+      if (fieldPlan.kind === 'leaf' && fieldPlan.leafType != null) {
+        pendingLeaves = registerThinPendingLeaf(
+          results,
+          pendingLeaves,
+          parentType,
+          responseName,
+          property as Promise<unknown>,
+          fieldNodes,
+          fieldPlan,
+        );
+        continue;
+      }
+      return thinObjectMiss(results, false, pendingLeaves);
     }
     if (fieldPlan.kind === 'leaf' && fieldPlan.leafType != null) {
       if (property == null) {
         if (fieldPlan.nonNull) {
-          // NonNull bubble — classic path for exact error handling.
-          return undefined;
+          return thinObjectMiss(results, false, pendingLeaves);
         }
         results[responseName] = null;
         continue;
       }
       try {
         const serialized = fieldPlan.leafType.serialize(property);
-        if (serialized == null || isPromise(serialized)) {
-          return undefined;
+        if (serialized == null) {
+          return thinObjectMiss(results, false, pendingLeaves);
+        }
+        if (typeof serialized === 'object' && isPromise(serialized)) {
+          pendingLeaves = registerThinPendingLeaf(
+            results,
+            pendingLeaves,
+            parentType,
+            responseName,
+            serialized as Promise<unknown>,
+            fieldNodes,
+            fieldPlan,
+          );
+          continue;
         }
         results[responseName] = serialized;
       } catch {
-        return undefined;
+        return thinObjectMiss(results, false, pendingLeaves);
       }
       continue;
     }
     if (fieldPlan.kind === 'object' && fieldPlan.skipIsTypeOf && fieldPlan.objectType != null) {
       if (property == null) {
         if (fieldPlan.nonNull) {
-          return undefined;
+          return thinObjectMiss(results, false, pendingLeaves);
         }
         results[responseName] = null;
         continue;
       }
       if (!isObjectLike(property)) {
-        return undefined;
+        return thinObjectMiss(results, false, pendingLeaves);
       }
       const plan = exeContext.plan;
       if (plan == null) {
-        return undefined;
+        return thinObjectMiss(results, false, pendingLeaves);
       }
-      const subExecutions = getPlannedSubfieldExecutions(plan, fieldNodes, fieldPlan.objectType);
-      if (subExecutions == null) {
-        return undefined;
+      const rawSub = getPlannedSubfieldExecutions(plan, fieldNodes, fieldPlan.objectType);
+      if (rawSub == null) {
+        return thinObjectMiss(results, false, pendingLeaves);
       }
-      const nested = executePlannedSyncObjectFieldsD98(
+      const nestedSub =
+        plan.skipIncludePredicates === true
+          ? filterPlannedExecutions(rawSub, exeContext.variableValues)
+          : rawSub;
+      const nested = executePlannedSyncObjectFieldsPlain(
         exeContext,
         fieldPlan.objectType,
         property,
         addPath(path, responseName, parentType.name),
-        subExecutions,
+        nestedSub,
       );
       if (nested === undefined) {
-        return undefined;
+        return thinObjectMiss(results, false, pendingLeaves);
+      }
+      if (isThinObjectPartial(nested)) {
+        const finished = finishThinObjectPartial(
+          exeContext,
+          fieldPlan.objectType,
+          property,
+          addPath(path, responseName, parentType.name),
+          nestedSub,
+          nested,
+        );
+        if (isPromise(finished)) {
+          results[responseName] = undefined;
+          const parentPartial = thinObjectMiss(results, true, pendingLeaves) as ThinObjectPartial;
+          return {
+            ...parentPartial,
+            pendingFieldWork: [
+              ...(parentPartial.pendingFieldWork ?? []),
+              finished.then(value => {
+                results[responseName] = value;
+              }),
+            ],
+          };
+        }
+        results[responseName] = finished;
+        continue;
       }
       results[responseName] = nested;
       continue;
     }
-    // List / Abstract / LeafList — decline.
-    return undefined;
+    // List / Abstract / LeafList — decline without replaying completed fields.
+    return thinObjectMiss(results, false, pendingLeaves);
+  }
+  if (pendingLeaves != null) {
+    return thinObjectMiss(results, false, pendingLeaves);
   }
   return results;
 }
 
+/** Handoff from the plain list fast path into the single-pass remainder path. */
+type PlainObjectListHandoff = {
+  readonly kind: 'handoff';
+  readonly completedResults: Array<unknown>;
+  readonly index: number;
+  readonly stashedNested:
+    Record<string, unknown> | ThinObjectPartial | undefined | typeof STASH_SLIM_DECLINED;
+  readonly hasStash: boolean;
+  readonly pendingBubbled: unknown;
+  readonly stashedItem: unknown;
+  readonly hasStashedItem: boolean;
+};
+
 /**
- * Exact pre-CR d98 object-list complete. Returns undefined on any decline so
- * the CR Phase A/B path can run. nestedDefault never declines — absolute Hz.
+ * Plain default-property object-list complete. Full success returns the array.
+ * On decline after consuming any slot, returns a handoff so the caller continues
+ * from that index without re-running the completed prefix (single-pass).
  */
-function tryCompletePlannedObjectListD98(
+function tryCompletePlannedObjectListPlain(
   exeContext: ExecutionContext,
   _fieldPlan: FieldPlan,
   _fieldNodes: Array<FieldNode>,
@@ -2247,22 +2339,40 @@ function tryCompletePlannedObjectListD98(
   itemObjectType: GraphQLObjectType,
   itemNonNull: boolean,
   subExecutions: ReadonlyArray<PlannedFieldExecution>,
-): ReadonlyArray<unknown> | null | undefined {
-  // Byte-close to pre-CR d98 list complete. nestedDefault never declines.
+): ReadonlyArray<unknown> | PlainObjectListHandoff {
+  // Live length: a getter may truncate the source array between slots.
   const completedResults: Array<unknown> = new Array(result.length);
   for (let index = 0; index < result.length; index++) {
     const item = result[index];
     if (item == null) {
       if (itemNonNull) {
-        return undefined;
+        return {
+          kind: 'handoff',
+          completedResults,
+          index,
+          stashedNested: undefined,
+          hasStash: false,
+          pendingBubbled: undefined,
+          stashedItem: item,
+          hasStashedItem: true,
+        };
       }
       completedResults[index] = null;
       continue;
     }
     if (!isObjectLike(item) || isPromise(item) || item instanceof Error) {
-      return undefined;
+      return {
+        kind: 'handoff',
+        completedResults,
+        index,
+        stashedNested: undefined,
+        hasStash: false,
+        pendingBubbled: undefined,
+        stashedItem: item,
+        hasStashedItem: true,
+      };
     }
-    const nested = executePlannedSyncObjectFieldsD98(
+    const nested = executePlannedSyncObjectFieldsPlain(
       exeContext,
       itemObjectType,
       item,
@@ -2270,21 +2380,45 @@ function tryCompletePlannedObjectListD98(
       subExecutions,
     );
     if (nested === undefined) {
-      return undefined;
+      return {
+        kind: 'handoff',
+        completedResults,
+        index,
+        stashedNested: STASH_SLIM_DECLINED,
+        hasStash: true,
+        pendingBubbled: undefined,
+        stashedItem: item,
+        hasStashedItem: true,
+      };
+    }
+    if (isThinObjectPartial(nested)) {
+      return {
+        kind: 'handoff',
+        completedResults,
+        index,
+        stashedNested: nested,
+        hasStash: true,
+        pendingBubbled: undefined,
+        stashedItem: item,
+        hasStashedItem: true,
+      };
     }
     completedResults[index] = nested;
   }
+  completedResults.length = result.length;
   return completedResults;
 }
 
-function subExecutionsAreD98Plain(subExecutions: ReadonlyArray<PlannedFieldExecution>): boolean {
+function subExecutionsArePlainDefault(
+  subExecutions: ReadonlyArray<PlannedFieldExecution>,
+): boolean {
   for (const execution of subExecutions) {
     const { fieldPlan } = execution;
     if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
       return false;
     }
-    // NonNull fields: getter throws need CR try/catch for item-local nulling.
-    // nestedDefault benches use nullable fields and stay on the fast lane.
+    // NonNull fields: getter throws need the remainder path for item-local nulling.
+    // nestedDefault benches use nullable fields and stay on the plain fast lane.
     if (fieldPlan.nonNull) {
       return false;
     }
@@ -2327,12 +2461,11 @@ function completePlannedObjectListValue(
   if (result[Symbol.iterator] !== Array.prototype[Symbol.iterator]) {
     return undefined;
   }
-  // Exact d98 fast lane for plain defaultProperty selections (nestedDefault).
-  // Declines fall through to CR Phase A/B without having taken this path when
-  // subExecutions have args / non-default resolves. Method/getter one-shot
-  // edges still use CR below (D98 declines those with undefined).
-  if (subExecutionsAreD98Plain(subExecutions)) {
-    const fast = tryCompletePlannedObjectListD98(
+  // Plain default-property fast lane (nestedDefault). Full success returns the
+  // array; any decline returns a handoff so the remainder path continues from
+  // that index without re-running the completed prefix (single-pass).
+  if (subExecutionsArePlainDefault(subExecutions)) {
+    const fast = tryCompletePlannedObjectListPlain(
       exeContext,
       fieldPlan,
       fieldNodes,
@@ -2342,23 +2475,44 @@ function completePlannedObjectListValue(
       itemNonNull,
       subExecutions,
     );
-    if (fast !== undefined) {
-      return fast;
+    if (
+      !Array.isArray(fast) &&
+      fast != null &&
+      (fast as PlainObjectListHandoff).kind === 'handoff'
+    ) {
+      const handoff = fast as PlainObjectListHandoff;
+      return completePlannedObjectListValuePhaseB(
+        exeContext,
+        fieldPlan,
+        fieldNodes,
+        path,
+        result,
+        itemObjectType,
+        itemNonNull,
+        subExecutions,
+        handoff.completedResults,
+        handoff.index,
+        handoff.stashedNested,
+        handoff.hasStash,
+        handoff.pendingBubbled,
+        handoff.hasStashedItem ? handoff.stashedItem : undefined,
+        handoff.hasStashedItem,
+      );
     }
+    return fast as ReadonlyArray<unknown>;
   }
 
-  // Single-pass CR: read one slot, complete it, then the next — match classic
-  // interleaving so a NonNull failure never touches later accessors. No
+  // Single-pass remainder: read one slot, complete it, then the next — match
+  // classic interleaving so a NonNull failure never touches later accessors. No
   // speculative preflight and no Proxy; each slot is observed at most once.
   // Sync object items use a direct assign when the thin walk returns a plain
   // map (nestedDefault); partials/promises still go through finishThin.
-  // Prefer slim first (pre-CR shape) for plain bags — allocate ResolveInfo /
-  // async helpers only when an item needs them.
+  // Prefer slim first for plain bags — allocate ResolveInfo / async helpers
+  // only when an item needs them.
   const completedResults: Array<unknown> = new Array(result.length);
 
-  // Absolute hot path — pre-CR list+walker (nestedDefault). On decline, keep
-  // completed siblings and continue from this index via Phase B (single-pass).
-  const len = result.length;
+  // On decline, keep completed siblings and continue from this index via the
+  // remainder path (single-pass). Live length: mutating getters may shrink.
   let index = 0;
   let stashedNested:
     | Record<string, unknown>
@@ -2370,7 +2524,7 @@ function completePlannedObjectListValue(
   let pendingBubbled: unknown;
   let stashedItem: unknown;
   let hasStashedItem = false;
-  for (; index < len; index++) {
+  for (; index < result.length; index++) {
     const item = result[index];
     if (item == null) {
       if (itemNonNull) {
@@ -2428,8 +2582,8 @@ function completePlannedObjectListValue(
     }
     completedResults[index] = nested;
   }
-  if (index >= len) {
-    completedResults.length = len;
+  if (index >= result.length) {
+    completedResults.length = result.length;
     return completedResults;
   }
 
@@ -2583,13 +2737,24 @@ function completePlannedObjectListValuePhaseB(
     };
   };
 
-  for (; index < result.length; index++) {
+  // Process a Phase A / plain-lane stashed failure even if a getter truncated
+  // the source array to length 0 before we enter the tail loop.
+  const processStashedOrNext = (): boolean => {
+    if (hasStashedItem || pendingBubbled !== undefined) {
+      return true;
+    }
+    return index < result.length;
+  };
+  for (; processStashedOrNext(); index++) {
     visitedCount = index + 1;
     let item: unknown;
     if (hasStashedItem) {
       item = stashedItem;
       hasStashedItem = false;
       stashedItem = undefined;
+    } else if (pendingBubbled !== undefined) {
+      // Failure at this index with no retained item (e.g. truncated list).
+      item = undefined;
     } else {
       try {
         item = result[index];
@@ -5359,6 +5524,8 @@ function executePlannedSyncObjectFieldsPreCR(
   const results: Record<string, unknown> = Object.create(null);
   let n = 0;
   for (const execution of plannedExecutions) {
+    // Match classic: stop before the next field read once the request aborted.
+    exeContext.signal?.throwIfAborted();
     const { responseName, fieldNodes, fieldPlan } = execution;
     if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
       return n > 0 ? thinObjectMiss(results, false, undefined) : undefined;
@@ -5445,10 +5612,14 @@ function executePlannedSyncObjectFieldsPreCR(
       if (plan == null) {
         return n > 0 ? thinObjectMiss(results, false, undefined) : undefined;
       }
-      const subExecutions = getPlannedSubfieldExecutions(plan, fieldNodes, fieldPlan.objectType);
-      if (subExecutions == null) {
+      const rawSubExecutions = getPlannedSubfieldExecutions(plan, fieldNodes, fieldPlan.objectType);
+      if (rawSubExecutions == null) {
         return n > 0 ? thinObjectMiss(results, false, undefined) : undefined;
       }
+      const subExecutions =
+        plan.skipIncludePredicates === true
+          ? filterPlannedExecutions(rawSubExecutions, exeContext.variableValues)
+          : rawSubExecutions;
       const nested = executePlannedSyncObjectFieldsPreCR(
         exeContext,
         fieldPlan.objectType,
