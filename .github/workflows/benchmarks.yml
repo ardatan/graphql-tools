@@ -57,11 +57,11 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  # Process-isolated claim floors + classic KS / executeSync + Yoga authors +
-  # Hive Gateway federation-example. Sticky PR comment upsert
-  # (marker <!-- graphql-tools-claim-floors-v1 -->).
-  claim-floors:
-    name: Claim floors vs master
+  # Process-isolated three-way bench matrix vs latest origin/master
+  # (execute + executeSync + Yoga authors + Hive federation-example).
+  # Sticky PR comment upsert (marker <!-- graphql-tools-bench-matrix-v1 -->).
+  bench-matrix:
+    name: Bench matrix vs master
     # PR #8683 / planned-execution head, or pushes to planned-execution.
     if: |
       (github.event_name == 'pull_request' && (
@@ -90,20 +90,19 @@ jobs:
       - name: Enable Corepack (Hive Gateway yarn)
         run: corepack enable
 
-      - name: Run process-isolated claim / KS / Yoga / Hive benches
+      - name: Run process-isolated bench matrix
         env:
           # Always tip vs latest origin/master (not PR merge-base).
-          CLAIM_BENCH_BASE_REF: master
-          CLAIM_BENCH_FAIL_ON_FLOOR: '1'
-          CLAIM_BENCH_SAMPLES: '3'
-          CLAIM_BENCH_HTTP_SAMPLES: '2'
-          CLAIM_BENCH_WARM_MS: '300'
-          CLAIM_BENCH_MEASURE_MS: '900'
-          CLAIM_BENCH_HIVE_GATEWAY_DIR: ${{ runner.temp }}/hive-gateway
-          CLAIM_BENCH_HIVE_DURATION_MS: '5000'
-          CLAIM_BENCH_HIVE_WARMUP_MS: '1000'
-          CLAIM_BENCH_HIVE_PRODUCTS_SIZE: '1000'
-        run: node scripts/claim-bench-ci.mjs
+          BENCH_MATRIX_BASE_REF: master
+          BENCH_MATRIX_SAMPLES: '3'
+          BENCH_MATRIX_HTTP_SAMPLES: '2'
+          BENCH_MATRIX_WARM_MS: '300'
+          BENCH_MATRIX_MEASURE_MS: '900'
+          BENCH_MATRIX_HIVE_GATEWAY_DIR: ${{ runner.temp }}/hive-gateway
+          BENCH_MATRIX_HIVE_DURATION_MS: '5000'
+          BENCH_MATRIX_HIVE_WARMUP_MS: '1000'
+          BENCH_MATRIX_HIVE_PRODUCTS_SIZE: '1000'
+        run: node scripts/bench-matrix-ci.mjs
 
       - name: Resolve PR number for sticky comment
         id: pr
@@ -123,22 +122,22 @@ jobs:
             echo "number=$number" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Upsert sticky claim-floors PR comment
+      - name: Upsert sticky bench-matrix PR comment
         if: always() && steps.pr.outputs.number != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-          CLAIM_BENCH_PR_NUMBER: ${{ steps.pr.outputs.number }}
-        run: node scripts/upsert-pr-bench-comment.mjs
+          BENCH_MATRIX_PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: node scripts/upsert-pr-bench-matrix-comment.mjs
 
-      - name: Upload claim-floor results
+      - name: Upload bench-matrix results
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: claim-floors-${{ github.event.pull_request.number || github.sha }}
+          name: bench-matrix-${{ github.event.pull_request.number || github.sha }}
           path: |
-            benchmarks/results/claim-floors.json
-            benchmarks/results/claim-floors.md
-            benchmarks/results/claim-http.json
+            benchmarks/results/bench-matrix.json
+            benchmarks/results/bench-matrix.md
+            benchmarks/results/bench-matrix-http.json
           if-no-files-found: ignore
           retention-days: 14

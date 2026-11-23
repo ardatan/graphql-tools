@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Yoga + Hive Gateway HTTP three-way benches for the sticky claim-floors comment.
+ * Yoga + Hive Gateway HTTP three-way benches for the sticky bench-matrix comment.
  *
  * Sides: master / tip classic / tip planned (compiled dist via package resolutions or
  * GRAPHQL_TOOLS_EXECUTOR_PLANNING).
@@ -10,13 +10,13 @@
  * - Hive: gateway `e2e/federation-example` (TestQuery) with executor resolutions
  *   (clone + yarn as needed; no proxy path)
  *
- * Env:
- *   CLAIM_BENCH_TIP_ROOT / CLAIM_BENCH_MASTER_ROOT
- *   CLAIM_BENCH_WARM_MS / CLAIM_BENCH_MEASURE_MS / CLAIM_BENCH_HTTP_SAMPLES
- *   CLAIM_BENCH_SKIP_YOGA / CLAIM_BENCH_SKIP_HIVE
- *   CLAIM_BENCH_HIVE_GATEWAY_DIR — clone dir (default: os tmp)
- *   CLAIM_BENCH_HIVE_GATEWAY_REF — git ref (default: main)
- *   CLAIM_BENCH_OUT_JSON — write path (default benchmarks/results/claim-http.json)
+ * Env (BENCH_MATRIX_* preferred; CLAIM_BENCH_* aliases accepted):
+ *   BENCH_MATRIX_TIP_ROOT / BENCH_MATRIX_MASTER_ROOT
+ *   BENCH_MATRIX_WARM_MS / BENCH_MATRIX_MEASURE_MS / BENCH_MATRIX_HTTP_SAMPLES
+ *   BENCH_MATRIX_SKIP_YOGA / BENCH_MATRIX_SKIP_HIVE
+ *   BENCH_MATRIX_HIVE_GATEWAY_DIR — clone dir (default: os tmp)
+ *   BENCH_MATRIX_HIVE_GATEWAY_REF — git ref (default: main)
+ *   BENCH_MATRIX_OUT_JSON — write path (default benchmarks/results/bench-matrix-http.json)
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -24,26 +24,31 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+function env(name, fallback = undefined) {
+  const alias = name.replace(/^BENCH_MATRIX_/, 'CLAIM_BENCH_');
+  return process.env[name] ?? process.env[alias] ?? fallback;
+}
+
 const tipRoot = resolve(
-  process.env.CLAIM_BENCH_TIP_ROOT || fileURLToPath(new URL('..', import.meta.url)),
+  env('BENCH_MATRIX_TIP_ROOT') || fileURLToPath(new URL('..', import.meta.url)),
 );
-const masterRoot = resolve(process.env.CLAIM_BENCH_MASTER_ROOT || '');
+const masterRoot = resolve(env('BENCH_MATRIX_MASTER_ROOT') || '');
 if (!masterRoot || !existsSync(masterRoot)) {
-  console.error('CLAIM_BENCH_MASTER_ROOT must point at a built master worktree.');
+  console.error('BENCH_MATRIX_MASTER_ROOT must point at a built master worktree.');
   process.exit(2);
 }
 
-const warmMs = Math.max(100, Number(process.env.CLAIM_BENCH_WARM_MS || '300') || 300);
-const measureMs = Math.max(200, Number(process.env.CLAIM_BENCH_MEASURE_MS || '900') || 900);
-const httpSamples = Math.max(1, Number(process.env.CLAIM_BENCH_HTTP_SAMPLES || '2') || 2);
-const skipYoga = process.env.CLAIM_BENCH_SKIP_YOGA === '1';
-const skipHive = process.env.CLAIM_BENCH_SKIP_HIVE === '1';
+const warmMs = Math.max(100, Number(env('BENCH_MATRIX_WARM_MS', '300')) || 300);
+const measureMs = Math.max(200, Number(env('BENCH_MATRIX_MEASURE_MS', '900')) || 900);
+const httpSamples = Math.max(1, Number(env('BENCH_MATRIX_HTTP_SAMPLES', '2')) || 2);
+const skipYoga = env('BENCH_MATRIX_SKIP_YOGA') === '1';
+const skipHive = env('BENCH_MATRIX_SKIP_HIVE') === '1';
 const hiveGatewayDir =
-  process.env.CLAIM_BENCH_HIVE_GATEWAY_DIR || join(tmpdir(), 'graphql-tools-hive-gateway-ci');
-const hiveGatewayRef = process.env.CLAIM_BENCH_HIVE_GATEWAY_REF || 'main';
+  env('BENCH_MATRIX_HIVE_GATEWAY_DIR') || join(tmpdir(), 'graphql-tools-hive-gateway-ci');
+const hiveGatewayRef = env('BENCH_MATRIX_HIVE_GATEWAY_REF', 'main');
 const outJson = resolve(
   tipRoot,
-  process.env.CLAIM_BENCH_OUT_JSON || 'benchmarks/results/claim-http.json',
+  env('BENCH_MATRIX_OUT_JSON', 'benchmarks/results/bench-matrix-http.json'),
 );
 
 const AUTHORS_QUERY = `

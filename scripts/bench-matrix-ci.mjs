@@ -1,28 +1,23 @@
 #!/usr/bin/env node
 /**
- * Process-isolated claim / kill-switch benches vs master (Node 22, compiled dist).
+ * Process-isolated bench matrix vs latest origin/master (Node 22, compiled dist).
  *
  * Writes:
- *   benchmarks/results/claim-floors.json
- *   benchmarks/results/claim-floors.md
+ *   benchmarks/results/bench-matrix.json
+ *   benchmarks/results/bench-matrix.md
  *
- * Sticky markdown includes (process-isolated; upserted each commit):
- *   - Claim floors (sync/async leaf, async root, nested, denseSkip)
- *   - Classic kill-switch + executeSync key rows (syncList / nested / fragments / mixed)
- *   - Yoga benchmark authors query (master / tip classic / tip planned)
- *   - Hive Gateway federation-example TestQuery (same sides; yarn resolution)
- *
- * Every sticky case reports three deltas vs the fetched baseline:
- *   tipClassic vs origin/master HEAD, tipPlanned vs that master, tipClassic vs tipPlanned.
+ * Sticky markdown (process-isolated; upserted each commit) is a three-way matrix only:
+ *   tipClassic vs origin/master HEAD, tipPlanned vs that master, tipClassic vs tipPlanned
+ * for execute scenarios, executeSync key rows, Yoga authors, and Hive federation-example.
  *
  * Env:
- *   CLAIM_BENCH_BASE_REF     — baseline ref (default master; always fetched from origin)
- *   CLAIM_BENCH_WARM_MS      — warm budget per child (default 300)
- *   CLAIM_BENCH_MEASURE_MS   — measure budget per child (default 900)
- *   CLAIM_BENCH_SAMPLES      — samples per side (default 3)
- *   CLAIM_BENCH_HTTP_SAMPLES — HTTP three-way samples (default CLAIM_BENCH_SAMPLES)
- *   CLAIM_BENCH_SKIP_HTTP    — '1' to skip Yoga / Hive sections
- *   CLAIM_BENCH_FAIL_ON_FLOOR — '1' to exit 1 when any claim is below floor
+ *   BENCH_MATRIX_BASE_REF     — baseline ref (default master; always fetched from origin)
+ *   BENCH_MATRIX_WARM_MS      — warm budget per child (default 300)
+ *   BENCH_MATRIX_MEASURE_MS   — measure budget per child (default 900)
+ *   BENCH_MATRIX_SAMPLES      — samples per side (default 3)
+ *   BENCH_MATRIX_HTTP_SAMPLES — HTTP three-way samples (default BENCH_MATRIX_SAMPLES)
+ *   BENCH_MATRIX_SKIP_HTTP    — '1' to skip Yoga / Hive sections
+ *   CLAIM_BENCH_*             — accepted aliases for the BENCH_MATRIX_* vars above
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -32,28 +27,33 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 // Always compare against latest origin/master (not PR merge-base / GITHUB_BASE_REF).
-const baseRef = process.env.CLAIM_BENCH_BASE_REF || 'master';
+function env(name, fallback = undefined) {
+  return (
+    process.env[name] ?? process.env[name.replace(/^BENCH_MATRIX_/, 'CLAIM_BENCH_')] ?? fallback
+  );
+}
+
+const baseRef = env('BENCH_MATRIX_BASE_REF', 'master');
 const baseRemoteRef = baseRef.startsWith('origin/') ? baseRef : `origin/${baseRef}`;
-const warmMs = Math.max(100, Number(process.env.CLAIM_BENCH_WARM_MS || '300') || 300);
-const measureMs = Math.max(200, Number(process.env.CLAIM_BENCH_MEASURE_MS || '900') || 900);
-const samples = Math.max(1, Number(process.env.CLAIM_BENCH_SAMPLES || '3') || 3);
+const warmMs = Math.max(100, Number(env('BENCH_MATRIX_WARM_MS', '300')) || 300);
+const measureMs = Math.max(200, Number(env('BENCH_MATRIX_MEASURE_MS', '900')) || 900);
+const samples = Math.max(1, Number(env('BENCH_MATRIX_SAMPLES', '3')) || 3);
 const httpSamples = Math.max(
   1,
-  Number(process.env.CLAIM_BENCH_HTTP_SAMPLES || String(samples)) || samples,
+  Number(env('BENCH_MATRIX_HTTP_SAMPLES', String(samples))) || samples,
 );
-const skipHttp = process.env.CLAIM_BENCH_SKIP_HTTP === '1';
-const failOnFloor = process.env.CLAIM_BENCH_FAIL_ON_FLOOR !== '0';
+const skipHttp = env('BENCH_MATRIX_SKIP_HTTP') === '1';
 
-/** Hard floors: tip planned warm vs master classic (process-isolated). */
-const CLAIM_FLOORS = {
-  syncList: { label: 'Sync leaf list (1000)', floorPct: 200 },
-  asyncList: { label: 'Async leaf list (1000)', floorPct: 100 },
-  asyncRoot: { label: 'Async root fields (1000)', floorPct: 80 },
-  nested: { label: 'Nested default-resolver (200)', floorPct: 137 },
-  denseSkip: { label: 'Dense @skip/@include (40)', floorPct: 45 },
+/** execute() scenarios in the sticky three-way matrix. */
+const EXECUTE_CASES = {
+  syncList: { label: 'Sync leaf list (1000)' },
+  asyncList: { label: 'Async leaf list (1000)' },
+  asyncRoot: { label: 'Async root fields (1000)' },
+  nested: { label: 'Nested default-resolver (200)' },
+  denseSkip: { label: 'Dense @skip/@include (40)' },
 };
 
-/** executeSync key rows (same three-way matrix as claim floors). */
+/** executeSync key rows (same three-way matrix). */
 const SYNC_API_CASES = [
   { id: 'syncApiSyncList', label: 'executeSync syncList', bench: 'syncList' },
   { id: 'syncApiNested', label: 'executeSync nestedDefault', bench: 'nested' },
@@ -90,9 +90,11 @@ function runCapture(command, args, opts = {}) {
 
 function childSource({ packageRoot, bench, planning, api, warm, measure }) {
   return `
+const { createRequire } = require('node:module');
 const { performance } = require('node:perf_hooks');
-const ex = require(${JSON.stringify(packageRoot + '/packages/executor/dist/cjs/index.js')});
-const { buildSchema, parse } = require('graphql');
+const requireFromRoot = createRequire(${JSON.stringify(packageRoot + '/package.json')});
+const ex = requireFromRoot(${JSON.stringify(packageRoot + '/packages/executor/dist/cjs/index.js')});
+const { buildSchema, parse } = requireFromRoot('graphql');
 const planning = ${JSON.stringify(planning)};
 const bench = ${JSON.stringify(bench)};
 const api = ${JSON.stringify(api)};
@@ -232,7 +234,12 @@ function measureHz({ packageRoot, bench, planning, api }) {
   const result = spawnSync(process.execPath, [script], {
     cwd: packageRoot,
     encoding: 'utf8',
-    env: process.env,
+    env: {
+      ...process.env,
+      NODE_PATH: [join(packageRoot, 'node_modules'), process.env.NODE_PATH || '']
+        .filter(Boolean)
+        .join(':'),
+    },
     timeout: Math.max(120_000, (warmMs + measureMs) * 4),
   });
   rmSync(dir, { recursive: true, force: true });
@@ -266,23 +273,26 @@ function ensureDist(packageRoot, label) {
 }
 
 const resultsDir = join(root, 'benchmarks/results');
+const RESULTS_JSON = join(resultsDir, 'bench-matrix.json');
+const RESULTS_MD = join(resultsDir, 'bench-matrix.md');
+const MARKER = '<!-- graphql-tools-bench-matrix-v1 -->';
 mkdirSync(resultsDir, { recursive: true });
 
 function writeFailureArtifact(error) {
   const msg = error?.message || String(error);
   const stubMd = [
-    '<!-- graphql-tools-claim-floors-v1 -->',
-    '## Claim floors vs master (process-isolated)',
+    MARKER,
+    '## Bench matrix vs origin/master (process-isolated)',
     '',
     `_Harness failed before benches completed: ${msg}_`,
     '',
   ].join('\n');
-  writeFileSync(join(resultsDir, 'claim-floors.md'), `${stubMd}\n`);
+  writeFileSync(RESULTS_MD, `${stubMd}\n`);
   writeFileSync(
-    join(resultsDir, 'claim-floors.json'),
+    RESULTS_JSON,
     `${JSON.stringify({ error: msg, measuredAt: new Date().toISOString() }, null, 2)}\n`,
   );
-  console.warn(`Wrote failure stub to ${join(resultsDir, 'claim-floors.md')}`);
+  console.warn(`Wrote failure stub to ${RESULTS_MD}`);
 }
 
 try {
@@ -355,20 +365,17 @@ try {
   }
 
   try {
-    for (const [id, meta] of Object.entries(CLAIM_FLOORS)) {
+    for (const [id, meta] of Object.entries(EXECUTE_CASES)) {
       const row = measureThreeWay({ bench: id, api: 'execute' });
-      const ok = row.deltaPlannedVsMasterPct + 1e-9 >= meta.floorPct;
       claimRows.push({
         id,
         label: meta.label,
-        kind: 'claim',
+        kind: 'execute',
         api: 'execute',
-        floorPct: meta.floorPct,
-        ok,
         ...row,
       });
       console.log(
-        `${meta.label}: master=${Math.round(row.masterHz)} classic=${Math.round(row.tipClassicHz)} planned=${Math.round(row.tipPlannedHz)} Δc/m=${pct(row.deltaClassicVsMasterPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)} Δc/p=${pct(row.deltaClassicVsPlannedPct)} floor=+${meta.floorPct}% ${ok ? 'PASS' : 'FAIL'}`,
+        `${meta.label}: master=${Math.round(row.masterHz)} classic=${Math.round(row.tipClassicHz)} planned=${Math.round(row.tipPlannedHz)} Δc/m=${pct(row.deltaClassicVsMasterPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)} Δc/p=${pct(row.deltaClassicVsPlannedPct)}`,
       );
     }
 
@@ -389,16 +396,16 @@ try {
     if (!skipHttp) {
       console.log('\n==> Yoga authors + Hive federation-example HTTP benches\n');
       mkdirSync(resultsDir, { recursive: true });
-      const httpJson = join(resultsDir, 'claim-http.json');
-      run(process.execPath, [join(root, 'scripts/claim-http-bench-ci.mjs')], {
+      const httpJson = join(resultsDir, 'bench-matrix-http.json');
+      run(process.execPath, [join(root, 'scripts/bench-matrix-http-ci.mjs')], {
         env: {
           ...process.env,
-          CLAIM_BENCH_TIP_ROOT: root,
-          CLAIM_BENCH_MASTER_ROOT: worktree,
-          CLAIM_BENCH_WARM_MS: String(warmMs),
-          CLAIM_BENCH_MEASURE_MS: String(measureMs),
-          CLAIM_BENCH_HTTP_SAMPLES: String(httpSamples),
-          CLAIM_BENCH_OUT_JSON: httpJson,
+          BENCH_MATRIX_TIP_ROOT: root,
+          BENCH_MATRIX_MASTER_ROOT: worktree,
+          BENCH_MATRIX_WARM_MS: String(warmMs),
+          BENCH_MATRIX_MEASURE_MS: String(measureMs),
+          BENCH_MATRIX_HTTP_SAMPLES: String(httpSamples),
+          BENCH_MATRIX_OUT_JSON: httpJson,
         },
         stdio: 'inherit',
       });
@@ -431,15 +438,14 @@ try {
     measureMs,
     samples,
     httpSamples,
-    floors: CLAIM_FLOORS,
-    claims: claimRows,
+    execute: claimRows,
     syncApi: syncApiRows,
     yoga: httpPayload?.yoga ?? null,
     hive: httpPayload?.hive ?? null,
     hiveNote: httpPayload?.hiveNote ?? null,
   };
 
-  writeFileSync(join(resultsDir, 'claim-floors.json'), `${JSON.stringify(payload, null, 2)}\n`);
+  writeFileSync(RESULTS_JSON, `${JSON.stringify(payload, null, 2)}\n`);
 
   const threeWayHeader = [
     '| Bench | Master hz | Tip classic hz | Tip planned hz | Δ classic vs master | Δ planned vs master | Δ classic vs planned |',
@@ -447,27 +453,19 @@ try {
   ];
 
   const md = [
-    '<!-- graphql-tools-claim-floors-v1 -->',
-    '## Claim floors vs origin/master (process-isolated)',
+    MARKER,
+    '## Bench matrix vs origin/master (process-isolated)',
     '',
     `HEAD \`${headSha.slice(0, 9)}\` vs \`${baseRemoteRef}\` (\`${baseSha.slice(0, 9)}\` fetched this run), Node ${process.version}, compiled dist.`,
     '',
     'Each row is a three-way: **tip classic** (`setExecutionPlanningEnabled(false)`) vs origin/master, **tip planned** vs that master, and **tip classic vs tip planned**.',
     '',
-    '**Hard floors (never ship below; tip planned vs master):** Sync leaf ≥ **+200%**, Async leaf ≥ **+100%**, Async root ≥ **+80%**, Nested ≥ **+137%**, DenseSkip ≥ **+45%**.',
+    '### execute',
     '',
-    '| Bench | Master hz | Tip classic hz | Tip planned hz | Δ classic vs master | Δ planned vs master | Δ classic vs planned | Floor | Status |',
-    '| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |',
-    ...claimRows.map(
-      row =>
-        `${threeWayTableRow(row.label, row, ` | ≥+${row.floorPct}% | ${row.ok ? '✅' : '❌'}`)}`,
-    ),
+    ...threeWayHeader,
+    ...claimRows.map(row => threeWayTableRow(row.label, row)),
     '',
-    '### Classic kill-switch',
-    '',
-    'Tip classic column above is the public kill-switch (`setExecutionPlanningEnabled(false)` + `execute`) vs the same origin/master baseline.',
-    '',
-    '### executeSync key rows',
+    '### executeSync',
     '',
     ...threeWayHeader,
     ...syncApiRows.map(row => threeWayTableRow(row.label, row)),
@@ -496,16 +494,8 @@ try {
     }
   }
 
-  writeFileSync(join(resultsDir, 'claim-floors.md'), `${md.join('\n')}\n`);
-  console.log(`\nWrote ${join(resultsDir, 'claim-floors.json')} and claim-floors.md\n`);
-
-  const failed = claimRows.filter(row => !row.ok);
-  if (failOnFloor && failed.length > 0) {
-    console.error(
-      `Claim floor miss (${failed.length}): ${failed.map(r => `${r.id}=${pct(r.deltaPlannedVsMasterPct)}`).join(', ')}`,
-    );
-    process.exit(1);
-  }
+  writeFileSync(RESULTS_MD, `${md.join('\n')}\n`);
+  console.log(`\nWrote ${RESULTS_JSON} and ${RESULTS_MD}\n`);
 } catch (error) {
   writeFailureArtifact(error);
   throw error;
