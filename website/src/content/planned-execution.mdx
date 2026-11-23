@@ -193,32 +193,33 @@ classic** (same package build, planned vs classic mode):
 
 | Bench                                      | Approx. planned vs classic |
 | ------------------------------------------ | -------------------------: |
-| Synchronous leaf list (1000)               |                    ~+200%+ |
+| Synchronous leaf list (1000)               |                     ~+240% |
 | Asynchronous leaf list (1000)              |                     ~+100% |
-| Asynchronous root fields (1000)            |                      ~+70% |
-| Nested default-resolver objects (200)      |                     ~+160% |
-| Dense `@skip` / `@include` variable fields |                      ~+40% |
+| Asynchronous root fields (1000)            |                      ~+95% |
+| Nested default-resolver objects (200)      |                     ~+170% |
+| Dense `@skip` / `@include` variable fields |                      ~+35% |
 | `fragmentsAbstract`                        |                      ~+20% |
-| `mixedSyncMethods`                         |                      ~+30% |
-| `syncList` (`executeSync`)                 |                    ~+200%+ |
-| `nestedDefault` (`executeSync`)            |                     ~+160% |
+| `mixedSyncMethods`                         |                      ~+20% |
+| `syncList` (`executeSync`)                 |                     ~+250% |
+| `nestedDefault` (`executeSync`)            |                     ~+170% |
 | `fragmentsAbstract` (`executeSync`)        |                      ~+20% |
-| `mixedSyncMethods` (`executeSync`)         |                      ~+30% |
+| `mixedSyncMethods` (`executeSync`)         |                      ~+20% |
 
-Deltas are from the sticky bench matrix (planned warm vs classic on the same tip build). Yoga HTTP /
-Hive federation end-to-end rows live on the sticky matrix; network and gateway work dominate those
-paths, so this page focuses on executor microbenches.
+Deltas are from the sticky bench matrix (planned warm vs classic on the same tip build; latest
+sticky ~+244% sync leaf / ~+171% nested). Yoga HTTP / Hive federation end-to-end rows live on the
+sticky matrix; network and gateway work dominate those paths, so this page focuses on executor
+microbenches.
 
 ## Classic and planned parity
 
 Planned execution is meant to match classic results. Trust that by running the **same** core and
 incremental correctness suites in both modes:
 
-| Mode                  | How                                                                        | What it proves                                     |
-| --------------------- | -------------------------------------------------------------------------- | -------------------------------------------------- |
-| **Planned** (default) | `npm run test:executor:core` / `test:executor:incremental`                 | Core + `@defer`/`@stream` under the warm plan path |
-| **Classic**           | `*:classic` scripts (`GRAPHQL_TOOLS_EXECUTOR_PLANNING=0`)                   | Same suites on the classic interpreter             |
-| **Dual-mode (CI)**    | `npm run test:executor:dual-mode`                                          | Both modes pass the same expectations back-to-back |
+| Mode                  | How                                                        | What it proves                                     |
+| --------------------- | ---------------------------------------------------------- | -------------------------------------------------- |
+| **Planned** (default) | `npm run test:executor:core` / `test:executor:incremental` | Core + `@defer`/`@stream` under the warm plan path |
+| **Classic**           | `*:classic` scripts (`GRAPHQL_TOOLS_EXECUTOR_PLANNING=0`)  | Same suites on the classic interpreter             |
+| **Dual-mode (CI)**    | `npm run test:executor:dual-mode`                          | Both modes pass the same expectations back-to-back |
 
 ```sh
 npm run test:executor:core                # planned core

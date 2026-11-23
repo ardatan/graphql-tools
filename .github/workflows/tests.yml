@@ -163,7 +163,6 @@ jobs:
           timeout_minutes: 25
           max_attempts: 3
           command: >-
-            npm run test:executor:core -- --ci
-            && npm run test:executor:core:classic -- --ci
-            && npm run test:executor:incremental -- --ci
-            && npm run test:executor:incremental:classic -- --ci
+            npm run test:executor:core -- --ci && npm run test:executor:core:classic -- --ci && npm
+            run test:executor:incremental -- --ci && npm run test:executor:incremental:classic --
+            --ci
