@@ -72,10 +72,18 @@ const planCache = new WeakMap<DocumentNode, WeakMap<GraphQLSchema, Map<string, P
  * runs the classic interpreter. Used to dual-run the executor correctness
  * suite (planned default vs classic). Also honors
  * `GRAPHQL_TOOLS_EXECUTOR_PLANNING=0` at module load.
+ *
+ * This flag is **process-global** (module scope), not per-request or
+ * per-`ExecutionArgs`. Do not toggle it as a request option in servers —
+ * concurrent requests would race. Prefer the env var for process-wide
+ * classic mode, or isolate processes / workers when comparing modes.
  */
 let executionPlanningEnabled = process.env['GRAPHQL_TOOLS_EXECUTOR_PLANNING'] !== '0';
 
-/** Enable or disable plan compile for subsequent `execute` / `executeSync` calls. */
+/**
+ * Enable or disable plan compile for subsequent `execute` / `executeSync`
+ * calls in this process. Process-global — not safe as a per-request switch.
+ */
 export function setExecutionPlanningEnabled(enabled: boolean): void {
   executionPlanningEnabled = enabled;
 }

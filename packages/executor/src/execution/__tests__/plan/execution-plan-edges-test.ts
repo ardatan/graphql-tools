@@ -1393,6 +1393,89 @@ describe('list completion: retain preflight item reads', () => {
     expect(plannedReads).toBe(1);
   });
 
+  it('does not reread accessors when object-list preflight fails (NonNull null item)', () => {
+    const Item = new GraphQLObjectType({
+      name: 'FailPreflightItem',
+      fields: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+      },
+    });
+    let reads0 = 0;
+    let reads1 = 0;
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: {
+            // Nullable list of NonNull items: null item → list field null + error.
+            type: new GraphQLList(new GraphQLNonNull(Item)),
+            resolve: () => {
+              const base: Array<{ id: string } | null> = [{ id: '1' }, null];
+              return new Proxy(base, {
+                get(target, prop, receiver) {
+                  if (prop === '0') {
+                    reads0 += 1;
+                    // Second read would flip the value — must not happen.
+                    return reads0 === 1 ? { id: '1' } : { id: 'CHANGED' };
+                  }
+                  if (prop === '1') {
+                    reads1 += 1;
+                    return null;
+                  }
+                  return Reflect.get(target, prop, receiver);
+                },
+              });
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ users { id } }');
+    reads0 = 0;
+    reads1 = 0;
+    const planned = executeSync({ schema, document });
+    expect(planned).toMatchObject({
+      data: { users: null },
+      errors: [{ path: ['users', 1] }],
+    });
+    // Index 0 was observed during preflight; classic must use the snapshot.
+    expect(reads0).toBe(1);
+    expect(reads1).toBe(1);
+  });
+
+  it('does not reread String-list accessors when mid-list null forces fast-path fallback', () => {
+    let reads = 0;
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(GraphQLString),
+            resolve: () => {
+              const values: Array<string | null> = ['first', null];
+              Object.defineProperty(values, '0', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  reads += 1;
+                  // Re-read would yield "changed" — must not happen after mid-null fallback.
+                  return reads === 1 ? 'first' : 'changed';
+                },
+              });
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    reads = 0;
+    const planned = executeSync({ schema, document });
+    // Retained first read + null second item; re-read would have produced "changed".
+    expect(planned).toEqual({ data: { values: ['first', null] } });
+    expect(reads).toBe(1);
+  });
+
   it('does not use String fast-path when GraphQLString.serialize is replaced', () => {
     const originalSerialize = GraphQLString.serialize;
     GraphQLString.serialize = (value: unknown) =>

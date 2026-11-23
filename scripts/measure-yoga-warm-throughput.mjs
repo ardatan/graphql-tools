@@ -8,10 +8,11 @@
  */
 import { writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { resolve as resolvePath } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { pathToFileURL } from 'node:url';
 
-const root = process.argv[2] ?? process.cwd();
+const root = resolvePath(process.argv[2] ?? process.cwd());
 const outPath = process.argv[3];
 const label = process.argv[4] ?? 'local';
 const require = createRequire(`${root}/package.json`);

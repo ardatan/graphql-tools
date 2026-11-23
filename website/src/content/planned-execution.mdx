@@ -132,12 +132,17 @@ Process-isolated microbenches vs `master` on Node 22 (separate process per side,
 **Why:** always-on planned execute, leaf-list / object-list thin walks, field-local async settle,
 and String primitive fast-paths cut collect / resolveInfo / serialize work on the warm path.
 
-Cold compile runs once per `(schema, document, operationName)` cache miss and is amortized across
-later warm hits when document identity is stable (parser cache). The numbers above are warm-path
-deltas vs master, not cold-start cost. On a dense `@skip`/`@include` probe (Node 22,
-process-isolated), a cold first execute is typically on the order of tens of warm executes of wall
-time; retained heap per distinct cached plan is a small fixed overhead (see repo measurement scripts
-`scripts/measure-plan-cold-heap.mjs`).
+Cold compile runs once per `(schema, document, operationName)` cache miss. Amortization against
+classic is **not** the cold/warm ratio. Break-even request count is approximately
+`N = ceil(T_compile / (T_classic − T_planned))` when classic warm is slower than planned warm.
+`T_compile` is the one-time plan compile cost (cold first execute minus planned warm); include
+classic warm time — a cold/warm wall-time ratio alone is only a compile-vs-warm illustration, not
+amortization. On a dense `@skip`/`@include` probe (Node 22, process-isolated), that break-even is on
+the order of a few hundred executes (cold/warm can look ~100× while true `N` is much smaller because
+classic and planned warms are close). Retained heap grows with document complexity; the probe
+separates AST retention from plan-incremental overhead across several plan counts (see
+`scripts/measure-plan-cold-heap.mjs`). The numbers in the table above are warm-path deltas vs
+master, not cold-start cost.
 
 ## Correctness: dual-mode classic vs planned
 
@@ -147,11 +152,15 @@ correctness suite with planning disabled (classic interpreter only):
 ```sh
 npm run test:executor:core         # planned (default)
 npm run test:executor:core:classic # GRAPHQL_TOOLS_EXECUTOR_PLANNING=0
-npm run test:executor:dual-mode    # both
+npm run test:executor:dual-mode    # both (also run in CI)
 ```
 
 `setExecutionPlanningEnabled(false)` (or the env var above) makes `resolvePlanForExecute` a no-op so
 the same assertions exercise classic completion. Prefer this over a second handwritten suite.
+
+`setExecutionPlanningEnabled` is **process-global** (module scope), not a per-request
+`ExecutionArgs` option. Concurrent requests in one process would race if you flipped it mid-flight;
+use the env var for a process-wide classic mode, or isolate processes when comparing modes.
 
 <img
   src="/assets/execution-plan-all-kinds.jpg"

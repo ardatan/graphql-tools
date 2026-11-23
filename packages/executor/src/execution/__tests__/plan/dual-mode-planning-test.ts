@@ -2,8 +2,13 @@
  * Locks the dual-mode planning switch used to re-run core correctness tests
  * with planning disabled (classic interpreter only).
  *
+ * `setExecutionPlanningEnabled` is process-global (not per-request); tests
+ * restore `true` in `afterEach`. Prefer `GRAPHQL_TOOLS_EXECUTOR_PLANNING=0`
+ * for process-wide classic runs.
+ *
  * See npm scripts `test:executor:core` / `test:executor:core:classic` /
- * `test:executor:dual-mode` and planned-execution docs.
+ * `test:executor:dual-mode` (also CI job `test-executor-dual-mode`) and
+ * planned-execution docs.
  */
 import { GraphQLObjectType, GraphQLSchema, GraphQLString, parse } from 'graphql';
 import {
