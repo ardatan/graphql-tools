@@ -51,4 +51,19 @@ describe('PlannedWorkRunner', () => {
     runner.enqueue(() => undefined);
     expect(runner.runUntilSettled()).toBeUndefined();
   });
+
+  it('defers thenable failure until runUntilSettled when reject is not attached yet', async () => {
+    const runner = new PlannedWorkRunner();
+    const boom = new Error('boom');
+    runner.awaitValue(
+      Promise.resolve(null),
+      () => {
+        throw boom;
+      },
+      () => undefined,
+    );
+    // Flush the already-resolved thenable before settle attaches reject.
+    await Promise.resolve();
+    expect(() => runner.runUntilSettled()).toThrow(boom);
+  });
 });

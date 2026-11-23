@@ -32,6 +32,15 @@ export interface PlannedLeafList {
 }
 
 /**
+ * When the field returns a list of concrete objects without `isTypeOf`,
+ * nested default-resolver lists can walk bound subfield executions per item.
+ */
+export interface PlannedObjectList {
+  objectType: GraphQLObjectType;
+  itemNonNull: boolean;
+}
+
+/**
  * How the warm path completes this field's return value (after NonNull unwrap).
  */
 export type CompletionKind = 'leaf' | 'leafList' | 'object' | 'abstract' | 'list';
@@ -74,6 +83,11 @@ export interface FieldPlan {
    * Set when the field's named return type (after NonNull) is a list of leaves.
    */
   listItemLeaf: PlannedLeafList | undefined;
+  /**
+   * Set when the field's named return type (after NonNull) is a list of
+   * concrete objects without `isTypeOf`.
+   */
+  listItemObject: PlannedObjectList | undefined;
   /** Completion strategy after NonNull unwrap. */
   completionKind: CompletionKind;
   /** Concrete object return type when `completionKind === 'object'`. */

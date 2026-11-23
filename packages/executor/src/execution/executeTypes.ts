@@ -107,9 +107,9 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
    */
   plan?: ExecutionPlan;
   /**
-   * Sync-first work runner for the current planned field-set. Each planned
-   * `executeFields` owns a runner (save/restore around nested sets) so
-   * thenables use `awaitValue` instead of `Promise.all` within that set.
+   * Optional sync-first work runner. Only attached for the duration of a
+   * planned leaf-list field completion (field-local); nested object / skip
+   * field-sets stay on classic `promiseForObject`.
    */
   plannedRunner?: PlannedWorkRunner;
 }

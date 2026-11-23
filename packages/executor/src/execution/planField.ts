@@ -36,6 +36,7 @@ import type {
   FieldPlan,
   PlannedFieldExecution,
   PlannedLeafList,
+  PlannedObjectList,
   ResolveKind,
 } from './planTypes.js';
 import {
@@ -186,15 +187,31 @@ function buildExecutionsFromConditionalEntries(
         ? preferred
         : group.fieldNodes;
     const fieldPlan = resolveFieldPlanForParent(plan, parentType, fieldNodes);
-    if (fieldPlan == null) {
-      // Field reachable only under mixed directive values may be absent from
-      // the bool-extreme field maps — abandon bound executions for classic collect.
-      return undefined;
+    let resolvedPlan = fieldPlan;
+    if (resolvedPlan == null) {
+      // Dual @skip/@include (and similar) fields are absent from bool-extreme
+      // rootMaps — compile a FieldPlan from the selection nodes instead of
+      // abandoning the whole skipIncludePredicates path (dense-skip tax).
+      const compiled = compileFieldPlan(
+        plan,
+        parentType,
+        responseName,
+        fieldNodes as Array<FieldNode>,
+      );
+      if (compiled == null) {
+        return undefined;
+      }
+      plan.fieldPlanByNodes.set(fieldNodes as Array<FieldNode>, compiled);
+      for (const fieldNode of fieldNodes) {
+        plan.fieldPlanByFieldNode.set(fieldNode, compiled);
+      }
+      compileReturnTypeSubfields(plan, compiled);
+      resolvedPlan = compiled;
     }
     executions.push({
       responseName,
       fieldNodes,
-      fieldPlan,
+      fieldPlan: resolvedPlan,
       include: group.include,
     });
   }
@@ -238,6 +255,7 @@ function compileFieldPlan(
 
   const leafType = isLeafType(type) ? type : undefined;
   const listItemLeaf = compileListItemLeaf(type);
+  const listItemObject = listItemLeaf == null ? compileListItemObject(type) : undefined;
   const completionKind = classifyCompletionKind(type, listItemLeaf);
   const objectType = completionKind === 'object' && isObjectType(type) ? type : undefined;
   const skipIsTypeOf = objectType != null && objectType.isTypeOf == null;
@@ -264,6 +282,7 @@ function compileFieldPlan(
     nonNull,
     leafType,
     listItemLeaf,
+    listItemObject,
     completionKind,
     objectType,
     skipIsTypeOf,
@@ -390,6 +409,30 @@ function compileListItemLeaf(type: GraphQLOutputType): PlannedLeafList | undefin
     return undefined;
   }
   return { leafType: item, itemNonNull };
+}
+
+/**
+ * If `type` is List or NonNull(List) of (NonNull) concrete object without
+ * `isTypeOf`, return object-list completion facts for the nested warm path.
+ */
+function compileListItemObject(type: GraphQLOutputType): PlannedObjectList | undefined {
+  let current: GraphQLOutputType = type;
+  if (isNonNullType(current)) {
+    current = current.ofType;
+  }
+  if (!isListType(current)) {
+    return undefined;
+  }
+  let item: GraphQLOutputType = current.ofType;
+  let itemNonNull = false;
+  if (isNonNullType(item)) {
+    itemNonNull = true;
+    item = item.ofType;
+  }
+  if (!isObjectType(item) || item.isTypeOf != null) {
+    return undefined;
+  }
+  return { objectType: item, itemNonNull };
 }
 
 function compileArgumentReader(

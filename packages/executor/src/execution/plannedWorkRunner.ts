@@ -126,6 +126,12 @@ export class PlannedWorkRunner {
   }
 
   private _fail(error: unknown): void {
+    // Store failure without throwing when settle has not attached reject yet.
+    // Already-resolved item thenables can microtask-fail before runUntilSettled
+    // returns a Promise; the next runUntilSettled observes `_failure`.
+    if (this._failure !== undefined) {
+      return;
+    }
     this._settled = true;
     this._failure = error;
     this._jobs = undefined;
@@ -134,9 +140,7 @@ export class PlannedWorkRunner {
     this._reject = undefined;
     if (reject !== undefined) {
       reject(error);
-      return;
     }
-    throw error;
   }
 
   private _completeResolved<T>(value: T, onResolve: (value: T) => void): void {
