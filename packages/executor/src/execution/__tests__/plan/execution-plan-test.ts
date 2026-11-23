@@ -14,7 +14,12 @@ import {
   versionInfo,
   type ValueNode,
 } from 'graphql';
-import { buildExecutionContext, executeSync, type ExecutionContext } from '../../execute.js';
+import {
+  buildExecutionContext,
+  execute,
+  executeSync,
+  type ExecutionContext,
+} from '../../execute.js';
 import {
   clearExecutionPlanCache,
   compileExecutionPlan,
@@ -1033,6 +1038,111 @@ describe('execution plan', () => {
     expect(idReads).toBe(1);
   });
 
+  it('preserves nested partial when remaining sibling is async', async () => {
+    let idReads = 0;
+    let nameCalls = 0;
+    const profileType = new GraphQLObjectType({
+      name: 'NestedAsyncPartialProfile',
+      fields: {
+        id: { type: GraphQLString },
+        name: { type: GraphQLString },
+      },
+    });
+    const userType = new GraphQLObjectType({
+      name: 'NestedAsyncPartialUser',
+      fields: {
+        profile: { type: profileType },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          user: {
+            type: userType,
+            resolve: () => ({
+              profile: {
+                get id() {
+                  idReads += 1;
+                  throw new Error('profile id always');
+                },
+                name() {
+                  nameCalls += 1;
+                  return Promise.resolve('Ada');
+                },
+              },
+            }),
+          },
+        },
+      }),
+    });
+    const result = await execute({
+      schema,
+      document: parse('{ user { profile { id name } } }'),
+    });
+    expect(result).toEqual({
+      data: {
+        user: { profile: { id: null, name: 'Ada' } },
+      },
+      errors: [expect.objectContaining({ message: 'profile id always' })],
+    });
+    expect(idReads).toBe(1);
+    expect(nameCalls).toBe(1);
+  });
+
+  it('preserves completed list items when a later item finishes async', async () => {
+    let firstIdReads = 0;
+    let secondIdCalls = 0;
+    const userType = new GraphQLObjectType({
+      name: 'ListAsyncPartialUser',
+      fields: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+        name: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: {
+            type: new GraphQLList(userType),
+            resolve: () => [
+              {
+                get id() {
+                  firstIdReads += 1;
+                  if (firstIdReads === 1) {
+                    throw new Error('first id once');
+                  }
+                  return 'should-not-win';
+                },
+                name: 'Ada',
+              },
+              {
+                id() {
+                  secondIdCalls += 1;
+                  return Promise.resolve('u2');
+                },
+                name: 'Grace',
+              },
+            ],
+          },
+        },
+      }),
+    });
+    const result = await execute({
+      schema,
+      document: parse('{ users { id name } }'),
+    });
+    expect(result).toEqual({
+      data: {
+        users: [null, { id: 'u2', name: 'Grace' }],
+      },
+      errors: [expect.objectContaining({ message: 'first id once' })],
+    });
+    expect(firstIdReads).toBe(1);
+    expect(secondIdCalls).toBe(1);
+  });
+
   it('propagates abort from thin object walk without reading later getters', () => {
     const controller = new AbortController();
     let nameReads = 0;
@@ -1314,7 +1424,8 @@ describe('execution plan', () => {
       }),
     ).toEqual({ data: { user: { id: '1' } } });
     expect(captured).toHaveLength(1);
-    expect(captured[0]).toEqual([userIdNode]);
+    expect(captured[0]).toHaveLength(1);
+    expect(captured[0][0]).toBe(userIdNode);
 
     captured.length = 0;
     expect(
@@ -1325,7 +1436,9 @@ describe('execution plan', () => {
       }),
     ).toEqual({ data: { user: { id: '1', secret: 'shh' } } });
     expect(captured).toHaveLength(1);
-    expect(captured[0]).toEqual([userIdNode, userSecretNode]);
+    expect(captured[0]).toHaveLength(2);
+    expect(captured[0][0]).toBe(userIdNode);
+    expect(captured[0][1]).toBe(userSecretNode);
   });
 
   it('exposes only active fieldNodes when a conditional fragment wraps a merge peer', () => {
@@ -1372,7 +1485,8 @@ describe('execution plan', () => {
       }),
     ).toEqual({ data: { user: { id: '1' } } });
     expect(captured).toHaveLength(1);
-    expect(captured[0]).toEqual([userIdNode]);
+    expect(captured[0]).toHaveLength(1);
+    expect(captured[0][0]).toBe(userIdNode);
 
     captured.length = 0;
     expect(
@@ -1383,7 +1497,9 @@ describe('execution plan', () => {
       }),
     ).toEqual({ data: { user: { id: '1', secret: 'shh' } } });
     expect(captured).toHaveLength(1);
-    expect(captured[0]).toEqual([userIdNode, userSecretNode]);
+    expect(captured[0]).toHaveLength(2);
+    expect(captured[0][0]).toBe(userIdNode);
+    expect(captured[0][1]).toBe(userSecretNode);
   });
 
   it('returns a fresh static args object per read so mutations do not leak', () => {

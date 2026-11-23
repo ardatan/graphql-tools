@@ -1879,7 +1879,7 @@ function completePlannedObjectListValue(
   itemObjectType: GraphQLObjectType,
   itemNonNull: boolean,
   subExecutions: ReadonlyArray<PlannedFieldExecution>,
-): ReadonlyArray<unknown> | null | undefined {
+): MaybePromise<ReadonlyArray<unknown> | null> | undefined {
   if (result == null) {
     if (fieldPlan.nonNull) {
       throw new Error(
@@ -1908,6 +1908,7 @@ function completePlannedObjectListValue(
     }
   }
   const completedResults: Array<unknown> = new Array(result.length);
+  const asyncUpdates: Promise<void>[] = [];
   for (let index = 0; index < result.length; index++) {
     const item = result[index];
     if (item == null) {
@@ -1923,40 +1924,57 @@ function completePlannedObjectListValue(
         itemPath,
         subExecutions,
       );
-      if (isThinObjectPartial(nested)) {
-        // Keep already-recorded children; finish only what the thin walk missed.
-        const finished = finishThinObjectPartialSync(
-          exeContext,
-          itemObjectType,
-          item,
-          itemPath,
-          subExecutions,
-          nested,
-        );
-        if (finished === undefined) {
-          // Remaining work is async — cannot keep the sync list path.
-          return undefined;
+      const itemIndex = index;
+      const assignItem = (
+        value: Record<string, unknown> | ThinObjectPartial | undefined,
+      ): MaybePromise<void> => {
+        if (isThinObjectPartial(value)) {
+          const finished = finishThinObjectPartial(
+            exeContext,
+            itemObjectType,
+            item,
+            itemPath,
+            subExecutions,
+            value,
+          );
+          if (isPromise(finished)) {
+            return finished.then(v => {
+              completedResults[itemIndex] = v;
+            });
+          }
+          completedResults[itemIndex] = finished;
+          return;
         }
-        completedResults[index] = finished;
+        if (value === undefined) {
+          // This item alone needs classic completion; do not redo prior items.
+          const finished = executeObjectItemViaFields(
+            exeContext,
+            itemObjectType,
+            item,
+            itemPath,
+            subExecutions,
+          );
+          if (isPromise(finished)) {
+            return finished.then(v => {
+              completedResults[itemIndex] = v;
+            });
+          }
+          completedResults[itemIndex] = finished;
+          return;
+        }
+        completedResults[itemIndex] = value;
+      };
+      if (isPromise(nested)) {
+        asyncUpdates.push(nested.then(value => assignItem(value)).then(() => undefined));
         continue;
       }
-      if (nested === undefined) {
-        // This item alone needs classic completion; do not redo prior items.
-        const finished = executeObjectItemViaFieldsSync(
-          exeContext,
-          itemObjectType,
-          item,
-          itemPath,
-          subExecutions,
-        );
-        if (finished === undefined) {
-          return undefined;
-        }
-        completedResults[index] = finished;
-        continue;
+      const assigned = assignItem(nested);
+      if (isPromise(assigned)) {
+        asyncUpdates.push(assigned.then(() => undefined));
       }
-      completedResults[index] = nested;
     } catch (bubbled) {
+      // Abort must not become a nullable list-item failure.
+      exeContext.signal?.throwIfAborted();
       // NonNull child bubbled from the item — null nullable items and continue.
       if (itemNonNull) {
         throw bubbled;
@@ -1967,6 +1985,9 @@ function completePlannedObjectListValue(
           : locatedError(coerceError(bubbled), undefined, pathToArray(itemPath));
       completedResults[index] = handleFieldError(error, itemObjectType, exeContext.errors);
     }
+  }
+  if (asyncUpdates.length > 0) {
+    return Promise.all(asyncUpdates).then(() => completedResults);
   }
   return completedResults;
 }
@@ -3999,84 +4020,137 @@ function invalidReturnTypeError(
   );
 }
 
-/** Thin walk finished some children (e.g. getter errors) then must miss; carry them. */
+/**
+ * Thin walk finished some children (e.g. getter errors) then must miss; carry them.
+ * Tagged with a module-private symbol so ordinary GraphQL response objects
+ * (including keys named `partial` / `results`) cannot be mistaken for a miss.
+ */
+const THIN_OBJECT_PARTIAL: unique symbol = Symbol('thinObjectPartial');
+
 type ThinObjectPartial = {
-  readonly partial: true;
+  readonly [THIN_OBJECT_PARTIAL]: true;
   readonly results: Record<string, unknown>;
   readonly completed: ReadonlySet<string>;
+  /** Leaf serialize() promises already started; settle instead of re-serializing. */
+  readonly pendingLeaves?: ReadonlyMap<
+    string,
+    {
+      promise: Promise<unknown>;
+      fieldNodes: ReadonlyArray<FieldNode>;
+      returnType: GraphQLOutputType;
+    }
+  >;
 };
 
 function isThinObjectPartial(value: unknown): value is ThinObjectPartial {
   return (
     typeof value === 'object' &&
     value != null &&
-    (value as ThinObjectPartial).partial === true &&
-    typeof (value as ThinObjectPartial).results === 'object'
+    (value as ThinObjectPartial)[THIN_OBJECT_PARTIAL] === true
   );
 }
 
 function thinObjectMiss(
   results: Record<string, unknown>,
   recordedGetterError: boolean,
+  pendingLeaves?: ThinObjectPartial['pendingLeaves'],
 ): Record<string, unknown> | ThinObjectPartial | undefined {
-  if (!recordedGetterError) {
+  if (!recordedGetterError && (pendingLeaves == null || pendingLeaves.size === 0)) {
     return undefined;
   }
-  return {
-    partial: true,
+  const partial: ThinObjectPartial = {
+    [THIN_OBJECT_PARTIAL]: true,
     results,
     completed: new Set(Object.keys(results)),
+    pendingLeaves,
   };
+  return partial;
 }
 
 /**
- * Finish a thin-walk partial by running only remaining children via classic
- * executeFields. Returns undefined when remaining work is async (caller must
- * leave the sync thin path).
+ * Finish a thin-walk partial: settle any carried leaf promises, then run only
+ * remaining children via classic executeFields. Preserves the promise (never discards).
  */
-function finishThinObjectPartialSync(
+function finishThinObjectPartial(
   exeContext: ExecutionContext,
   parentType: GraphQLObjectType,
   sourceValue: unknown,
   path: Path,
   plannedExecutions: ReadonlyArray<PlannedFieldExecution>,
   partial: ThinObjectPartial,
-): Record<string, unknown> | undefined {
-  const remaining = plannedExecutions.filter(e => !partial.completed.has(e.responseName));
-  if (remaining.length === 0) {
-    return partial.results;
-  }
-  const restFields = new Map<string, Array<FieldNode>>();
-  for (const execution of remaining) {
-    restFields.set(execution.responseName, execution.fieldNodes as Array<FieldNode>);
-  }
-  const rest = executeFields(
-    exeContext,
-    parentType,
-    sourceValue,
-    path,
-    restFields,
-    undefined,
-    remaining,
-  );
-  if (isPromise(rest)) {
-    return undefined;
-  }
-  return Object.assign(partial.results, rest);
+): MaybePromise<Record<string, unknown>> {
+  const settlePendingLeaves = (): MaybePromise<void> => {
+    const pending = partial.pendingLeaves;
+    if (pending == null || pending.size === 0) {
+      return;
+    }
+    const tasks: Promise<void>[] = [];
+    for (const [responseName, leaf] of pending) {
+      const fieldPath = addPath(path, responseName, parentType.name);
+      tasks.push(
+        leaf.promise.then(
+          value => {
+            partial.results[responseName] = value;
+          },
+          rawError => {
+            const error = locatedError(
+              coerceError(rawError),
+              leaf.fieldNodes as Array<FieldNode>,
+              pathToArray(fieldPath),
+            );
+            partial.results[responseName] = handleFieldError(
+              error,
+              leaf.returnType,
+              exeContext.errors,
+            );
+          },
+        ),
+      );
+    }
+    return Promise.all(tasks).then(() => undefined);
+  };
+
+  return handleMaybePromise(settlePendingLeaves, () => {
+    const remaining = plannedExecutions.filter(e => !partial.completed.has(e.responseName));
+    // Fields settled via pendingLeaves are already in results but not in completed.
+    const stillRemaining = remaining.filter(
+      e => !Object.prototype.hasOwnProperty.call(partial.results, e.responseName),
+    );
+    if (stillRemaining.length === 0) {
+      return partial.results;
+    }
+    const restFields = new Map<string, Array<FieldNode>>();
+    for (const execution of stillRemaining) {
+      restFields.set(execution.responseName, execution.fieldNodes as Array<FieldNode>);
+    }
+    return handleMaybePromise(
+      () =>
+        executeFields(
+          exeContext,
+          parentType,
+          sourceValue,
+          path,
+          restFields,
+          undefined,
+          stillRemaining,
+        ),
+      rest => Object.assign(partial.results, rest),
+    );
+  });
 }
 
-function executeObjectItemViaFieldsSync(
+function executeObjectItemViaFields(
   exeContext: ExecutionContext,
   parentType: GraphQLObjectType,
   sourceValue: unknown,
   path: Path,
   plannedExecutions: ReadonlyArray<PlannedFieldExecution>,
-): Record<string, unknown> | undefined {
+): MaybePromise<Record<string, unknown>> {
   const fields = new Map<string, Array<FieldNode>>();
   for (const execution of plannedExecutions) {
     fields.set(execution.responseName, execution.fieldNodes as Array<FieldNode>);
   }
-  const completed = executeFields(
+  return executeFields(
     exeContext,
     parentType,
     sourceValue,
@@ -4085,10 +4159,6 @@ function executeObjectItemViaFieldsSync(
     undefined,
     plannedExecutions,
   );
-  if (isPromise(completed)) {
-    return undefined;
-  }
-  return completed;
 }
 
 function executePlannedSyncObjectFields(
@@ -4097,20 +4167,51 @@ function executePlannedSyncObjectFields(
   sourceValue: unknown,
   path: Path,
   plannedExecutions: ReadonlyArray<PlannedFieldExecution>,
-): Record<string, unknown> | ThinObjectPartial | undefined {
+): MaybePromise<Record<string, unknown> | ThinObjectPartial | undefined> {
   if (exeContext.fieldResolver !== defaultFieldResolver) {
     return undefined;
   }
   if (!isObjectLike(sourceValue) && typeof sourceValue !== 'function') {
     return undefined;
   }
-  const source = sourceValue as Record<string, unknown>;
-  const results: Record<string, unknown> = Object.create(null);
-  let recordedGetterError = false;
-  for (const execution of plannedExecutions) {
+  return executePlannedSyncObjectFieldsFrom(
+    exeContext,
+    parentType,
+    sourceValue as Record<string, unknown>,
+    path,
+    plannedExecutions,
+    0,
+    Object.create(null) as Record<string, unknown>,
+    false,
+    undefined,
+  );
+}
+
+function executePlannedSyncObjectFieldsFrom(
+  exeContext: ExecutionContext,
+  parentType: GraphQLObjectType,
+  source: Record<string, unknown>,
+  path: Path,
+  plannedExecutions: ReadonlyArray<PlannedFieldExecution>,
+  startIndex: number,
+  results: Record<string, unknown>,
+  recordedGetterError: boolean,
+  pendingLeaves:
+    | Map<
+        string,
+        {
+          promise: Promise<unknown>;
+          fieldNodes: ReadonlyArray<FieldNode>;
+          returnType: GraphQLOutputType;
+        }
+      >
+    | undefined,
+): MaybePromise<Record<string, unknown> | ThinObjectPartial | undefined> {
+  for (let index = startIndex; index < plannedExecutions.length; index++) {
+    const execution = plannedExecutions[index];
     const { responseName, fieldNodes, fieldPlan } = execution;
     if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
-      return thinObjectMiss(results, recordedGetterError);
+      return thinObjectMiss(results, recordedGetterError, pendingLeaves);
     }
     let property: unknown;
     try {
@@ -4150,54 +4251,104 @@ function executePlannedSyncObjectFields(
       continue;
     }
     if (typeof property === 'function' || property instanceof Error) {
-      return thinObjectMiss(results, recordedGetterError);
+      return thinObjectMiss(results, recordedGetterError, pendingLeaves);
     }
     // Avoid isPromise on plain data (nested bench); only gate real thenables.
     if (property != null && typeof property === 'object' && isPromise(property)) {
-      return thinObjectMiss(results, recordedGetterError);
+      return thinObjectMiss(results, recordedGetterError, pendingLeaves);
     }
     if (fieldPlan.kind === 'leaf' && fieldPlan.leafType != null) {
       if (property == null) {
         if (fieldPlan.nonNull) {
           // NonNull bubble — classic path for exact error handling.
-          return thinObjectMiss(results, recordedGetterError);
+          return thinObjectMiss(results, recordedGetterError, pendingLeaves);
         }
         results[responseName] = null;
         continue;
       }
       try {
         const serialized = fieldPlan.leafType.serialize(property);
-        if (serialized == null || isPromise(serialized)) {
-          return thinObjectMiss(results, recordedGetterError);
+        if (serialized == null) {
+          return thinObjectMiss(results, recordedGetterError, pendingLeaves);
+        }
+        if (isPromise(serialized)) {
+          // Carry the already-started promise; do not re-invoke serialize on fallback.
+          const leaves = pendingLeaves ?? new Map();
+          leaves.set(responseName, {
+            promise: serialized,
+            fieldNodes,
+            returnType: fieldPlan.returnType,
+          });
+          pendingLeaves = leaves;
+          recordedGetterError = true;
+          continue;
         }
         results[responseName] = serialized;
       } catch {
-        return thinObjectMiss(results, recordedGetterError);
+        return thinObjectMiss(results, recordedGetterError, pendingLeaves);
       }
       continue;
     }
     if (fieldPlan.kind === 'object' && fieldPlan.skipIsTypeOf && fieldPlan.objectType != null) {
       if (property == null) {
         if (fieldPlan.nonNull) {
-          return thinObjectMiss(results, recordedGetterError);
+          return thinObjectMiss(results, recordedGetterError, pendingLeaves);
         }
         results[responseName] = null;
         continue;
       }
       if (!isObjectLike(property)) {
-        return thinObjectMiss(results, recordedGetterError);
+        return thinObjectMiss(results, recordedGetterError, pendingLeaves);
       }
       const plan = exeContext.plan;
       if (plan == null) {
-        return thinObjectMiss(results, recordedGetterError);
+        return thinObjectMiss(results, recordedGetterError, pendingLeaves);
       }
       const rawSub = getPlannedSubfieldExecutions(plan, fieldNodes, fieldPlan.objectType);
       if (rawSub == null) {
-        return thinObjectMiss(results, recordedGetterError);
+        return thinObjectMiss(results, recordedGetterError, pendingLeaves);
       }
       const childPath = addPath(path, responseName, parentType.name);
+      const nestedSubExecutions = filterPlannedExecutions(rawSub, exeContext.variableValues);
+      const applyNested = (
+        nested: Record<string, unknown> | ThinObjectPartial | undefined,
+      ): MaybePromise<Record<string, unknown> | ThinObjectPartial | undefined> => {
+        if (isThinObjectPartial(nested)) {
+          const finished = finishThinObjectPartial(
+            exeContext,
+            fieldPlan.objectType!,
+            property,
+            childPath,
+            nestedSubExecutions,
+            nested,
+          );
+          if (isPromise(finished)) {
+            return finished.then(nestedResult => {
+              results[responseName] = nestedResult;
+              return executePlannedSyncObjectFieldsFrom(
+                exeContext,
+                parentType,
+                source,
+                path,
+                plannedExecutions,
+                index + 1,
+                results,
+                true,
+                pendingLeaves,
+              );
+            });
+          }
+          results[responseName] = finished;
+          recordedGetterError = true;
+          return undefined; // signal: continue sync loop
+        }
+        if (nested === undefined) {
+          return thinObjectMiss(results, recordedGetterError, pendingLeaves);
+        }
+        results[responseName] = nested;
+        return undefined; // continue sync loop
+      };
       try {
-        const nestedSubExecutions = filterPlannedExecutions(rawSub, exeContext.variableValues);
         const nested = executePlannedSyncObjectFields(
           exeContext,
           fieldPlan.objectType,
@@ -4205,28 +4356,33 @@ function executePlannedSyncObjectFields(
           childPath,
           nestedSubExecutions,
         );
-        if (isThinObjectPartial(nested)) {
-          const finished = finishThinObjectPartialSync(
-            exeContext,
-            fieldPlan.objectType,
-            property,
-            childPath,
-            nestedSubExecutions,
-            nested,
-          );
-          if (finished === undefined) {
-            return thinObjectMiss(results, recordedGetterError);
-          }
-          results[responseName] = finished;
-          recordedGetterError = true;
-          continue;
+        if (isPromise(nested)) {
+          return nested.then(value => {
+            const applied = applyNested(value);
+            if (applied !== undefined) {
+              return applied;
+            }
+            return executePlannedSyncObjectFieldsFrom(
+              exeContext,
+              parentType,
+              source,
+              path,
+              plannedExecutions,
+              index + 1,
+              results,
+              recordedGetterError,
+              pendingLeaves,
+            );
+          });
         }
-        if (nested === undefined) {
-          return thinObjectMiss(results, recordedGetterError);
+        const applied = applyNested(nested);
+        if (applied !== undefined) {
+          return applied;
         }
-        results[responseName] = nested;
+        continue;
       } catch (bubbled) {
         // NonNull child bubbled — stop at this nullable object field.
+        exeContext.signal?.throwIfAborted();
         if (fieldPlan.nonNull) {
           throw bubbled;
         }
@@ -4247,7 +4403,13 @@ function executePlannedSyncObjectFields(
       continue;
     }
     // List / Abstract / LeafList — decline.
-    return thinObjectMiss(results, recordedGetterError);
+    return thinObjectMiss(results, recordedGetterError, pendingLeaves);
+  }
+  // Propagate recorded child errors to the parent as a partial (all keys
+  // completed) so a later sibling miss keeps this object and only finishes
+  // remaining parent fields.
+  if (recordedGetterError || (pendingLeaves != null && pendingLeaves.size > 0)) {
+    return thinObjectMiss(results, true, pendingLeaves);
   }
   return results;
 }
@@ -4291,40 +4453,36 @@ function collectAndExecuteSubfields(
         plan != null &&
         !plan.hasIncremental
       ) {
-        const thin = executePlannedSyncObjectFields(
-          exeContext,
-          returnType,
-          result,
-          path,
-          plannedExecutions,
-        );
-        if (thin !== undefined && !isThinObjectPartial(thin)) {
-          return thin;
-        }
-        if (isThinObjectPartial(thin)) {
-          // Getter errors already recorded — finish only remaining children.
-          const remaining = plannedExecutions.filter(e => !thin.completed.has(e.responseName));
-          if (remaining.length === 0) {
-            return thin.results;
-          }
-          const restFields = new Map<string, Array<FieldNode>>();
-          for (const execution of remaining) {
-            restFields.set(execution.responseName, execution.fieldNodes as Array<FieldNode>);
-          }
-          return handleMaybePromise(
-            () =>
-              executeFields(
+        const executions = plannedExecutions;
+        return handleMaybePromise(
+          () => executePlannedSyncObjectFields(exeContext, returnType, result, path, executions),
+          thin => {
+            if (thin !== undefined && !isThinObjectPartial(thin)) {
+              return thin;
+            }
+            if (isThinObjectPartial(thin)) {
+              // Getter errors / pending leaves already recorded — finish only
+              // remaining children (and settle carried serialize promises).
+              return finishThinObjectPartial(
                 exeContext,
                 returnType,
                 result,
                 path,
-                restFields,
-                asyncPayloadRecord,
-                remaining,
-              ),
-            rest => Object.assign(thin.results, rest),
-          );
-        }
+                executions,
+                thin,
+              );
+            }
+            return executeFields(
+              exeContext,
+              returnType,
+              result,
+              path,
+              plannedSubfields,
+              asyncPayloadRecord,
+              executions,
+            );
+          },
+        );
       }
       return executeFields(
         exeContext,
