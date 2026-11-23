@@ -2303,7 +2303,7 @@ describe('plain object-list single-pass (no speculative replay)', () => {
       }),
     ).toEqual({ data: { users: [{ id: 'warm' }] } });
     // Install a field resolver after compile; live check must invoke it.
-    query.getFields().users.resolve = () => [{ id: 'live' }];
+    query.getFields()['users'].resolve = () => [{ id: 'live' }];
     const result = executeSync({
       schema,
       document,
