@@ -1549,6 +1549,103 @@ describe('list completion: retain preflight item reads', () => {
     expect(read2).toBe(0);
   });
 
+  it('does not read later accessors when earlier item child NonNull fails', () => {
+    const Item = new GraphQLObjectType({
+      name: 'ChildNullItem',
+      fields: {
+        id: {
+          type: new GraphQLNonNull(GraphQLString),
+          resolve: () => null,
+        },
+      },
+    });
+    let read1 = 0;
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: {
+            type: new GraphQLList(new GraphQLNonNull(Item)),
+            resolve: () => {
+              const users: Array<Record<string, never>> = [{}, {}];
+              Object.defineProperty(users, '1', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  read1 += 1;
+                  throw new Error('Unexpected later read');
+                },
+              });
+              return users;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ users { id } }');
+    read1 = 0;
+    const planned = executeSync({ schema, document });
+    const classic = executeClassicSync({ schema, document });
+    expect(planned).toMatchObject({
+      data: { users: null },
+      errors: [{ path: ['users', 0, 'id'] }],
+    });
+    expect(planned).toEqual(classic);
+    expect(read1).toBe(0);
+  });
+
+  it('observes pending item promises when a later default-resolved list accessor throws', async () => {
+    const Item = new GraphQLObjectType({
+      name: 'PendingDefaultItem',
+      fields: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          // Default property resolve — exercises thin object-list + classic list paths.
+          users: { type: new GraphQLList(new GraphQLNonNull(Item)) },
+        },
+      }),
+    });
+    const document = parse('{ users { id } }');
+    let unhandled = 0;
+    const onUnhandled = (): void => {
+      unhandled += 1;
+    };
+    process.on('unhandledRejection', onUnhandled);
+    try {
+      let read2 = 0;
+      const users: Array<unknown> = [
+        Promise.reject(Object.assign(new Error('pending fail'), { name: 'PendingFail' })),
+        { id: 'ok' },
+        { id: 'tail' },
+      ];
+      Object.defineProperty(users, '2', {
+        configurable: true,
+        enumerable: true,
+        get() {
+          read2 += 1;
+          throw new Error('tail accessor');
+        },
+      });
+      const planned = await execute({ schema, document, rootValue: { users } });
+      // Flush microtasks so a leaked derived rejection would surface.
+      await new Promise<void>(resolve => {
+        setImmediate(resolve);
+      });
+      expect(unhandled).toBe(0);
+      expect(read2).toBe(1);
+      expect(planned).toMatchObject({
+        errors: expect.any(Array),
+      });
+    } finally {
+      process.off('unhandledRejection', onUnhandled);
+    }
+  });
+
   it('does not replay completed custom-scalar serializes when a later item returns null', () => {
     let serializeCalls = 0;
     const CountingScalar = new GraphQLScalarType({

@@ -1973,118 +1973,40 @@ function completePlannedObjectListValue(
     // Custom iterators / async iterables / non-arrays → classic completion.
     return undefined;
   }
-  // Snapshot each slot once during preflight. Accessor-backed arrays can
-  // return a different value on a later read; completion must reuse the same
-  // item that passed classification (including classic fallback).
-  // Unread tail slots stay holes — classic reads them lazily so a NonNull null
-  // mid-list does not touch later accessors (classic stops at the failing index).
-  const items: Array<unknown> = new Array(result.length);
-  const classicFromRetained = (): MaybePromise<ReadonlyArray<unknown> | null> => {
-    const info = buildPlannedResolveInfo(exeContext, fieldPlan, path, fieldNodes);
-    const returnType = fieldPlan.returnType;
-    const listType = (
-      isNonNullType(returnType) ? returnType.ofType : returnType
-    ) as GraphQLList<GraphQLOutputType>;
-    const lazyItems = new Proxy(items, {
-      get(target, prop, receiver) {
-        if (prop === 'length') {
-          return result.length;
-        }
-        if (typeof prop === 'string') {
-          const idx = Number(prop);
-          if (Number.isInteger(idx) && idx >= 0 && idx < result.length) {
-            if (!Object.prototype.hasOwnProperty.call(target, idx)) {
-              target[idx] = result[idx];
-            }
-            return target[idx];
-          }
-        }
-        return Reflect.get(target, prop, receiver);
-      },
-      has(target, prop) {
-        if (typeof prop === 'string') {
-          const idx = Number(prop);
-          if (Number.isInteger(idx) && idx >= 0 && idx < result.length) {
-            return true;
-          }
-        }
-        return Reflect.has(target, prop);
-      },
-      getOwnPropertyDescriptor(target, prop) {
-        if (prop === 'length') {
-          return {
-            configurable: false,
-            enumerable: false,
-            writable: true,
-            value: result.length,
-          };
-        }
-        if (typeof prop === 'string') {
-          const idx = Number(prop);
-          if (Number.isInteger(idx) && idx >= 0 && idx < result.length) {
-            if (!Object.prototype.hasOwnProperty.call(target, idx)) {
-              target[idx] = result[idx];
-            }
-            return {
-              configurable: true,
-              enumerable: true,
-              writable: true,
-              value: target[idx],
-            };
-          }
-        }
-        return Reflect.getOwnPropertyDescriptor(target, prop);
-      },
-    });
-    return completeListValue(exeContext, listType, fieldNodes, info, path, lazyItems);
-  };
-  for (let index = 0; index < result.length; index++) {
-    const item = result[index];
-    items[index] = item;
-    if (item == null) {
-      if (itemNonNull) {
-        return classicFromRetained();
-      }
-      continue;
-    }
-    if (!isObjectLike(item) || isPromise(item) || item instanceof Error) {
-      return classicFromRetained();
-    }
-  }
+  // Single-pass: read one slot, complete it, then the next — match classic
+  // interleaving so a NonNull failure never touches later accessors. No
+  // speculative preflight and no Proxy; each slot is observed at most once.
+  const listType = (
+    isNonNullType(fieldPlan.returnType) ? fieldPlan.returnType.ofType : fieldPlan.returnType
+  ) as GraphQLList<GraphQLOutputType>;
+  const itemType = listType.ofType;
+  const info = buildPlannedResolveInfo(exeContext, fieldPlan, path, fieldNodes);
   const completedResults: Array<unknown> = new Array(result.length);
   const asyncUpdates: Promise<void>[] = [];
-  for (let index = 0; index < result.length; index++) {
-    const item = items[index];
-    if (item == null) {
-      completedResults[index] = null;
-      continue;
+  const nullNullableItem = (bubbled: unknown, itemPath: Path, itemIndex: number): void => {
+    exeContext.signal?.throwIfAborted();
+    if (itemNonNull) {
+      throw bubbled;
     }
-    const itemPath = addPath(path, index, undefined);
-    const itemIndex = index;
-    const nullNullableItem = (bubbled: unknown): void => {
-      // Abort must not become a nullable list-item failure.
-      exeContext.signal?.throwIfAborted();
-      // NonNull child bubbled from the item — null nullable items and continue.
-      if (itemNonNull) {
-        throw bubbled;
-      }
-      const error =
-        bubbled instanceof GraphQLError
-          ? bubbled
-          : locatedError(coerceError(bubbled), undefined, pathToArray(itemPath));
-      completedResults[itemIndex] = handleFieldError(error, itemObjectType, exeContext.errors);
-    };
-    const settleItemAsync = (work: MaybePromise<void>): void => {
-      // Observe immediately so an early loop exit cannot leave an unhandled
-      // rejection; keep the same promise in the aggregate for NonNull bubbles.
-      const tracked = Promise.resolve(work).then(
-        () => undefined,
-        (bubbled: unknown) => {
-          nullNullableItem(bubbled);
-        },
-      );
-      tracked.then(undefined, () => undefined);
-      asyncUpdates.push(tracked);
+    const error =
+      bubbled instanceof GraphQLError
+        ? bubbled
+        : locatedError(coerceError(bubbled), undefined, pathToArray(itemPath));
+    completedResults[itemIndex] = handleFieldError(error, itemObjectType, exeContext.errors);
+  };
+  const trackAsync = (work: Promise<void>): void => {
+    // Observe immediately so an early loop exit cannot leave an unhandled rejection.
+    work.then(undefined, () => undefined);
+    asyncUpdates.push(work);
+  };
+
+  const completeObjectItem = (
+    item: Record<string, unknown>,
+    itemPath: Path,
+    itemIndex: number,
+  ): MaybePromise<void> => {
+    const nullItem = (bubbled: unknown): void => {
+      nullNullableItem(bubbled, itemPath, itemIndex);
     };
     try {
       const nested = executePlannedSyncObjectFields(
@@ -2115,7 +2037,6 @@ function completePlannedObjectListValue(
           return;
         }
         if (value === undefined) {
-          // This item alone needs classic completion; do not redo prior items.
           const finished = executeObjectItemViaFields(
             exeContext,
             itemObjectType,
@@ -2134,15 +2055,140 @@ function completePlannedObjectListValue(
         completedResults[itemIndex] = value;
       };
       if (isPromise(nested)) {
-        settleItemAsync(nested.then(value => assignItem(value)));
-        continue;
+        return nested
+          .then(value => assignItem(value))
+          .then(
+            () => undefined,
+            (bubbled: unknown) => {
+              nullItem(bubbled);
+            },
+          );
       }
       const assigned = assignItem(nested);
       if (isPromise(assigned)) {
-        settleItemAsync(assigned);
+        return assigned.then(
+          () => undefined,
+          (bubbled: unknown) => {
+            nullItem(bubbled);
+          },
+        );
       }
     } catch (bubbled) {
-      nullNullableItem(bubbled);
+      nullItem(bubbled);
+    }
+  };
+
+  for (let index = 0; index < result.length; index++) {
+    let item: unknown;
+    try {
+      item = result[index];
+    } catch (rawError) {
+      // Accessor threw — pending item work is already observed via trackAsync.
+      exeContext.signal?.throwIfAborted();
+      throw coerceError(rawError);
+    }
+    const itemPath = addPath(path, index, undefined);
+    if (item == null) {
+      if (itemNonNull) {
+        throw new Error(
+          `Cannot return null for non-nullable field ${fieldPlan.parentType.name}.${fieldPlan.fieldDef.name}.`,
+        );
+      }
+      completedResults[index] = null;
+      continue;
+    }
+    if (item instanceof Error) {
+      try {
+        completedResults[index] = handleFieldError(
+          locatedError(item, fieldNodes, pathToArray(itemPath)),
+          itemType,
+          exeContext.errors,
+        );
+      } catch (bubbled) {
+        nullNullableItem(bubbled, itemPath, index);
+      }
+      continue;
+    }
+    if (isPromise(item)) {
+      const itemIndex = index;
+      trackAsync(
+        Promise.resolve(item)
+          .then((resolved: unknown) => {
+            if (resolved instanceof Error) {
+              throw resolved;
+            }
+            if (resolved == null) {
+              if (itemNonNull) {
+                throw new Error(
+                  `Cannot return null for non-nullable field ${fieldPlan.parentType.name}.${fieldPlan.fieldDef.name}.`,
+                );
+              }
+              completedResults[itemIndex] = null;
+              return;
+            }
+            if (!isObjectLike(resolved)) {
+              const one: Array<unknown> = [];
+              completeListItemValue(
+                resolved,
+                one,
+                exeContext.errors,
+                exeContext,
+                itemType,
+                fieldNodes,
+                info,
+                itemPath,
+              );
+              completedResults[itemIndex] = one[0];
+              return;
+            }
+            return completeObjectItem(resolved as Record<string, unknown>, itemPath, itemIndex);
+          })
+          .then(
+            () => undefined,
+            (bubbled: unknown) => {
+              nullNullableItem(bubbled, itemPath, itemIndex);
+            },
+          ),
+      );
+      continue;
+    }
+    if (!isObjectLike(item)) {
+      try {
+        const one: Array<unknown> = [];
+        const asyncItem = completeListItemValue(
+          item,
+          one,
+          exeContext.errors,
+          exeContext,
+          itemType,
+          fieldNodes,
+          info,
+          itemPath,
+        );
+        if (asyncItem) {
+          const itemIndex = index;
+          const slot = one[0];
+          trackAsync(
+            Promise.resolve(slot).then(
+              value => {
+                completedResults[itemIndex] = value;
+              },
+              (bubbled: unknown) => {
+                nullNullableItem(bubbled, itemPath, itemIndex);
+              },
+            ),
+          );
+        } else {
+          completedResults[index] = one[0];
+        }
+      } catch (bubbled) {
+        nullNullableItem(bubbled, itemPath, index);
+      }
+      continue;
+    }
+    const done = completeObjectItem(item as Record<string, unknown>, itemPath, index);
+    if (isPromise(done)) {
+      trackAsync(done);
     }
   }
   if (asyncUpdates.length > 0) {
@@ -2151,6 +2197,7 @@ function completePlannedObjectListValue(
   return completedResults;
 }
 /**
+ * Field-local leaf-list path:/**
  * Field-local leaf-list path: PlannedWorkRunner only for this field's items.
  * Returns a Promise when the field (or its items) are async; `undefined` to
  * decline and fall through to `executeField`.
@@ -3827,9 +3874,27 @@ function completeListValue(
   // protocol. Custom array iterators must use for-of (yielded values).
   // Planned listItemLeaf skips repeated isLeafType classification.
   if (usesDefaultArrayIterator(result) && !stream) {
-    for (let index = 0; index < result.length; index++) {
-      if (leafItemType) {
-        if (
+    try {
+      for (let index = 0; index < result.length; index++) {
+        if (leafItemType) {
+          if (
+            completeListItemValue(
+              result[index],
+              completedResults,
+              errors,
+              exeContext,
+              itemType,
+              fieldNodes,
+              info,
+              path,
+              asyncPayloadRecord,
+              leafItemType,
+              index,
+            )
+          ) {
+            containsPromise = true;
+          }
+        } else if (
           completeListItemValue(
             result[index],
             completedResults,
@@ -3838,29 +3903,25 @@ function completeListValue(
             itemType,
             fieldNodes,
             info,
-            path,
+            addPath(path, index, undefined),
             asyncPayloadRecord,
-            leafItemType,
-            index,
           )
         ) {
           containsPromise = true;
         }
-      } else if (
-        completeListItemValue(
-          result[index],
-          completedResults,
-          errors,
-          exeContext,
-          itemType,
-          fieldNodes,
-          info,
-          addPath(path, index, undefined),
-          asyncPayloadRecord,
-        )
-      ) {
-        containsPromise = true;
       }
+    } catch (syncAbort) {
+      // A later sync failure (accessor throw / NonNull bubble) can exit before
+      // Promise.all. Observe derived item promises so their rejections are not
+      // unhandled when settleListResults never runs.
+      if (containsPromise) {
+        for (const slot of completedResults) {
+          if (isPromise(slot)) {
+            Promise.resolve(slot).then(undefined, () => undefined);
+          }
+        }
+      }
+      throw syncAbort;
     }
     return settleListResults(exeContext, completedResults, containsPromise);
   }
