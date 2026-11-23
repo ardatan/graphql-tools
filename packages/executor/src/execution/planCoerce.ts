@@ -300,7 +300,8 @@ function tryCoerceBuiltinLeafVariables(
           return { errors: aggregated };
         }
       }
-      continue;
+      // Classic stops after an input accessor throws; do not read later variables.
+      return aggregated.length > 0 ? { errors: aggregated } : undefined;
     }
     if (read.kind === 'missing') {
       sources[binding.name] = { signature };

@@ -4431,4 +4431,172 @@ describe('differential parity: classic vs planned (R9)', () => {
       expect(plannedCalls).toBe(3);
     });
   });
+
+  // R31 audit P0s: root CRITICAL_ERROR strip, thin list skip/include deferral,
+  // async leaf-list nullish serialize without double-serialize.
+  describe('R31 classic-parity P0s', () => {
+    it('strips CRITICAL_ERROR on root default-property leaf serialize', () => {
+      const Ser = new GraphQLScalarType({
+        name: 'R31RootCritSer',
+        serialize() {
+          throw new GraphQLError('boom', {
+            extensions: { CRITICAL_ERROR: true },
+          });
+        },
+      });
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            a: { type: Ser },
+            other: { type: GraphQLString },
+          },
+        }),
+      });
+      const document = parse('{ a other }');
+      const rootValue = { a: 1, other: 'ok' };
+      const planned = executeSync({ schema, document, rootValue });
+      const classic = executeClassicSync({ schema, document, rootValue });
+      expect(planned).toEqual(classic);
+      expect(planned).toEqual({
+        data: { a: null, other: 'ok' },
+        errors: [expect.objectContaining({ message: 'boom', path: ['a'] })],
+      });
+      expect(planned.errors?.[0]?.extensions?.['CRITICAL_ERROR']).toBeUndefined();
+    });
+
+    it('empty thin object-list does not evaluate child @include before resolve', async () => {
+      let reads = 0;
+      const Item = new GraphQLObjectType({
+        name: 'R31SkipItem',
+        fields: {
+          id: { type: GraphQLString },
+          name: { type: GraphQLString },
+        },
+      });
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            items: { type: new GraphQLList(Item) },
+            ok: { type: GraphQLString, resolve: () => 'yes' },
+          },
+        }),
+      });
+      const document = parse('query ($show: Boolean) { items { id name @include(if: $show) } ok }');
+      const rootValue = {
+        get items() {
+          reads += 1;
+          return [];
+        },
+      };
+      const planned = assertSingular(
+        await execute({ schema, document, rootValue, variableValues: { show: null } }),
+      );
+      const classic = await executeClassic({
+        schema,
+        document,
+        rootValue,
+        variableValues: { show: null },
+      });
+      expect(planned).toEqual(classic);
+      expect(planned).toEqual({ data: { items: [], ok: 'yes' } });
+      expect(reads).toBeGreaterThanOrEqual(1);
+    });
+
+    it('non-empty thin object-list @include(null) localizes at items.0', async () => {
+      const Item = new GraphQLObjectType({
+        name: 'R31SkipItem2',
+        fields: {
+          id: { type: GraphQLString },
+          name: { type: GraphQLString },
+        },
+      });
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            items: { type: new GraphQLList(Item) },
+            ok: { type: GraphQLString, resolve: () => 'yes' },
+          },
+        }),
+      });
+      const document = parse('query ($show: Boolean) { items { id name @include(if: $show) } ok }');
+      const rootValue = { items: [{ id: '1', name: 'n' }] };
+      const planned = assertSingular(
+        await execute({ schema, document, rootValue, variableValues: { show: null } }),
+      );
+      const classic = await executeClassic({
+        schema,
+        document,
+        rootValue,
+        variableValues: { show: null },
+      });
+      expect(planned).toEqual(classic);
+      expect(planned.data).toEqual({ items: [null], ok: 'yes' });
+      expect(planned.errors?.[0]?.path).toEqual(['items', 0]);
+    });
+
+    it('async leaf-list nullish serialize does not double-serialize', async () => {
+      let calls = 0;
+      const Ser = new GraphQLScalarType({
+        name: 'R31Twice',
+        serialize(value: unknown) {
+          calls += 1;
+          if (calls === 1) {
+            return null;
+          }
+          return `second:${calls}:${String(value)}`;
+        },
+      });
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            values: {
+              type: new GraphQLList(Ser),
+              resolve: () => [Promise.resolve(1)],
+            },
+            ok: { type: GraphQLString, resolve: () => 'yes' },
+          },
+        }),
+      });
+      const document = parse('{ values ok }');
+      calls = 0;
+      const planned = assertSingular(await execute({ schema, document }));
+      const plannedCalls = calls;
+      calls = 0;
+      const classic = await executeClassic({ schema, document });
+      expect(planned).toEqual(classic);
+      expect(plannedCalls).toBe(1);
+      expect(calls).toBe(1);
+      expect(planned).toMatchObject({
+        data: { values: [null], ok: 'yes' },
+        errors: [expect.objectContaining({ path: ['values', 0] })],
+      });
+    });
+
+    it('live isTypeOf after plan compile declines thin object-list', async () => {
+      const Item = new GraphQLObjectType({
+        name: 'R31LiveIsTypeOfItem',
+        fields: { id: { type: GraphQLString } },
+      });
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: { items: { type: new GraphQLList(Item) } },
+        }),
+      });
+      const document = parse('{ items { id } }');
+      const plan = compileExecutionPlan({ schema, document });
+      expect(isExecutionPlan(plan)).toBe(true);
+      Item.isTypeOf = () => false;
+      const rootValue = { items: [{ id: 'a' }] };
+      const planned = assertSingular(await execute({ schema, document, plan, rootValue }));
+      const classic = await executeClassic({ schema, document, rootValue });
+      expect(planned).toEqual(classic);
+      expect(planned.data).toEqual({ items: [null] });
+      expect(planned.errors?.[0]?.path).toEqual(['items', 0]);
+    });
+  });
 });

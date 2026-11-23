@@ -1698,8 +1698,10 @@ function executeFields(
                     results[slot] = resolved;
                   },
                   reason => {
+                    // Match completeLeafValue: GraphQLError → Error (drop CRITICAL_ERROR).
+                    const err = reason instanceof GraphQLError ? new Error(reason.message) : reason;
                     const error = locatedError(
-                      coerceError(reason),
+                      coerceError(err),
                       fieldNodes,
                       pathToArray(fieldPath),
                       exeContext.schemaCoordinateInErrors &&
@@ -1722,8 +1724,10 @@ function executeFields(
               }
               results[slot] = serialized;
             } catch (rawError) {
+              // Match completeLeafValue: GraphQLError → Error (drop CRITICAL_ERROR).
+              const err = rawError instanceof GraphQLError ? new Error(rawError.message) : rawError;
               const error = locatedError(
-                coerceError(rawError),
+                coerceError(err),
                 fieldNodes,
                 pathToArray(fieldPath),
                 exeContext.schemaCoordinateInErrors &&
@@ -1985,15 +1989,10 @@ function executeObjectListFieldThin(
   if (plan == null) {
     return undefined;
   }
+  // Pass raw subfield executions; skip/include filtering happens after the list
+  // value is known (empty/null lists must not evaluate child predicates — classic).
   const rawSubExecutions = getPlannedSubfieldExecutions(plan, fieldNodes, objectType);
   if (rawSubExecutions == null || rawSubExecutions.length === 0) {
-    return undefined;
-  }
-  const subExecutions =
-    plan.skipIncludePredicates === true
-      ? filterPlannedExecutions(rawSubExecutions, exeContext.variableValues)
-      : rawSubExecutions;
-  if (subExecutions.length === 0) {
     return undefined;
   }
 
@@ -2053,7 +2052,7 @@ function executeObjectListFieldThin(
             path,
             resolved,
             objectType,
-            subExecutions,
+            rawSubExecutions,
             locate,
           ),
         rawError => {
@@ -2074,7 +2073,7 @@ function executeObjectListFieldThin(
             path,
             resolved,
             objectType,
-            subExecutions,
+            rawSubExecutions,
             locate,
           ),
         rawError => {
@@ -2098,7 +2097,7 @@ function executeObjectListFieldThin(
       result,
       objectType,
       fieldPlan.itemNonNull === true,
-      subExecutions,
+      rawSubExecutions,
     );
     if (thin !== undefined && isPromise(thin)) {
       return thin.then(
@@ -2576,10 +2575,44 @@ function completePlannedObjectListValue(
   if (result[Symbol.iterator] !== Array.prototype[Symbol.iterator]) {
     return undefined;
   }
+  // Live isTypeOf installed after compile: decline thin path (generic checks live).
+  if (itemObjectType.isTypeOf != null) {
+    return undefined;
+  }
+  // Defer skip/include filtering until the list value is known. Empty lists must
+  // not evaluate child predicates (classic never completes items).
+  let effectiveSubExecutions = subExecutions;
+  const plan = exeContext.plan;
+  if (plan?.skipIncludePredicates === true) {
+    if (result.length === 0) {
+      return [];
+    }
+    try {
+      effectiveSubExecutions = filterPlannedExecutions(subExecutions, exeContext.variableValues);
+    } catch (rawError) {
+      // Classic evaluates directives during first-item completion.
+      const itemPath = addPath(path, 0, undefined);
+      const listType = (
+        isNonNullType(fieldPlan.returnType) ? fieldPlan.returnType.ofType : fieldPlan.returnType
+      ) as GraphQLList<GraphQLOutputType>;
+      const itemType = listType.ofType;
+      const error = locatedError(
+        coerceError(rawError),
+        fieldNodes,
+        pathToArray(itemPath),
+        exeContext.schemaCoordinateInErrors &&
+          schemaCoordinateInfo(fieldPlan.fieldDef, fieldPlan.parentType),
+      );
+      return [handleFieldError(error, itemType, exeContext.errors)];
+    }
+    if (effectiveSubExecutions.length === 0) {
+      return undefined;
+    }
+  }
   // Plain default-property fast lane (nestedDefault). Full success returns the
   // array; any decline returns a handoff so the remainder path continues from
   // that index without re-running the completed prefix (single-pass).
-  if (subExecutionsArePlainDefault(subExecutions)) {
+  if (subExecutionsArePlainDefault(effectiveSubExecutions)) {
     const fast = tryCompletePlannedObjectListPlain(
       exeContext,
       fieldPlan,
@@ -2588,7 +2621,7 @@ function completePlannedObjectListValue(
       result,
       itemObjectType,
       itemNonNull,
-      subExecutions,
+      effectiveSubExecutions,
     );
     if (
       !Array.isArray(fast) &&
@@ -2604,7 +2637,7 @@ function completePlannedObjectListValue(
         result,
         itemObjectType,
         itemNonNull,
-        subExecutions,
+        effectiveSubExecutions,
         handoff.completedResults,
         handoff.index,
         handoff.stashedNested,
@@ -2669,7 +2702,7 @@ function completePlannedObjectListValue(
         itemObjectType,
         item,
         addPath(path, index, undefined),
-        subExecutions,
+        effectiveSubExecutions,
       );
     } catch (bubbled) {
       pendingBubbled = bubbled;
@@ -2708,7 +2741,7 @@ function completePlannedObjectListValue(
       result,
       itemObjectType,
       itemNonNull,
-      subExecutions,
+      effectiveSubExecutions,
       completedResults,
       index,
       stashedNested,
@@ -3732,6 +3765,12 @@ function completePlannedLeafListValue(
                   settleSerializedPromise(index, serialized);
                   return;
                 }
+                // First serialize returned nullish — match completeLeafValue
+                // without falling through to writeItem (which would serialize again).
+                throw new Error(
+                  `Expected \`${inspect(leafType)}.serialize(${inspect(resolved)})\` to ` +
+                    `return non-nullable value, returned: ${inspect(serialized)}`,
+                );
               } catch (rawError) {
                 try {
                   completedResults[index] = handlePlannedLeafListItemError(
