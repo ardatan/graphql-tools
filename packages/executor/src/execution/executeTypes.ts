@@ -12,6 +12,7 @@ import {
 import {
   GraphQLResolveInfo,
   Maybe,
+  VariableValues,
   type IncrementalSpec,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';

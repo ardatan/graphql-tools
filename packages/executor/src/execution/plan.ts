@@ -27,6 +27,7 @@ import type {
   CompileExecutionPlanArgs,
   ExecutionPlan,
   FieldPlan,
+  PlannedFieldExecution,
 } from './planTypes.js';
 
 export type {

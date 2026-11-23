@@ -10,14 +10,11 @@ import {
   GraphQLAbstractType,
   GraphQLError,
   GraphQLField,
-  GraphQLFieldResolver,
-  GraphQLFormattedError,
   GraphQLLeafType,
   GraphQLList,
   GraphQLObjectType,
   GraphQLOutputType,
   GraphQLSchema,
-  GraphQLTypeResolver,
   isAbstractType,
   isLeafType,
   isListType,
@@ -54,15 +51,11 @@ import {
   promiseReduce,
   VariableValues,
   type FieldsAndPatches,
-  type IncrementalSpec,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
-import { DisposableSymbols } from '@whatwg-node/disposablestack';
 import {
-  fakePromise,
   handleMaybePromise,
   isPromise,
-  mapAsyncIterator,
   type MaybePromise,
 } from '@whatwg-node/promise-helpers';
 import { coerceError } from './coerceError.js';
@@ -72,7 +65,6 @@ import {
   type ConditionalCollectProgram,
   type ConditionalFieldEntry,
 } from './conditionalCollect.js';
-import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import {
   cancelAsyncPayload,
   collectInitialPending,
@@ -84,9 +76,6 @@ import {
   StreamRecord,
   yieldSubsequentPayloads,
   type AsyncPayloadRecord,
-  type CompletedResult,
-  type IncrementalPublisherState,
-  type PendingResult,
   type StreamGroup,
 } from './incremental.js';
 import {
@@ -108,7 +97,6 @@ import {
   getPlannedSubfields,
   isExecutionPlan,
   type ArgumentReader,
-  type ExecutionPlan,
   type FieldPlan,
   type PlannedFieldExecution,
 } from './plan.js';
