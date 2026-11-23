@@ -2397,7 +2397,7 @@ describe('plain object-list single-pass (no speculative replay)', () => {
     });
     const users: Array<{ id: string } | undefined> = [
       {
-        get id() {
+        get id(): string {
           users.length = 0;
           throw new Error('id failed');
         },
@@ -2432,7 +2432,7 @@ describe('plain object-list single-pass (no speculative replay)', () => {
     });
     const users: Array<{ id: string } | undefined> = [
       {
-        get id() {
+        get id(): string {
           users.length = 0;
           throw new Error('id failed');
         },
