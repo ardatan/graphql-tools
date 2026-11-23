@@ -2,7 +2,6 @@
  * R34: dual-mode classic parity locks for CR f26 findings.
  * Classic = buildExecutionContext(..., null) + executeImpl (no plan).
  */
-import { describe, expect, it } from '@jest/globals';
 import {
   GraphQLError,
   GraphQLInt,
@@ -15,8 +14,8 @@ import {
   parse,
 } from 'graphql';
 import {
-  CRITICAL_ERROR,
   buildExecutionContext,
+  CRITICAL_ERROR,
   execute,
   executeImpl,
   type SingularExecutionResult,
@@ -69,7 +68,6 @@ describe('R34 classic parity (CR f26 reds)', () => {
     };
     const planned = singular(await execute({ schema, document, rootValue }));
     const classic = singular(await executeClassic({ schema, document, rootValue }));
-    // eslint-disable-next-line no-console
     expect(planned).toEqual(classic);
   });
 
@@ -106,7 +104,6 @@ describe('R34 classic parity (CR f26 reds)', () => {
       }),
     );
     delete (User as { isTypeOf?: unknown }).isTypeOf;
-    // eslint-disable-next-line no-console
     expect(classic.data).toEqual({ users: [null] });
     expect(planned).toEqual(classic);
   });
@@ -147,9 +144,13 @@ describe('R34 classic parity (CR f26 reds)', () => {
     process.on('unhandledRejection', onUHR);
     try {
       const planned = singular(
-        await execute({ schema, document, rootValue: makeRoot(() => {
-          plannedTail += 1;
-        }) }),
+        await execute({
+          schema,
+          document,
+          rootValue: makeRoot(() => {
+            plannedTail += 1;
+          }),
+        }),
       );
       await new Promise(r => setImmediate(r));
       const classic = singular(
@@ -162,8 +163,9 @@ describe('R34 classic parity (CR f26 reds)', () => {
         }),
       );
       await new Promise(r => setImmediate(r));
-      // eslint-disable-next-line no-console
       expect(planned).toEqual(classic);
+      expect(plannedTail).toBe(classicTail);
+      expect(uhrs).toEqual([]);
     } finally {
       process.off('unhandledRejection', onUHR);
     }
@@ -188,7 +190,6 @@ describe('R34 classic parity (CR f26 reds)', () => {
     const rootValue = { values: [1] };
     const planned = singular(await execute({ schema, document, rootValue }));
     const classic = singular(await executeClassic({ schema, document, rootValue }));
-    // eslint-disable-next-line no-console
     expect(planned).toEqual(classic);
   });
 
@@ -214,7 +215,6 @@ describe('R34 classic parity (CR f26 reds)', () => {
     const rootValue = { values: [Promise.resolve(1)] };
     const planned = singular(await execute({ schema, document, rootValue }));
     const classic = singular(await executeClassic({ schema, document, rootValue }));
-    // eslint-disable-next-line no-console
     expect(planned).toEqual(classic);
   });
 
@@ -243,13 +243,10 @@ describe('R34 classic parity (CR f26 reds)', () => {
       user: { profile: { name: 'n' }, label: 'L' },
     };
     const vars = { show: null };
-    const planned = singular(
-      await execute({ schema, document, rootValue, variableValues: vars }),
-    );
+    const planned = singular(await execute({ schema, document, rootValue, variableValues: vars }));
     const classic = singular(
       await executeClassic({ schema, document, rootValue, variableValues: vars }),
     );
-    // eslint-disable-next-line no-console
     expect(planned).toEqual(classic);
   });
 });

@@ -2402,11 +2402,7 @@ function executePlannedSyncObjectFieldsPlain(
             exeContext.schemaCoordinateInErrors &&
               schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
           );
-          results[responseName] = handleFieldError(
-            error,
-            fieldPlan.returnType,
-            exeContext.errors,
-          );
+          results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
           continue;
         }
       }
@@ -5935,11 +5931,7 @@ function executePlannedSyncObjectFieldsPreCR(
             exeContext.schemaCoordinateInErrors &&
               schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
           );
-          results[responseName] = handleFieldError(
-            error,
-            fieldPlan.returnType,
-            exeContext.errors,
-          );
+          results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
           n++;
           continue;
         }
@@ -6245,11 +6237,7 @@ function tryExecutePlannedSyncObjectFieldsFast(
             exeContext.schemaCoordinateInErrors &&
               schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
           );
-          results[responseName] = handleFieldError(
-            error,
-            fieldPlan.returnType,
-            exeContext.errors,
-          );
+          results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
           continue;
         }
       }
