@@ -97,6 +97,44 @@ describe('execution plan', () => {
     expect(lookedUp).toBe(first);
   });
 
+  it('compiles the plan once when a document parser cache reuses DocumentNode identity', () => {
+    // Mimics Yoga useParserAndValidationCache / Envelop parser-cache: same
+    // query string → same DocumentNode → plan WeakMap hit on second execute.
+    const source = '{ a b }';
+    const documentCache = new Map<string, ReturnType<typeof parse>>();
+    function parseCached(query: string) {
+      let document = documentCache.get(query);
+      if (document == null) {
+        document = parse(query);
+        documentCache.set(query, document);
+      }
+      return document;
+    }
+
+    const firstDoc = parseCached(source);
+    const firstCtx = buildExecutionContext({ schema, document: firstDoc });
+    assertExeContext(firstCtx);
+    const plan = firstCtx.plan;
+    expect(isExecutionPlan(plan)).toBe(true);
+
+    expect(executeSync({ schema, document: firstDoc })).toEqual({ data: { a: 'a', b: 'b' } });
+
+    const secondDoc = parseCached(source);
+    expect(secondDoc).toBe(firstDoc);
+    const secondCtx = buildExecutionContext({ schema, document: secondDoc });
+    assertExeContext(secondCtx);
+    expect(secondCtx.plan).toBe(plan);
+    expect(compileExecutionPlan({ schema, document: secondDoc })).toBe(plan);
+    expect(executeSync({ schema, document: secondDoc })).toEqual({ data: { a: 'a', b: 'b' } });
+
+    // A fresh parse (no parser cache) is a different DocumentNode → new plan entry.
+    const uncachedDoc = parse(source);
+    expect(uncachedDoc).not.toBe(firstDoc);
+    const uncachedPlan = compileExecutionPlan({ schema, document: uncachedDoc });
+    expect(isExecutionPlan(uncachedPlan)).toBe(true);
+    expect(uncachedPlan).not.toBe(plan);
+  });
+
   it('compiles a variable-@skip plan and executes both branches', () => {
     const document = parse('query ($s: Boolean!) { a b @skip(if: $s) }');
     const plan = compileExecutionPlan({ schema, document });

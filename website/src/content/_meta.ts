@@ -13,6 +13,7 @@ export default {
     href: 'https://the-guild.dev/graphql/stitching',
   },
   'server-setup': 'Setup an HTTP Server',
+  'execution-plan': 'Execution Plan',
   'schema-loading': 'Schema Loading',
   'documents-loading': 'Documents Loading',
   'external-fragment-loader': 'External Fragment Loader',
