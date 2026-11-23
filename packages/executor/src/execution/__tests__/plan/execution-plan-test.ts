@@ -1,4 +1,5 @@
 import {
+  GraphQLError,
   GraphQLFloat,
   GraphQLInputObjectType,
   GraphQLInt,
@@ -10,6 +11,7 @@ import {
   GraphQLString,
   Kind,
   parse,
+  versionInfo,
   type ValueNode,
 } from 'graphql';
 import { buildExecutionContext, executeSync, type ExecutionContext } from '../../execute.js';
@@ -644,6 +646,172 @@ describe('execution plan', () => {
         variableValues: { input: { a: 'hi' } },
       }),
     ).toEqual({ data: { test: 'hi' } });
+  });
+
+  it('defers nested Sets through recursive input coercers', () => {
+    const Filter: GraphQLInputObjectType = new GraphQLInputObjectType({
+      name: 'Filter',
+      fields: () => ({
+        child: { type: Filter },
+        ids: { type: new GraphQLList(GraphQLInt) },
+      }),
+    });
+    const filterSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          search: {
+            type: GraphQLString,
+            args: { filter: { type: Filter } },
+            resolve: (_src, args: { filter?: { child?: { ids?: number[] }; ids?: number[] } }) =>
+              (args.filter?.child?.ids ?? args.filter?.ids)?.join(',') ?? '',
+          },
+        },
+      }),
+    });
+    const document = parse('query ($filter: Filter) { search(filter: $filter) }');
+    const plan = compileExecutionPlan({ schema: filterSchema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    // Nested Set must not be diagnosed as a single Int via a stale placeholder.
+    const coerced = plan.coerceVariables({
+      filter: { child: { ids: new Set([1, 2]) } },
+    });
+    expect('errors' in coerced).toBe(false);
+    expect(
+      executeSync({
+        schema: filterSchema,
+        document,
+        plan,
+        variableValues: { filter: { child: { ids: new Set([1, 2]) } } },
+      }),
+    ).toEqual({ data: { search: '1,2' } });
+  });
+
+  it('keeps GraphQL 16 plain-object prototypes on warm coerce', () => {
+    if (versionInfo.major >= 17) {
+      return;
+    }
+    const Options = new GraphQLInputObjectType({
+      name: 'Options',
+      fields: {
+        limit: { type: GraphQLInt },
+      },
+    });
+    const optionsSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          q: {
+            type: GraphQLString,
+            args: {
+              n: { type: GraphQLInt },
+              options: { type: Options },
+            },
+            resolve: (_src, args: { n?: number; options?: { limit?: number } }, _ctx, info) => {
+              expect(Object.prototype.hasOwnProperty.call(info.variableValues, 'n')).toBe(true);
+              expect(Object.prototype.hasOwnProperty.call(args.options, 'limit')).toBe(true);
+              return `${args.n}:${args.options?.limit}`;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('query ($n: Int, $options: Options) { q(n: $n, options: $options) }');
+    const plan = compileExecutionPlan({ schema: optionsSchema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    const coerced = plan.coerceVariables({ n: 1, options: { limit: 2 } });
+    expect('variableValues' in coerced).toBe(true);
+    if ('variableValues' in coerced) {
+      expect(Object.getPrototypeOf(coerced.variableValues.coerced)).toBe(Object.prototype);
+      expect(Object.getPrototypeOf(coerced.variableValues.coerced['options'])).toBe(
+        Object.prototype,
+      );
+    }
+    expect(
+      executeSync({
+        schema: optionsSchema,
+        document,
+        plan,
+        variableValues: { n: 1, options: { limit: 2 } },
+      }),
+    ).toEqual({ data: { q: '1:2' } });
+  });
+
+  it('returns request errors when a nested input getter throws', () => {
+    const Options = new GraphQLInputObjectType({
+      name: 'ThrowOptions',
+      fields: {
+        limit: { type: GraphQLInt },
+      },
+    });
+    const throwSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          q: {
+            type: GraphQLString,
+            args: { options: { type: Options } },
+            resolve: () => 'ok',
+          },
+        },
+      }),
+    });
+    const document = parse('query ($options: ThrowOptions) { q(options: $options) }');
+    const plan = compileExecutionPlan({ schema: throwSchema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    const raw = {
+      get limit() {
+        throw new GraphQLError('limit boom');
+      },
+    };
+    const coerced = plan.coerceVariables({ options: raw });
+    expect('errors' in coerced).toBe(true);
+    if ('errors' in coerced) {
+      expect(coerced.errors[0]?.message).toContain('limit boom');
+    }
+  });
+
+  it('rejects GraphQL 16 @oneOf unknown keys even when undefined', () => {
+    if (versionInfo.major >= 17) {
+      return;
+    }
+    const oneOfInput = new GraphQLInputObjectType({
+      name: 'OneOfUndef',
+      isOneOf: true,
+      fields: {
+        a: { type: GraphQLString },
+        b: { type: GraphQLInt },
+      },
+    });
+    const oneOfSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          test: {
+            type: GraphQLString,
+            args: { input: { type: new GraphQLNonNull(oneOfInput) } },
+            resolve: () => 'ok',
+          },
+        },
+      }),
+    });
+    const document = parse('query ($input: OneOfUndef!) { test(input: $input) }');
+    const plan = compileExecutionPlan({ schema: oneOfSchema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    const bad = plan.coerceVariables({ input: { a: 'hi', extra: undefined } });
+    expect('errors' in bad).toBe(true);
   });
 
   it('compiles resolveInfoStatic for planned fields', () => {

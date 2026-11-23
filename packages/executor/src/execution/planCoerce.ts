@@ -33,6 +33,39 @@ import type { CoerceVariables, CoerceVariablesResult } from './planTypes.js';
  */
 const INPUT_COERCE_DEFER = Symbol.for('@graphql-tools/executor.inputCoerceDefer');
 
+/** Nested property access threw; carry the error without re-reading the getter. */
+const INPUT_COERCE_THROWN = Symbol.for('@graphql-tools/executor.inputCoerceThrown');
+
+type ThrownCoerceResult = {
+  readonly [INPUT_COERCE_THROWN]: true;
+  readonly error: unknown;
+};
+
+function thrownCoerceResult(error: unknown): ThrownCoerceResult {
+  return { [INPUT_COERCE_THROWN]: true, error };
+}
+
+function isThrownCoerceResult(value: unknown): value is ThrownCoerceResult {
+  return (
+    typeof value === 'object' &&
+    value != null &&
+    (value as ThrownCoerceResult)[INPUT_COERCE_THROWN] === true
+  );
+}
+
+function errorsFromThrownCoerce(value: ThrownCoerceResult): ReadonlyArray<GraphQLError> {
+  const err = value.error;
+  if (err instanceof GraphQLError) {
+    return [err];
+  }
+  return [new GraphQLError(err instanceof Error ? err.message : String(err))];
+}
+
+/** GraphQL 16 uses plain objects; GraphQL 17 uses null-prototype maps. */
+function newCoercedObject(): Record<string, unknown> {
+  return (isGraphQL17 ? Object.create(null) : {}) as Record<string, unknown>;
+}
+
 function coerceDefaultLiteral(literal: ValueNode, type: GraphQLInputType): unknown {
   // valueFromAST shares this module's graphql instance (avoid require()-ing a
   // second copy under vitest). Custom GraphQL 17 scalars that only normalize
@@ -194,7 +227,7 @@ function tryCoerceHoistedVariables(
   hideSuggestions?: boolean | null,
 ): VariableValues | VariableCoerceMissErrors | undefined {
   const raw = rawVariableValues ?? EMPTY_RAW_VARIABLES;
-  const coerced = Object.create(null) as Record<string, unknown>;
+  const coerced = newCoercedObject();
   const sources = Object.create(null) as VariableValues['sources'];
   for (const binding of bindings) {
     const signature = {
@@ -239,6 +272,9 @@ function tryCoerceHoistedVariables(
     if (coercedValue === INPUT_COERCE_DEFER) {
       // Valid iterable / custom-iterator input: classic getVariableValues.
       return undefined;
+    }
+    if (isThrownCoerceResult(coercedValue)) {
+      return { errors: errorsFromThrownCoerce(coercedValue) };
     }
     if (coercedValue === undefined) {
       const diagnosed = diagnoseVariableCoerceMiss(
@@ -308,6 +344,9 @@ function compileInputValueCoercer(
         if (item === INPUT_COERCE_DEFER) {
           return INPUT_COERCE_DEFER;
         }
+        if (isThrownCoerceResult(item)) {
+          return item;
+        }
         return item === undefined ? undefined : [item];
       }
       if (raw[Symbol.iterator] !== Array.prototype[Symbol.iterator]) {
@@ -319,6 +358,9 @@ function compileInputValueCoercer(
         const item = itemCoercer(list[i]);
         if (item === INPUT_COERCE_DEFER) {
           return INPUT_COERCE_DEFER;
+        }
+        if (isThrownCoerceResult(item)) {
+          return item;
         }
         if (item === undefined) {
           return undefined;
@@ -356,9 +398,11 @@ function compileInputValueCoercer(
   }
 
   if (isInputObjectType(type)) {
-    // Placeholder enables recursive input objects during field compile.
-    const placeholder: InputValueCoercer = () => undefined;
-    cache.set(type, placeholder);
+    // Forwarding stub so recursive fields call the completed coercer (not a
+    // stale `() => undefined` placeholder captured during field compile).
+    let completed: InputValueCoercer | undefined;
+    const forwarder: InputValueCoercer = raw => (completed == null ? undefined : completed(raw));
+    cache.set(type, forwarder);
 
     const fields = type.getFields();
     const fieldEntries: Array<{
@@ -414,7 +458,18 @@ function compileInputValueCoercer(
         let definedFieldCount = 0;
         let onlyKey: string | undefined;
         for (const key of Object.keys(obj)) {
-          if (obj[key] === undefined) {
+          let keyValue: unknown;
+          try {
+            keyValue = obj[key];
+          } catch (error) {
+            return thrownCoerceResult(error);
+          }
+          if (keyValue === undefined) {
+            // GraphQL 17 treats own undefined as missing; GraphQL 16 still
+            // sees the key and must reject unknowns.
+            if (!isGraphQL17 && !expectedKeys.has(key)) {
+              return undefined;
+            }
             continue;
           }
           definedFieldCount++;
@@ -429,7 +484,16 @@ function compileInputValueCoercer(
         // GraphQL.js also rejects when another declared field has an inherited
         // defined value (Object.keys only sees own keys).
         for (const field of fieldEntries) {
-          if (field.name !== onlyKey && obj[field.name] !== undefined) {
+          if (field.name === onlyKey) {
+            continue;
+          }
+          let otherValue: unknown;
+          try {
+            otherValue = obj[field.name];
+          } catch (error) {
+            return thrownCoerceResult(error);
+          }
+          if (otherValue !== undefined) {
             return undefined;
           }
         }
@@ -437,17 +501,27 @@ function compileInputValueCoercer(
         if (field == null) {
           return undefined;
         }
-        const coercedField = field.coerce(obj[onlyKey]);
+        let onlyValue: unknown;
+        try {
+          onlyValue = obj[onlyKey];
+        } catch (error) {
+          return thrownCoerceResult(error);
+        }
+        const coercedField = field.coerce(onlyValue);
         if (coercedField === INPUT_COERCE_DEFER) {
           return INPUT_COERCE_DEFER;
+        }
+        if (isThrownCoerceResult(coercedField)) {
+          return coercedField;
         }
         if (coercedField === undefined || coercedField == null) {
           return undefined;
         }
-        const out = Object.create(null) as Record<string, unknown>;
+        const out = newCoercedObject();
         out[onlyKey] = coercedField;
         return out;
       };
+      completed = coercer;
       cache.set(type, coercer);
       return coercer;
     }
@@ -465,10 +539,15 @@ function compileInputValueCoercer(
           return undefined;
         }
       }
-      const out = Object.create(null) as Record<string, unknown>;
+      const out = newCoercedObject();
       for (const field of fieldEntries) {
         // Property access (not hasOwnProperty) , prototype getters (#6).
-        const fieldValue = obj[field.name];
+        let fieldValue: unknown;
+        try {
+          fieldValue = obj[field.name];
+        } catch (error) {
+          return thrownCoerceResult(error);
+        }
         if (fieldValue === undefined) {
           if (field.hasDefault) {
             out[field.name] = field.defaultValue;
@@ -483,6 +562,9 @@ function compileInputValueCoercer(
         if (coercedField === INPUT_COERCE_DEFER) {
           return INPUT_COERCE_DEFER;
         }
+        if (isThrownCoerceResult(coercedField)) {
+          return coercedField;
+        }
         if (coercedField === undefined) {
           return undefined;
         }
@@ -490,6 +572,7 @@ function compileInputValueCoercer(
       }
       return out;
     };
+    completed = coercer;
     cache.set(type, coercer);
     return coercer;
   }
@@ -664,7 +747,7 @@ function tryCoerceBuiltinLeafVariables(
   hideSuggestions?: boolean | null,
 ): VariableValues | VariableCoerceMissErrors | undefined {
   const raw = rawVariableValues ?? EMPTY_RAW_VARIABLES;
-  const coerced = Object.create(null) as Record<string, unknown>;
+  const coerced = newCoercedObject();
   const sources = Object.create(null) as VariableValues['sources'];
   for (const binding of bindings) {
     const signature = {
