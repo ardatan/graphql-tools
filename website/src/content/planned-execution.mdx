@@ -134,7 +134,24 @@ and String primitive fast-paths cut collect / resolveInfo / serialize work on th
 
 Cold compile runs once per `(schema, document, operationName)` cache miss and is amortized across
 later warm hits when document identity is stable (parser cache). The numbers above are warm-path
-deltas vs master, not cold-start cost.
+deltas vs master, not cold-start cost. On a dense `@skip`/`@include` probe (Node 22,
+process-isolated), a cold first execute is typically on the order of tens of warm executes of wall
+time; retained heap per distinct cached plan is a small fixed overhead (see repo measurement scripts
+`scripts/measure-plan-cold-heap.mjs`).
+
+## Correctness: dual-mode classic vs planned
+
+Public `execute` / `executeSync` plan by default. To re-run the existing executor **core**
+correctness suite with planning disabled (classic interpreter only):
+
+```sh
+npm run test:executor:core         # planned (default)
+npm run test:executor:core:classic # GRAPHQL_TOOLS_EXECUTOR_PLANNING=0
+npm run test:executor:dual-mode    # both
+```
+
+`setExecutionPlanningEnabled(false)` (or the env var above) makes `resolvePlanForExecute` a no-op so
+the same assertions exercise classic completion. Prefer this over a second handwritten suite.
 
 <img
   src="/assets/execution-plan-all-kinds.jpg"

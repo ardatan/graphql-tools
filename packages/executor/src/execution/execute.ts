@@ -15,6 +15,7 @@ import {
   GraphQLObjectType,
   GraphQLOutputType,
   GraphQLSchema,
+  GraphQLString,
   isAbstractType,
   isLeafType,
   isListType,
@@ -117,7 +118,18 @@ import { ALWAYS_INCLUDE } from './skipIncludePredicates.js';
 
 export { defaultFieldResolver, defaultTypeResolver };
 /** Drop cached plans for a document (schema mutation / tests / benches). */
-export { clearExecutionPlanCache } from './plan.js';
+export {
+  clearExecutionPlanCache,
+  isExecutionPlanningEnabled,
+  setExecutionPlanningEnabled,
+} from './plan.js';
+
+/**
+ * Built-in GraphQLString.serialize captured at module load. The String leaf
+ * fast-path must compare against this identity so a replaced
+ * `GraphQLString.serialize` (or any other scalar) does not skip real coerce.
+ */
+const GRAPHQL_STRING_SERIALIZE = GraphQLString.serialize;
 
 export type { CompletedResult, PendingResult } from './incremental.js';
 
@@ -1959,10 +1971,13 @@ function completePlannedObjectListValue(
     // Custom iterators / async iterables / non-arrays → classic completion.
     return undefined;
   }
-  // Decline before touching items when any slot needs the classic path, so we
-  // do not run getters/serializers and then fall back.
+  // Snapshot each slot once during preflight. Accessor-backed arrays can
+  // return a different value on a later read; completion must reuse the same
+  // item that passed classification (including classic fallback).
+  const items: Array<unknown> = new Array(result.length);
   for (let index = 0; index < result.length; index++) {
     const item = result[index];
+    items[index] = item;
     if (item == null) {
       if (itemNonNull) {
         return undefined;
@@ -1976,7 +1991,7 @@ function completePlannedObjectListValue(
   const completedResults: Array<unknown> = new Array(result.length);
   const asyncUpdates: Promise<void>[] = [];
   for (let index = 0; index < result.length; index++) {
-    const item = result[index];
+    const item = items[index];
     if (item == null) {
       completedResults[index] = null;
       continue;
@@ -2354,9 +2369,9 @@ function completePlannedLeafListValue(
   const coordinateInfo =
     exeContext.schemaCoordinateInErrors &&
     schemaCoordinateInfo(fieldPlan.fieldDef, fieldPlan.parentType);
-  // GraphQLString + primitive: skip full scalar coerce (matches compile bench).
-  // GraphQL 16 String.serialize rejects bigint; keep that behavior.
-  const stringLeafFast = leafType.name === 'String';
+  // Built-in GraphQLString serializer only (module-load identity). A replaced
+  // GraphQLString.serialize or any other scalar must take the normal leaf path.
+  const stringLeafFast = leafType.serialize === GRAPHQL_STRING_SERIALIZE;
   const stringFastAllowsBigint = isGraphQL17;
   // Fast sync array of primitives: serialize in place, no runner, no isPromise
   // reads (thenable getters must stay on the general path's 2-read contract).
@@ -2365,55 +2380,63 @@ function completePlannedLeafListValue(
   let pendingSerialize:
     { index: number; promise: PromiseLike<unknown>; completedResults: Array<unknown> } | undefined;
   if (usesDefaultArrayIterator(result)) {
+    // Hot path: GraphQLString + primitives in one pass (single slot read, no
+    // intermediate items[]). Accessor arrays that change on a later read stay
+    // correct because we never re-read.
+    if (stringLeafFast) {
+      const completedResults: Array<unknown> = new Array(result.length);
+      let fastOk = true;
+      for (let i = 0; i < result.length; i++) {
+        const v = result[i];
+        const t = typeof v;
+        if (v == null || (t !== 'number' && t !== 'string' && t !== 'boolean' && t !== 'bigint')) {
+          fastOk = false;
+          break;
+        }
+        if (t === 'bigint' && !stringFastAllowsBigint) {
+          fastOk = false;
+          break;
+        }
+        if (t === 'number') {
+          if (!Number.isFinite(v as number)) {
+            fastOk = false;
+            break;
+          }
+          completedResults[i] = String(v);
+        } else if (t === 'string') {
+          completedResults[i] = v;
+        } else if (t === 'boolean') {
+          completedResults[i] = v ? 'true' : 'false';
+        } else {
+          // bigint on GraphQL 17
+          completedResults[i] = String(v);
+        }
+      }
+      if (fastOk) {
+        return completedResults;
+      }
+      // Fall through (NaN / non-primitive): snapshot then serialize.
+    }
+
+    // Snapshot once for the serialize loop so accessor slots cannot change
+    // between classification and leafType.serialize.
+    const items: Array<unknown> = new Array(result.length);
     let allPrimitive = true;
     for (let i = 0; i < result.length; i++) {
       const item = result[i];
+      items[i] = item;
       const t = typeof item;
       if (item == null || (t !== 'number' && t !== 'string' && t !== 'boolean' && t !== 'bigint')) {
-        allPrimitive = false;
-        break;
-      }
-      // GraphQL 16 String.serialize rejects bigint; skip the String() fast path.
-      if (t === 'bigint' && stringLeafFast && !stringFastAllowsBigint) {
         allPrimitive = false;
         break;
       }
     }
     if (allPrimitive) {
       const completedResults: Array<unknown> = new Array(result.length);
-      if (stringLeafFast) {
-        // GraphQLString + primitives: avoid full scalar coerceOutputValueObject.
-        // Non-finite numbers must take serialize (throws) — do not String(NaN).
-        let fastOk = true;
-        for (let i = 0; i < result.length; i++) {
-          const v = result[i];
-          const t = typeof v;
-          if (t === 'number') {
-            if (!Number.isFinite(v as number)) {
-              fastOk = false;
-              break;
-            }
-            completedResults[i] = String(v);
-          } else if (t === 'string') {
-            completedResults[i] = v;
-          } else if (t === 'boolean') {
-            completedResults[i] = v ? 'true' : 'false';
-          } else if (t === 'bigint' && stringFastAllowsBigint) {
-            completedResults[i] = String(v);
-          } else {
-            fastOk = false;
-            break;
-          }
-        }
-        if (fastOk) {
-          return completedResults;
-        }
-        // Fall through to serialize loop for NaN/Infinity error paths.
-      }
       let ok = true;
       for (let i = 0; i < result.length; i++) {
         try {
-          const serialized = leafType.serialize(result[i]);
+          const serialized = leafType.serialize(items[i]);
           if (serialized == null) {
             ok = false;
             break;

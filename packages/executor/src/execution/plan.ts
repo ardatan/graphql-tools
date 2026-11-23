@@ -68,6 +68,24 @@ type PlanCacheEntry =
 const planCache = new WeakMap<DocumentNode, WeakMap<GraphQLSchema, Map<string, PlanCacheEntry>>>();
 
 /**
+ * When false, {@link resolvePlanForExecute} skips compile/cache so `execute`
+ * runs the classic interpreter. Used to dual-run the executor correctness
+ * suite (planned default vs classic). Also honors
+ * `GRAPHQL_TOOLS_EXECUTOR_PLANNING=0` at module load.
+ */
+let executionPlanningEnabled = process.env['GRAPHQL_TOOLS_EXECUTOR_PLANNING'] !== '0';
+
+/** Enable or disable plan compile for subsequent `execute` / `executeSync` calls. */
+export function setExecutionPlanningEnabled(enabled: boolean): void {
+  executionPlanningEnabled = enabled;
+}
+
+/** True when {@link resolvePlanForExecute} may compile or reuse a plan. */
+export function isExecutionPlanningEnabled(): boolean {
+  return executionPlanningEnabled;
+}
+
+/**
  * Runtime registry of plans returned by {@link compileExecutionPlan}.
  * Used by {@link isExecutionPlan} so the public type stays opaque (no duck
  * typing on internal Maps / schema fields).
@@ -196,6 +214,9 @@ export function getExecutionPlan(
 export function resolvePlanForExecute(
   args: CompileExecutionPlanArgs,
 ): InternalExecutionPlan | undefined {
+  if (!executionPlanningEnabled) {
+    return undefined;
+  }
   const cached = getCachedPlanEntry(args.schema, args.document, args.operationName);
   if (cached?.kind === 'plan') {
     return cached.plan;

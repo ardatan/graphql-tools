@@ -1348,3 +1348,74 @@ describe('classic vs planned differential', () => {
     });
   });
 });
+
+describe('list completion: retain preflight item reads', () => {
+  it('does not reread accessor array slots after object-list preflight', () => {
+    const Item = new GraphQLObjectType({
+      name: 'AccessorItem',
+      fields: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+      },
+    });
+    let reads = 0;
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: {
+            type: new GraphQLList(new GraphQLNonNull(Item)),
+            resolve: () => {
+              const base: Array<{ id: string } | null> = [{ id: '1' }];
+              return new Proxy(base, {
+                get(target, prop, receiver) {
+                  if (prop === '0') {
+                    reads += 1;
+                    return reads === 1 ? { id: '1' } : null;
+                  }
+                  return Reflect.get(target, prop, receiver);
+                },
+              });
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ users { id } }');
+    reads = 0;
+    const planned = executeSync({ schema, document });
+    const plannedReads = reads;
+    reads = 0;
+    const classic = executeClassicSync({ schema, document });
+    // Classic reads once; planned must match (not store null from a second read).
+    expect(planned).toEqual(classic);
+    expect(planned).toEqual({ data: { users: [{ id: '1' }] } });
+    // Preflight + completion must not double-hit the accessor (one retained read).
+    expect(plannedReads).toBe(1);
+  });
+
+  it('does not use String fast-path when GraphQLString.serialize is replaced', () => {
+    const originalSerialize = GraphQLString.serialize;
+    GraphQLString.serialize = (value: unknown) =>
+      value === 'secret' ? 'masked' : originalSerialize(value);
+    try {
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            values: {
+              type: new GraphQLList(GraphQLString),
+              resolve: () => ['secret', 'ok'],
+            },
+          },
+        }),
+      });
+      const document = parse('{ values }');
+      const planned = executeSync({ schema, document });
+      const classic = executeClassicSync({ schema, document });
+      expect(planned).toEqual(classic);
+      expect(planned).toEqual({ data: { values: ['masked', 'ok'] } });
+    } finally {
+      GraphQLString.serialize = originalSerialize;
+    }
+  });
+});
