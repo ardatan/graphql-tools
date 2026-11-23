@@ -66,11 +66,52 @@ function newCoercedObject(): Record<string, unknown> {
   return (isGraphQL17 ? Object.create(null) : {}) as Record<string, unknown>;
 }
 
+/** True when any leaf under `type` defines GraphQL 17 `coerceInputLiteral`. */
+function typeUsesCoerceInputLiteral(type: GraphQLInputType): boolean {
+  let t: GraphQLInputType = type;
+  while (isNonNullType(t) || isListType(t)) {
+    t = t.ofType;
+  }
+  if (isLeafType(t)) {
+    return (
+      typeof (t as GraphQLLeafType & { coerceInputLiteral?: unknown }).coerceInputLiteral ===
+      'function'
+    );
+  }
+  if (isInputObjectType(t)) {
+    for (const field of Object.values(t.getFields())) {
+      if (typeUsesCoerceInputLiteral(field.type)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 function coerceDefaultLiteral(literal: ValueNode, type: GraphQLInputType): unknown {
   // valueFromAST shares this module's graphql instance (avoid require()-ing a
-  // second copy under vitest). Custom GraphQL 17 scalars that only normalize
-  // via coerceInputLiteral fall through to getVariableValues when the fast
-  // path cannot compile the default (tryCompile* returns undefined).
+  // second copy under vitest). GraphQL 17 may normalize AST defaults via
+  // coerceInputLiteral while valueFromAST still calls parseLiteral — prefer
+  // the literal hook on leaves, and decline nested/list shapes that need it
+  // so getVariableValues owns classic coercion.
+  let unwrapped: GraphQLInputType = type;
+  while (isNonNullType(unwrapped)) {
+    unwrapped = unwrapped.ofType;
+  }
+  if (isLeafType(unwrapped)) {
+    const leaf = unwrapped as GraphQLLeafType & {
+      coerceInputLiteral?: (valueNode: ValueNode) => unknown;
+    };
+    if (typeof leaf.coerceInputLiteral === 'function') {
+      try {
+        return leaf.coerceInputLiteral(literal);
+      } catch {
+        return undefined;
+      }
+    }
+  } else if (typeUsesCoerceInputLiteral(type)) {
+    return undefined;
+  }
   return valueFromAST(literal, type);
 }
 
@@ -236,8 +277,8 @@ function tryCoerceHoistedVariables(
       default: binding.hasDefault ? { literal: binding.defaultLiteral } : undefined,
     };
     const read = readRawVariable(raw, binding.name);
-    if (read.kind === 'fallback') {
-      return undefined;
+    if (read.kind === 'thrown') {
+      return { errors: errorsFromThrownCoerce(thrownCoerceResult(read.error)) };
     }
     if (read.kind === 'missing') {
       sources[binding.name] = { signature };
@@ -656,13 +697,14 @@ function clonePlanDefaultValue(value: unknown): unknown {
 }
 
 /**
- * Read one variable from the raw map. Getter throws fall back to classic
- * getVariableValues (undefined). GraphQL 17 treats own `undefined` as missing.
+ * Read one variable from the raw map. Getter throws become request errors
+ * without retrying the accessor (getVariableValues would re-read). GraphQL 17
+ * treats own `undefined` as missing.
  */
 function readRawVariable(
   raw: { readonly [key: string]: unknown },
   name: string,
-): { kind: 'missing' } | { kind: 'value'; value: unknown } | { kind: 'fallback' } {
+): { kind: 'missing' } | { kind: 'value'; value: unknown } | { kind: 'thrown'; error: unknown } {
   let supplied: boolean;
   let value: unknown;
   try {
@@ -670,8 +712,8 @@ function readRawVariable(
     if (supplied) {
       value = raw[name];
     }
-  } catch {
-    return { kind: 'fallback' };
+  } catch (error) {
+    return { kind: 'thrown', error };
   }
   if (!supplied) {
     return { kind: 'missing' };
@@ -756,8 +798,8 @@ function tryCoerceBuiltinLeafVariables(
       default: binding.hasDefault ? { literal: binding.defaultLiteral } : undefined,
     };
     const read = readRawVariable(raw, binding.name);
-    if (read.kind === 'fallback') {
-      return undefined;
+    if (read.kind === 'thrown') {
+      return { errors: errorsFromThrownCoerce(thrownCoerceResult(read.error)) };
     }
     if (read.kind === 'missing') {
       sources[binding.name] = { signature };

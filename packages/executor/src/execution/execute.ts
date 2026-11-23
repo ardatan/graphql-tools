@@ -3975,9 +3975,18 @@ function executePlannedSyncObjectFields(
     let property: unknown;
     try {
       property = source[fieldPlan.fieldDef.name];
-    } catch {
-      // Throwing getters need the classic per-field error boundary.
-      return undefined;
+    } catch (rawError) {
+      // Handle at this child field without retrying the getter (classic
+      // executeField would re-read and can lose a one-shot throw).
+      const fieldPath = addPath(path, responseName, parentType.name);
+      const error = locatedError(
+        coerceError(rawError),
+        fieldNodes,
+        pathToArray(fieldPath),
+        exeContext.schemaCoordinateInErrors && schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+      );
+      results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+      continue;
     }
     if (typeof property === 'function' || property instanceof Error) {
       return undefined;

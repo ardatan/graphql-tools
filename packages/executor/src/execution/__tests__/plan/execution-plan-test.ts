@@ -780,6 +780,159 @@ describe('execution plan', () => {
     }
   });
 
+  it('does not re-read a one-shot throwing variable getter (leaf path)', () => {
+    const document = parse('query ($n: Int) { n }');
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    let reads = 0;
+    const raw = {
+      get n() {
+        reads += 1;
+        if (reads === 1) {
+          throw new GraphQLError('n boom once');
+        }
+        return 1;
+      },
+    };
+    const coerced = plan.coerceVariables(raw);
+    expect('errors' in coerced).toBe(true);
+    if ('errors' in coerced) {
+      expect(coerced.errors[0]?.message).toContain('n boom once');
+    }
+    expect(reads).toBe(1);
+  });
+
+  it('does not re-read a one-shot throwing variable getter (hoisted path)', () => {
+    const Options = new GraphQLInputObjectType({
+      name: 'OnceOptions',
+      fields: {
+        limit: { type: GraphQLInt },
+      },
+    });
+    const onceSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          q: {
+            type: GraphQLString,
+            args: { options: { type: Options } },
+            resolve: () => 'ok',
+          },
+        },
+      }),
+    });
+    const document = parse('query ($options: OnceOptions) { q(options: $options) }');
+    const plan = compileExecutionPlan({ schema: onceSchema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    let reads = 0;
+    const raw = {
+      get options() {
+        reads += 1;
+        if (reads === 1) {
+          throw new GraphQLError('options boom once');
+        }
+        return { limit: 2 };
+      },
+    };
+    const coerced = plan.coerceVariables(raw);
+    expect('errors' in coerced).toBe(true);
+    if ('errors' in coerced) {
+      expect(coerced.errors[0]?.message).toContain('options boom once');
+    }
+    expect(reads).toBe(1);
+  });
+
+  it('applies GraphQL 17 coerceInputLiteral for variable defaults', () => {
+    if (versionInfo.major < 17) {
+      return;
+    }
+    const Upper = new GraphQLScalarType({
+      name: 'UpperDefault',
+      // Runtime values stay as-is; only AST literal coercion uppercases.
+      parseValue: value => String(value),
+      coerceInputValue: (value: unknown) => String(value),
+      parseLiteral: ast => (ast.kind === Kind.STRING ? ast.value : null),
+      coerceInputLiteral: (ast: ValueNode) =>
+        ast.kind === Kind.STRING ? ast.value.toUpperCase() : null,
+      serialize: value => String(value),
+    });
+    const upperSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          echo: {
+            type: GraphQLString,
+            args: { v: { type: Upper } },
+            resolve: (_src, args: { v?: string }) => args.v ?? null,
+          },
+        },
+      }),
+    });
+    const document = parse('query ($v: UpperDefault = "abc") { echo(v: $v) }');
+    const plan = compileExecutionPlan({ schema: upperSchema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    const coerced = plan.coerceVariables({});
+    expect('variableValues' in coerced).toBe(true);
+    if ('variableValues' in coerced) {
+      expect(coerced.variableValues.coerced['v']).toBe('ABC');
+    }
+    expect(
+      executeSync({
+        schema: upperSchema,
+        document,
+        plan,
+        variableValues: {},
+      }),
+    ).toEqual({ data: { echo: 'ABC' } });
+  });
+
+  it('handles a one-shot throwing child getter without re-read', () => {
+    let idReads = 0;
+    const userType = new GraphQLObjectType({
+      name: 'OnceUser',
+      fields: {
+        id: { type: GraphQLString },
+        name: { type: GraphQLString },
+      },
+    });
+    const onceUserSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          user: {
+            type: userType,
+            resolve: () => ({
+              get id() {
+                idReads += 1;
+                if (idReads === 1) {
+                  throw new Error('id boom once');
+                }
+                return 'should-not-win';
+              },
+              name: 'Ada',
+            }),
+          },
+        },
+      }),
+    });
+    const document = parse('{ user { id name } }');
+    const result = executeSync({ schema: onceUserSchema, document });
+    expect(result).toEqual({
+      data: { user: { id: null, name: 'Ada' } },
+      errors: [expect.objectContaining({ message: 'id boom once' })],
+    });
+    expect(idReads).toBe(1);
+  });
+
   it('rejects GraphQL 16 @oneOf unknown keys even when undefined', () => {
     if (versionInfo.major >= 17) {
       return;
@@ -976,6 +1129,110 @@ describe('execution plan', () => {
         ],
       },
     });
+  });
+
+  it('exposes only active fieldNodes for merged conditional parents', () => {
+    const captured: Array<ReadonlyArray<{ loc?: { start: number; end: number } | undefined }>> = [];
+    const userType = new GraphQLObjectType({
+      name: 'FieldNodesUser',
+      fields: {
+        id: { type: GraphQLString },
+        secret: { type: GraphQLString },
+      },
+    });
+    const fieldNodesSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          user: {
+            type: userType,
+            resolve: (_src, _args, _ctx, info) => {
+              captured.push(info.fieldNodes);
+              return { id: '1', secret: 'shh' };
+            },
+          },
+        },
+      }),
+    });
+    const document = parse(`
+      query ($s: Boolean!) {
+        user { id }
+        user @skip(if: $s) { secret }
+      }
+    `);
+    captured.length = 0;
+    expect(
+      executeSync({
+        schema: fieldNodesSchema,
+        document,
+        variableValues: { s: true },
+      }),
+    ).toEqual({ data: { user: { id: '1' } } });
+    expect(captured).toHaveLength(1);
+    expect(captured[0]).toHaveLength(1);
+
+    captured.length = 0;
+    expect(
+      executeSync({
+        schema: fieldNodesSchema,
+        document,
+        variableValues: { s: false },
+      }),
+    ).toEqual({ data: { user: { id: '1', secret: 'shh' } } });
+    expect(captured).toHaveLength(1);
+    expect(captured[0]).toHaveLength(2);
+  });
+
+  it('exposes only active fieldNodes when a conditional fragment wraps a merge peer', () => {
+    const captured: Array<number> = [];
+    const userType = new GraphQLObjectType({
+      name: 'FragUser',
+      fields: {
+        id: { type: GraphQLString },
+        secret: { type: GraphQLString },
+      },
+    });
+    const fragSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          user: {
+            type: userType,
+            resolve: (_src, _args, _ctx, info) => {
+              captured.push(info.fieldNodes.length);
+              return { id: '1', secret: 'shh' };
+            },
+          },
+        },
+      }),
+    });
+    const document = parse(`
+      query ($s: Boolean!) {
+        user { id }
+        ... @skip(if: $s) {
+          user { secret }
+        }
+      }
+    `);
+    captured.length = 0;
+    expect(
+      executeSync({
+        schema: fragSchema,
+        document,
+        variableValues: { s: true },
+      }),
+    ).toEqual({ data: { user: { id: '1' } } });
+    expect(captured).toEqual([1]);
+
+    captured.length = 0;
+    expect(
+      executeSync({
+        schema: fragSchema,
+        document,
+        variableValues: { s: false },
+      }),
+    ).toEqual({ data: { user: { id: '1', secret: 'shh' } } });
+    expect(captured).toEqual([2]);
   });
 
   it('returns a fresh static args object per read so mutations do not leak', () => {
