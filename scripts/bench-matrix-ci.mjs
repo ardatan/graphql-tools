@@ -6,11 +6,11 @@
  *   benchmarks/results/bench-matrix.json
  *   benchmarks/results/bench-matrix.md
  *
- * Sticky: one unified table (Path | Bench | hz… | deltas). Delta column order:
+ * Sticky: one unified table (Bench | hz… | deltas). Delta column order:
  *   (1) tip planned vs tip classic (positive = planned faster)
  *   (2) tip planned vs master planned when baseline exports planning, else vs master classic
  *   (3) tip classic vs master classic
- * Rows cover execute, executeSync, Yoga authors, and Hive federation-example.
+ * Rows cover execute, executeSync (`… (executeSync)`), Yoga HTTP authors, and Hive Gateway.
  *
  * Env:
  *   BENCH_MATRIX_BASE_REF     — baseline ref (default master; always fetched from origin)
@@ -58,12 +58,12 @@ const EXECUTE_CASES = {
   mixedSyncMethods: { label: 'mixedSyncMethods' },
 };
 
-/** executeSync key rows (same three-way matrix). */
+/** executeSync key rows (same three-way matrix; Bench label carries `(executeSync)`). */
 const SYNC_API_CASES = [
-  { id: 'syncApiSyncList', label: 'executeSync syncList', bench: 'syncList' },
-  { id: 'syncApiNested', label: 'executeSync nestedDefault', bench: 'nested' },
-  { id: 'syncApiFragments', label: 'executeSync fragmentsAbstract', bench: 'fragmentsAbstract' },
-  { id: 'syncApiMixed', label: 'executeSync mixedSyncMethods', bench: 'mixedSyncMethods' },
+  { id: 'syncApiSyncList', label: 'syncList (executeSync)', bench: 'syncList' },
+  { id: 'syncApiNested', label: 'nestedDefault (executeSync)', bench: 'nested' },
+  { id: 'syncApiFragments', label: 'fragmentsAbstract (executeSync)', bench: 'fragmentsAbstract' },
+  { id: 'syncApiMixed', label: 'mixedSyncMethods (executeSync)', bench: 'mixedSyncMethods' },
 ];
 
 function run(command, args, opts = {}) {
@@ -400,8 +400,8 @@ try {
     return Math.round(n).toLocaleString('en-US');
   }
 
-  function threeWayTableRow(path, label, row) {
-    return `| ${path} | ${label} | ${fmtHz(row.masterClassicHz ?? row.masterHz)} | ${fmtHz(row.tipClassicHz)} | ${fmtHz(row.tipPlannedHz)} | ${pct(row.deltaPlannedVsClassicPct)} | ${pct(row.deltaPlannedVsMasterPct)} | ${pct(row.deltaClassicVsMasterPct)} |`;
+  function threeWayTableRow(label, row) {
+    return `| ${label} | ${fmtHz(row.masterClassicHz ?? row.masterHz)} | ${fmtHz(row.tipClassicHz)} | ${fmtHz(row.tipPlannedHz)} | ${pct(row.deltaPlannedVsClassicPct)} | ${pct(row.deltaPlannedVsMasterPct)} | ${pct(row.deltaClassicVsMasterPct)} |`;
   }
 
   try {
@@ -412,11 +412,10 @@ try {
         label: meta.label,
         kind: 'execute',
         api: 'execute',
-        path: 'execute',
         ...row,
       });
       console.log(
-        `execute ${meta.label}: mc=${Math.round(row.masterClassicHz)} tc=${Math.round(row.tipClassicHz)} tp=${Math.round(row.tipPlannedHz)} Δp/c=${pct(row.deltaPlannedVsClassicPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)}(${row.masterPlannedBaseline}) Δc/m=${pct(row.deltaClassicVsMasterPct)}`,
+        `${meta.label}: mc=${Math.round(row.masterClassicHz)} tc=${Math.round(row.tipClassicHz)} tp=${Math.round(row.tipPlannedHz)} Δp/c=${pct(row.deltaPlannedVsClassicPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)}(${row.masterPlannedBaseline}) Δc/m=${pct(row.deltaClassicVsMasterPct)}`,
       );
     }
 
@@ -424,15 +423,13 @@ try {
       const row = measureThreeWay({ bench: syncCase.bench, api: 'executeSync' });
       syncApiRows.push({
         id: syncCase.id,
-        // Short bench name for the unified Path|Bench table (Path carries executeSync).
-        label: syncCase.bench,
+        label: syncCase.label,
         kind: 'syncApi',
         api: 'executeSync',
-        path: 'executeSync',
         ...row,
       });
       console.log(
-        `executeSync ${syncCase.bench}: mc=${Math.round(row.masterClassicHz)} tc=${Math.round(row.tipClassicHz)} tp=${Math.round(row.tipPlannedHz)} Δp/c=${pct(row.deltaPlannedVsClassicPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)}(${row.masterPlannedBaseline}) Δc/m=${pct(row.deltaClassicVsMasterPct)}`,
+        `${syncCase.label}: mc=${Math.round(row.masterClassicHz)} tc=${Math.round(row.tipClassicHz)} tp=${Math.round(row.tipPlannedHz)} Δp/c=${pct(row.deltaPlannedVsClassicPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)}(${row.masterPlannedBaseline}) Δc/m=${pct(row.deltaClassicVsMasterPct)}`,
       );
     }
 
@@ -498,28 +495,28 @@ try {
   writeFileSync(RESULTS_JSON, `${JSON.stringify(payload, null, 2)}\n`);
 
   const threeWayHeader = [
-    '| Path | Bench | Master classic hz | Tip classic hz | Tip planned hz | Δ planned vs classic | Δ planned vs master | Δ classic vs master |',
-    '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |',
+    '| Bench | Master classic hz | Tip classic hz | Tip planned hz | Δ planned vs classic | Δ planned vs master | Δ classic vs master |',
+    '| --- | ---: | ---: | ---: | ---: | ---: | ---: |',
   ];
 
   const masterPlannedNote = masterHasPlanning
     ? 'Baseline exports planning: **Δ planned vs master** is tip planned vs **master planned**.'
     : 'Baseline has no planning API: **Δ planned vs master** is tip planned vs **master classic**.';
 
-  /** @type {Array<{ path: string, label: string, row: Record<string, unknown> }>} */
+  /** @type {Array<{ label: string, row: Record<string, unknown> }>} */
   const unifiedRows = [
-    ...claimRows.map(row => ({ path: 'execute', label: row.label, row })),
-    ...syncApiRows.map(row => ({ path: 'executeSync', label: row.label, row })),
+    ...claimRows.map(row => ({ label: row.label, row })),
+    ...syncApiRows.map(row => ({ label: row.label, row })),
   ];
 
   const yoga = httpPayload?.yoga;
   const hive = httpPayload?.hive;
   const hiveNote = httpPayload?.hiveNote;
   if (yoga) {
-    unifiedRows.push({ path: 'Yoga HTTP', label: 'authors', row: yoga });
+    unifiedRows.push({ label: 'Yoga HTTP authors', row: yoga });
   }
   if (hive) {
-    unifiedRows.push({ path: 'Hive federation', label: 'TestQuery', row: hive });
+    unifiedRows.push({ label: 'Hive Gateway (federation-example/TestQuery)', row: hive });
   }
 
   const md = [
@@ -533,7 +530,7 @@ try {
     masterPlannedNote,
     '',
     ...threeWayHeader,
-    ...unifiedRows.map(({ path, label, row }) => threeWayTableRow(path, label, row)),
+    ...unifiedRows.map(({ label, row }) => threeWayTableRow(label, row)),
     '',
   ];
 
