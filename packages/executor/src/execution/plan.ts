@@ -31,6 +31,7 @@ import {
   TypeNameMetaFieldDef,
   valueFromAST,
   versionInfo,
+  type ArgumentNode,
   type DocumentNode,
   type GraphQLInputType,
   type ValueNode,
@@ -741,9 +742,9 @@ function compileVariableCoercer(
     return (rawVariableValues, options) => {
       const fast = tryCoerceBuiltinLeafVariables(leafBindings, rawVariableValues);
       if (fast !== undefined) {
-        return { variableValues: fast };
+        return 'errors' in fast ? fast : { variableValues: fast };
       }
-      // Missing / null-for-non-null / parse failures: identical errors via graphql-js.
+      // Parse / complex failures: identical errors via graphql-js (#11 remainder).
       return runFull(rawVariableValues, options);
     };
   }
@@ -756,7 +757,7 @@ function compileVariableCoercer(
   return (rawVariableValues, options) => {
     const fast = tryCoerceHoistedVariables(inputBindings, rawVariableValues);
     if (fast !== undefined) {
-      return { variableValues: fast };
+      return 'errors' in fast ? fast : { variableValues: fast };
     }
     return runFull(rawVariableValues, options);
   };
@@ -764,6 +765,33 @@ function compileVariableCoercer(
 
 /** Plan-bound input value coercer; returns `undefined` to signal fallback. */
 type InputValueCoercer = (raw: unknown) => unknown | undefined;
+
+type VariableCoerceMissErrors = { errors: ReadonlyArray<GraphQLError> };
+
+type VariableNonNullErrorParts = {
+  missingMessage: string;
+  nullMessage: string;
+  nodes: VariableDefinitionNode;
+};
+
+function compileVariableNonNullErrorParts(
+  def: VariableDefinitionNode,
+  typeName: string,
+): VariableNonNullErrorParts {
+  const name = def.variable.name.value;
+  if (isGraphQL17) {
+    return {
+      missingMessage: `Variable "$${name}" has invalid value: Expected a value of non-null type "${typeName}" to be provided.`,
+      nullMessage: `Variable "$${name}" has invalid value: Expected value of non-null type "${typeName}" not to be null.`,
+      nodes: def,
+    };
+  }
+  return {
+    missingMessage: `Variable "$${name}" of required type "${typeName}" was not provided.`,
+    nullMessage: `Variable "$${name}" of non-null type "${typeName}" must not be null.`,
+    nodes: def,
+  };
+}
 
 type HoistedVariableBinding = {
   name: string;
@@ -775,6 +803,8 @@ type HoistedVariableBinding = {
   defaultValue: unknown;
   /** AST default node for GQL17 `sources.signature.default.literal`. */
   defaultLiteral: ValueNode | undefined;
+  /** Plan-held missing/null messages when `nonNull` (#11). */
+  nonNullErrors: VariableNonNullErrorParts | undefined;
 };
 
 /**
@@ -809,14 +839,16 @@ function tryCompileHoistedVariableBindings(
       hasDefault = true;
       defaultValue = compiledDefault;
     }
+    const nonNull = isNonNullType(inputType);
     bindings.push({
       name: def.variable.name.value,
-      nonNull: isNonNullType(inputType),
+      nonNull,
       variableType: inputType,
       coerce,
       hasDefault,
       defaultValue,
       defaultLiteral,
+      nonNullErrors: nonNull ? compileVariableNonNullErrorParts(def, String(inputType)) : undefined,
     });
   }
   return bindings;
@@ -825,7 +857,7 @@ function tryCompileHoistedVariableBindings(
 function tryCoerceHoistedVariables(
   bindings: ReadonlyArray<HoistedVariableBinding>,
   rawVariableValues: { readonly [key: string]: unknown } | null | undefined,
-): VariableValues | undefined {
+): VariableValues | VariableCoerceMissErrors | undefined {
   const raw = rawVariableValues ?? EMPTY_RAW_VARIABLES;
   const coerced = Object.create(null) as Record<string, unknown>;
   const sources = Object.create(null) as VariableValues['sources'];
@@ -842,12 +874,21 @@ function tryCoerceHoistedVariables(
         continue;
       }
       if (binding.nonNull) {
-        return undefined;
+        const parts = binding.nonNullErrors!;
+        return {
+          errors: [new GraphQLError(parts.missingMessage, { nodes: parts.nodes })],
+        };
       }
       continue;
     }
     const value = raw[binding.name];
     sources[binding.name] = { signature, value };
+    if (value == null && binding.nonNull) {
+      const parts = binding.nonNullErrors!;
+      return {
+        errors: [new GraphQLError(parts.nullMessage, { nodes: parts.nodes })],
+      };
+    }
     const coercedValue = binding.coerce(value);
     if (coercedValue === undefined) {
       return undefined;
@@ -1053,6 +1094,8 @@ type BuiltinLeafVariableBinding = {
   defaultValue: unknown;
   hasDefault: boolean;
   defaultLiteral: ValueNode | undefined;
+  /** Plan-held missing/null messages when `nonNull` (#11). */
+  nonNullErrors: VariableNonNullErrorParts | undefined;
 };
 
 function tryCompileBuiltinLeafVariableBindings(
@@ -1093,6 +1136,7 @@ function tryCompileBuiltinLeafVariableBindings(
       defaultValue,
       hasDefault,
       defaultLiteral,
+      nonNullErrors: nonNull ? compileVariableNonNullErrorParts(def, String(inputType)) : undefined,
     });
   }
   return bindings;
@@ -1101,7 +1145,7 @@ function tryCompileBuiltinLeafVariableBindings(
 function tryCoerceBuiltinLeafVariables(
   bindings: ReadonlyArray<BuiltinLeafVariableBinding>,
   rawVariableValues: { readonly [key: string]: unknown } | null | undefined,
-): VariableValues | undefined {
+): VariableValues | VariableCoerceMissErrors | undefined {
   const raw = rawVariableValues ?? EMPTY_RAW_VARIABLES;
   const coerced = Object.create(null) as Record<string, unknown>;
   const sources = Object.create(null) as VariableValues['sources'];
@@ -1118,7 +1162,10 @@ function tryCoerceBuiltinLeafVariables(
         continue;
       }
       if (binding.nonNull) {
-        return undefined;
+        const parts = binding.nonNullErrors!;
+        return {
+          errors: [new GraphQLError(parts.missingMessage, { nodes: parts.nodes })],
+        };
       }
       continue;
     }
@@ -1126,7 +1173,10 @@ function tryCoerceBuiltinLeafVariables(
     sources[binding.name] = { signature, value };
     if (value == null) {
       if (binding.nonNull) {
-        return undefined;
+        const parts = binding.nonNullErrors!;
+        return {
+          errors: [new GraphQLError(parts.nullMessage, { nodes: parts.nodes })],
+        };
       }
       coerced[binding.name] = null;
       continue;
@@ -1138,6 +1188,7 @@ function tryCoerceBuiltinLeafVariables(
       return undefined;
     }
     if (parsed == null && binding.nonNull) {
+      // parseValue returned null for NonNull — classic getVariableValues parity.
       return undefined;
     }
     coerced[binding.name] = parsed;
@@ -1226,8 +1277,9 @@ function compileFieldPlan(
   const hasArgs = fieldDef.args.length > 0;
   const { staticArgs, argumentReader, readArguments } = compileArgumentReader(
     fieldDef,
-    fieldNodes[0],
+    fieldNodes[0]!,
     hasArgs,
+    parentType,
   );
 
   const returnType = fieldDef.type;
@@ -1373,6 +1425,7 @@ function compileArgumentReader(
   fieldDef: GraphQLField<unknown, unknown>,
   fieldNode: FieldNode,
   hasArgs: boolean,
+  parentType: GraphQLObjectType,
 ): {
   staticArgs: { [argument: string]: unknown } | undefined;
   argumentReader: ArgumentReader | undefined;
@@ -1415,14 +1468,14 @@ function compileArgumentReader(
     }
   }
 
-  const bareBindings = tryBareVariableBindings(fieldNode);
+  const bareBindings = tryBareVariableBindings(fieldDef, fieldNode, parentType);
   if (bareBindings) {
     const read = (variableValues: VariableValues) => {
       const fast = tryReadBareVariableArguments(fieldDef, bareBindings, variableValues);
       if (fast !== undefined) {
         return fast;
       }
-      // Exact GraphQLError shapes for missing / null-for-non-null variables.
+      // Remaining misses (e.g. required arg absent from AST): classic parity.
       return getArgumentValuesForPlan(fieldDef, fieldNode, variableValues);
     };
     return {
@@ -1442,51 +1495,82 @@ function compileArgumentReader(
   };
 }
 
+type BareVariableArgBinding = {
+  argName: string;
+  variableName: string;
+  nodes: ArgumentNode['value'];
+  nonNull: boolean;
+  nullMessage: string;
+};
+
 /**
- * When every argument AST value is a bare variable (`arg: $v`), return bindings.
+ * When every argument AST value is a bare variable (`arg: $v`), return bindings
+ * with plan-held missing/null GraphQLError messages (#12).
  */
 function tryBareVariableBindings(
+  fieldDef: GraphQLField<unknown, unknown>,
   fieldNode: FieldNode,
-): ReadonlyArray<{ argName: string; variableName: string }> | undefined {
+  parentType: GraphQLObjectType,
+): ReadonlyArray<BareVariableArgBinding> | undefined {
   const args = fieldNode.arguments;
   if (args == null || args.length === 0) {
     return undefined;
   }
-  const bindings: Array<{ argName: string; variableName: string }> = [];
+  const argDefByName = new Map(fieldDef.args.map(a => [a.name, a]));
+  const bindings: BareVariableArgBinding[] = [];
   for (const arg of args) {
     if (arg.value.kind !== Kind.VARIABLE) {
       return undefined;
     }
-    bindings.push({ argName: arg.name.value, variableName: arg.value.name.value });
+    const argDef = argDefByName.get(arg.name.value);
+    if (argDef == null) {
+      return undefined;
+    }
+    const variableName = arg.value.name.value;
+    const typeName = String(argDef.type);
+    const nonNull = isNonNullType(argDef.type);
+    const coord = `${parentType.name}.${fieldDef.name}(${arg.name.value}:)`;
+    const nullMessage = isGraphQL17
+      ? `Argument "${coord}" has invalid value: Expected variable "$${variableName}" provided to non-null type "${typeName}" not to be null.`
+      : `Argument "${arg.name.value}" of non-null type "${typeName}" must not be null.`;
+    bindings.push({
+      argName: arg.name.value,
+      variableName,
+      // graphql-js locates these errors on the Variable node, not the Argument.
+      nodes: arg.value,
+      nonNull,
+      nullMessage,
+    });
   }
   return bindings;
 }
 
 /**
- * Fast path for bare-variable args when every referenced variable is present and
- * satisfies non-null. Returns `undefined` to fall back to getArgumentValues when
- * error messaging must match graphql-js exactly.
+ * Fast path for bare-variable args. Throws plan-held GraphQLError for
+ * null-for-non-null (#12). Missing variables fall back to getArgumentValues so
+ * schema argument defaults (GQL17 lazy `default`) stay identical.
  */
 function tryReadBareVariableArguments(
   fieldDef: GraphQLField<unknown, unknown>,
-  bindings: ReadonlyArray<{ argName: string; variableName: string }>,
+  bindings: ReadonlyArray<BareVariableArgBinding>,
   variableValues: VariableValues,
 ): { [argument: string]: unknown } | undefined {
   const coerced = variableValues.coerced as Record<string, unknown>;
-  const byArg = new Map<string, string>();
+  const byArg = new Map<string, BareVariableArgBinding>();
   for (const binding of bindings) {
-    byArg.set(binding.argName, binding.variableName);
+    byArg.set(binding.argName, binding);
   }
   const args = Object.create(null) as { [argument: string]: unknown };
   for (const argDef of fieldDef.args) {
-    const variableName = byArg.get(argDef.name);
-    if (variableName !== undefined) {
-      if (!Object.prototype.hasOwnProperty.call(coerced, variableName)) {
+    const binding = byArg.get(argDef.name);
+    if (binding !== undefined) {
+      if (!Object.prototype.hasOwnProperty.call(coerced, binding.variableName)) {
+        // Missing runtime variable — defaults / omit need classic parity.
         return undefined;
       }
-      const value = coerced[variableName];
-      if (value == null && isNonNullType(argDef.type)) {
-        return undefined;
+      const value = coerced[binding.variableName];
+      if (value == null && binding.nonNull) {
+        throw new GraphQLError(binding.nullMessage, { nodes: binding.nodes });
       }
       args[argDef.name] = value;
       continue;
