@@ -1934,7 +1934,10 @@ function executeObjectListFieldThin(
   if (rawSubExecutions == null || rawSubExecutions.length === 0) {
     return undefined;
   }
-  const subExecutions = filterPlannedExecutions(rawSubExecutions, exeContext.variableValues);
+  const subExecutions =
+    plan.skipIncludePredicates === true
+      ? filterPlannedExecutions(rawSubExecutions, exeContext.variableValues)
+      : rawSubExecutions;
   if (subExecutions.length === 0) {
     return undefined;
   }
@@ -2053,6 +2056,8 @@ function executeObjectListFieldThin(
   }
 }
 
+const STASH_SLIM_DECLINED: unique symbol = Symbol('stashSlimDeclined');
+
 function completePlannedObjectListValue(
   exeContext: ExecutionContext,
   fieldPlan: FieldPlan,
@@ -2081,133 +2086,196 @@ function completePlannedObjectListValue(
   // speculative preflight and no Proxy; each slot is observed at most once.
   // Sync object items use a direct assign when the thin walk returns a plain
   // map (nestedDefault); partials/promises still go through finishThin.
-  const listType = (
-    isNonNullType(fieldPlan.returnType) ? fieldPlan.returnType.ofType : fieldPlan.returnType
-  ) as GraphQLList<GraphQLOutputType>;
-  const itemType = listType.ofType;
+  // Prefer slim first (pre-CR shape) for plain bags — allocate ResolveInfo /
+  // async helpers only when an item needs them.
+  const completedResults: Array<unknown> = new Array(result.length);
+
+  // Phase A — tight slim loop (nestedDefault). No heavy closures.
+  let index = 0;
+  let stashedNested:
+    | Record<string, unknown>
+    | ThinObjectPartial
+    | undefined
+    | Promise<unknown>
+    | typeof STASH_SLIM_DECLINED = undefined;
+  let hasStash = false;
+  let pendingBubbled: unknown;
+  for (; index < result.length; index++) {
+    const item = result[index];
+    if (item == null) {
+      if (itemNonNull) {
+        const itemPath = addPath(path, index, undefined);
+        throw locatedError(
+          new Error(
+            `Cannot return null for non-nullable field ${fieldPlan.parentType.name}.${fieldPlan.fieldDef.name}.`,
+          ),
+          fieldNodes,
+          pathToArray(itemPath),
+          exeContext.schemaCoordinateInErrors &&
+            buildPlannedResolveInfo(exeContext, fieldPlan, path, fieldNodes),
+        );
+      }
+      completedResults[index] = null;
+      continue;
+    }
+    if (!isObjectLike(item) || isPromise(item) || item instanceof Error) {
+      break;
+    }
+    let nested: ReturnType<typeof executePlannedSyncObjectFieldsPlain>;
+    try {
+      nested = executePlannedSyncObjectFieldsPlain(
+        exeContext,
+        itemObjectType,
+        item,
+        addPath(path, index, undefined),
+        subExecutions,
+      );
+    } catch (bubbled) {
+      pendingBubbled = bubbled;
+      break;
+    }
+    if (nested === undefined) {
+      stashedNested = STASH_SLIM_DECLINED;
+      hasStash = true;
+      break;
+    }
+    if (isThinObjectPartial(nested) || isPromise(nested)) {
+      stashedNested = nested;
+      hasStash = true;
+      break;
+    }
+    completedResults[index] = nested;
+  }
+  if (index >= result.length) {
+    completedResults.length = result.length;
+    return completedResults;
+  }
+
+  // Phase B — remaining items (and stashed Phase A item).
+  let visitedCount = index;
+  let asyncUpdates: Promise<void>[] | undefined;
   let info: GraphQLResolveInfo | undefined;
+  let itemType: GraphQLOutputType | undefined;
+  let nullNullableItem: ((bubbled: unknown, itemPath: Path, itemIndex: number) => void) | undefined;
+  let trackAsync: ((work: Promise<void>) => void) | undefined;
+  let assignObjectItem:
+    | ((
+        item: Record<string, unknown>,
+        itemPath: Path,
+        itemIndex: number,
+        value: Record<string, unknown> | ThinObjectPartial | undefined,
+      ) => MaybePromise<void>)
+    | undefined;
+
   const getInfo = (): GraphQLResolveInfo => {
     if (info == null) {
       info = buildPlannedResolveInfo(exeContext, fieldPlan, path, fieldNodes);
     }
     return info;
   };
-  const completedResults: Array<unknown> = new Array(result.length);
-  // If a completed item truncates `result`, the indexed loop stops early; trim
-  // to visited slots so we do not serialize trailing holes as null (classic).
-  let visitedCount = 0;
-  const asyncUpdates: Promise<void>[] = [];
-  const nullNullableItem = (bubbled: unknown, itemPath: Path, itemIndex: number): void => {
-    exeContext.signal?.throwIfAborted();
-    // Shared locateListItemError: path/locations/coordinate match classic.
-    const error = locateListItemError(
-      bubbled,
-      fieldNodes,
-      itemPath,
-      exeContext.schemaCoordinateInErrors && getInfo(),
-    );
-    // itemType carries NonNull — handleFieldError throws for NonNull items.
-    completedResults[itemIndex] = handleFieldError(error, itemType, exeContext.errors);
-  };
-  const trackAsync = (work: Promise<void>): void => {
-    // Observe immediately so an early loop exit cannot leave an unhandled rejection.
-    work.then(undefined, () => undefined);
-    asyncUpdates.push(work);
-  };
 
-  const assignObjectItem = (
-    item: Record<string, unknown>,
-    itemPath: Path,
-    itemIndex: number,
-    value: Record<string, unknown> | ThinObjectPartial | undefined,
-  ): MaybePromise<void> => {
-    if (isThinObjectPartial(value)) {
-      const finished = finishThinObjectPartial(
-        exeContext,
-        itemObjectType,
-        item,
-        itemPath,
-        subExecutions,
-        value,
-      );
-      if (isPromise(finished)) {
-        return finished.then(v => {
-          completedResults[itemIndex] = v;
-        });
-      }
-      completedResults[itemIndex] = finished;
-      return;
+  const ensureHeavy = (): {
+    nullNullableItem: (bubbled: unknown, itemPath: Path, itemIndex: number) => void;
+    trackAsync: (work: Promise<void>) => void;
+    assignObjectItem: (
+      item: Record<string, unknown>,
+      itemPath: Path,
+      itemIndex: number,
+      value: Record<string, unknown> | ThinObjectPartial | undefined,
+    ) => MaybePromise<void>;
+    itemType: GraphQLOutputType;
+  } => {
+    if (itemType == null) {
+      const listType = (
+        isNonNullType(fieldPlan.returnType) ? fieldPlan.returnType.ofType : fieldPlan.returnType
+      ) as GraphQLList<GraphQLOutputType>;
+      itemType = listType.ofType;
     }
-    if (value === undefined) {
-      const finished = executeObjectItemViaFields(
-        exeContext,
-        itemObjectType,
-        item,
-        itemPath,
-        subExecutions,
-      );
-      if (isPromise(finished)) {
-        return finished.then(v => {
-          completedResults[itemIndex] = v;
-        });
-      }
-      completedResults[itemIndex] = finished;
-      return;
-    }
-    completedResults[itemIndex] = value;
-  };
-
-  const completeObjectItem = (
-    item: Record<string, unknown>,
-    itemPath: Path,
-    itemIndex: number,
-  ): MaybePromise<void> => {
-    const nullItem = (bubbled: unknown): void => {
-      nullNullableItem(bubbled, itemPath, itemIndex);
-    };
-    try {
-      const nested = executePlannedSyncObjectFields(
-        exeContext,
-        itemObjectType,
-        item,
-        itemPath,
-        subExecutions,
-      );
-      if (isPromise(nested)) {
-        return nested
-          .then(value => assignObjectItem(item, itemPath, itemIndex, value))
-          .then(
-            () => undefined,
-            (bubbled: unknown) => {
-              nullItem(bubbled);
-            },
-          );
-      }
-      const assigned = assignObjectItem(item, itemPath, itemIndex, nested);
-      if (isPromise(assigned)) {
-        return assigned.then(
-          () => undefined,
-          (bubbled: unknown) => {
-            nullItem(bubbled);
-          },
+    if (nullNullableItem == null) {
+      nullNullableItem = (bubbled: unknown, itemPath: Path, itemIndex: number): void => {
+        exeContext.signal?.throwIfAborted();
+        const error = locateListItemError(
+          bubbled,
+          fieldNodes,
+          itemPath,
+          exeContext.schemaCoordinateInErrors && getInfo(),
         );
-      }
-    } catch (bubbled) {
-      nullItem(bubbled);
+        completedResults[itemIndex] = handleFieldError(error, itemType!, exeContext.errors);
+      };
     }
+    if (trackAsync == null) {
+      trackAsync = (work: Promise<void>): void => {
+        work.then(undefined, () => undefined);
+        (asyncUpdates ??= []).push(work);
+      };
+    }
+    if (assignObjectItem == null) {
+      assignObjectItem = (
+        item: Record<string, unknown>,
+        itemPath: Path,
+        itemIndex: number,
+        value: Record<string, unknown> | ThinObjectPartial | undefined,
+      ): MaybePromise<void> => {
+        if (isThinObjectPartial(value)) {
+          const finished = finishThinObjectPartial(
+            exeContext,
+            itemObjectType,
+            item,
+            itemPath,
+            subExecutions,
+            value,
+          );
+          if (isPromise(finished)) {
+            return finished.then(v => {
+              completedResults[itemIndex] = v;
+            });
+          }
+          completedResults[itemIndex] = finished;
+          return;
+        }
+        if (value === undefined) {
+          const finished = executeObjectItemViaFields(
+            exeContext,
+            itemObjectType,
+            item,
+            itemPath,
+            subExecutions,
+          );
+          if (isPromise(finished)) {
+            return finished.then(v => {
+              completedResults[itemIndex] = v;
+            });
+          }
+          completedResults[itemIndex] = finished;
+          return;
+        }
+        completedResults[itemIndex] = value;
+      };
+    }
+    return {
+      nullNullableItem: nullNullableItem!,
+      trackAsync: trackAsync!,
+      assignObjectItem: assignObjectItem!,
+      itemType: itemType!,
+    };
   };
 
-  for (let index = 0; index < result.length; index++) {
+  for (; index < result.length; index++) {
     visitedCount = index + 1;
     let item: unknown;
     try {
       item = result[index];
     } catch (rawError) {
-      // Accessor threw — pending item work is already observed via trackAsync.
       exeContext.signal?.throwIfAborted();
       throw coerceError(rawError);
     }
     const itemPath = addPath(path, index, undefined);
+    if (pendingBubbled !== undefined) {
+      const bubbled = pendingBubbled;
+      pendingBubbled = undefined;
+      ensureHeavy().nullNullableItem(bubbled, itemPath, index);
+      continue;
+    }
     if (item == null) {
       if (itemNonNull) {
         throw locatedError(
@@ -2223,6 +2291,7 @@ function completePlannedObjectListValue(
       continue;
     }
     if (item instanceof Error) {
+      const heavy = ensureHeavy();
       try {
         completedResults[index] = handleFieldError(
           locatedError(
@@ -2231,17 +2300,18 @@ function completePlannedObjectListValue(
             pathToArray(itemPath),
             exeContext.schemaCoordinateInErrors && getInfo(),
           ),
-          itemType,
+          heavy.itemType,
           exeContext.errors,
         );
       } catch (bubbled) {
-        nullNullableItem(bubbled, itemPath, index);
+        heavy.nullNullableItem(bubbled, itemPath, index);
       }
       continue;
     }
     if (isPromise(item)) {
+      const heavy = ensureHeavy();
       const itemIndex = index;
-      trackAsync(
+      heavy.trackAsync(
         Promise.resolve(item)
           .then((resolved: unknown) => {
             if (resolved instanceof Error) {
@@ -2262,15 +2332,13 @@ function completePlannedObjectListValue(
               return;
             }
             if (!isObjectLike(resolved)) {
-              // Primitive source with custom field resolvers may return a
-              // thenable from completeListItemValue — await it like the sync path.
               const one: Array<unknown> = [];
               const asyncItem = completeListItemValue(
                 resolved,
                 one,
                 exeContext.errors,
                 exeContext,
-                itemType,
+                heavy.itemType,
                 fieldNodes,
                 getInfo(),
                 itemPath,
@@ -2283,18 +2351,56 @@ function completePlannedObjectListValue(
               completedResults[itemIndex] = one[0];
               return;
             }
-            return completeObjectItem(resolved as Record<string, unknown>, itemPath, itemIndex);
+            const nested = executePlannedSyncObjectFields(
+              exeContext,
+              itemObjectType,
+              resolved,
+              itemPath,
+              subExecutions,
+            );
+            if (isPromise(nested)) {
+              return nested
+                .then(value =>
+                  heavy.assignObjectItem(
+                    resolved as Record<string, unknown>,
+                    itemPath,
+                    itemIndex,
+                    value,
+                  ),
+                )
+                .then(
+                  () => undefined,
+                  (bubbled: unknown) => {
+                    heavy.nullNullableItem(bubbled, itemPath, itemIndex);
+                  },
+                );
+            }
+            const assigned = heavy.assignObjectItem(
+              resolved as Record<string, unknown>,
+              itemPath,
+              itemIndex,
+              nested,
+            );
+            if (isPromise(assigned)) {
+              return assigned.then(
+                () => undefined,
+                (bubbled: unknown) => {
+                  heavy.nullNullableItem(bubbled, itemPath, itemIndex);
+                },
+              );
+            }
           })
           .then(
             () => undefined,
             (bubbled: unknown) => {
-              nullNullableItem(bubbled, itemPath, itemIndex);
+              heavy.nullNullableItem(bubbled, itemPath, itemIndex);
             },
           ),
       );
       continue;
     }
     if (!isObjectLike(item)) {
+      const heavy = ensureHeavy();
       try {
         const one: Array<unknown> = [];
         const asyncItem = completeListItemValue(
@@ -2302,7 +2408,7 @@ function completePlannedObjectListValue(
           one,
           exeContext.errors,
           exeContext,
-          itemType,
+          heavy.itemType,
           fieldNodes,
           getInfo(),
           itemPath,
@@ -2310,13 +2416,13 @@ function completePlannedObjectListValue(
         if (asyncItem) {
           const itemIndex = index;
           const slot = one[0];
-          trackAsync(
+          heavy.trackAsync(
             Promise.resolve(slot).then(
               value => {
                 completedResults[itemIndex] = value;
               },
               (bubbled: unknown) => {
-                nullNullableItem(bubbled, itemPath, itemIndex);
+                heavy.nullNullableItem(bubbled, itemPath, itemIndex);
               },
             ),
           );
@@ -2324,49 +2430,77 @@ function completePlannedObjectListValue(
           completedResults[index] = one[0];
         }
       } catch (bubbled) {
-        nullNullableItem(bubbled, itemPath, index);
+        heavy.nullNullableItem(bubbled, itemPath, index);
       }
       continue;
     }
-    // Sync object: one thin walk. Plain maps assign directly (nestedDefault);
-    // partials / declines / promises use assignObjectItem / finishThin.
-    {
-      const syncItem = item as Record<string, unknown>;
-      try {
-        const nested = executePlannedSyncObjectFields(
+
+    // Sync object — hot path: slim/tryFast plain Record assign (nestedDefault).
+    const syncItem = item as Record<string, unknown>;
+    try {
+      let nested: Record<string, unknown> | ThinObjectPartial | undefined | Promise<unknown>;
+      if (hasStash) {
+        hasStash = false;
+        if (stashedNested === STASH_SLIM_DECLINED) {
+          nested = executePlannedSyncObjectFields(
+            exeContext,
+            itemObjectType,
+            syncItem,
+            itemPath,
+            subExecutions,
+          );
+        } else {
+          nested = stashedNested as typeof nested;
+        }
+        stashedNested = undefined;
+      } else {
+        nested = executePlannedSyncObjectFields(
           exeContext,
           itemObjectType,
           syncItem,
           itemPath,
           subExecutions,
         );
-        if (nested !== undefined && !isPromise(nested) && !isThinObjectPartial(nested)) {
-          completedResults[index] = nested;
-          continue;
-        }
-        const assigned = isPromise(nested)
-          ? nested.then(value => assignObjectItem(syncItem, itemPath, index, value))
-          : assignObjectItem(syncItem, itemPath, index, nested);
-        if (isPromise(assigned)) {
-          trackAsync(
-            assigned.then(
-              () => undefined,
-              (bubbled: unknown) => {
-                nullNullableItem(bubbled, itemPath, index);
-              },
-            ),
-          );
-        }
-      } catch (bubbled) {
-        nullNullableItem(bubbled, itemPath, index);
       }
+      if (nested !== undefined && !isPromise(nested) && !isThinObjectPartial(nested)) {
+        completedResults[index] = nested;
+        continue;
+      }
+      const heavy = ensureHeavy();
+      const itemIndex = index;
+      const assigned = isPromise(nested)
+        ? nested.then(value => heavy.assignObjectItem(syncItem, itemPath, itemIndex, value))
+        : heavy.assignObjectItem(syncItem, itemPath, itemIndex, nested);
+      if (isPromise(assigned)) {
+        heavy.trackAsync(
+          assigned.then(
+            () => {
+              // NonNull leaf reject inside finishThin can resolve the assign
+              // chain without writing when the bubble is swallowed by an
+              // intermediate handler — ensure the slot is never left as a hole.
+              if (completedResults[itemIndex] === undefined) {
+                completedResults[itemIndex] = null;
+              }
+            },
+            (bubbled: unknown) => {
+              heavy.nullNullableItem(bubbled, itemPath, itemIndex);
+            },
+          ),
+        );
+      } else if (completedResults[itemIndex] === undefined) {
+        completedResults[itemIndex] = null;
+      }
+    } catch (bubbled) {
+      ensureHeavy().nullNullableItem(bubbled, itemPath, index);
     }
   }
+
   const trimVisited = (): Array<unknown> => {
-    completedResults.length = visitedCount;
+    const live = result.length;
+    completedResults.length = visitedCount < live ? visitedCount : live;
     return completedResults;
   };
-  if (asyncUpdates.length > 0) {
+  if (asyncUpdates != null && asyncUpdates.length > 0) {
     return Promise.all(asyncUpdates).then(trimVisited);
   }
   return trimVisited();
@@ -4872,6 +5006,212 @@ function executeObjectItemViaFields(
  * path on the same index. Async and method cases escalate without re-reading
  * completed siblings.
  */
+
+/**
+ * Exact pre-CR plain-data walker for nestedDefault Phase A.
+ * On mid-walk decline (args / method / error) after completed fields, returns a
+ * ThinObjectPartial so Phase B finishThin does not re-read one-shot getters.
+ */
+function executePlannedSyncObjectFieldsPlain(
+  exeContext: ExecutionContext,
+  parentType: GraphQLObjectType,
+  sourceValue: unknown,
+  path: Path,
+  plannedExecutions: ReadonlyArray<PlannedFieldExecution>,
+): Record<string, unknown> | ThinObjectPartial | undefined {
+  if (!isObjectLike(sourceValue) && typeof sourceValue !== 'function') {
+    return undefined;
+  }
+  const source = sourceValue as Record<string, unknown>;
+  const results: Record<string, unknown> = Object.create(null);
+  let resultCount = 0;
+  const signal = exeContext.signal;
+  for (let i = 0; i < plannedExecutions.length; i++) {
+    if (signal != null) {
+      signal.throwIfAborted();
+    }
+    const { responseName, fieldNodes, fieldPlan } = plannedExecutions[i];
+    if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
+      if (resultCount > 0) {
+        return thinObjectMiss(results, false, undefined);
+      }
+      return undefined;
+    }
+    // No try/catch on the hot property read (pre-CR). Getter throws propagate
+    // to Phase A → pendingBubbled / nullNullableItem for list items.
+    const propertyRaw = source[fieldPlan.fieldDef.name];
+    let property: unknown = propertyRaw;
+    if (property instanceof Error) {
+      if (resultCount > 0) {
+        const fieldPath = addPath(path, responseName, parentType.name);
+        const error = locatedError(
+          property,
+          fieldNodes,
+          pathToArray(fieldPath),
+          exeContext.schemaCoordinateInErrors &&
+            schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+        );
+        results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+        return thinObjectMiss(results, true, undefined);
+      }
+      return undefined;
+    }
+    if (typeof property === 'function') {
+      // Leaf methods must be invoked here (one-shot getters). Non-leaf → miss.
+      if (fieldPlan.kind !== 'leaf' || fieldPlan.leafType == null) {
+        if (resultCount > 0) {
+          return thinObjectMiss(results, false, undefined);
+        }
+        return undefined;
+      }
+      const fieldPath = addPath(path, responseName, parentType.name);
+      try {
+        const resolveInfo = buildPlannedResolveInfo(exeContext, fieldPlan, fieldPath, fieldNodes);
+        property = (
+          property as (
+            this: unknown,
+            fieldArgs: Record<string, unknown>,
+            contextValue: unknown,
+            resolveInfo: GraphQLResolveInfo,
+          ) => unknown
+        ).call(source, Object.create(null), exeContext.contextValue, resolveInfo);
+      } catch (rawError) {
+        const error = locatedError(
+          coerceError(rawError),
+          fieldNodes,
+          pathToArray(fieldPath),
+          exeContext.schemaCoordinateInErrors &&
+            schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+        );
+        results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+        return thinObjectMiss(results, true, undefined);
+      }
+      if (property != null && typeof property === 'object' && isPromise(property)) {
+        property.then(undefined, () => undefined);
+        if (resultCount > 0) {
+          return thinObjectMiss(results, true, undefined);
+        }
+        return undefined;
+      }
+      // Fall through to leaf serialize.
+    }
+    if (property != null && typeof property === 'object' && isPromise(property)) {
+      if (resultCount > 0) {
+        property.then(undefined, () => undefined);
+        return thinObjectMiss(results, false, undefined);
+      }
+      return undefined;
+    }
+    if (fieldPlan.kind === 'leaf' && fieldPlan.leafType != null) {
+      if (property == null) {
+        if (fieldPlan.nonNull) {
+          if (resultCount > 0) {
+            return thinObjectMiss(results, false, undefined);
+          }
+          return undefined;
+        }
+        results[responseName] = null;
+        resultCount++;
+        continue;
+      }
+      try {
+        const serialized = fieldPlan.leafType.serialize(property);
+        if (serialized == null || isPromise(serialized)) {
+          if (isPromise(serialized)) {
+            serialized.then(undefined, () => undefined);
+          }
+          if (resultCount > 0) {
+            return thinObjectMiss(results, false, undefined);
+          }
+          return undefined;
+        }
+        results[responseName] = serialized;
+        resultCount++;
+      } catch {
+        if (resultCount > 0) {
+          return thinObjectMiss(results, false, undefined);
+        }
+        return undefined;
+      }
+      continue;
+    }
+    if (fieldPlan.kind === 'object' && fieldPlan.skipIsTypeOf && fieldPlan.objectType != null) {
+      if (property == null) {
+        if (fieldPlan.nonNull) {
+          if (resultCount > 0) {
+            return thinObjectMiss(results, false, undefined);
+          }
+          return undefined;
+        }
+        results[responseName] = null;
+        resultCount++;
+        continue;
+      }
+      if (!isObjectLike(property)) {
+        if (resultCount > 0) {
+          return thinObjectMiss(results, false, undefined);
+        }
+        return undefined;
+      }
+      const plan = exeContext.plan;
+      if (plan == null) {
+        if (resultCount > 0) {
+          return thinObjectMiss(results, false, undefined);
+        }
+        return undefined;
+      }
+      const rawSub = getPlannedSubfieldExecutions(plan, fieldNodes, fieldPlan.objectType);
+      if (rawSub == null) {
+        if (resultCount > 0) {
+          return thinObjectMiss(results, false, undefined);
+        }
+        return undefined;
+      }
+      const subExecutions =
+        plan.skipIncludePredicates === true
+          ? filterPlannedExecutions(rawSub, exeContext.variableValues)
+          : rawSub;
+      const nested = executePlannedSyncObjectFieldsPlain(
+        exeContext,
+        fieldPlan.objectType,
+        property,
+        addPath(path, responseName, parentType.name),
+        subExecutions,
+      );
+      if (nested === undefined) {
+        if (resultCount > 0) {
+          return thinObjectMiss(results, true, undefined);
+        }
+        return undefined;
+      }
+      if (isThinObjectPartial(nested)) {
+        const finished = finishThinObjectPartial(
+          exeContext,
+          fieldPlan.objectType,
+          property,
+          addPath(path, responseName, parentType.name),
+          subExecutions,
+          nested,
+        );
+        if (isPromise(finished)) {
+          return thinObjectMiss(results, true, undefined);
+        }
+        results[responseName] = finished;
+        resultCount++;
+        continue;
+      }
+      results[responseName] = nested;
+      resultCount++;
+      continue;
+    }
+    if (resultCount > 0) {
+      return thinObjectMiss(results, false, undefined);
+    }
+    return undefined;
+  }
+  return results;
+}
+
 const SYNC_OBJECT_NEEDS_HEAVY: unique symbol = Symbol('syncObjectNeedsHeavy');
 
 function tryExecutePlannedSyncObjectFieldsFast(
@@ -4893,11 +5233,9 @@ function tryExecutePlannedSyncObjectFieldsFast(
       signal.throwIfAborted();
     }
     const { responseName, fieldNodes, fieldPlan } = plannedExecutions[index];
+    // resolveKind is compile-time; skip live fieldDef.resolve on the hot path
+    // (pre-CR did the same — nestedDefault never pays per-field resolve checks).
     if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
-      return thinObjectMiss(results, recordedGetterError, pendingLeaves);
-    }
-    const liveResolve = fieldPlan.fieldDef.resolve;
-    if (liveResolve != null && liveResolve !== defaultFieldResolver) {
       return thinObjectMiss(results, recordedGetterError, pendingLeaves);
     }
 
@@ -5144,7 +5482,10 @@ function tryExecutePlannedSyncObjectFieldsFast(
       if (rawSub == null) {
         return thinObjectMiss(results, recordedGetterError, pendingLeaves);
       }
-      const nestedSubExecutions = filterPlannedExecutions(rawSub, exeContext.variableValues);
+      const nestedSubExecutions =
+        plan.skipIncludePredicates === true
+          ? filterPlannedExecutions(rawSub, exeContext.variableValues)
+          : rawSub;
       const childPath = addPath(path, responseName, parentType.name);
       const nested = tryExecutePlannedSyncObjectFieldsFast(
         exeContext,
@@ -5234,6 +5575,8 @@ function executePlannedSyncObjectFields(
     return undefined;
   }
   const source = sourceValue as Record<string, unknown>;
+  // CR thin walk (one-shot throws / pendingLeaves). nestedDefault list Phase A
+  // uses executePlannedSyncObjectFieldsPlain instead.
   const fast = tryExecutePlannedSyncObjectFieldsFast(
     exeContext,
     parentType,

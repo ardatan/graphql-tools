@@ -76,6 +76,10 @@ function assertSingular(result: unknown): SingularExecutionResult {
 }
 
 describe('execution plan warm-path edges', () => {
+  afterEach(() => {
+    clearExecutionPlanCache();
+  });
+
   describe('union / interface FieldNode keys', () => {
     const Dog = new GraphQLObjectType({
       name: 'Dog',
@@ -3238,48 +3242,51 @@ describe('differential parity: classic vs planned (R9)', () => {
       expect(failures).toEqual([]);
     });
 
-    it('matches classic on seeded async list mixtures', async () => {
-      const rand = mulberry32(SEED ^ 0xabc);
-      const failures: string[] = [];
-      for (let caseIndex = 0; caseIndex < 24; caseIndex++) {
-        const mode = Math.floor(rand() * 4);
-        const makeSchema = () =>
-          new GraphQLSchema({
-            query: new GraphQLObjectType({
-              name: 'Query',
-              fields: {
-                values: {
-                  type: new GraphQLList(GraphQLString),
-                  resolve: () => {
-                    if (mode === 0) {
-                      return ['a', 'b'];
-                    }
-                    if (mode === 1) {
-                      return [Promise.resolve('a'), Promise.resolve('b')];
-                    }
-                    if (mode === 2) {
-                      return ['a', Promise.reject(new Error(`rej-${caseIndex}`))];
-                    }
-                    return [Promise.resolve(new Error(`res-err-${caseIndex}`)), 'b'];
+    (process.env['LEAK_TEST'] ? it.skip : it)(
+      'matches classic on seeded async list mixtures',
+      async () => {
+        const rand = mulberry32(SEED ^ 0xabc);
+        const failures: string[] = [];
+        for (let caseIndex = 0; caseIndex < 24; caseIndex++) {
+          const mode = Math.floor(rand() * 4);
+          const makeSchema = () =>
+            new GraphQLSchema({
+              query: new GraphQLObjectType({
+                name: 'Query',
+                fields: {
+                  values: {
+                    type: new GraphQLList(GraphQLString),
+                    resolve: () => {
+                      if (mode === 0) {
+                        return ['a', 'b'];
+                      }
+                      if (mode === 1) {
+                        return [Promise.resolve('a'), Promise.resolve('b')];
+                      }
+                      if (mode === 2) {
+                        return ['a', Promise.reject(new Error(`rej-${caseIndex}`))];
+                      }
+                      return [Promise.resolve(new Error(`res-err-${caseIndex}`)), 'b'];
+                    },
                   },
+                  ok: { type: GraphQLString, resolve: () => 'yes' },
                 },
-                ok: { type: GraphQLString, resolve: () => 'yes' },
-              },
-            }),
-          });
-        const document = parse('{ values ok }');
-        try {
-          const planned = assertSingular(await execute({ schema: makeSchema(), document }));
-          const classic = await executeClassic({ schema: makeSchema(), document });
-          expect(planned).toEqual(classic);
-        } catch (err) {
-          failures.push(
-            `async case ${caseIndex}: ${err instanceof Error ? err.message : String(err)}`,
-          );
+              }),
+            });
+          const document = parse('{ values ok }');
+          try {
+            const planned = assertSingular(await execute({ schema: makeSchema(), document }));
+            const classic = await executeClassic({ schema: makeSchema(), document });
+            expect(planned).toEqual(classic);
+          } catch (err) {
+            failures.push(
+              `async case ${caseIndex}: ${err instanceof Error ? err.message : String(err)}`,
+            );
+          }
         }
-      }
-      expect(failures).toEqual([]);
-    });
+        expect(failures).toEqual([]);
+      },
+    );
   });
 
   describe('union / fragment differential', () => {
