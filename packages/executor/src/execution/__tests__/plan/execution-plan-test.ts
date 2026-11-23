@@ -852,16 +852,17 @@ describe('execution plan', () => {
     if (versionInfo.major < 17) {
       return;
     }
+    // GraphQL 16 typings omit coerceInput* hooks; cast for the GQL17-only path.
     const Upper = new GraphQLScalarType({
       name: 'UpperDefault',
       // Runtime values stay as-is; only AST literal coercion uppercases.
       parseValue: value => String(value),
-      coerceInputValue: (value: unknown) => String(value),
       parseLiteral: ast => (ast.kind === Kind.STRING ? ast.value : null),
+      serialize: value => String(value),
+      coerceInputValue: (value: unknown) => String(value),
       coerceInputLiteral: (ast: ValueNode) =>
         ast.kind === Kind.STRING ? ast.value.toUpperCase() : null,
-      serialize: value => String(value),
-    });
+    } as any);
     const upperSchema = new GraphQLSchema({
       query: new GraphQLObjectType({
         name: 'Query',
