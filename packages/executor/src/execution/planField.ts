@@ -5,6 +5,7 @@ import {
   GraphQLAbstractType,
   GraphQLError,
   GraphQLField,
+  GraphQLLeafType,
   GraphQLObjectType,
   GraphQLOutputType,
   GraphQLSchema,
@@ -32,12 +33,13 @@ import { EMPTY_ARGS, EMPTY_VARIABLE_VALUES, isGraphQL17 } from './planShared.js'
 import type {
   ArgumentReader,
   CompletionKind,
-  ExecutionPlan,
   FieldPlan,
+  InternalExecutionPlan,
   PlannedFieldExecution,
   PlannedLeafList,
   PlannedObjectList,
   ResolveKind,
+  StreamPlan,
 } from './planTypes.js';
 import {
   ALWAYS_INCLUDE,
@@ -46,7 +48,7 @@ import {
 } from './skipIncludePredicates.js';
 
 export function compilePatchFieldMaps(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   parentType: GraphQLObjectType,
   patches: ReadonlyArray<{
     fields: Map<string, Array<FieldNode>>;
@@ -62,7 +64,7 @@ export function compilePatchFieldMaps(
 }
 
 function resolveFieldPlanForParent(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   parentType: GraphQLObjectType,
   fieldNodes: ReadonlyArray<FieldNode>,
 ): FieldPlan | undefined {
@@ -79,7 +81,7 @@ function resolveFieldPlanForParent(
 }
 
 export function buildFieldExecutions(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   parentType: GraphQLObjectType,
   fields: Map<string, Array<FieldNode>>,
   includeByResponseName?: Map<string, IncludePredicate>,
@@ -110,7 +112,7 @@ export function buildFieldExecutions(
  * for plan-eligible docs) so runtime can fall back to classic collect.
  */
 export function buildExecutionsFromSelectionSet(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   runtimeType: GraphQLObjectType,
   selectionSet: import('graphql').SelectionSetNode,
   preferredFieldMap?: Map<string, Array<FieldNode>>,
@@ -133,7 +135,7 @@ export function buildExecutionsFromSelectionSet(
 }
 
 function buildExecutionsFromParentFieldNodes(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   returnType: GraphQLObjectType,
   parentFieldNodes: ReadonlyArray<FieldNode>,
   preferredFieldMap?: Map<string, Array<FieldNode>>,
@@ -167,7 +169,7 @@ function buildExecutionsFromParentFieldNodes(
 }
 
 function buildExecutionsFromConditionalEntries(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   parentType: GraphQLObjectType,
   entries: ReadonlyArray<ConditionalFieldEntry>,
   /**
@@ -219,7 +221,7 @@ function buildExecutionsFromConditionalEntries(
 }
 
 export function compileFieldMap(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   parentType: GraphQLObjectType,
   fields: Map<string, Array<FieldNode>>,
 ): void {
@@ -236,7 +238,7 @@ export function compileFieldMap(
 }
 
 function compileFieldPlan(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   parentType: GraphQLObjectType,
   responseName: string,
   fieldNodes: Array<FieldNode>,
@@ -253,12 +255,8 @@ function compileFieldPlan(
     type = type.ofType;
   }
 
-  const leafType = isLeafType(type) ? type : undefined;
   const listItemLeaf = compileListItemLeaf(type);
-  const listItemObject = listItemLeaf == null ? compileListItemObject(type) : undefined;
   const completionKind = classifyCompletionKind(type, listItemLeaf);
-  const objectType = completionKind === 'object' && isObjectType(type) ? type : undefined;
-  const skipIsTypeOf = objectType != null && objectType.isTypeOf == null;
   const fieldResolve = fieldDef.resolve;
   const resolveKind: ResolveKind =
     fieldResolve != null && fieldResolve !== defaultFieldResolver
@@ -273,19 +271,13 @@ function compileFieldPlan(
   );
 
   const returnType = fieldDef.type;
-  const fieldPlan: FieldPlan = {
+  const base = {
     fieldDef,
     fieldNodes,
     responseName,
     parentType,
     returnType,
     nonNull,
-    leafType,
-    listItemLeaf,
-    listItemObject,
-    completionKind,
-    objectType,
-    skipIsTypeOf,
     resolveKind,
     hasArgs,
     staticArgs,
@@ -297,16 +289,60 @@ function compileFieldPlan(
       returnType,
       parentType,
     },
+    ...(plan.hasIncremental ? { stream: compileStreamPlan(fieldNodes[0]!) } : {}),
   };
-  // Only incremental plans carry stream facts , keep non-incremental FieldPlan
-  // shapes identical to Stage A for warm-path IC / GC.
-  if (plan.hasIncremental) {
-    fieldPlan.stream = compileStreamPlan(fieldNodes[0]!);
+
+  let fieldPlan: FieldPlan;
+  switch (completionKind) {
+    case 'leaf':
+      fieldPlan = {
+        ...base,
+        completionKind: 'leaf',
+        leafType: type as GraphQLLeafType,
+        skipIsTypeOf: false,
+      };
+      break;
+    case 'leafList':
+      fieldPlan = {
+        ...base,
+        completionKind: 'leafList',
+        listItemLeaf: listItemLeaf!,
+        skipIsTypeOf: false,
+      };
+      break;
+    case 'object': {
+      const objectType = type as GraphQLObjectType;
+      fieldPlan = {
+        ...base,
+        completionKind: 'object',
+        objectType,
+        skipIsTypeOf: objectType.isTypeOf == null,
+      };
+      break;
+    }
+    case 'abstract':
+      fieldPlan = {
+        ...base,
+        completionKind: 'abstract',
+        skipIsTypeOf: false,
+      };
+      break;
+    case 'list':
+    default: {
+      const listItemObject = compileListItemObject(type);
+      fieldPlan = {
+        ...base,
+        completionKind: 'list',
+        ...(listItemObject != null ? { listItemObject } : {}),
+        skipIsTypeOf: false,
+      };
+      break;
+    }
   }
   return fieldPlan;
 }
 
-function compileStreamPlan(fieldNode: FieldNode): NonNullable<FieldPlan['stream']> {
+function compileStreamPlan(fieldNode: FieldNode): StreamPlan {
   const directives = fieldNode.directives;
   if (directives == null || directives.length === 0) {
     return { kind: 'none' };
@@ -713,7 +749,7 @@ function tryReadBareVariableArguments(
   return args;
 }
 
-function compileReturnTypeSubfields(plan: ExecutionPlan, fieldPlan: FieldPlan): void {
+function compileReturnTypeSubfields(plan: InternalExecutionPlan, fieldPlan: FieldPlan): void {
   const namedType = unwrapToNamedOutputType(fieldPlan.fieldDef.type);
 
   if (isObjectType(namedType)) {
@@ -738,7 +774,7 @@ function compileReturnTypeSubfields(plan: ExecutionPlan, fieldPlan: FieldPlan): 
 }
 
 function storeSubfieldExecutions(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   parentFieldNodes: Array<FieldNode>,
   returnType: GraphQLObjectType,
   subfields: Map<string, Array<FieldNode>>,
@@ -784,7 +820,7 @@ export function filterPlannedExecutions(
 }
 
 function collectAndStoreSubfields(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   fieldNodes: Array<FieldNode>,
   returnType: GraphQLObjectType,
 ): Map<string, Array<FieldNode>> | undefined {
@@ -851,7 +887,7 @@ function collectAndStoreSubfields(
  * Planned subfield execution list for a stable parent field + concrete type.
  */
 export function getPlannedSubfieldExecutions(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   fieldNodes: ReadonlyArray<FieldNode>,
   returnType: GraphQLObjectType,
 ): ReadonlyArray<PlannedFieldExecution> | undefined {

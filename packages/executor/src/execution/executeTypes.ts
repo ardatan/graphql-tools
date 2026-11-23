@@ -28,12 +28,44 @@ import {
   type DeferUsageSet,
 } from './incrementalCollect.js';
 import type { PlannedWorkRunner } from './plannedWorkRunner.js';
-import type { ExecutionPlan } from './planTypes.js';
+import type { InternalExecutionPlan } from './planTypes.js';
 
 export interface SingularExecutionResult<TData = any, TExtensions = any> {
   errors?: ReadonlyArray<GraphQLError>;
   data?: TData | null;
   extensions?: TExtensions;
+}
+
+/**
+ * Runtime args for {@link ExecutionPlan.execute}. Schema, document, and
+ * operation name come from the compiled plan.
+ */
+export type PlannedExecuteArgs<_TData = any, TVariables = any, TContext = any> = {
+  rootValue?: unknown;
+  contextValue?: TContext;
+  variableValues?: TVariables;
+  fieldResolver?: Maybe<GraphQLFieldResolver<any, TContext>>;
+  typeResolver?: Maybe<GraphQLTypeResolver<any, TContext>>;
+  subscribeFieldResolver?: Maybe<GraphQLFieldResolver<any, TContext>>;
+  signal?: AbortSignal;
+  schemaCoordinateInErrors?: boolean;
+  hideSuggestions?: Maybe<boolean>;
+  incrementalSpec?: IncrementalSpec;
+};
+
+/**
+ * @experimental Opaque compiled execution plan.
+ *
+ * Prefer `plan.execute(...)` for warm reuse. Internal plan fields are not part
+ * of the public API and may change without notice.
+ */
+export interface ExecutionPlan {
+  execute<TData = any, TVariables = any, TContext = any>(
+    args?: PlannedExecuteArgs<TData, TVariables, TContext>,
+  ):
+    | SingularExecutionResult<TData>
+    | IncrementalExecutionResults<TData>
+    | Promise<SingularExecutionResult<TData> | IncrementalExecutionResults<TData>>;
 }
 
 export interface ExecutionContext<TVariables = any, TContext = any> {
@@ -105,7 +137,7 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
    * Stable docs reuse planned field maps; incremental / variable-collect docs
    * still attach the plan for per-field facts via FieldNode keys.
    */
-  plan?: ExecutionPlan;
+  plan?: InternalExecutionPlan;
   /**
    * Optional sync-first work runner. Only attached for the duration of a
    * planned leaf-list field completion (field-local); nested object / skip

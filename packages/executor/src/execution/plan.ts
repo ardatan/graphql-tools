@@ -25,8 +25,8 @@ import {
 import { EMPTY_VARIABLE_VALUES, INCREMENTAL_DIRECTIVES } from './planShared.js';
 import type {
   CompileExecutionPlanArgs,
-  ExecutionPlan,
   FieldPlan,
+  InternalExecutionPlan,
   PlannedFieldExecution,
 } from './planTypes.js';
 
@@ -36,17 +36,24 @@ export type {
   CoerceVariablesResult,
   CompileExecutionPlanArgs,
   CompletionKind,
-  ExecutionPlan,
+  InternalExecutionPlan,
   FieldPlan,
+  LeafFieldPlan,
+  LeafListFieldPlan,
+  ListFieldPlan,
+  ObjectFieldPlan,
+  AbstractFieldPlan,
   PlannedFieldExecution,
   PlannedLeafList,
   ResolveKind,
+  StreamPlan,
 } from './planTypes.js';
 
 export { filterPlannedExecutions, getPlannedSubfieldExecutions } from './planField.js';
 
 type PlanCacheEntry =
-  { kind: 'plan'; plan: ExecutionPlan } | { kind: 'errors'; errors: ReadonlyArray<GraphQLError> };
+  | { kind: 'plan'; plan: InternalExecutionPlan }
+  | { kind: 'errors'; errors: ReadonlyArray<GraphQLError> };
 
 /**
  * document -> schema -> operationName -> compiled entry.
@@ -54,20 +61,54 @@ type PlanCacheEntry =
  */
 const planCache = new WeakMap<DocumentNode, WeakMap<GraphQLSchema, Map<string, PlanCacheEntry>>>();
 
+type PlanExecuteFn = (plan: InternalExecutionPlan, args: Record<string, unknown>) => unknown;
+
+/** Wired from execute.ts so plan modules do not import execute (cycle). */
+let planExecuteImpl: PlanExecuteFn | undefined;
+
+/** @internal Register `plan.execute` implementation from execute.ts. */
+export function setPlanExecuteImpl(fn: PlanExecuteFn): void {
+  planExecuteImpl = fn;
+}
+
+function sealExecutionPlan(plan: InternalExecutionPlan): InternalExecutionPlan {
+  if (typeof (plan as { execute?: unknown }).execute === 'function') {
+    return plan;
+  }
+  Object.defineProperty(plan, 'execute', {
+    value(args: Record<string, unknown> = {}) {
+      if (planExecuteImpl == null) {
+        throw new Error('ExecutionPlan.execute is not initialized');
+      }
+      return planExecuteImpl(plan, args);
+    },
+    enumerable: false,
+    configurable: false,
+    writable: false,
+  });
+  return plan;
+}
+
 /**
  * True when `compileExecutionPlan` returned a usable plan (not errors / skip).
  */
 export function isExecutionPlan(
-  value: ExecutionPlan | ReadonlyArray<GraphQLError> | undefined | null,
-): value is ExecutionPlan {
-  return value != null && !Array.isArray(value);
+  value: InternalExecutionPlan | ReadonlyArray<GraphQLError> | undefined | null,
+): value is InternalExecutionPlan {
+  return (
+    value != null &&
+    !Array.isArray(value) &&
+    typeof value === 'object' &&
+    'rootFields' in value &&
+    'schema' in value
+  );
 }
 
 /**
  * Resolve a field plan for runtime fieldNodes (exact array or primary AST node).
  */
 export function getPlannedFieldPlan(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   fieldNodes: ReadonlyArray<FieldNode>,
   parentType?: GraphQLObjectType,
 ): FieldPlan | undefined {
@@ -90,7 +131,7 @@ export function getPlannedFieldPlan(
  * Resolve planned subfields for a parent fieldNodes array / primary AST node.
  */
 export function getPlannedSubfields(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   fieldNodes: ReadonlyArray<FieldNode>,
   returnType: GraphQLObjectType,
 ): Map<string, Array<FieldNode>> | undefined {
@@ -110,13 +151,20 @@ export function getPlannedSubfields(
  *
  * `execute` compiles/caches via {@link resolvePlanForExecute}.
  */
+/**
+ * @experimental Compile a cacheable execution plan for a validated operation.
+ *
+ * Returns an opaque {@link import('./executeTypes.js').ExecutionPlan} with
+ * `plan.execute(...)`. Internal fields exist at runtime for the warm path but
+ * are not part of the public TypeScript API.
+ */
 export function compileExecutionPlan(
   args: CompileExecutionPlanArgs,
-): ExecutionPlan | ReadonlyArray<GraphQLError> | undefined {
+): InternalExecutionPlan | ReadonlyArray<GraphQLError> | undefined {
   const cached = getCachedPlanEntry(args.schema, args.document, args.operationName);
   if (cached) {
     if (cached.kind === 'plan') {
-      return cached.plan;
+      return sealExecutionPlan(cached.plan);
     }
     if (cached.kind === 'errors') {
       return cached.errors;
@@ -127,7 +175,7 @@ export function compileExecutionPlan(
   const entry = compileExecutionPlanUncached(args);
   setCachedPlanEntry(args.schema, args.document, args.operationName, entry);
   if (entry.kind === 'plan') {
-    return entry.plan;
+    return sealExecutionPlan(entry.plan);
   }
   if (entry.kind === 'errors') {
     return entry.errors;
@@ -143,16 +191,18 @@ export function getExecutionPlan(
   schema: GraphQLSchema,
   document: DocumentNode,
   operationName?: string | null,
-): ExecutionPlan | undefined {
+): InternalExecutionPlan | undefined {
   const cached = getCachedPlanEntry(schema, document, operationName);
-  return cached?.kind === 'plan' ? cached.plan : undefined;
+  return cached?.kind === 'plan' ? sealExecutionPlan(cached.plan) : undefined;
 }
 
 /**
  * Resolve the plan for one `execute` / `buildExecutionContext` call.
  * Uses the WeakMap cache; compiles synchronously on a cache miss.
  */
-export function resolvePlanForExecute(args: CompileExecutionPlanArgs): ExecutionPlan | undefined {
+export function resolvePlanForExecute(
+  args: CompileExecutionPlanArgs,
+): InternalExecutionPlan | undefined {
   const cached = getCachedPlanEntry(args.schema, args.document, args.operationName);
   if (cached?.kind === 'plan') {
     return cached.plan;
@@ -297,7 +347,7 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
   // classic collect / deferred groups at runtime).
   const skipIncludePredicates = collectionDependsOnVariables && !hasIncremental;
 
-  const plan: ExecutionPlan = {
+  const plan: InternalExecutionPlan = {
     schema,
     document,
     operation,

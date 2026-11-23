@@ -67,33 +67,21 @@ export type ArgumentReader =
     };
 
 /**
- * Per-field static facts compiled once for a (schema, document, operation) plan.
- * Shared across warm executions so the thin interpreter can skip field lookup,
- * type classification, and (when safe) argument coercion / resolveInfo setup.
+ * Compiled `@stream` facts. Only present on incremental plans.
  */
-export interface FieldPlan {
+export type StreamPlan =
+  | { kind: 'none' }
+  | { kind: 'static'; initialCount: number | undefined; label: string | undefined }
+  | { kind: 'dynamic' };
+
+/** Shared static facts for every kind of field plan. */
+interface FieldPlanBase {
   fieldDef: GraphQLField<unknown, unknown>;
   fieldNodes: Array<FieldNode>;
   responseName: string;
   parentType: GraphQLObjectType;
   returnType: GraphQLOutputType;
   nonNull: boolean;
-  leafType: GraphQLLeafType | undefined;
-  /**
-   * Set when the field's named return type (after NonNull) is a list of leaves.
-   */
-  listItemLeaf: PlannedLeafList | undefined;
-  /**
-   * Set when the field's named return type (after NonNull) is a list of
-   * concrete objects without `isTypeOf`.
-   */
-  listItemObject: PlannedObjectList | undefined;
-  /** Completion strategy after NonNull unwrap. */
-  completionKind: CompletionKind;
-  /** Concrete object return type when `completionKind === 'object'`. */
-  objectType: GraphQLObjectType | undefined;
-  /** True when `objectType` is set and has no `isTypeOf` predicate. */
-  skipIsTypeOf: boolean;
   resolveKind: ResolveKind;
   hasArgs: boolean;
   /**
@@ -118,28 +106,61 @@ export interface FieldPlan {
     parentType: GraphQLObjectType;
   };
   /**
-   * Compiled `@stream` facts , **only set when `plan.hasIncremental`**.
-   * Non-incremental FieldPlans omit this property so stable/skip warm paths
-   * keep the Stage A object shape (no per-field stream tax).
-   * - `none`: no stream directive
-   * - `static`: literal args (skip getDirectiveValues)
-   * - `dynamic`: variable args / missing initialCount , runtime getDirectiveValues
+   * Compiled `@stream` facts, only set when the plan is incremental.
+   * Non-incremental field plans omit this so stable warm paths keep a tighter shape.
    */
-  stream?:
-    | { kind: 'none' }
-    | { kind: 'static'; initialCount: number | undefined; label: string | undefined }
-    | { kind: 'dynamic' };
+  stream?: StreamPlan;
+}
+
+/** Leaf scalar/enum completion. */
+export interface LeafFieldPlan extends FieldPlanBase {
+  completionKind: 'leaf';
+  leafType: GraphQLLeafType;
+  skipIsTypeOf: false;
+}
+
+/** List of leaf scalars/enums. */
+export interface LeafListFieldPlan extends FieldPlanBase {
+  completionKind: 'leafList';
+  listItemLeaf: PlannedLeafList;
+  skipIsTypeOf: false;
+}
+
+/** Concrete object completion. */
+export interface ObjectFieldPlan extends FieldPlanBase {
+  completionKind: 'object';
+  objectType: GraphQLObjectType;
+  /** True when `objectType` has no `isTypeOf` predicate. */
+  skipIsTypeOf: boolean;
+}
+
+/** Interface / union completion. */
+export interface AbstractFieldPlan extends FieldPlanBase {
+  completionKind: 'abstract';
+  skipIsTypeOf: false;
+}
+
+/** List of objects / abstracts (or other non-leaf lists). */
+export interface ListFieldPlan extends FieldPlanBase {
+  completionKind: 'list';
+  /** Set when items are concrete objects without `isTypeOf`. */
+  listItemObject?: PlannedObjectList;
+  skipIsTypeOf: false;
 }
 
 /**
- * Cacheable execution plan (plan/compile path, not a generated executor).
- *
- * Holds pre-collected field maps and per-field static metadata. Variable
- * `@skip` / `@include` use union collection + FieldNode keys. `@defer` /
- * `@stream` set `hasIncremental` , runtime keeps the incremental interpreter
- * while still using per-field plan facts.
+ * Per-field static facts compiled once for a (schema, document, operation) plan.
+ * Discriminated by `completionKind` so kind-specific data is required, not optional.
  */
-export interface ExecutionPlan {
+export type FieldPlan =
+  LeafFieldPlan | LeafListFieldPlan | ObjectFieldPlan | AbstractFieldPlan | ListFieldPlan;
+
+/**
+ * @internal Runtime execution plan data used by the warm interpreter.
+ * Not a public API. Prefer the opaque {@link ExecutionPlan} surface from
+ * `execute.ts` (compile + `plan.execute`).
+ */
+export interface InternalExecutionPlan {
   schema: GraphQLSchema;
   document: DocumentNode;
   operation: OperationDefinitionNode;
@@ -188,18 +209,17 @@ export interface ExecutionPlan {
     ReadonlyArray<FieldNode>,
     WeakMap<GraphQLObjectType, ReadonlyArray<PlannedFieldExecution>>
   >;
-  /** VariableValues with skip/include bools set false , for union compile. */
+  /** VariableValues with skip/include bools set false, for union compile. */
   collectVariablesFalse: VariableValues;
-  /** VariableValues with skip/include bools set true , for union compile. */
+  /** VariableValues with skip/include bools set true, for union compile. */
   collectVariablesTrue: VariableValues;
   /** True when the operation declares one or more variables. */
   hasVariables: boolean;
   /**
    * Compiled variable coercer closed over schema + variableDefinitions.
    * Empty ops return EMPTY_VARIABLE_VALUES; builtin-leaf / hoisted input
-   * coercers (lists, input objects, @oneOf, AST defaults via valueFromAST)
-   * try a fast path then fall back to getVariableValues for identical
-   * GraphQLError shapes (#11).
+   * coercers try a fast path then fall back to getVariableValues for identical
+   * GraphQLError shapes.
    */
   coerceVariables: CoerceVariables;
   /**
@@ -215,6 +235,11 @@ export interface ExecutionPlan {
    * `@skip`/`@include` predicates (fields + fragments) instead of re-collecting.
    */
   skipIncludePredicates: boolean;
+  /**
+   * Sealed by `compileExecutionPlan` (non-enumerable). Prefer the opaque
+   * public `ExecutionPlan` type; this field exists for the warm path only.
+   */
+  execute?(args?: Record<string, unknown>): unknown;
 }
 
 /**

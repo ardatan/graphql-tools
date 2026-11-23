@@ -93,6 +93,21 @@ describe('execution plan', () => {
     expect(lookedUp).toBe(first);
   });
 
+  it('seals a non-enumerable plan.execute that matches executeSync', () => {
+    const document = parse('{ a b }');
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    expect(typeof plan.execute).toBe('function');
+    expect(Object.keys(plan)).not.toContain('execute');
+    expect(Object.getOwnPropertyDescriptor(plan, 'execute')?.enumerable).toBe(false);
+    const viaPlan = plan.execute!();
+    const viaExecute = executeSync({ schema, document });
+    expect(viaPlan).toEqual(viaExecute);
+  });
+
   it('compiles the plan once when a document parser cache reuses DocumentNode identity', () => {
     // Mimics Yoga useParserAndValidationCache / Envelop parser-cache: same
     // query string → same DocumentNode → plan WeakMap hit on second execute.
@@ -617,10 +632,13 @@ describe('execution plan', () => {
       return;
     }
     const fieldPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('values')!);
-    expect(fieldPlan?.listItemLeaf).toMatchObject({
-      itemNonNull: false,
-    });
-    expect(fieldPlan?.listItemLeaf?.leafType.name).toBe('Int');
+    expect(fieldPlan?.completionKind).toBe('leafList');
+    if (fieldPlan?.completionKind === 'leafList') {
+      expect(fieldPlan.listItemLeaf).toMatchObject({
+        itemNonNull: false,
+      });
+      expect(fieldPlan.listItemLeaf.leafType.name).toBe('Int');
+    }
   });
 
   it('executes correctly through the planned path for nested lists', () => {

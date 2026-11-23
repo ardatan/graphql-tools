@@ -17,15 +17,16 @@ safe argument reads are already prepared, so each request does less AST work.
 
 ## What is compiled
 
-For an eligible `(schema, document, operationName)`, `execute` builds an `ExecutionPlan` that holds:
+For an eligible `(schema, document, operationName)`, `execute` (or `compileExecutionPlan`) builds an
+opaque `ExecutionPlan` with `plan.execute(...)`. Internally the warm interpreter holds:
 
-| Piece                | Role                                                                                                                                                    |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Field maps**       | Pre-collected root / subfield maps (or a union over `@skip`/`@include` bool extremes)                                                                   |
-| **`FieldPlan`**      | Per-field static facts: return type, completion/resolve kinds, leaf / list-of-leaf facts, `skipIsTypeOf`, planned `resolveInfoStatic`, argument readers |
-| **Coercers**         | Plan-bound `coerceVariables` (empty / builtin-leaf / hoisted input-object closures) and per-field argument readers                                      |
-| **Skip / include**   | Path-aware predicates on planned field executions when variables gate fields or fragments                                                               |
-| **`rootExecutions`** | Bound root (and subfield) execution lists the warm path walks instead of re-collecting                                                                  |
+| Piece                | Role                                                                                                                                                |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Field maps**       | Pre-collected root / subfield maps (or a union over `@skip`/`@include` bool extremes)                                                               |
+| **`FieldPlan`**      | Per-field static facts discriminated by `completionKind` (leaf / leafList / object / abstract / list), plus resolve kind, `resolveInfoStatic`, args |
+| **Coercers**         | Plan-bound `coerceVariables` (empty / builtin-leaf / hoisted input-object closures) and per-field argument readers                                  |
+| **Skip / include**   | Path-aware predicates on planned field executions when variables gate fields or fragments                                                           |
+| **`rootExecutions`** | Bound root (and subfield) execution lists the warm path walks instead of re-collecting                                                              |
 
 Documents that use `@defer` / `@stream` still compile per-field plan facts where useful; the
 incremental interpreter remains the runtime for patches.
@@ -88,15 +89,22 @@ sequenceDiagram
 1. **Keep document identity stable**: use Yoga / Envelop parser cache, persisted queries, or any
    layer that returns the same `DocumentNode` for the same source.
 2. **Call `execute`**: `execute` / `executeSync` / `normalizedExecutor` compile and cache the plan
-   as part of normal execution.
+   as part of normal execution. You can also call `compileExecutionPlan` once and reuse
+   `plan.execute(...)` (schema / document / operation come from the plan).
 3. **Prefer stable schemas**: plans close over field configs; if you mutate a schema object in
    place, use a new schema identity (or a new `DocumentNode`) so stale plans are not reused.
 
 ```ts
-import { execute } from '@graphql-tools/executor'
+import { compileExecutionPlan, execute, isExecutionPlan } from '@graphql-tools/executor'
 
 // Same DocumentNode identity across requests → warm plan path
 const result = await execute({ schema, document, variableValues })
+
+// Explicit compile + warm reuse (opaque plan; internal fields are not public)
+const plan = compileExecutionPlan({ schema, document })
+if (isExecutionPlan(plan)) {
+  const warm = await plan.execute({ variableValues })
+}
 ```
 
 ## Why it helps (benchmarks)
@@ -105,12 +113,12 @@ Process-isolated microbenches vs `master` on Node 22 (separate process per side,
 
 | Bench                                          | Approx. delta vs master |
 | ---------------------------------------------- | ----------------------: |
-| Synchronous leaf list (1000)                   |             **~+200%** |
-| Asynchronous leaf list (1000)                  |             **~+100%** |
-| Asynchronous root fields (1000)                |              **~+80%** |
-| Nested default-resolver objects (200)          |             **~+137%** |
-| Dense `@skip` / `@include` variable fields     |            **~+45%+** |
-| Default-resolver property bag (400 Int fields) |                 ahead |
+| Synchronous leaf list (1000)                   |              **~+200%** |
+| Asynchronous leaf list (1000)                  |              **~+100%** |
+| Asynchronous root fields (1000)                |               **~+80%** |
+| Nested default-resolver objects (200)          |              **~+137%** |
+| Dense `@skip` / `@include` variable fields     |              **~+45%+** |
+| Default-resolver property bag (400 Int fields) |                   ahead |
 
 **Why:** always-on planned execute, leaf-list / object-list thin walks, field-local async settle,
 and String primitive fast-paths cut collect / resolveInfo / serialize work on the warm path.

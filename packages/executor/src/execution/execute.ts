@@ -63,8 +63,10 @@ import {
 import type {
   ExecutionArgs,
   ExecutionContext,
+  ExecutionPlan,
   IncrementalExecutionResults,
   InitialIncrementalExecutionResult,
+  PlannedExecuteArgs,
   SingularExecutionResult,
 } from './executeTypes.js';
 import {
@@ -92,13 +94,19 @@ import {
 } from './incrementalCollect.js';
 import { invariant } from './invariant.js';
 import {
+  compileExecutionPlan as compileInternalExecutionPlan,
   filterPlannedExecutions,
   getPlannedFieldPlan,
   getPlannedSubfieldExecutions,
   getPlannedSubfields,
+  isExecutionPlan as isInternalExecutionPlan,
   resolvePlanForExecute,
+  setPlanExecuteImpl,
   type ArgumentReader,
+  type CompileExecutionPlanArgs,
   type FieldPlan,
+  type LeafListFieldPlan,
+  type ListFieldPlan,
   type PlannedFieldExecution,
 } from './plan.js';
 import { PlannedWorkRunner } from './plannedWorkRunner.js';
@@ -114,6 +122,7 @@ export type { CompletedResult, PendingResult } from './incremental.js';
 export type {
   ExecutionArgs,
   ExecutionContext,
+  ExecutionPlan,
   FormattedExecutionResult,
   FormattedIncrementalDeferResult,
   FormattedIncrementalResult,
@@ -125,11 +134,35 @@ export type {
   IncrementalResult,
   IncrementalStreamResult,
   InitialIncrementalExecutionResult,
+  PlannedExecuteArgs,
   SingularExecutionResult,
   SubsequentIncrementalExecutionResult,
 } from './executeTypes.js';
 
 export { flattenIncrementalResults, isIncrementalResults, subscribe } from './executeSubscribe.js';
+
+/**
+ * @experimental Compile a cacheable opaque {@link ExecutionPlan}.
+ *
+ * Prefer `plan.execute(...)` for warm reuse. Internal plan fields are not part
+ * of the public TypeScript API.
+ */
+export function compileExecutionPlan(
+  args: CompileExecutionPlanArgs,
+): ExecutionPlan | ReadonlyArray<GraphQLError> | undefined {
+  const result = compileInternalExecutionPlan(args);
+  if (isInternalExecutionPlan(result)) {
+    return result as unknown as ExecutionPlan;
+  }
+  return result;
+}
+
+/** True when `compileExecutionPlan` returned a usable opaque plan. */
+export function isExecutionPlan(
+  value: ExecutionPlan | ReadonlyArray<GraphQLError> | undefined | null,
+): value is ExecutionPlan {
+  return isInternalExecutionPlan(value as never);
+}
 
 /**
  * Cross-execution collectFields cache for documents whose `@skip` /
@@ -494,6 +527,26 @@ export function execute<TData = any, TVariables = any, TContext = any>(
 
   return executeImpl(exeContext);
 }
+
+// Wire opaque `plan.execute` without a plan ↔ execute import cycle.
+setPlanExecuteImpl((plan, args) => {
+  const planned = args as PlannedExecuteArgs;
+  return execute({
+    schema: plan.schema,
+    document: plan.document,
+    operationName: plan.operationName,
+    rootValue: planned.rootValue,
+    contextValue: planned.contextValue,
+    variableValues: planned.variableValues,
+    fieldResolver: planned.fieldResolver,
+    typeResolver: planned.typeResolver,
+    subscribeFieldResolver: planned.subscribeFieldResolver,
+    signal: planned.signal,
+    schemaCoordinateInErrors: planned.schemaCoordinateInErrors,
+    hideSuggestions: planned.hideSuggestions,
+    incrementalSpec: planned.incrementalSpec,
+  });
+});
 
 export function executeImpl<TData = any, TVariables = any, TContext = any>(
   exeContext: ExecutionContext<TVariables, TContext>,
@@ -1616,7 +1669,7 @@ function executeObjectListFieldThin(
   source: unknown,
   fieldNodes: Array<FieldNode>,
   path: Path,
-  fieldPlan: FieldPlan,
+  fieldPlan: ListFieldPlan,
 ): MaybePromise<ReadonlyArray<unknown> | null> | undefined {
   const listItemObject = fieldPlan.listItemObject;
   if (listItemObject == null || fieldPlan.resolveKind !== 'defaultProperty') {
@@ -1759,7 +1812,7 @@ function executeLeafListFieldWithLocalRunner(
   sourceValue: unknown,
   fieldNodes: Array<FieldNode>,
   fieldPath: Path,
-  fieldPlan: FieldPlan,
+  fieldPlan: LeafListFieldPlan,
   results: Record<string, unknown>,
   responseName: string,
 ): MaybePromise<unknown> | undefined {
@@ -1882,14 +1935,10 @@ function executePlannedLeafListField(
   source: unknown,
   fieldNodes: Array<FieldNode>,
   path: Path,
-  fieldPlan: FieldPlan,
+  fieldPlan: LeafListFieldPlan,
   getRunner: () => PlannedWorkRunner,
   writeField: (value: unknown) => void,
 ): MaybePromise<ReadonlyArray<unknown> | null> | undefined {
-  const listItemLeaf = fieldPlan.listItemLeaf;
-  if (listItemLeaf == null) {
-    return undefined;
-  }
   const errors = exeContext.errors;
   const locate = (rawError: unknown): GraphQLError =>
     locatedError(
@@ -2000,14 +2049,14 @@ function executePlannedLeafListField(
 
 function completePlannedLeafListValue(
   exeContext: ExecutionContext,
-  fieldPlan: FieldPlan,
+  fieldPlan: LeafListFieldPlan,
   fieldNodes: Array<FieldNode>,
   path: Path,
   result: unknown,
   getRunner: () => PlannedWorkRunner,
   writeField: (value: unknown) => void,
 ): MaybePromise<ReadonlyArray<unknown> | null> {
-  const listItemLeaf = fieldPlan.listItemLeaf!;
+  const listItemLeaf = fieldPlan.listItemLeaf;
   const errors = exeContext.errors;
   const returnType = fieldPlan.returnType;
   const listType = (
@@ -2452,17 +2501,13 @@ function executeField(
       (isObjectLike(source) || typeof source === 'function')
     ) {
       // Prefer compile-time leaf facts from the plan; fall back to per-fieldDef memo.
-      const leafType = fieldPlan?.leafType;
-      const leafNonNull = fieldPlan?.nonNull;
-      const leafHasArgs = fieldPlan?.hasArgs;
-      const leafName = fieldPlan?.fieldDef.name;
       const plannedLeaf =
-        fieldPlan != null && leafType != null
+        fieldPlan?.completionKind === 'leaf'
           ? {
-              leafType,
-              nonNull: leafNonNull === true,
-              hasArgs: leafHasArgs === true,
-              name: leafName!,
+              leafType: fieldPlan.leafType,
+              nonNull: fieldPlan.nonNull,
+              hasArgs: fieldPlan.hasArgs,
+              name: fieldPlan.fieldDef.name,
             }
           : null;
       const leafMemo = plannedLeaf ?? getLeafFieldMemo(fieldDef);
@@ -2539,7 +2584,7 @@ function executeField(
             return serialized;
           }
         }
-      } else if (fieldPlan?.listItemLeaf) {
+      } else if (fieldPlan?.completionKind === 'leafList') {
         // Planned list-of-leaf: still go through completeValue so thenable
         // detection stays a single isPromise read (see scalar-list-paths tests).
         // completeListValue uses listItemLeaf + an indexed array loop.
@@ -2861,12 +2906,10 @@ function completeValue(
         ? fieldPlan.returnType.ofType
         : fieldPlan.returnType
       : undefined;
-  const completionKind =
-    fieldPlan != null && returnType === plannedNamedType ? fieldPlan.completionKind : undefined;
-  if (completionKind !== undefined) {
-    switch (completionKind) {
+  if (fieldPlan != null && returnType === plannedNamedType) {
+    switch (fieldPlan.completionKind) {
       case 'leaf':
-        return completeLeafValue(fieldPlan!.leafType ?? (returnType as GraphQLLeafType), result);
+        return completeLeafValue(fieldPlan.leafType, result);
       case 'leafList':
       case 'list':
         if (!isListType(returnType)) {
@@ -2894,7 +2937,7 @@ function completeValue(
       case 'object':
         return completeObjectValue(
           exeContext,
-          fieldPlan!.objectType ?? (returnType as GraphQLObjectType),
+          fieldPlan.objectType,
           fieldNodes,
           info,
           path,
@@ -3157,7 +3200,8 @@ function completeListValue(
   const fieldPlan = exeContext.plan
     ? getPlannedFieldPlan(exeContext.plan, fieldNodes, info.parentType)
     : undefined;
-  const plannedLeafList = !stream ? fieldPlan?.listItemLeaf : undefined;
+  const plannedLeafList =
+    !stream && fieldPlan?.completionKind === 'leafList' ? fieldPlan.listItemLeaf : undefined;
   const leafItemType =
     plannedLeafList?.leafType ??
     (!stream && isLeafType(nullableItemType) ? nullableItemType : undefined);
@@ -3559,7 +3603,8 @@ function completeObjectValue(
     ? getPlannedFieldPlan(exeContext.plan, fieldNodes, info.parentType)
     : undefined;
   if (
-    fieldPlan?.skipIsTypeOf &&
+    fieldPlan?.completionKind === 'object' &&
+    fieldPlan.skipIsTypeOf &&
     fieldPlan.objectType === returnType &&
     returnType.isTypeOf == null
   ) {
