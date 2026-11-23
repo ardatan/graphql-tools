@@ -1705,7 +1705,7 @@ describe('list completion: retain preflight item reads', () => {
       data: { values: [null, null], ok: 'yes' },
       errors: [{ message: 'boom', path: ['values', 0] }],
     });
-    expect(planned.errors?.[0]?.extensions?.CRITICAL_ERROR).toBeUndefined();
+    expect(planned.errors?.[0]?.extensions?.['CRITICAL_ERROR']).toBeUndefined();
   });
 
   it('does not reread snapshot slots when a prefix serialize returns a thenable', async () => {
