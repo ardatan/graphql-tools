@@ -2310,7 +2310,20 @@ function executePlannedSyncObjectFieldsPlain(
       try {
         const serialized = fieldPlan.leafType.serialize(property);
         if (serialized == null) {
-          return thinObjectMiss(results, false, pendingLeaves);
+          // First serialize nullish — complete this field; do not miss/replay.
+          const fieldPath = addPath(path, responseName, parentType.name);
+          const error = locatedError(
+            new Error(
+              `Expected \`${inspect(fieldPlan.leafType)}.serialize(${inspect(property)})\` to ` +
+                `return non-nullable value, returned: ${inspect(serialized)}`,
+            ),
+            fieldNodes,
+            pathToArray(fieldPath),
+            exeContext.schemaCoordinateInErrors &&
+              schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+          );
+          results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+          continue;
         }
         if (typeof serialized === 'object' && isPromise(serialized)) {
           pendingLeaves = registerThinPendingLeaf(
@@ -2325,8 +2338,17 @@ function executePlannedSyncObjectFieldsPlain(
           continue;
         }
         results[responseName] = serialized;
-      } catch {
-        return thinObjectMiss(results, false, pendingLeaves);
+      } catch (rawError) {
+        // First serialize throw completes this field — do not re-serialize.
+        const fieldPath = addPath(path, responseName, parentType.name);
+        const error = locatedError(
+          coerceError(rawError),
+          fieldNodes,
+          pathToArray(fieldPath),
+          exeContext.schemaCoordinateInErrors &&
+            schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+        );
+        results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
       }
       continue;
     }
@@ -5790,17 +5812,60 @@ function executePlannedSyncObjectFieldsPreCR(
       }
       try {
         const serialized = fieldPlan.leafType.serialize(property);
-        if (serialized == null || isPromise(serialized)) {
-          return n > 0 || recordedGetterError
-            ? thinObjectMiss(results, recordedGetterError, undefined)
-            : undefined;
+        if (serialized == null) {
+          // First serialize nullish — complete this field; do not miss/replay.
+          const fieldPath = addPath(path, responseName, parentType.name);
+          const error = locatedError(
+            new Error(
+              `Expected \`${inspect(fieldPlan.leafType)}.serialize(${inspect(property)})\` to ` +
+                `return non-nullable value, returned: ${inspect(serialized)}`,
+            ),
+            fieldNodes,
+            pathToArray(fieldPath),
+            exeContext.schemaCoordinateInErrors &&
+              schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+          );
+          results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+          recordedGetterError = true;
+          n++;
+          continue;
+        }
+        if (isPromise(serialized)) {
+          const leafType = fieldPlan.leafType;
+          const checked = serialized.then((resolved: unknown) => {
+            if (resolved == null) {
+              throw new Error(
+                `Expected \`${inspect(leafType)}.serialize(...)\` to return non-nullable value, returned: ${inspect(resolved)}`,
+              );
+            }
+            return resolved;
+          });
+          const pendingLeaves = registerThinPendingLeaf(
+            results,
+            undefined,
+            parentType,
+            responseName,
+            checked,
+            fieldNodes,
+            fieldPlan,
+          );
+          return thinObjectMiss(results, true, pendingLeaves);
         }
         results[responseName] = serialized;
         n++;
-      } catch {
-        return n > 0 || recordedGetterError
-          ? thinObjectMiss(results, recordedGetterError, undefined)
-          : undefined;
+      } catch (rawError) {
+        // First serialize throw completes this field — do not re-serialize.
+        const fieldPath = addPath(path, responseName, parentType.name);
+        const error = locatedError(
+          coerceError(rawError),
+          fieldNodes,
+          pathToArray(fieldPath),
+          exeContext.schemaCoordinateInErrors &&
+            schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+        );
+        results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+        recordedGetterError = true;
+        n++;
       }
       continue;
     }
