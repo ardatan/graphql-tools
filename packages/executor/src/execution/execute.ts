@@ -56,6 +56,7 @@ import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { handleMaybePromise, isPromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 import { coerceError } from './coerceError.js';
 import { CompactExecutionResultMap } from './compactExecutionResultMap.js';
+import { completeLeafValue, locateListItemError } from './completeShared.js';
 import {
   compileConditionalSelectionSet,
   type ConditionalCollectProgram,
@@ -1988,12 +1989,11 @@ function completePlannedObjectListValue(
   const asyncUpdates: Promise<void>[] = [];
   const nullNullableItem = (bubbled: unknown, itemPath: Path, itemIndex: number): void => {
     exeContext.signal?.throwIfAborted();
-    // Match classic completeListItemValue: always locate with fieldNodes +
-    // schemaCoordinate so path/locations/coordinate match (incl. GraphQLError).
-    const error = locatedError(
-      coerceError(bubbled),
+    // Shared locateListItemError: path/locations/coordinate match classic.
+    const error = locateListItemError(
+      bubbled,
       fieldNodes,
-      pathToArray(itemPath),
+      itemPath,
       exeContext.schemaCoordinateInErrors && info,
     );
     // itemType carries NonNull — handleFieldError throws for NonNull items.
@@ -4097,11 +4097,10 @@ function completeListItemValue(
       // Sync iterables lift these onto the planned runner in `settleListResults`.
       completedResults.push(
         completedItem.then(undefined, rawError => {
-          rawError = coerceError(rawError);
-          const error = locatedError(
+          const error = locateListItemError(
             rawError,
             fieldNodes,
-            pathToArray(completedItemPath),
+            completedItemPath,
             exeContext.schemaCoordinateInErrors && info,
           );
           const handledError = handleFieldError(error, itemType, errors);
@@ -4116,11 +4115,10 @@ function completeListItemValue(
     completedResults.push(completedItem);
   } catch (rawError) {
     itemPath ??= itemIndex === undefined ? path : addPath(path, itemIndex, undefined);
-    const coercedError = coerceError(rawError);
-    const error = locatedError(
-      coercedError,
+    const error = locateListItemError(
+      rawError,
       fieldNodes,
-      pathToArray(itemPath),
+      itemPath,
       exeContext.schemaCoordinateInErrors && info,
     );
     const handledError = handleFieldError(error, itemType, errors);
@@ -4129,35 +4127,6 @@ function completeListItemValue(
   }
 
   return false;
-}
-
-/**
- * Complete a Scalar or Enum by serializing to a valid value, returning
- * null if serialization is not possible.
- */
-function completeLeafValue(returnType: GraphQLLeafType, result: unknown): unknown {
-  let serializedResult: unknown;
-
-  // Note: We transform GraphQLError to Error in order to be consistent with
-  // how non-null checks work later on.
-  // See https://github.com/kamilkisiela/graphql-hive/pull/2299
-  // See https://github.com/n1ru4l/envelop/issues/1808
-  try {
-    serializedResult = returnType.serialize(result);
-  } catch (err) {
-    if (err instanceof GraphQLError) {
-      throw new Error(err.message);
-    }
-    throw err;
-  }
-
-  if (serializedResult == null) {
-    throw new Error(
-      `Expected \`${inspect(returnType)}.serialize(${inspect(result)})\` to ` +
-        `return non-nullable value, returned: ${inspect(serializedResult)}`,
-    );
-  }
-  return serializedResult;
 }
 
 /**
