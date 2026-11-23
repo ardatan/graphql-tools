@@ -1085,13 +1085,9 @@ describe('root runner + field-local leaf list settle', () => {
     }
     // Promise.resolve normalizes MaybePromise so .then is always available.
     const plannedPromise = Promise.resolve(execute({ plan, rootValue }));
-    // stop runs sync after scores starts; execution must stay pending until item settles.
-    await new Promise<void>(resolve => {
-      setImmediate(resolve);
-    });
-    expect(stopPlanned).toBe(true);
+    // Attach settlement probe before first yield (no-void; avoid UHR if sync reject).
     let plannedSettled = false;
-    void plannedPromise.then(
+    plannedPromise.then(
       () => {
         plannedSettled = true;
       },
@@ -1099,9 +1095,11 @@ describe('root runner + field-local leaf list settle', () => {
         plannedSettled = true;
       },
     );
+    // stop runs sync after scores starts; execution must stay pending until item settles.
     await new Promise<void>(resolve => {
       setImmediate(resolve);
     });
+    expect(stopPlanned).toBe(true);
     expect(plannedSettled).toBe(false);
     resolvePlanned(1);
     const planned = await plannedPromise;
@@ -1118,12 +1116,8 @@ describe('root runner + field-local leaf list settle', () => {
       },
     );
     const classicPromise = executeClassic({ schema: schemaC, document, rootValue });
-    await new Promise<void>(resolve => {
-      setImmediate(resolve);
-    });
-    expect(stopClassic).toBe(true);
     let classicSettled = false;
-    void classicPromise.then(
+    classicPromise.then(
       () => {
         classicSettled = true;
       },
@@ -1134,6 +1128,7 @@ describe('root runner + field-local leaf list settle', () => {
     await new Promise<void>(resolve => {
       setImmediate(resolve);
     });
+    expect(stopClassic).toBe(true);
     expect(classicSettled).toBe(false);
     resolveClassic(1);
     const classic = await classicPromise;
