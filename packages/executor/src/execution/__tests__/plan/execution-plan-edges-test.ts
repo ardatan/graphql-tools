@@ -600,6 +600,82 @@ describe('execution plan warm-path edges', () => {
       ).toEqual({ data: { n: 99 } });
     });
 
+    it('passes resolver args to zero-arity rest-parameter root methods (planned == classic)', () => {
+      // `Function.length === 0` for rest params — must still receive args/context/info.
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            arity: { type: GraphQLInt },
+          },
+        }),
+      });
+      const document = parse('{ arity }');
+      const rootValue = {
+        arity(...params: unknown[]) {
+          return params.length;
+        },
+      };
+      const planned = executeSync({ schema, document, rootValue });
+      const classic = executeClassicSync({ schema, document, rootValue });
+      expect(planned).toEqual(classic);
+      expect(planned).toEqual({ data: { arity: 3 } });
+    });
+
+    it('exposes resolveInfo via arguments[2] on zero-arity root methods (planned == classic)', () => {
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            fieldName: { type: GraphQLString },
+          },
+        }),
+      });
+      const document = parse('{ fieldName }');
+      const rootValue = {
+        fieldName() {
+          // eslint-disable-next-line prefer-rest-params
+          const info = arguments[2] as { fieldName?: string } | undefined;
+          return info?.fieldName ?? 'missing';
+        },
+      };
+      const planned = executeSync({ schema, document, rootValue });
+      const classic = executeClassicSync({ schema, document, rootValue });
+      expect(planned).toEqual(classic);
+      expect(planned).toEqual({ data: { fieldName: 'fieldName' } });
+    });
+
+    it('passes resolver args to zero-arity rest-parameter object-list methods (planned == classic)', () => {
+      const Item = new GraphQLObjectType({
+        name: 'ArityItem',
+        fields: {
+          arity: { type: GraphQLInt },
+        },
+      });
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            items: { type: new GraphQLList(Item) },
+          },
+        }),
+      });
+      const document = parse('{ items { arity } }');
+      const rootValue = {
+        items: [
+          {
+            arity(...params: unknown[]) {
+              return params.length;
+            },
+          },
+        ],
+      };
+      const planned = executeSync({ schema, document, rootValue });
+      const classic = executeClassicSync({ schema, document, rootValue });
+      expect(planned).toEqual(classic);
+      expect(planned).toEqual({ data: { items: [{ arity: 3 }] } });
+    });
+
     it('still runs isTypeOf when present (skipIsTypeOf false)', () => {
       let checked = false;
       const Thing = new GraphQLObjectType({

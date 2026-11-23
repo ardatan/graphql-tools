@@ -68,8 +68,8 @@ export class PlannedWorkRunner {
         return;
       }
       completed = true;
-      this._pending--;
-      onReject(error);
+      // Same settle path as thenable rejection so onReject throws fail the runner.
+      this._completeRejected(error, onReject);
     }
   }
 

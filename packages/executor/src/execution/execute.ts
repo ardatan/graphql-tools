@@ -1699,22 +1699,17 @@ function executeFields(
           if (typeof property === 'function') {
             let raw: unknown;
             try {
-              // Zero-arity methods: skip resolveInfo alloc (asyncRoot claim).
-              // Same contract as the object-list thin path below. Declared
-              // arity ≥ 1 still gets the full resolver signature.
-              if (property.length === 0) {
-                raw = (property as (this: unknown) => unknown).call(sourceValue);
-              } else {
-                const info = buildPlannedResolveInfo(exeContext, fieldPlan, fieldPath, fieldNodes);
-                raw = (
-                  property as (
-                    this: unknown,
-                    fieldArgs: typeof EMPTY_ARGS,
-                    contextValue: unknown,
-                    resolveInfo: GraphQLResolveInfo,
-                  ) => unknown
-                ).call(sourceValue, EMPTY_ARGS, exeContext.contextValue, info);
-              }
+              // Always pass the resolver signature — `Function.length === 0`
+              // includes rest-parameter methods that still read `arguments`.
+              const info = buildPlannedResolveInfo(exeContext, fieldPlan, fieldPath, fieldNodes);
+              raw = (
+                property as (
+                  this: unknown,
+                  fieldArgs: typeof EMPTY_ARGS,
+                  contextValue: unknown,
+                  resolveInfo: GraphQLResolveInfo,
+                ) => unknown
+              ).call(sourceValue, EMPTY_ARGS, exeContext.contextValue, info);
             } catch (rawError) {
               const error = locatedError(
                 coerceError(rawError),
@@ -1991,27 +1986,24 @@ function executeObjectListFieldThin(
     }
     const property = (source as Record<string, unknown>)[fieldPlan.fieldDef.name];
     if (typeof property === 'function') {
-      // nestedDefault uses plain data — keep method path off the sync hot lane.
-      if (!fieldPlan.hasArgs && property.length === 0) {
-        result = (property as (this: unknown) => unknown).call(source);
-      } else {
-        const info = buildPlannedResolveInfo(exeContext, fieldPlan, path, fieldNodes);
-        const args = getFieldArgumentValues(
-          fieldPlan.fieldDef,
-          fieldNodes[0],
-          exeContext.variableValues,
-          fieldPlan.argumentReader,
-          fieldPlan.readArguments,
-        );
-        result = (
-          property as (
-            this: unknown,
-            fieldArgs: typeof args,
-            contextValue: unknown,
-            resolveInfo: GraphQLResolveInfo,
-          ) => unknown
-        ).call(source, args, exeContext.contextValue, info);
-      }
+      // Always pass args/context/info — `Function.length === 0` includes
+      // rest-parameter methods that still read `arguments` (classic parity).
+      const info = buildPlannedResolveInfo(exeContext, fieldPlan, path, fieldNodes);
+      const args = getFieldArgumentValues(
+        fieldPlan.fieldDef,
+        fieldNodes[0],
+        exeContext.variableValues,
+        fieldPlan.argumentReader,
+        fieldPlan.readArguments,
+      );
+      result = (
+        property as (
+          this: unknown,
+          fieldArgs: typeof args,
+          contextValue: unknown,
+          resolveInfo: GraphQLResolveInfo,
+        ) => unknown
+      ).call(source, args, exeContext.contextValue, info);
     } else if (property instanceof Error) {
       throw property;
     } else if (property != null && typeof property === 'object' && isPromise(property)) {

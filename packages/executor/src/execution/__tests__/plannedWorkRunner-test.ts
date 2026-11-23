@@ -116,4 +116,23 @@ describe('PlannedWorkRunner', () => {
     expect(order).toEqual(['ok']);
     expect(runner.pending).toBe(0);
   });
+
+  it('routes a sync throw from .then through onReject and fails the runner if onReject throws', () => {
+    const runner = new PlannedWorkRunner();
+    const boom = new Error('then threw');
+    const handled = new Error('onReject boom');
+    runner.awaitValue(
+      {
+        then() {
+          throw boom;
+        },
+      } as PromiseLike<unknown>,
+      () => undefined,
+      reason => {
+        expect(reason).toBe(boom);
+        throw handled;
+      },
+    );
+    expect(() => runner.runUntilSettled()).toThrow(handled);
+  });
 });
