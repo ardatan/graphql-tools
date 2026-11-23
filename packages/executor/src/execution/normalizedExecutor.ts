@@ -8,23 +8,23 @@ import {
 import { handleMaybePromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 import {
   execute,
-  ExecutionArgs,
+  ExecuteArgs,
   flattenIncrementalResults,
   isIncrementalResults,
   subscribe,
 } from './execute.js';
 
 export function normalizedExecutor<TData = any, TVariables = any, TContext = any>(
-  args: ExecutionArgs<TData, TVariables, TContext>,
+  args: ExecuteArgs<TData, TVariables, TContext>,
 ): MaybePromise<MaybeAsyncIterable<ExecutionResult<TData>>> {
   let document: DocumentNode;
   let operationName: string | undefined;
-  if ('document' in args && args.document != null) {
-    document = args.document;
-    operationName = args.operationName ?? undefined;
-  } else {
+  if ('plan' in args && args.plan != null) {
     document = args.plan.document;
     operationName = args.plan.operationName ?? undefined;
+  } else {
+    document = args.document;
+    operationName = args.operationName ?? undefined;
   }
   const operationAST = getOperationAST(document, operationName);
   if (operationAST == null) {

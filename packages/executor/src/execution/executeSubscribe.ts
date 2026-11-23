@@ -18,7 +18,7 @@ import {
   getFieldDef,
 } from './execute.js';
 import type {
-  ExecutionArgs,
+  ExecuteArgs,
   ExecutionContext,
   IncrementalExecutionResults,
   InitialIncrementalExecutionResult,
@@ -61,7 +61,7 @@ import { flattenAsyncIterable } from './flattenAsyncIterable.js';
  * Accepts an object with named arguments.
  */
 export function subscribe<TData = any, TVariables = any, TContext = any>(
-  args: ExecutionArgs<TData, TVariables, TContext>,
+  args: ExecuteArgs<TData, TVariables, TContext>,
 ): MaybePromise<
   | AsyncGenerator<
       | SingularExecutionResult<TData>

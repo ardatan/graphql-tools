@@ -87,33 +87,25 @@ export function getPlannedFieldPlan(
   fieldNodes: ReadonlyArray<FieldNode>,
   parentType?: GraphQLObjectType,
 ): FieldPlan | undefined {
-  // Exact array hit still requires parentType match: the same fieldNodes array
-  // must not be reused under a different concrete parent (unions / interfaces).
+  // Exact fieldNodes array identity only. Do not fall back to the primary
+  // FieldNode: merged groups can share that AST node with different subfields.
   const byNodes = plan.fieldPlanByNodes.get(fieldNodes);
   if (byNodes != null && (parentType == null || byNodes.parentType === parentType)) {
     return byNodes;
-  }
-  // Same AST FieldNode can appear under multiple concrete parents (unions /
-  // interfaces); only reuse when parentType matches the compiled plan.
-  const byNode = plan.fieldPlanByFieldNode.get(fieldNodes[0]!);
-  if (byNode != null && (parentType == null || byNode.parentType === parentType)) {
-    return byNode;
   }
   return undefined;
 }
 
 /**
- * Resolve planned subfields for a parent fieldNodes array / primary AST node.
+ * Resolve planned subfields for a parent fieldNodes array.
  */
 export function getPlannedSubfields(
   plan: ExecutionPlan,
   fieldNodes: ReadonlyArray<FieldNode>,
   returnType: GraphQLObjectType,
 ): Map<string, Array<FieldNode>> | undefined {
-  return (
-    plan.subfieldsByNodes.get(fieldNodes)?.get(returnType) ??
-    plan.subfieldsByFieldNode.get(fieldNodes[0]!)?.get(returnType)
-  );
+  // Exact array identity only (same merged-group rule as getPlannedFieldPlan).
+  return plan.subfieldsByNodes.get(fieldNodes)?.get(returnType);
 }
 
 /**

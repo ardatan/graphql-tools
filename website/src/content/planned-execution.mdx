@@ -92,7 +92,8 @@ sequenceDiagram
    layer that returns the same `DocumentNode` for the same source.
 2. **Call `execute`**: public `execute` / `executeSync` / `normalizedExecutor` get-or-compile a plan
    from `schema` + `document` (+ optional `operationName`). Or pass a precompiled `plan` alone for
-   warm reuse — `ExecutionArgs` is a discriminated union (plan **or** schema+document, not both).
+   warm reuse. `ExecuteArgs` is the entry union (plan **or** schema+document). `ExecutionArgs` stays
+   the document-mode interface so `interface X extends ExecutionArgs` keeps working.
 3. **Prefer stable schemas**: plans close over field configs; if you mutate a schema object in
    place, use a new schema identity (or a new `DocumentNode`) so stale plans are not reused.
 

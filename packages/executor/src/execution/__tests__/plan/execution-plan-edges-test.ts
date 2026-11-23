@@ -20,7 +20,12 @@ import {
   versionInfo,
 } from 'graphql';
 import { execute, executeSync } from '../../execute.js';
-import { compileExecutionPlan, getPlannedFieldPlan, isExecutionPlan } from '../../plan.js';
+import {
+  compileExecutionPlan,
+  getPlannedFieldPlan,
+  getPlannedSubfields,
+  isExecutionPlan,
+} from '../../plan.js';
 
 describe('execution plan warm-path edges', () => {
   describe('union / interface FieldNode keys', () => {
@@ -91,7 +96,7 @@ describe('execution plan warm-path edges', () => {
       expect(executeSync({ schema, document })).toEqual(result);
     });
 
-    it('getPlannedFieldPlan requires parentType match for FieldNode fallback', () => {
+    it('getPlannedFieldPlan requires parentType match on exact fieldNodes identity', () => {
       const document = parse(`
         {
           pets {
@@ -115,6 +120,8 @@ describe('execution plan warm-path edges', () => {
       expect(dogPlan?.parentType).toBe(Dog);
       // Wrong parentType must not return Dog's plan (even on exact array hit).
       expect(getPlannedFieldPlan(plan, dogNameNodes, Cat)).toBeUndefined();
+      // A new array that only shares the primary AST node must not hit either.
+      expect(getPlannedFieldPlan(plan, [dogNameNodes[0]!], Dog)).toBeUndefined();
     });
 
     it('executes interface fields per concrete type without cross-type nulling', () => {
@@ -857,5 +864,121 @@ describe('plan compile budget', () => {
         b: { node: { x: 'bx' } },
       },
     });
+  });
+
+  it('does not resolve another merged group via primary FieldNode under variable collection', () => {
+    // Variable-dependent collection can produce a new fieldNodes array identity
+    // at runtime that still shares the fragment's primary FieldNode with a
+    // sibling group that selected extra subfields. Lookup must not fall back
+    // to that primary and leak `y` into `b`.
+    const Node = new GraphQLObjectType({
+      name: 'VarHolderNode',
+      fields: {
+        x: { type: GraphQLString },
+        y: { type: GraphQLString },
+      },
+    });
+    const Holder = new GraphQLObjectType({
+      name: 'VarHolder',
+      fields: {
+        node: { type: Node },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          a: {
+            type: Holder,
+            resolve: () => ({ node: { x: 'ax', y: 'ay' } }),
+          },
+          b: {
+            type: Holder,
+            resolve: () => ({ node: { x: 'bx', y: 'by' } }),
+          },
+        },
+      }),
+    });
+    const document = parse(`
+      query ($extra: Boolean!) {
+        a { ...Fields node { y } }
+        b { ...Fields node @include(if: $extra) { y } }
+      }
+      fragment Fields on VarHolder {
+        node { x }
+      }
+    `);
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    expect(plan.collectionDependsOnVariables).toBe(true);
+
+    const aNodes = plan.rootFields.get('a')!;
+    const aSub = plan.subfieldsByNodes.get(aNodes)?.get(Holder);
+    const aNodeGroup = aSub?.get('node');
+    expect(aNodeGroup?.length).toBeGreaterThan(1);
+    const primary = aNodeGroup![0]!;
+
+    // Runtime-shaped array: same primary AST node, new identity, no extra `y`.
+    const runtimeBNodes = [primary];
+    expect(getPlannedFieldPlan(plan, runtimeBNodes, Holder)).toBeUndefined();
+    expect(getPlannedSubfields(plan, runtimeBNodes, Node)).toBeUndefined();
+
+    const result = executeSync({
+      schema,
+      document,
+      variableValues: { extra: false },
+    });
+    expect(result).toEqual({
+      data: {
+        a: { node: { x: 'ax', y: 'ay' } },
+        b: { node: { x: 'bx' } },
+      },
+    });
+  });
+
+  it('rejects invalid schema before cold plan compile (no custom scalar parseLiteral)', () => {
+    let parseLiteralCalls = 0;
+    const Echo = new GraphQLScalarType({
+      name: 'Echo',
+      serialize: value => value,
+      parseValue: value => value,
+      parseLiteral(ast) {
+        parseLiteralCalls += 1;
+        return valueFromASTUntyped(ast);
+      },
+    });
+    const Node = new GraphQLInterfaceType({
+      name: 'Node',
+      fields: {
+        id: { type: new GraphQLNonNull(GraphQLID) },
+      },
+    });
+    // Implements Node but omits `id` → schema is invalid.
+    const Bad = new GraphQLObjectType({
+      name: 'Bad',
+      interfaces: [Node],
+      fields: {
+        echo: {
+          type: Echo,
+          args: { msg: { type: Echo } },
+          resolve: (_source, args: { msg: unknown }) => args.msg,
+        },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          bad: { type: Bad, resolve: () => ({}) },
+        },
+      }),
+      types: [Node, Bad],
+    });
+    const document = parse(`{ bad { echo(msg: "hi") } }`);
+    expect(() => executeSync({ schema, document })).toThrow();
+    expect(parseLiteralCalls).toBe(0);
   });
 });

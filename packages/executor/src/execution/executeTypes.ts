@@ -254,7 +254,13 @@ export interface ExecutionArgsShared<_TData = any, TVariables = any, TContext = 
   incrementalSpec?: IncrementalSpec;
 }
 
-export interface ExecutionArgsWithDocument<
+/**
+ * Document-mode execution args (schema + document). Public name stays an
+ * `interface` so callers can write `interface X extends ExecutionArgs`.
+ * `plan?: undefined` keeps {@link ExecuteArgs} discriminated without making
+ * `ExecutionArgs` itself a union.
+ */
+export interface ExecutionArgs<
   TData = any,
   TVariables = any,
   TContext = any,
@@ -265,6 +271,17 @@ export interface ExecutionArgsWithDocument<
   plan?: undefined;
 }
 
+/** Alias for document-mode args (same as {@link ExecutionArgs}). */
+export type ExecutionArgsWithDocument<
+  TData = any,
+  TVariables = any,
+  TContext = any,
+> = ExecutionArgs<TData, TVariables, TContext>;
+
+/**
+ * Plan-only execution args. Trusts `plan.schema` / `plan.document` /
+ * `plan.operation` (and optional `plan.operationName`).
+ */
 export interface ExecutionArgsWithPlan<
   TVariables = any,
   TContext = any,
@@ -275,6 +292,9 @@ export interface ExecutionArgsWithPlan<
   operationName?: undefined;
 }
 
-export type ExecutionArgs<TData = any, TVariables = any, TContext = any> =
-  | ExecutionArgsWithDocument<TData, TVariables, TContext>
-  | ExecutionArgsWithPlan<TVariables, TContext>;
+/**
+ * Args accepted by {@link execute} / {@link executeSync} / {@link subscribe}:
+ * document mode **or** plan mode (not a breaking change to {@link ExecutionArgs}).
+ */
+export type ExecuteArgs<TData = any, TVariables = any, TContext = any> =
+  ExecutionArgs<TData, TVariables, TContext> | ExecutionArgsWithPlan<TVariables, TContext>;

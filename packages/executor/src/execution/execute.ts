@@ -61,7 +61,7 @@ import {
   type ConditionalFieldEntry,
 } from './conditionalCollect.js';
 import type {
-  ExecutionArgs,
+  ExecuteArgs,
   ExecutionArgsShared,
   ExecutionContext,
   ExecutionPlan,
@@ -120,6 +120,7 @@ export { clearExecutionPlanCache } from './plan.js';
 export type { CompletedResult, PendingResult } from './incremental.js';
 
 export type {
+  ExecuteArgs,
   ExecutionArgs,
   ExecutionArgsShared,
   ExecutionArgsWithDocument,
@@ -524,7 +525,7 @@ const getStreamUsageMemo = memoize2(function getStreamUsageMemo(
  * classic interpreter path.
  */
 export function execute<TData = any, TVariables = any, TContext = any>(
-  args: ExecutionArgs<TData, TVariables, TContext>,
+  args: ExecuteArgs<TData, TVariables, TContext>,
 ): MaybePromise<SingularExecutionResult<TData> | IncrementalExecutionResults<TData>> {
   // Honor abort before cold plan compile (custom scalar literal work).
   args.signal?.throwIfAborted();
@@ -548,7 +549,7 @@ type ResolvedExecutionRequest<TVariables = any, TContext = any> = ExecutionArgsS
 };
 
 function resolveExecutionRequest<TData = any, TVariables = any, TContext = any>(
-  args: ExecutionArgs<TData, TVariables, TContext>,
+  args: ExecuteArgs<TData, TVariables, TContext>,
 ): ResolvedExecutionRequest<TVariables, TContext> {
   const {
     rootValue,
@@ -578,6 +579,8 @@ function resolveExecutionRequest<TData = any, TVariables = any, TContext = any>(
 
   if ('plan' in args && args.plan != null) {
     const plan = args.plan;
+    // Validate before trusting a caller-supplied plan's schema identity.
+    assertValidSchema(plan.schema);
     return {
       ...shared,
       schema: plan.schema,
@@ -588,6 +591,9 @@ function resolveExecutionRequest<TData = any, TVariables = any, TContext = any>(
   }
 
   const { schema, document, operationName } = args;
+  // Validate before cold plan compile so custom scalar parseLiteral (and
+  // similar) never runs against an invalid schema.
+  assertValidSchema(schema);
   const knownPlan =
     resolvePlanForExecute({
       schema,
@@ -668,7 +674,7 @@ export function executeImpl<TData = any, TVariables = any, TContext = any>(
  * However, it guarantees to complete synchronously (or throw an error) assuming
  * that all field resolvers are also synchronous.
  */
-export function executeSync(args: ExecutionArgs): SingularExecutionResult {
+export function executeSync(args: ExecuteArgs): SingularExecutionResult {
   const result = execute(args);
 
   // Assert that the execution was synchronous.
@@ -759,7 +765,7 @@ function getCollectFieldsDependsOnVariables(document: DocumentNode): boolean {
  *   Pass `null` to skip plan attachment (classic fallback).
  */
 export function buildExecutionContext<TData = any, TVariables = any, TContext = any>(
-  args: ExecutionArgs<TData, TVariables, TContext>,
+  args: ExecuteArgs<TData, TVariables, TContext>,
   knownPlan?: ExecutionPlan | null,
 ): ReadonlyArray<GraphQLError> | ExecutionContext {
   const resolved = resolveExecutionRequest(args);
@@ -785,7 +791,8 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
 
   signal?.throwIfAborted();
 
-  // If the schema used for execution is invalid, throw an error.
+  // Schema already validated in resolveExecutionRequest (before cold compile).
+  // assertValidSchema is idempotent (caches on the schema).
   assertValidSchema(schema);
 
   let operation: OperationDefinitionNode;
@@ -3431,8 +3438,8 @@ function getStreamValues(
 
   // Incremental plan: use compiled stream facts when present.
   if (plan != null) {
-    const planned =
-      plan.fieldPlanByNodes.get(fieldNodes) ?? plan.fieldPlanByFieldNode.get(fieldNodes[0]!);
+    // Exact fieldNodes identity only (no primary-FieldNode fallback).
+    const planned = plan.fieldPlanByNodes.get(fieldNodes);
     const stream = planned?.stream;
     // Only trust an explicit `none`. Missing stream metadata can happen when
     // mixed @skip/@include extremes omitted the field at compile time; fall

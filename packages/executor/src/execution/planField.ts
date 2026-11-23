@@ -102,14 +102,11 @@ function resolveFieldPlanForParent(
   parentType: GraphQLObjectType,
   fieldNodes: ReadonlyArray<FieldNode>,
 ): FieldPlan | undefined {
-  // Exact array hit still requires parentType match (unions / interfaces).
+  // Exact fieldNodes array identity only (+ parentType). No primary-FieldNode
+  // fallback: merged groups can share that AST node with different subfields.
   const byNodes = plan.fieldPlanByNodes.get(fieldNodes);
   if (byNodes != null && byNodes.parentType === parentType) {
     return byNodes;
-  }
-  const byNode = plan.fieldPlanByFieldNode.get(fieldNodes[0]!);
-  if (byNode != null && byNode.parentType === parentType) {
-    return byNode;
   }
   return undefined;
 }
@@ -244,6 +241,7 @@ function buildExecutionsFromConditionalEntries(
       // Dual @skip/@include (and similar) fields are absent from bool-extreme
       // rootMaps — compile a FieldPlan from the selection nodes instead of
       // abandoning the whole skipIncludePredicates path (dense-skip tax).
+      chargeCompileWork(plan);
       const compiled = compileFieldPlan(
         plan,
         parentType,
@@ -254,8 +252,11 @@ function buildExecutionsFromConditionalEntries(
         return undefined;
       }
       plan.fieldPlanByNodes.set(fieldNodes as Array<FieldNode>, compiled);
-      for (const fieldNode of fieldNodes) {
-        plan.fieldPlanByFieldNode.set(fieldNode, compiled);
+      // Index by FieldNode only when this group owns a unique primary (length 1).
+      // Multi-node groups can share a primary AST node with a sibling group that
+      // selected different subfields; overwriting that slot would be unsafe.
+      if (fieldNodes.length === 1) {
+        plan.fieldPlanByFieldNode.set(fieldNodes[0]!, compiled);
       }
       compileReturnTypeSubfields(plan, compiled);
       resolvedPlan = compiled;
@@ -287,8 +288,9 @@ export function compileFieldMap(
     const fieldPlan = compileFieldPlan(plan, parentType, responseName, fieldNodes);
     if (fieldPlan) {
       plan.fieldPlanByNodes.set(fieldNodes, fieldPlan);
-      for (const fieldNode of fieldNodes) {
-        plan.fieldPlanByFieldNode.set(fieldNode, fieldPlan);
+      // Only index singleton groups by primary FieldNode (see predicate path).
+      if (fieldNodes.length === 1) {
+        plan.fieldPlanByFieldNode.set(fieldNodes[0]!, fieldPlan);
       }
       compileReturnTypeSubfields(plan, fieldPlan);
     }
@@ -977,8 +979,10 @@ function collectAndStoreSubfields(
   }
   byType.set(returnType, fields);
 
-  const primary = fieldNodes[0];
-  if (primary) {
+  // Primary-FieldNode subfield index only for singleton groups (same rule as
+  // fieldPlanByFieldNode). Lookup no longer falls back to this map.
+  if (fieldNodes.length === 1) {
+    const primary = fieldNodes[0]!;
     let byTypeForNode = plan.subfieldsByFieldNode.get(primary);
     if (!byTypeForNode) {
       byTypeForNode = new WeakMap();
