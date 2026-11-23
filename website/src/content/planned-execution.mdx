@@ -178,13 +178,19 @@ classic** (same package build, planned vs classic mode):
 | ------------------------------------------ | -------------------------: |
 | Synchronous leaf list (1000)               |                    ~+200%+ |
 | Asynchronous leaf list (1000)              |                     ~+100% |
-| Asynchronous root fields (1000)            |                      ~+80% |
-| Nested default-resolver objects (200)      |                     ~+130% |
-| Dense `@skip` / `@include` variable fields |                      ~+45% |
+| Asynchronous root fields (1000)            |                      ~+70% |
+| Nested default-resolver objects (200)      |                     ~+160% |
+| Dense `@skip` / `@include` variable fields |                      ~+40% |
+| `fragmentsAbstract`                        |                      ~+20% |
+| `mixedSyncMethods`                         |                      ~+30% |
+| `syncList` (`executeSync`)                 |                    ~+200%+ |
+| `nestedDefault` (`executeSync`)            |                     ~+160% |
+| `fragmentsAbstract` (`executeSync`)        |                      ~+20% |
+| `mixedSyncMethods` (`executeSync`)         |                      ~+30% |
 
-HTTP / federation end-to-end rows are dominated by network and gateway work; executor planning still
-hits when the document is cached, but wall-clock gains there are smaller than the microbenches
-above.
+Deltas are from the sticky bench matrix (planned warm vs classic on the same tip build). Yoga HTTP /
+Hive federation end-to-end rows are omitted here when they do not show a clear planned win (network
+and gateway work dominate).
 
 ## Testing
 
