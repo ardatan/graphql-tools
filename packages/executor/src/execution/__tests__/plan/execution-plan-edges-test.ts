@@ -4589,14 +4589,107 @@ describe('differential parity: classic vs planned (R9)', () => {
       });
       const document = parse('{ items { id } }');
       const plan = compileExecutionPlan({ schema, document });
-      expect(isExecutionPlan(plan)).toBe(true);
+      if (!isExecutionPlan(plan)) {
+        throw new Error('expected execution plan');
+      }
+      // Mutate after compile; warm get-or-compile reuses the cached plan shell.
       Item.isTypeOf = () => false;
       const rootValue = { items: [{ id: 'a' }] };
-      const planned = assertSingular(await execute({ schema, document, plan, rootValue }));
+      const planned = assertSingular(await execute({ schema, document, rootValue }));
       const classic = await executeClassic({ schema, document, rootValue });
       expect(planned).toEqual(classic);
       expect(planned.data).toEqual({ items: [null] });
       expect(planned.errors?.[0]?.path).toEqual(['items', 0]);
+    });
+
+    it('null thin object-list item does not evaluate child @include', async () => {
+      const Item = new GraphQLObjectType({
+        name: 'R31NullItemSkip',
+        fields: {
+          id: { type: GraphQLString },
+          name: { type: GraphQLString },
+        },
+      });
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            items: { type: new GraphQLList(Item) },
+            ok: { type: GraphQLString, resolve: () => 'yes' },
+          },
+        }),
+      });
+      const document = parse('query ($show: Boolean) { items { id name @include(if: $show) } ok }');
+      const rootValue = { items: [null] };
+      const planned = assertSingular(
+        await execute({ schema, document, rootValue, variableValues: { show: null } }),
+      );
+      const classic = await executeClassic({
+        schema,
+        document,
+        rootValue,
+        variableValues: { show: null },
+      });
+      expect(planned).toEqual(classic);
+      expect(planned).toEqual({ data: { items: [null], ok: 'yes' } });
+    });
+
+    it('multi-item thin object-list @include(null) errors per item', async () => {
+      const Item = new GraphQLObjectType({
+        name: 'R31MultiItemSkip',
+        fields: {
+          id: { type: GraphQLString },
+          name: { type: GraphQLString },
+        },
+      });
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            items: { type: new GraphQLList(Item) },
+            ok: { type: GraphQLString, resolve: () => 'yes' },
+          },
+        }),
+      });
+      const document = parse('query ($show: Boolean) { items { id name @include(if: $show) } ok }');
+      const rootValue = { items: [{ id: '1' }, { id: '2' }] };
+      const planned = assertSingular(
+        await execute({ schema, document, rootValue, variableValues: { show: null } }),
+      );
+      const classic = await executeClassic({
+        schema,
+        document,
+        rootValue,
+        variableValues: { show: null },
+      });
+      expect(planned).toEqual(classic);
+      expect(planned.data).toEqual({ items: [null, null], ok: 'yes' });
+      expect(planned.errors?.map(e => e.path)).toEqual([
+        ['items', 0],
+        ['items', 1],
+      ]);
+    });
+
+    it('preserves CRITICAL_ERROR on root property Error value', () => {
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            a: { type: GraphQLString },
+            other: { type: GraphQLString },
+          },
+        }),
+      });
+      const document = parse('{ a other }');
+      const rootValue = {
+        a: new GraphQLError('boom', { extensions: { CRITICAL_ERROR: true } }),
+        other: 'ok',
+      };
+      const planned = executeSync({ schema, document, rootValue });
+      const classic = executeClassicSync({ schema, document, rootValue });
+      expect(planned).toEqual(classic);
+      expect(planned.data).toBeNull();
+      expect(planned.errors?.[0]?.extensions?.['CRITICAL_ERROR']).toBe(true);
     });
   });
 });

@@ -1675,66 +1675,85 @@ function executeFields(
           }
           const leafType = fieldPlan.leafType;
           const completeRootLeafValue = (value: unknown, slot: string): void => {
-            try {
-              if (value instanceof Error) {
-                throw value;
-              }
-              if (value == null) {
-                if (fieldPlan.nonNull) {
-                  throw new Error(
-                    `Cannot return null for non-nullable field ${parentType.name}.${fieldPlan.fieldDef.name}.`,
-                  );
-                }
-                results[slot] = null;
-                return;
-              }
-              const serialized = leafType.serialize(value);
-              if (isPromise(serialized)) {
-                rootRunner ??= new PlannedWorkRunner();
-                results[slot] = undefined;
-                rootRunner.awaitValue(
-                  serialized,
-                  resolved => {
-                    results[slot] = resolved;
-                  },
-                  reason => {
-                    // Match completeLeafValue: GraphQLError → Error (drop CRITICAL_ERROR).
-                    const err = reason instanceof GraphQLError ? new Error(reason.message) : reason;
-                    const error = locatedError(
-                      coerceError(err),
-                      fieldNodes,
-                      pathToArray(fieldPath),
-                      exeContext.schemaCoordinateInErrors &&
-                        schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
-                    );
-                    results[slot] = handleFieldError(
-                      error,
-                      fieldPlan.returnType,
-                      exeContext.errors,
-                    );
-                  },
-                );
-                return;
-              }
-              if (serialized == null) {
-                throw new Error(
-                  `Expected \`${inspect(leafType)}.serialize(${inspect(value)})\` to ` +
-                    `return non-nullable value, returned: ${inspect(serialized)}`,
-                );
-              }
-              results[slot] = serialized;
-            } catch (rawError) {
-              // Match completeLeafValue: GraphQLError → Error (drop CRITICAL_ERROR).
-              const err = rawError instanceof GraphQLError ? new Error(rawError.message) : rawError;
-              const error = locatedError(
-                coerceError(err),
+            const locateRootLeafError = (rawError: unknown): GraphQLError =>
+              locatedError(
+                coerceError(rawError),
                 fieldNodes,
                 pathToArray(fieldPath),
                 exeContext.schemaCoordinateInErrors &&
                   schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
               );
-              results[slot] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+            // Resolver-/property-returned Errors keep identity (incl. CRITICAL_ERROR).
+            if (value instanceof Error) {
+              results[slot] = handleFieldError(
+                locateRootLeafError(value),
+                fieldPlan.returnType,
+                exeContext.errors,
+              );
+              return;
             }
+            if (value == null) {
+              if (fieldPlan.nonNull) {
+                results[slot] = handleFieldError(
+                  locateRootLeafError(
+                    new Error(
+                      `Cannot return null for non-nullable field ${parentType.name}.${fieldPlan.fieldDef.name}.`,
+                    ),
+                  ),
+                  fieldPlan.returnType,
+                  exeContext.errors,
+                );
+                return;
+              }
+              results[slot] = null;
+              return;
+            }
+            let serialized: unknown;
+            try {
+              serialized = leafType.serialize(value);
+            } catch (rawError) {
+              // Sync serialize throw: match completeLeafValue (drop CRITICAL_ERROR).
+              const err = rawError instanceof GraphQLError ? new Error(rawError.message) : rawError;
+              results[slot] = handleFieldError(
+                locateRootLeafError(err),
+                fieldPlan.returnType,
+                exeContext.errors,
+              );
+              return;
+            }
+            if (isPromise(serialized)) {
+              rootRunner ??= new PlannedWorkRunner();
+              results[slot] = undefined;
+              rootRunner.awaitValue(
+                serialized,
+                resolved => {
+                  results[slot] = resolved;
+                },
+                reason => {
+                  // Async serialize reject: classic preserves GraphQLError / CRITICAL_ERROR.
+                  results[slot] = handleFieldError(
+                    locateRootLeafError(reason),
+                    fieldPlan.returnType,
+                    exeContext.errors,
+                  );
+                },
+              );
+              return;
+            }
+            if (serialized == null) {
+              results[slot] = handleFieldError(
+                locateRootLeafError(
+                  new Error(
+                    `Expected \`${inspect(leafType)}.serialize(${inspect(value)})\` to ` +
+                      `return non-nullable value, returned: ${inspect(serialized)}`,
+                  ),
+                ),
+                fieldPlan.returnType,
+                exeContext.errors,
+              );
+              return;
+            }
+            results[slot] = serialized;
           };
           if (typeof property === 'function') {
             let raw: unknown;
@@ -2580,7 +2599,8 @@ function completePlannedObjectListValue(
     return undefined;
   }
   // Defer skip/include filtering until the list value is known. Empty lists must
-  // not evaluate child predicates (classic never completes items).
+  // not evaluate child predicates (classic never completes items). Null items
+  // complete to null without predicates; predicate throws attach per non-null item.
   let effectiveSubExecutions = subExecutions;
   const plan = exeContext.plan;
   if (plan?.skipIncludePredicates === true) {
@@ -2590,20 +2610,40 @@ function completePlannedObjectListValue(
     try {
       effectiveSubExecutions = filterPlannedExecutions(subExecutions, exeContext.variableValues);
     } catch (rawError) {
-      // Classic evaluates directives during first-item completion.
-      const itemPath = addPath(path, 0, undefined);
       const listType = (
         isNonNullType(fieldPlan.returnType) ? fieldPlan.returnType.ofType : fieldPlan.returnType
       ) as GraphQLList<GraphQLOutputType>;
       const itemType = listType.ofType;
-      const error = locatedError(
-        coerceError(rawError),
-        fieldNodes,
-        pathToArray(itemPath),
-        exeContext.schemaCoordinateInErrors &&
-          schemaCoordinateInfo(fieldPlan.fieldDef, fieldPlan.parentType),
-      );
-      return [handleFieldError(error, itemType, exeContext.errors)];
+      const completedResults: Array<unknown> = new Array(result.length);
+      for (let i = 0; i < result.length; i++) {
+        const item = result[i];
+        if (item == null) {
+          if (itemNonNull) {
+            const itemPath = addPath(path, i, undefined);
+            throw locatedError(
+              new Error(
+                `Cannot return null for non-nullable field ${fieldPlan.parentType.name}.${fieldPlan.fieldDef.name}.`,
+              ),
+              fieldNodes,
+              pathToArray(itemPath),
+              exeContext.schemaCoordinateInErrors &&
+                buildPlannedResolveInfo(exeContext, fieldPlan, path, fieldNodes),
+            );
+          }
+          completedResults[i] = null;
+          continue;
+        }
+        const itemPath = addPath(path, i, undefined);
+        const error = locatedError(
+          coerceError(rawError),
+          fieldNodes,
+          pathToArray(itemPath),
+          exeContext.schemaCoordinateInErrors &&
+            schemaCoordinateInfo(fieldPlan.fieldDef, fieldPlan.parentType),
+        );
+        completedResults[i] = handleFieldError(error, itemType, exeContext.errors);
+      }
+      return completedResults;
     }
     if (effectiveSubExecutions.length === 0) {
       return undefined;
