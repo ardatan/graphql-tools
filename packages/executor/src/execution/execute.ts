@@ -3047,6 +3047,10 @@ function completePlannedObjectListValuePhaseB(
   for (; processStashedOrNext(); index++) {
     visitedCount = index + 1;
     let item: unknown;
+    // Phase A already classified this slot (and may hold a stash). Do not
+    // re-run isPromise on a stashed item — a mid-item getter can install
+    // `then` after Phase A started object completion (classic keeps the item).
+    const phaseAStarted = hasStash;
     if (hasStashedItem) {
       item = stashedItem;
       hasStashedItem = false;
@@ -3101,7 +3105,7 @@ function completePlannedObjectListValuePhaseB(
       }
       continue;
     }
-    if (isPromise(item)) {
+    if (!phaseAStarted && isPromise(item)) {
       const heavy = ensureHeavy();
       const itemIndex = index;
       heavy.trackAsync(
@@ -3232,18 +3236,12 @@ function completePlannedObjectListValuePhaseB(
 
     // Sync object — hot path: slim/tryFast plain Record assign (nestedDefault).
     const syncItem = item as Record<string, unknown>;
-    // A retained Phase A partial means object completion already started for
-    // this item (e.g. pending leaf). Classic checks isTypeOf before subfields,
-    // so a predicate installed mid-item must not invalidate that stash — finish
-    // it first. Apply live isTypeOf only when completion has not started.
-    const retainedPartial =
-      hasStash && stashedNested !== undefined && stashedNested !== STASH_SLIM_DECLINED;
-    if (itemObjectType.isTypeOf != null && !retainedPartial) {
-      // Discard a non-retained slim decline so the next item does not consume it.
-      if (hasStash) {
-        hasStash = false;
-        stashedNested = undefined;
-      }
+    // Phase A already started this item (pending-leaf partial OR slim decline
+    // after reading a field, e.g. method). Classic checks isTypeOf before
+    // subfields, so a predicate installed mid-item must not invalidate it —
+    // finish the stash / classic-complete without re-running the predicate.
+    // Apply live isTypeOf only when completion has not started.
+    if (itemObjectType.isTypeOf != null && !hasStash) {
       const heavy = ensureHeavy();
       const one: Array<unknown> = [];
       try {
