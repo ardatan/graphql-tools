@@ -1810,11 +1810,16 @@ function executeObjectListFieldThin(
       if (isPromise(completed)) {
         return completed.then(
           value => value,
-          rawError => handleFieldError(locate(rawError), fieldPlan.returnType, exeContext.errors),
+          rawError => {
+            exeContext.signal?.throwIfAborted();
+            return handleFieldError(locate(rawError), fieldPlan.returnType, exeContext.errors);
+          },
         );
       }
       return completed;
     } catch (rawError) {
+      // Abort from thin item walk must not become a nullable list field error.
+      exeContext.signal?.throwIfAborted();
       return handleFieldError(locate(rawError), fieldPlan.returnType, exeContext.errors);
     }
   };
@@ -1862,11 +1867,15 @@ function executeObjectListFieldThin(
     if (isPromise(result)) {
       return result.then(
         resolved => completeResolved(resolved),
-        rawError => handleFieldError(locate(rawError), fieldPlan.returnType, exeContext.errors),
+        rawError => {
+          exeContext.signal?.throwIfAborted();
+          return handleFieldError(locate(rawError), fieldPlan.returnType, exeContext.errors);
+        },
       );
     }
     return completeResolved(result);
   } catch (rawError) {
+    exeContext.signal?.throwIfAborted();
     return handleFieldError(locate(rawError), fieldPlan.returnType, exeContext.errors);
   }
 }

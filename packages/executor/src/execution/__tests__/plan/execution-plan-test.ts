@@ -1185,6 +1185,49 @@ describe('execution plan', () => {
     expect(nameReads).toBe(0);
   });
 
+  it('propagates abort from thin object-list walk without reading later getters', () => {
+    const controller = new AbortController();
+    let nameReads = 0;
+    const userType = new GraphQLObjectType({
+      name: 'AbortThinListUser',
+      fields: {
+        id: { type: GraphQLString },
+        name: { type: GraphQLString },
+      },
+    });
+    // Default field resolver so executeObjectListFieldThin is eligible.
+    const abortListSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(userType) },
+        },
+      }),
+    });
+    expect(() =>
+      executeSync({
+        schema: abortListSchema,
+        document: parse('{ users { id name } }'),
+        rootValue: {
+          users: [
+            {
+              get id() {
+                controller.abort();
+                throw new Error('id after abort');
+              },
+              get name() {
+                nameReads += 1;
+                return 'Ada';
+              },
+            },
+          ],
+        },
+        signal: controller.signal,
+      }),
+    ).toThrow(DOMException);
+    expect(nameReads).toBe(0);
+  });
+
   it('rejects GraphQL 16 @oneOf unknown keys even when undefined', () => {
     if (versionInfo.major >= 17) {
       return;
