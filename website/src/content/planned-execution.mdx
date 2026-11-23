@@ -145,6 +145,27 @@ AST retention from plan-incremental overhead across several plan counts (see
 `scripts/measure-plan-cold-heap.mjs`). The numbers in the table above are warm-path deltas vs
 master, not cold-start cost.
 
+## Classic vs planned (module boundaries)
+
+Planned execution is an **optimization layer** on top of classic completion — not a replacement.
+
+| Layer | Module(s) | Responsibility |
+| ----- | --------- | -------------- |
+| Plan IR / cache | `plan.ts` | Compile eligibility, `FieldPlan` kinds, WeakMap lifecycle, kill switch |
+| Orchestration | `execute.ts` | Field walk, runners, thin leaf-list / object-list paths, classic fallback |
+| Shared semantics | `completeShared.ts` | Leaf serialize (`completeLeafValue`) and list-item error localization only |
+| Classic list/object | `execute.ts` (`completeListValue`, …) | Full classic interpreter; independent of plan cache |
+
+**Invariants**
+
+- Classic does not compile or consult plans when planning is disabled.
+- Shared helpers stay semantic-only (no plan IR, no scheduling). Hot specialized paths stay in
+  `execute.ts` when extracting them would regress throughput.
+- Fallback / mid-list resume must not replay getters, resolvers, or serializers already observed.
+- Leaf lists complete **one slot at a time**: a sync NonNull failure leaves later accessors unread;
+  after an async serialize, unread later slots are read from the live result (serializer mutations
+  match classic).
+
 ## Correctness: dual-mode classic vs planned
 
 Public `execute` / `executeSync` plan by default. To re-run the existing executor **core**
@@ -161,7 +182,11 @@ the same assertions exercise classic completion. Prefer this over a second handw
 
 `setExecutionPlanningEnabled` is **process-global** (module scope), not a per-request
 `ExecutionArgs` option. Concurrent requests in one process would race if you flipped it mid-flight;
-use the env var for a process-wide classic mode, or isolate processes when comparing modes.
+use the env var for a process-wide classic mode, or isolate processes when comparing modes. Env
+`GRAPHQL_TOOLS_EXECUTOR_PLANNING=0` wins at module load; runtime `setExecutionPlanningEnabled`
+overrides afterward for the process. Existing cached plans are unused while planning is off (classic
+path never looks them up); turning planning back on may reuse WeakMap entries still reachable via
+document/schema identity.
 
 <img
   src="/assets/execution-plan-all-kinds.jpg"
