@@ -934,6 +934,48 @@ describe('execution plan', () => {
     expect(idReads).toBe(1);
   });
 
+  it('propagates abort from thin object walk without reading later getters', () => {
+    const controller = new AbortController();
+    let nameReads = 0;
+    const userType = new GraphQLObjectType({
+      name: 'AbortThinUser',
+      fields: {
+        id: { type: GraphQLString },
+        name: { type: GraphQLString },
+      },
+    });
+    const abortThinSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          // Nullable sole root field — abort must not become a field error.
+          user: {
+            type: userType,
+            resolve: () => ({
+              get id() {
+                controller.abort();
+                throw new Error('id after abort');
+              },
+              get name() {
+                nameReads += 1;
+                return 'Ada';
+              },
+            }),
+          },
+        },
+      }),
+    });
+    const document = parse('{ user { id name } }');
+    expect(() =>
+      executeSync({
+        schema: abortThinSchema,
+        document,
+        signal: controller.signal,
+      }),
+    ).toThrow(DOMException);
+    expect(nameReads).toBe(0);
+  });
+
   it('rejects GraphQL 16 @oneOf unknown keys even when undefined', () => {
     if (versionInfo.major >= 17) {
       return;

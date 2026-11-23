@@ -2982,6 +2982,9 @@ function executeField(
       // Note: we don't rely on a `catch` method, but we do expect "thenable"
       // to take a second callback for the error case.
       return completed.then(undefined, rawError => {
+        // Abort must not become a recoverable field error (nullable parents
+        // would otherwise return a completed response after cancellation).
+        exeContext.signal?.throwIfAborted();
         if (rawError instanceof AggregateError) {
           let result: unknown;
           for (let rawErrorItem of rawError.errors) {
@@ -3014,6 +3017,9 @@ function executeField(
     }
     return completed;
   } catch (rawError) {
+    // Abort must not become a recoverable field error (nullable parents would
+    // otherwise return a completed response after cancellation).
+    exeContext.signal?.throwIfAborted();
     if (rawError instanceof AggregateError) {
       let result: unknown;
       for (let rawErrorItem of rawError.errors) {
