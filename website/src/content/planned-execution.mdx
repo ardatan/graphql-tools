@@ -15,31 +15,6 @@ interprets on the warm path.
 On a warm hit, field collection, type classification, variable coercion, resolveInfo statics, and
 safe argument reads are already prepared, so each request does less AST work.
 
-```mermaid
-flowchart TB
-  EP["ExecutionPlan<br/>(schema + document + operation)"]
-  EP --> RF["rootFields / rootExecutions"]
-  EP --> CV["coerceVariables"]
-  EP --> SIP["skipIncludePredicates"]
-  EP --> FP["FieldPlan map<br/>(by fieldNodes / FieldNode)"]
-  FP --> CK["kind / resolveKind"]
-  FP --> AR["argumentReader / readArguments"]
-  FP --> RI["resolveInfoStatic"]
-  RF --> PFE["PlannedFieldExecution[]<br/>(optional include predicate)"]
-```
-
-<img
-  src="/assets/execution-plan-schema-diagram.jpg"
-  alt="Execution plan structure diagram"
-  className="mt-4 rounded"
-/>
-
-<img
-  src="/assets/execution-plan-all-kinds.jpg"
-  alt="Execution plan completion and resolve kinds"
-  className="mt-4 rounded"
-/>
-
 ## How to use it
 
 1. **Keep document identity stable**: use Yoga / Envelop parser cache, persisted queries, or any
@@ -70,21 +45,95 @@ if (isExecutionPlan(plan)) {
 Passing a precompiled `plan` alone trusts that plan's schema / document / operation. Do not also
 pass `schema` / `document` / `operationName` on the same call.
 
-## What is compiled
+## What an execution plan contains
 
 For an eligible `(schema, document, operationName)`, public `execute` get-or-compiles an
-`ExecutionPlan`. The warm interpreter holds:
+`ExecutionPlan`. Think of it as a **ready-made walk** of that operation: the executor already knows
+which fields run, how each one completes, how arguments and variables are read, and which child
+selections belong under each object.
 
-| Piece                | Role                                                                                                                                                |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Field maps**       | Pre-collected root / subfield maps (or a union over `@skip`/`@include` bool extremes)                                                               |
-| **`FieldPlan`**      | Per-field static facts discriminated by `kind` (`leaf` / `leafList` / `object` / `abstract` / `list`), plus resolve kind, `resolveInfoStatic`, args |
-| **Coercers**         | Plan-bound `coerceVariables` (empty / builtin-leaf / hoisted input-object closures) and per-field argument readers                                  |
-| **Skip / include**   | Path-aware predicates on planned field executions when variables gate fields or fragments                                                           |
-| **`rootExecutions`** | Bound root (and subfield) execution lists the warm path walks instead of re-collecting                                                              |
+### Top-level shape
+
+At the top, the plan is keyed to one operation on one schema. It holds:
+
+| Piece                                 | What it is for                                                                                               |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Operation binding**                 | Which operation name / root type this plan is for                                                            |
+| **`coerceVariables`**                 | How to turn raw variable values into coerced GraphQL values for this operation                               |
+| **Root field map / `rootExecutions`** | The ordered root fields to run, each as a planned field execution (optionally with a skip/include predicate) |
+| **Per-field plans**                   | Static facts for every selected field (and nested selections), looked up during the warm walk                |
+
+The diagram below is a concrete example: a `Bag` query with variables, one root field `bag`, and
+nested leaf / list / object selections. It shows how the top-level plan points at a root execution,
+which points at a `FieldPlan`, which then fans out to child field plans.
+
+<img
+  src="/assets/execution-plan-schema-diagram.jpg"
+  alt="ExecutionPlan example: root execution, object FieldPlan, and nested leaf / leaf-list / object children"
+  className="mt-4 rounded"
+/>
+
+Reading that example top-down:
+
+1. **`ExecutionPlan`** — owns the operation (`Bag` on `Query`), whether variables exist, the
+   variable coercer, and the root field map.
+2. **`rootExecutions[0]`** — a planned root field execution for `bag` (the response name). On the
+   warm path the executor walks this list instead of re-collecting root fields from the AST.
+3. **`FieldPlan` for `bag`** — an **object** completion: return type `Bag!`, how to resolve it, how
+   to read arguments, and whether `isTypeOf` can be skipped.
+4. **Child field plans** under `bag`:
+   - `id` — **leaf** (`ID!`, default property)
+   - `score` — **leaf list** (`[Float!]!`)
+   - `nested` — **object** (`Nested`) with its own child `label` (**leaf** `String`)
+
+So the plan is not a second GraphQL schema. It is a **compiled selection tree**: root executions
+plus a map of field plans the warm interpreter can follow without repeating collect / classify /
+resolveInfo setup.
 
 Documents that use `@defer` / `@stream` still compile per-field plan facts where useful; the
 incremental interpreter remains the runtime for patches.
+
+### FieldPlan kinds
+
+Every selected field compiles to one of five **kinds**. The kind decides how the warm path completes
+the value and whether there are child plans:
+
+| Kind           | Typical GraphQL shape             | Warm-path idea                                                     |
+| -------------- | --------------------------------- | ------------------------------------------------------------------ |
+| **`leaf`**     | Scalar / enum                     | Complete the value; no child plan                                  |
+| **`leafList`** | List of scalars / enums           | Walk list items as leaves; no nested field plan                    |
+| **`object`**   | Concrete object type              | Resolve, then walk a child plan for the selection set              |
+| **`abstract`** | Interface / union                 | Resolve runtime type, then continue with the matching object plan  |
+| **`list`**     | List of objects (or nested lists) | Walk items with an **item** plan (often an object / abstract plan) |
+
+The next diagram uses a small demo query to map those kinds: leaves (`name`), leaf lists (`tags`),
+abstract friends (`User` / `Bot`), and a list of objects (`posts` → `title`). Use it to see **which
+kind applies where**; the previous diagram is the better reference for **how the plan tree hangs
+together**.
+
+<img
+  src="/assets/execution-plan-all-kinds.jpg"
+  alt="Demo query mapped to FieldPlan kinds: leaf, leafList, object, abstract, and list"
+  className="mt-4 rounded"
+/>
+
+Alongside kind, each field plan also carries the static bits classic would rebuild every time:
+resolve kind (schema resolve vs default property, etc.), return type, planned resolveInfo statics,
+and argument readers when the field takes args. `@skip` / `@include` that depend on variables become
+predicates on planned field executions so the warm walk can still gate those fields without
+re-parsing directives from scratch.
+
+### Why this is faster than classic
+
+**Classic** re-walks the operation AST on every request: collect fields, classify types, build
+resolveInfo statics, coerce variables, and read arguments. **Planned** does that work once when the
+plan is compiled, then the warm path walks bound field executions and uses prepared readers and
+kinds. List shapes also take thinner walks (leaf lists, object lists) and settle async work closer
+to the field that produced it.
+
+The first request for a `(schema, document, operationName)` pays compile cost. After that, warm
+planned execute stays ahead of classic on the same document — especially for list-heavy and nested
+default-resolver shapes — as long as document identity is stable (see parser cache below).
 
 ## Document parser cache
 
@@ -120,22 +169,10 @@ sequenceDiagram
   warm path in production.
 </Callout>
 
-## Why planned beats classic
+## Planned vs Classic Execution Benchmarks
 
-**Classic** re-walks the operation AST on every request: collect fields, classify types, build
-resolveInfo statics, coerce variables, and read arguments. **Planned** does that work once when the
-plan is compiled, then the warm path walks bound field executions and uses prepared readers and
-kinds. List shapes also take thinner walks (leaf lists, object lists) and settle async work closer
-to the field that produced it.
-
-The first request for a `(schema, document, operationName)` pays compile cost. After that, warm
-planned execute stays ahead of classic on the same document — especially for list-heavy and nested
-default-resolver shapes — as long as document identity is stable (see parser cache above).
-
-### Benchmarks (planned warm vs classic)
-
-Process-isolated microbenches on Node 22 (separate process per side, warm plan). Deltas are
-**planned faster than classic** on the same tip:
+Microbenches on Node 22 (separate process per side, warm plan). Deltas are **planned faster than
+classic** (same package build, planned vs classic mode):
 
 | Bench                                      | Approx. planned vs classic |
 | ------------------------------------------ | -------------------------: |
