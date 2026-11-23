@@ -133,40 +133,57 @@ to the field that produced it.
 
 The first request for a `(schema, document, operationName)` pays compile cost. After that, warm
 planned execute stays ahead of classic on the same document — especially for list-heavy and nested
-default-resolver shapes — as long as document identity is stable (see parser cache below).
+default-resolver shapes — as long as document identity is stable (see caching below).
 
-## Document parser cache
+## How the caching works
 
-Plans are cached in a `WeakMap` keyed by **`DocumentNode` identity** (then schema, then operation
-name). Pair with a **document parser cache** (for example Yoga's `useParserAndValidationCache`, or
-Envelop's parser-cache plugin): the same query string keeps returning the same `DocumentNode`, so
-the plan compiles once and is reused on later requests for that document.
+Two caches work together. Neither alone is enough for a warm path in a typical HTTP server:
+
+1. **Document / parser cache** (Yoga, Envelop, persisted queries, …) — maps the inbound query
+   **string** (or persisted-query id) to a stable **`DocumentNode`**. Same source → same object
+   identity across requests.
+2. **Plan `WeakMap`** (inside `@graphql-tools/executor`) — maps that `DocumentNode` identity →
+   schema identity → operation name → compiled **`ExecutionPlan`**. Public `execute` get-or-compiles
+   here; a warm hit skips compile and walks the plan.
 
 ```mermaid
 sequenceDiagram
   participant Client
-  participant ParserCache as Document parser cache
+  participant ParserCache as Document / parser cache
   participant Execute as execute()
   participant PlanCache as Plan WeakMap
 
   Client->>ParserCache: query string (1st)
-  ParserCache->>ParserCache: parse -> DocumentNode A
-  Client->>Execute: execute(document A)
-  Execute->>PlanCache: compile plan
+  ParserCache->>ParserCache: parse → DocumentNode A
+  Client->>Execute: execute(schema, document A)
+  Execute->>PlanCache: miss → compile plan
   PlanCache-->>Execute: ExecutionPlan P
   Execute-->>Client: result
 
   Client->>ParserCache: same query string (2nd)
   ParserCache-->>Client: DocumentNode A (cached)
-  Client->>Execute: execute(document A)
-  Execute->>PlanCache: hit -> same plan P
+  Client->>Execute: execute(schema, document A)
+  Execute->>PlanCache: hit → same plan P
   Execute-->>Client: result (warm path)
 ```
 
+How they integrate:
+
+- The parser cache is usually **outside** the executor (Yoga's `useParserAndValidationCache`,
+  Envelop's parser-cache plugin, an APQ store, etc.). It only has to keep returning the **same**
+  `DocumentNode` instance for the same operation source.
+- The plan `WeakMap` is **inside** the executor. It never sees the raw query string — only the
+  `DocumentNode` (plus schema + operation name). A plan hit requires that identity to match a prior
+  compile.
+- Schema identity matters too: replace the schema object after changing resolvers or scalars, or
+  plans stay keyed to the old schema. Plans themselves are opaque; do not mutate them.
+- Optional path: `compileExecutionPlan` once and pass `{ plan, variableValues }` into `execute` —
+  you still need a stable document when you rely on automatic get-or-compile instead.
+
 <Callout type="info">
-  Without a parser cache, each `parse(source)` allocates a **new** `DocumentNode`. The plan cache
-  cannot hit across those identities. Pairing parser cache + plan cache is how servers stay on the
-  warm path in production.
+  Without a document / parser cache, each `parse(source)` allocates a **new** `DocumentNode`. The
+  plan `WeakMap` cannot hit across those identities, so every request pays compile again. Pairing
+  both caches is how servers stay on the warm path in production.
 </Callout>
 
 ## Planned vs Classic Execution Benchmarks
