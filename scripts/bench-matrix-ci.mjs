@@ -358,12 +358,13 @@ try {
       tipPlannedHz,
       deltaClassicVsMasterPct: (tipClassicHz / masterHz - 1) * 100,
       deltaPlannedVsMasterPct: (tipPlannedHz / masterHz - 1) * 100,
-      deltaClassicVsPlannedPct: (tipClassicHz / tipPlannedHz - 1) * 100,
+      // How much better tip planned is than tip classic.
+      deltaPlannedVsClassicPct: (tipPlannedHz / tipClassicHz - 1) * 100,
     };
   }
 
   function threeWayTableRow(label, row, extraCols = '') {
-    return `| ${label} | ${Math.round(row.masterHz).toLocaleString('en-US')} | ${Math.round(row.tipClassicHz).toLocaleString('en-US')} | ${Math.round(row.tipPlannedHz).toLocaleString('en-US')} | ${pct(row.deltaClassicVsMasterPct)} | ${pct(row.deltaPlannedVsMasterPct)} | ${pct(row.deltaClassicVsPlannedPct)}${extraCols} |`;
+    return `| ${label} | ${Math.round(row.masterHz).toLocaleString('en-US')} | ${Math.round(row.tipClassicHz).toLocaleString('en-US')} | ${Math.round(row.tipPlannedHz).toLocaleString('en-US')} | ${pct(row.deltaClassicVsMasterPct)} | ${pct(row.deltaPlannedVsMasterPct)} | ${pct(row.deltaPlannedVsClassicPct)}${extraCols} |`;
   }
 
   try {
@@ -377,7 +378,7 @@ try {
         ...row,
       });
       console.log(
-        `${meta.label}: master=${Math.round(row.masterHz)} classic=${Math.round(row.tipClassicHz)} planned=${Math.round(row.tipPlannedHz)} Δc/m=${pct(row.deltaClassicVsMasterPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)} Δc/p=${pct(row.deltaClassicVsPlannedPct)}`,
+        `${meta.label}: master=${Math.round(row.masterHz)} classic=${Math.round(row.tipClassicHz)} planned=${Math.round(row.tipPlannedHz)} Δc/m=${pct(row.deltaClassicVsMasterPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)} Δp/c=${pct(row.deltaPlannedVsClassicPct)}`,
       );
     }
 
@@ -391,7 +392,7 @@ try {
         ...row,
       });
       console.log(
-        `${syncCase.label}: master=${Math.round(row.masterHz)} classic=${Math.round(row.tipClassicHz)} planned=${Math.round(row.tipPlannedHz)} Δc/m=${pct(row.deltaClassicVsMasterPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)} Δc/p=${pct(row.deltaClassicVsPlannedPct)}`,
+        `${syncCase.label}: master=${Math.round(row.masterHz)} classic=${Math.round(row.tipClassicHz)} planned=${Math.round(row.tipPlannedHz)} Δc/m=${pct(row.deltaClassicVsMasterPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)} Δp/c=${pct(row.deltaPlannedVsClassicPct)}`,
       );
     }
 
@@ -418,7 +419,7 @@ try {
         if (row && row.tipClassicHz != null && row.tipPlannedHz != null && row.masterHz != null) {
           row.deltaClassicVsMasterPct = (row.tipClassicHz / row.masterHz - 1) * 100;
           row.deltaPlannedVsMasterPct = (row.tipPlannedHz / row.masterHz - 1) * 100;
-          row.deltaClassicVsPlannedPct = (row.tipClassicHz / row.tipPlannedHz - 1) * 100;
+          row.deltaPlannedVsClassicPct = (row.tipPlannedHz / row.tipClassicHz - 1) * 100;
         }
       }
     }
@@ -450,7 +451,7 @@ try {
   writeFileSync(RESULTS_JSON, `${JSON.stringify(payload, null, 2)}\n`);
 
   const threeWayHeader = [
-    '| Bench | Master hz | Tip classic hz | Tip planned hz | Δ classic vs master | Δ planned vs master | Δ classic vs planned |',
+    '| Bench | Master hz | Tip classic hz | Tip planned hz | Δ classic vs master | Δ planned vs master | Δ planned vs classic |',
     '| --- | ---: | ---: | ---: | ---: | ---: | ---: |',
   ];
 
@@ -460,7 +461,7 @@ try {
     '',
     `HEAD \`${headSha.slice(0, 9)}\` vs \`${baseRemoteRef}\` (\`${baseSha.slice(0, 9)}\` fetched this run), Node ${process.version}, compiled dist.`,
     '',
-    'Each row is a three-way: **tip classic** (`setExecutionPlanningEnabled(false)`) vs origin/master, **tip planned** vs that master, and **tip classic vs tip planned**.',
+    'Each row is a three-way: **tip classic** (`setExecutionPlanningEnabled(false)`) vs origin/master, **tip planned** vs that master, and **tip planned vs tip classic** (how much better planned is than classic).',
     '',
     '### execute',
     '',
