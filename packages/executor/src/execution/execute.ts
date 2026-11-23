@@ -214,7 +214,9 @@ export function collectFieldsFromContext(
   selectionSet: SelectionSetNode,
 ): FieldsAndPatches {
   if (exeContext.collectFieldsDependsOnVariables) {
-    if (exeContext.skipIncludeFieldPredicates) {
+    // Incremental docs: predicate programs omit @defer/@stream patches — use
+    // classic collect (#7). Non-incremental keeps path-aware skip/include.
+    if (exeContext.skipIncludeFieldPredicates && !exeContext.plan?.hasIncremental) {
       const filtered = filterConditionalCollect(
         getConditionalCollectProgram(
           exeContext.schema,
@@ -255,7 +257,7 @@ export function collectSubfieldsFromContext(
   fieldNodes: Array<FieldNode>,
 ): FieldsAndPatches {
   if (exeContext.collectFieldsDependsOnVariables) {
-    if (exeContext.skipIncludeFieldPredicates) {
+    if (exeContext.skipIncludeFieldPredicates && !exeContext.plan?.hasIncremental) {
       return collectSubfieldsWithPredicates(exeContext, returnType, fieldNodes);
     }
     return collectSubfieldsWithVariables(exeContext, returnType, fieldNodes);

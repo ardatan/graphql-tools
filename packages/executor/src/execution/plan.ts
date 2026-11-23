@@ -17,7 +17,6 @@ import {
   GraphQLSchema,
   GraphQLString,
   isAbstractType,
-  isEnumType,
   isInputObjectType,
   isInputType,
   isLeafType,
@@ -47,6 +46,7 @@ import {
   VariableValues,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
+import { diagnoseLeafParseMiss, diagnoseVariableCoerceMiss } from './coerceDiagnose.js';
 import {
   compileConditionalSelectionSet,
   groupConditionalEntriesByResponseName,
@@ -742,11 +742,14 @@ function compileVariableCoercer(
   const leafBindings = tryCompileBuiltinLeafVariableBindings(schema, variableDefinitions);
   if (leafBindings != null) {
     return (rawVariableValues, options) => {
-      const fast = tryCoerceBuiltinLeafVariables(leafBindings, rawVariableValues);
+      const fast = tryCoerceBuiltinLeafVariables(
+        leafBindings,
+        rawVariableValues,
+        options?.hideSuggestions,
+      );
       if (fast !== undefined) {
         return 'errors' in fast ? fast : { variableValues: fast };
       }
-      // Parse / complex failures: identical errors via graphql-js (#11 remainder).
       return runFull(rawVariableValues, options);
     };
   }
@@ -757,7 +760,11 @@ function compileVariableCoercer(
   }
 
   return (rawVariableValues, options) => {
-    const fast = tryCoerceHoistedVariables(inputBindings, rawVariableValues);
+    const fast = tryCoerceHoistedVariables(
+      inputBindings,
+      rawVariableValues,
+      options?.hideSuggestions,
+    );
     if (fast !== undefined) {
       return 'errors' in fast ? fast : { variableValues: fast };
     }
@@ -861,6 +868,7 @@ function tryCompileHoistedVariableBindings(
 function tryCoerceHoistedVariables(
   bindings: ReadonlyArray<HoistedVariableBinding>,
   rawVariableValues: { readonly [key: string]: unknown } | null | undefined,
+  hideSuggestions?: boolean | null,
 ): VariableValues | VariableCoerceMissErrors | undefined {
   const raw = rawVariableValues ?? EMPTY_RAW_VARIABLES;
   const coerced = Object.create(null) as Record<string, unknown>;
@@ -895,7 +903,13 @@ function tryCoerceHoistedVariables(
     }
     const coercedValue = binding.coerce(value);
     if (coercedValue === undefined) {
-      const diagnosed = diagnoseHoistedCoerceMiss(binding, value);
+      const diagnosed = diagnoseVariableCoerceMiss(
+        binding.name,
+        binding.variableType,
+        value,
+        binding.variableDef,
+        hideSuggestions,
+      );
       if (diagnosed != null) {
         return { errors: diagnosed };
       }
@@ -904,81 +918,6 @@ function tryCoerceHoistedVariables(
     coerced[binding.name] = coercedValue;
   }
   return { coerced, sources };
-}
-
-function unwrapInputType(type: GraphQLInputType): GraphQLInputType {
-  return isNonNullType(type) ? type.ofType : type;
-}
-
-/**
- * graphql-js `inspect` quote style (JSON strings) for GraphQLError message parity.
- * Avoids `@graphql-tools/utils` inspect, which uses Node util single quotes.
- */
-function inspectValue(value: unknown): string {
-  if (typeof value === 'string') {
-    return JSON.stringify(value);
-  }
-  if (value === null) {
-    return 'null';
-  }
-  if (Array.isArray(value)) {
-    return `[${value.map(inspectValue).join(', ')}]`;
-  }
-  if (typeof value === 'object') {
-    const entries = Object.entries(value as Record<string, unknown>);
-    if (entries.length === 0) {
-      return '{}';
-    }
-    return `{ ${entries.map(([k, v]) => `${k}: ${inspectValue(v)}`).join(', ')} }`;
-  }
-  return String(value);
-}
-
-/**
- * Plan-held GraphQLError factories for common hoisted coerce misses (#11 edges).
- * Returns `undefined` when the failure needs classic getVariableValues (enum
- * suggestions, unknown keys, nested paths, multi-error aggregation).
- */
-function diagnoseHoistedCoerceMiss(
-  binding: HoistedVariableBinding,
-  value: unknown,
-): ReadonlyArray<GraphQLError> | undefined {
-  const named = unwrapInputType(binding.variableType);
-  const varName = binding.name;
-  const nodes = binding.variableDef;
-
-  if (isLeafType(named)) {
-    // Enums: classic adds Did-you-mean / hideSuggestions — fall back.
-    if (isEnumType(named)) {
-      return undefined;
-    }
-    try {
-      named.parseValue(value);
-    } catch (err) {
-      const detail = err instanceof Error ? err.message : String(err);
-      const message = isGraphQL17
-        ? `Variable "$${varName}" has invalid value: ${detail}`
-        : `Variable "$${varName}" got invalid value ${inspectValue(value)}; ${detail}`;
-      return [new GraphQLError(message, { nodes })];
-    }
-    return undefined;
-  }
-
-  if (!isInputObjectType(named)) {
-    return undefined;
-  }
-
-  // Only top-level non-object shapes. Unknown keys / missing required / nested
-  // field errors stay classic for suggestion + multi-error + path parity.
-  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-    return undefined;
-  }
-
-  const typeName = named.name;
-  const message = isGraphQL17
-    ? `Variable "$${varName}" has invalid value: Expected value of type "${typeName}" to be an object, found: ${inspectValue(value)}.`
-    : `Variable "$${varName}" got invalid value ${inspectValue(value)}; Expected type "${typeName}" to be an object.`;
-  return [new GraphQLError(message, { nodes })];
 }
 
 /**
@@ -1074,12 +1013,13 @@ function compileInputValueCoercer(
         cache.delete(type);
         return null;
       }
+      const defaultValue = getInputFieldDefaultValue(field);
       fieldEntries.push({
         name: fieldName,
         nonNull: isNonNullType(field.type),
         coerce: fieldCoercer,
-        hasDefault: field.defaultValue !== undefined,
-        defaultValue: field.defaultValue,
+        hasDefault: defaultValue !== undefined,
+        defaultValue,
       });
     }
 
@@ -1142,7 +1082,9 @@ function compileInputValueCoercer(
       }
       const out = Object.create(null) as Record<string, unknown>;
       for (const field of fieldEntries) {
-        if (!Object.prototype.hasOwnProperty.call(obj, field.name)) {
+        // Property access (not hasOwnProperty) — prototype getters (#6).
+        const fieldValue = obj[field.name];
+        if (fieldValue === undefined) {
           if (field.hasDefault) {
             out[field.name] = field.defaultValue;
             continue;
@@ -1152,7 +1094,7 @@ function compileInputValueCoercer(
           }
           continue;
         }
-        const coercedField = field.coerce(obj[field.name]);
+        const coercedField = field.coerce(fieldValue);
         if (coercedField === undefined) {
           return undefined;
         }
@@ -1165,6 +1107,23 @@ function compileInputValueCoercer(
   }
 
   return null;
+}
+
+function getInputFieldDefaultValue(field: {
+  type: GraphQLInputType;
+  defaultValue?: unknown;
+  default?: { literal?: ValueNode };
+}): unknown | undefined {
+  if (field.defaultValue !== undefined) {
+    return field.defaultValue;
+  }
+  if (field.default?.literal != null) {
+    const compiled = valueFromAST(field.default.literal, field.type);
+    if (compiled !== undefined) {
+      return compiled;
+    }
+  }
+  return undefined;
 }
 type BuiltinLeafVariableBinding = {
   name: string;
@@ -1229,6 +1188,7 @@ function tryCompileBuiltinLeafVariableBindings(
 function tryCoerceBuiltinLeafVariables(
   bindings: ReadonlyArray<BuiltinLeafVariableBinding>,
   rawVariableValues: { readonly [key: string]: unknown } | null | undefined,
+  hideSuggestions?: boolean | null,
 ): VariableValues | VariableCoerceMissErrors | undefined {
   const raw = rawVariableValues ?? EMPTY_RAW_VARIABLES;
   const coerced = Object.create(null) as Record<string, unknown>;
@@ -1267,22 +1227,51 @@ function tryCoerceBuiltinLeafVariables(
     }
     let parsed: unknown;
     try {
-      parsed = binding.leafType.parseValue(value);
-    } catch (err) {
-      // Enums: classic getVariableValues owns Did-you-mean / hideSuggestions.
-      if (isEnumType(binding.leafType)) {
-        return undefined;
+      const leaf = binding.leafType as GraphQLLeafType & {
+        coerceInputValue?: (v: unknown, hide?: boolean | null) => unknown;
+      };
+      if (typeof leaf.coerceInputValue === 'function') {
+        parsed = leaf.coerceInputValue(value, hideSuggestions);
+        if (parsed === undefined) {
+          return {
+            errors: [
+              diagnoseLeafParseMiss(
+                binding.name,
+                leaf,
+                value,
+                binding.variableDef,
+                hideSuggestions,
+              ),
+            ],
+          };
+        }
+      } else {
+        parsed = binding.leafType.parseValue(value);
       }
-      const detail = err instanceof Error ? err.message : String(err);
-      const message = isGraphQL17
-        ? `Variable "$${binding.name}" has invalid value: ${detail}`
-        : `Variable "$${binding.name}" got invalid value ${inspectValue(value)}; ${detail}`;
+    } catch {
       return {
-        errors: [new GraphQLError(message, { nodes: binding.variableDef })],
+        errors: [
+          diagnoseLeafParseMiss(
+            binding.name,
+            binding.leafType,
+            value,
+            binding.variableDef,
+            hideSuggestions,
+          ),
+        ],
       };
     }
     if (parsed == null && binding.nonNull) {
-      // parseValue returned null for NonNull — classic getVariableValues parity.
+      const diagnosed = diagnoseVariableCoerceMiss(
+        binding.name,
+        binding.variableType,
+        value,
+        binding.variableDef,
+        hideSuggestions,
+      );
+      if (diagnosed != null) {
+        return { errors: diagnosed };
+      }
       return undefined;
     }
     coerced[binding.name] = parsed;
@@ -1536,8 +1525,7 @@ function compileArgumentReader(
 
   if (!fieldArgumentsContainVariable(fieldNode)) {
     // Pre-coerce only when literals are valid with empty variables. Missing
-    // required args / bad literals must surface at execution time (same as
-    // the classic path), so leave readers unset and coerce via getArgumentValues.
+    // required args / bad literals (#5): plan-held GraphQLError replay.
     try {
       const staticArgs = Object.freeze(
         Object.assign(
@@ -1551,9 +1539,11 @@ function compileArgumentReader(
         argumentReader,
         readArguments: () => staticArgs,
       };
-    } catch {
-      const read = (variableValues: VariableValues) =>
-        getArgumentValuesForPlan(fieldDef, fieldNode, variableValues);
+    } catch (err) {
+      const held = holdArgumentError(err);
+      const read = () => {
+        throw held();
+      };
       return {
         staticArgs: undefined,
         argumentReader: { kind: 'coercer', read },
@@ -1564,12 +1554,18 @@ function compileArgumentReader(
 
   const bareBindings = tryBareVariableBindings(fieldDef, fieldNode, parentType);
   if (bareBindings) {
+    const missingAstMessageByArg = compileMissingAstArgMessages(fieldDef, fieldNode, parentType);
     const read = (variableValues: VariableValues) => {
-      const fast = tryReadBareVariableArguments(fieldDef, bareBindings, variableValues);
+      const fast = tryReadBareVariableArguments(
+        fieldDef,
+        fieldNode,
+        bareBindings,
+        variableValues,
+        missingAstMessageByArg,
+      );
       if (fast !== undefined) {
         return fast;
       }
-      // Remaining misses (e.g. required arg absent from AST): classic parity.
       return getArgumentValuesForPlan(fieldDef, fieldNode, variableValues);
     };
     return {
@@ -1579,14 +1575,75 @@ function compileArgumentReader(
     };
   }
 
-  // Embedded variables inside literals: bound getArgumentValues closure.
-  const read = (variableValues: VariableValues) =>
-    getArgumentValuesForPlan(fieldDef, fieldNode, variableValues);
+  // Embedded variables inside literals (#4): plan-bound getArgumentValues
+  // (custom scalars / JSON nested sources need full graphql-js substitution).
+  const missingAst = compileMissingAstArgMessages(fieldDef, fieldNode, parentType);
+  const read = (variableValues: VariableValues) => {
+    // Required args absent from AST: plan-held throw before getArgumentValues.
+    if (missingAst.size > 0) {
+      for (const argDef of fieldDef.args) {
+        const message = missingAst.get(argDef.name);
+        if (message != null && getFieldArgDefaultValue(argDef) === undefined) {
+          // Only throw when the arg is truly absent (map built from AST).
+          throw new GraphQLError(message, { nodes: fieldNode });
+        }
+      }
+    }
+    return getArgumentValuesForPlan(fieldDef, fieldNode, variableValues);
+  };
   return {
     staticArgs: undefined,
     argumentReader: { kind: 'coercer', read },
     readArguments: read,
   };
+}
+
+/**
+ * Replay a compile-time getArgumentValues failure as a fresh GraphQLError (#5).
+ */
+function holdArgumentError(err: unknown): () => GraphQLError {
+  if (err instanceof GraphQLError) {
+    const message = err.message;
+    const nodes = err.nodes;
+    const positions = err.positions;
+    const source = err.source;
+    const path = err.path;
+    return () =>
+      new GraphQLError(message, {
+        nodes: nodes ?? undefined,
+        source: source ?? undefined,
+        positions: positions ?? undefined,
+        path: path ?? undefined,
+        originalError: err,
+      });
+  }
+  const message = err instanceof Error ? err.message : String(err);
+  return () => new GraphQLError(message);
+}
+
+function compileMissingAstArgMessages(
+  fieldDef: GraphQLField<unknown, unknown>,
+  fieldNode: FieldNode,
+  parentType: GraphQLObjectType,
+): Map<string, string> {
+  const present = new Set(fieldNode.arguments?.map(a => a.name.value) ?? []);
+  const messages = new Map<string, string>();
+  for (const argDef of fieldDef.args) {
+    if (present.has(argDef.name)) {
+      continue;
+    }
+    if (!isNonNullType(argDef.type) || getFieldArgDefaultValue(argDef) !== undefined) {
+      continue;
+    }
+    const coord = `${parentType.name}.${fieldDef.name}(${argDef.name}:)`;
+    messages.set(
+      argDef.name,
+      isGraphQL17
+        ? `Argument "${coord}" of required type "${String(argDef.type)}" was not provided.`
+        : `Argument "${argDef.name}" of required type "${String(argDef.type)}" was not provided.`,
+    );
+  }
+  return messages;
 }
 
 type BareVariableArgBinding = {
@@ -1669,8 +1726,10 @@ function getFieldArgDefaultValue(argDef: GraphQLArgument): unknown | undefined {
  */
 function tryReadBareVariableArguments(
   fieldDef: GraphQLField<unknown, unknown>,
+  fieldNode: FieldNode,
   bindings: ReadonlyArray<BareVariableArgBinding>,
   variableValues: VariableValues,
+  missingAstMessageByArg?: Map<string, string>,
 ): { [argument: string]: unknown } | undefined {
   const coerced = variableValues.coerced as Record<string, unknown>;
   const byArg = new Map<string, BareVariableArgBinding>();
@@ -1704,6 +1763,10 @@ function tryReadBareVariableArguments(
     if (defaultValue !== undefined) {
       args[argDef.name] = defaultValue;
     } else if (isNonNullType(argDef.type)) {
+      const message = missingAstMessageByArg?.get(argDef.name);
+      if (message != null) {
+        throw new GraphQLError(message, { nodes: fieldNode });
+      }
       return undefined;
     }
   }
