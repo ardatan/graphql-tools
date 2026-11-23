@@ -1080,7 +1080,11 @@ describe('root runner + field-local leaf list settle', () => {
     );
     const plan = compileExecutionPlan({ schema: schemaP, document });
     expect(isExecutionPlan(plan)).toBe(true);
-    const plannedPromise = execute({ plan: plan!, rootValue });
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    // Promise.resolve normalizes MaybePromise so .then is always available.
+    const plannedPromise = Promise.resolve(execute({ plan, rootValue }));
     // stop runs sync after scores starts; execution must stay pending until item settles.
     await new Promise<void>(resolve => {
       setImmediate(resolve);
