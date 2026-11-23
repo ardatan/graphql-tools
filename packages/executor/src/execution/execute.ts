@@ -3125,6 +3125,197 @@ function usesDefaultArrayIterator(value: unknown): value is unknown[] {
  * calling its resolve function, then calls completeValue to complete promises,
  * serialize scalars, or execute the sub-selection-set for objects.
  */
+/**
+ * Classic no-plan field execution. Mirrors the pre-plan hot path so planning
+ * taxes (fieldPlan lookup, live-default checks, planned resolveInfo) do not
+ * deopt wide classic selections.
+ */
+function executeFieldClassic(
+  exeContext: ExecutionContext,
+  parentType: GraphQLObjectType,
+  source: unknown,
+  fieldNodes: Array<FieldNode>,
+  path: Path,
+  asyncPayloadRecord?: AsyncPayloadRecord,
+): MaybePromise<unknown> {
+  const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
+  const fieldDef = getFieldDef(exeContext.schema, parentType, fieldNodes[0]);
+  if (!fieldDef) {
+    return;
+  }
+
+  const returnType = fieldDef.type;
+  const resolveFn = fieldDef.resolve ?? exeContext.fieldResolver;
+
+  let info: GraphQLResolveInfo | undefined;
+
+  try {
+    exeContext.signal?.throwIfAborted();
+
+    let result: unknown;
+    let resolvedViaDefaultProperty = false;
+    let resultAlreadySerialized = false;
+
+    if (
+      resolveFn === defaultFieldResolver &&
+      (isObjectLike(source) || typeof source === 'function')
+    ) {
+      const leafMemo = getLeafFieldMemo(fieldDef);
+      if (leafMemo !== null) {
+        if (leafMemo.hasArgs) {
+          getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
+        }
+        const property = (source as Record<string, unknown>)[leafMemo.name];
+        if (typeof property === 'function') {
+          info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+          const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
+          result = (
+            property as (
+              this: unknown,
+              fieldArgs: typeof args,
+              contextValue: unknown,
+              resolveInfo: GraphQLResolveInfo,
+            ) => unknown
+          ).call(source, args, exeContext.contextValue, info);
+          resolvedViaDefaultProperty = true;
+        } else if (property instanceof Error) {
+          throw property;
+        } else if (isPromise(property)) {
+          info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+          result = property;
+          resolvedViaDefaultProperty = true;
+        } else {
+          if (property == null) {
+            if (leafMemo.nonNull) {
+              throw new Error(
+                `Cannot return null for non-nullable field ${parentType.name}.${leafMemo.name}.`,
+              );
+            }
+            return null;
+          }
+          let serialized: unknown;
+          try {
+            serialized = leafMemo.leafType.serialize(property);
+          } catch (err) {
+            if (err instanceof GraphQLError) {
+              throw new Error(err.message);
+            }
+            throw err;
+          }
+          if (isPromise(serialized)) {
+            info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+            result = serialized;
+            resolvedViaDefaultProperty = true;
+            resultAlreadySerialized = true;
+          } else if (serialized == null) {
+            throw new Error(
+              `Expected \`${inspect(leafMemo.leafType)}.serialize(${inspect(property)})\` to ` +
+                `return non-nullable value, returned: ${inspect(serialized)}`,
+            );
+          } else {
+            return serialized;
+          }
+        }
+      }
+    }
+
+    if (!resolvedViaDefaultProperty) {
+      info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+      const args = getFieldArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
+      result = resolveFn(source, args, exeContext.contextValue, info);
+    }
+
+    let completed;
+    if (resultAlreadySerialized) {
+      completed = result;
+    } else if (isPromise(result)) {
+      completed = result.then(resolved =>
+        completeValue(
+          exeContext,
+          returnType,
+          fieldNodes,
+          info!,
+          path,
+          resolved,
+          asyncPayloadRecord,
+        ),
+      );
+    } else {
+      completed = completeValue(
+        exeContext,
+        returnType,
+        fieldNodes,
+        info!,
+        path,
+        result,
+        asyncPayloadRecord,
+      );
+    }
+
+    if (isPromise(completed)) {
+      return completed.then(undefined, rawError => {
+        if (rawError instanceof AggregateError) {
+          let handled: unknown;
+          for (let rawErrorItem of rawError.errors) {
+            rawErrorItem = coerceError(rawErrorItem);
+            const error = locatedError(
+              rawErrorItem,
+              fieldNodes,
+              pathToArray(path),
+              exeContext.schemaCoordinateInErrors &&
+                (info ?? schemaCoordinateInfo(fieldDef, parentType)),
+            );
+            handled = handleFieldError(error, returnType, errors);
+            filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
+          }
+          return handled;
+        }
+        rawError = coerceError(rawError);
+        const error = locatedError(
+          rawError,
+          fieldNodes,
+          pathToArray(path),
+          exeContext.schemaCoordinateInErrors &&
+            (info ?? schemaCoordinateInfo(fieldDef, parentType)),
+        );
+        const handledError = handleFieldError(error, returnType, errors);
+        filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
+        return handledError;
+      });
+    }
+    return completed;
+  } catch (rawError) {
+    // Abort must not become a recoverable field error.
+    exeContext.signal?.throwIfAborted();
+    if (rawError instanceof AggregateError) {
+      let handled: unknown;
+      for (let rawErrorItem of rawError.errors) {
+        rawErrorItem = coerceError(rawErrorItem);
+        const error = locatedError(
+          rawErrorItem,
+          fieldNodes,
+          pathToArray(path),
+          exeContext.schemaCoordinateInErrors &&
+            (info ?? schemaCoordinateInfo(fieldDef, parentType)),
+        );
+        handled = handleFieldError(error, returnType, errors);
+        filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
+      }
+      return handled;
+    }
+    const coercedError = coerceError(rawError);
+    const error = locatedError(
+      coercedError,
+      fieldNodes,
+      pathToArray(path),
+      exeContext.schemaCoordinateInErrors && (info ?? schemaCoordinateInfo(fieldDef, parentType)),
+    );
+    const handledError = handleFieldError(error, returnType, errors);
+    filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
+    return handledError;
+  }
+}
+
 function executeField(
   exeContext: ExecutionContext,
   parentType: GraphQLObjectType,
@@ -3134,6 +3325,17 @@ function executeField(
   asyncPayloadRecord?: AsyncPayloadRecord,
   knownFieldPlan?: FieldPlan,
 ): MaybePromise<unknown> {
+  if (exeContext.plan == null && knownFieldPlan == null) {
+    return executeFieldClassic(
+      exeContext,
+      parentType,
+      source,
+      fieldNodes,
+      path,
+      asyncPayloadRecord,
+    );
+  }
+
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
   const fieldPlan: FieldPlan | undefined =
     knownFieldPlan ??
