@@ -2524,8 +2524,6 @@ function completePlannedLeafListValue(
         index: number;
         promise: PromiseLike<unknown>;
         completedResults: Array<unknown>;
-        /** Slots already read into the preflight snapshot — general resume must not re-index them. */
-        retainedItems: Array<unknown>;
       }
     | undefined;
   // When String fast-path fails mid-list, resume general completion from that
@@ -2583,112 +2581,69 @@ function completePlannedLeafListValue(
       };
     }
 
-    // Snapshot once for the serialize loop so accessor slots cannot change
-    // between classification and leafType.serialize. Skip when String fast
-    // already retained a prefix — general path resumes from that index.
-    // Same retainedResume contract as String: never rewind past an observed slot.
+    // Custom / non-String leaf lists: read + complete one slot at a time.
+    // Do not pre-read later accessors — a sync NonNull failure must leave them
+    // unread (classic), and a later getter that returns a rejected promise must
+    // not be created before an earlier slot's completion can observe it.
+    // Skip when String fast already retained a prefix (same resume contract).
     if (retainedResume == null) {
-      const items: Array<unknown> = new Array(result.length);
-      let allPrimitive = true;
-      let failIndex = -1;
-      let failItem: unknown;
+      const completedResults: Array<unknown> = new Array(result.length);
+      let ok = true;
       for (let i = 0; i < result.length; i++) {
         const item = result[i];
-        items[i] = item;
         const t = typeof item;
         if (
           item == null ||
           (t !== 'number' && t !== 'string' && t !== 'boolean' && t !== 'bigint')
         ) {
-          allPrimitive = false;
-          failIndex = i;
-          failItem = item;
-          break;
-        }
-      }
-      if (!allPrimitive) {
-        // Serialize the retained primitive prefix (no re-read), then resume at fail.
-        // Use completeLeafValue so GraphQLError extensions match classic (stripped).
-        const completedResults: Array<unknown> = new Array(result.length);
-        for (let i = 0; i < failIndex; i++) {
-          try {
-            const serialized = completeLeafValue(leafType, items[i]);
-            if (isPromise(serialized)) {
-              pendingSerialize = {
-                index: i,
-                promise: serialized,
-                completedResults,
-                retainedItems: items,
-              };
-              break;
-            }
-            completedResults[i] = serialized;
-          } catch (rawError) {
-            const itemPath = addPath(path, i, undefined);
-            const error = locatedError(
-              coerceError(rawError),
-              fieldNodes,
-              pathToArray(itemPath),
-              coordinateInfo,
-            );
-            filterSubsequentPayloads(exeContext, itemPath, undefined);
-            try {
-              completedResults[i] = handleFieldError(error, itemType, errors);
-            } catch (bubble) {
-              writeField(handleFieldError(bubble as GraphQLError, returnType, errors));
-              return null;
-            }
-          }
-        }
-        if (pendingSerialize == null) {
+          // Non-primitive: resume general path with this already-read slot.
           retainedResume = {
-            index: failIndex,
-            item: failItem,
+            index: i,
+            item,
             completedResults,
           };
+          ok = false;
+          break;
         }
-      } else {
-        const completedResults: Array<unknown> = new Array(result.length);
-        let ok = true;
-        for (let i = 0; i < result.length; i++) {
+        try {
+          // completeLeafValue: one serialize, strips GraphQLError extensions (classic).
+          const serialized = completeLeafValue(leafType, item);
+          if (isPromise(serialized)) {
+            // Keep the first thenable; general path settles it (no re-serialize).
+            // Later unread slots are read from `result` after this index — so a
+            // serializer that mutates subsequent slots matches classic.
+            pendingSerialize = {
+              index: i,
+              promise: serialized,
+              completedResults,
+            };
+            ok = false;
+            break;
+          }
+          completedResults[i] = serialized;
+        } catch (rawError) {
+          // Nullable list: null the slot and keep going; NonNull: bubble field.
+          // Do not read subsequent slots on bubble (avoids orphaned rejections).
+          const itemPath = addPath(path, i, undefined);
+          const error = locatedError(
+            coerceError(rawError),
+            fieldNodes,
+            pathToArray(itemPath),
+            coordinateInfo,
+          );
+          filterSubsequentPayloads(exeContext, itemPath, undefined);
           try {
-            // completeLeafValue: one serialize, strips GraphQLError extensions (classic).
-            const serialized = completeLeafValue(leafType, items[i]);
-            if (isPromise(serialized)) {
-              // Keep the first thenable + snapshot; general path settles it (no re-serialize / re-read).
-              pendingSerialize = {
-                index: i,
-                promise: serialized,
-                completedResults,
-                retainedItems: items,
-              };
-              ok = false;
-              break;
-            }
-            completedResults[i] = serialized;
-          } catch (rawError) {
-            // Nullable list: null the slot and keep going; NonNull: bubble field.
-            const itemPath = addPath(path, i, undefined);
-            const error = locatedError(
-              coerceError(rawError),
-              fieldNodes,
-              pathToArray(itemPath),
-              coordinateInfo,
-            );
-            filterSubsequentPayloads(exeContext, itemPath, undefined);
-            try {
-              completedResults[i] = handleFieldError(error, itemType, errors);
-            } catch (bubble) {
-              writeField(handleFieldError(bubble as GraphQLError, returnType, errors));
-              return null;
-            }
+            completedResults[i] = handleFieldError(error, itemType, errors);
+          } catch (bubble) {
+            writeField(handleFieldError(bubble as GraphQLError, returnType, errors));
+            return null;
           }
         }
-        if (ok) {
-          return completedResults;
-        }
-        // Thenable serialize mid-list — continue below with pendingSerialize seed.
       }
+      if (ok) {
+        return completedResults;
+      }
+      // Thenable serialize or non-primitive mid-list — continue below.
     }
   }
 
@@ -2917,8 +2872,9 @@ function completePlannedLeafListValue(
   }
   if (usesDefaultArrayIterator(result)) {
     let startIndex = 0;
-    const snapshotItems = pendingSerialize?.retainedItems;
     if (pendingSerialize) {
+      // First thenable serialize is settled above; unread later slots are read
+      // here from `result` so intervening serializer mutations are visible.
       startIndex = pendingSerialize.index + 1;
     } else if (retainedResume) {
       // Reuse the already-read failing slot; do not re-index accessors 0..n-1.
@@ -2929,11 +2885,7 @@ function completePlannedLeafListValue(
       }
     }
     for (let index = startIndex; index < result.length; index++) {
-      const item =
-        snapshotItems != null && Object.prototype.hasOwnProperty.call(snapshotItems, index)
-          ? snapshotItems[index]
-          : result[index];
-      if (!consumeItem(index, item)) {
+      if (!consumeItem(index, result[index])) {
         break;
       }
     }
