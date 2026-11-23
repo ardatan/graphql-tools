@@ -111,6 +111,7 @@ import {
   type InternalExecutionPlan,
   type LeafListFieldPlan,
   type ListFieldPlan,
+  type ObjectFieldPlan,
   type PlannedFieldExecution,
 } from './plan.js';
 import { PlannedWorkRunner } from './plannedWorkRunner.js';
@@ -5610,7 +5611,7 @@ function invalidReturnTypeError(
  */
 function completeAlreadyReadObjectWithLiveIsTypeOf(
   exeContext: ExecutionContext,
-  fieldPlan: FieldPlan,
+  fieldPlan: ObjectFieldPlan,
   fieldNodes: Array<FieldNode>,
   parentType: GraphQLObjectType,
   path: Path,
@@ -5621,7 +5622,7 @@ function completeAlreadyReadObjectWithLiveIsTypeOf(
   const info = buildPlannedResolveInfo(exeContext, fieldPlan, childPath, fieldNodes);
   return completeObjectValue(
     exeContext,
-    fieldPlan.objectType!,
+    fieldPlan.objectType,
     fieldNodes,
     info,
     childPath,
