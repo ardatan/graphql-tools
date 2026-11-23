@@ -28,22 +28,14 @@ import {
   type DeferUsageSet,
 } from './incrementalCollect.js';
 import type { PlannedWorkRunner } from './plannedWorkRunner.js';
-import type { InternalExecutionPlan } from './planTypes.js';
+import type { ExecutionPlan } from './planTypes.js';
+
+export type { ExecutionPlan } from './planTypes.js';
 
 export interface SingularExecutionResult<TData = any, TExtensions = any> {
   errors?: ReadonlyArray<GraphQLError>;
   data?: TData | null;
   extensions?: TExtensions;
-}
-
-/**
- * Opaque compiled execution plan.
- *
- * Pass to `execute({ plan })` for warm reuse. Internal plan fields are not part
- * of the public TypeScript API.
- */
-export interface ExecutionPlan {
-  readonly __executionPlanBrand?: never;
 }
 
 export interface ExecutionContext<TVariables = any, TContext = any> {
@@ -111,11 +103,12 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   signalPromise?: Promise<never>;
   schemaCoordinateInErrors?: boolean;
   /**
-   * Internal execution plan when compile succeeded for this operation.
+   * Execution plan when compile succeeded for this operation.
    * Stable docs reuse planned field maps; incremental / variable-collect docs
    * still attach the plan for per-field facts via FieldNode keys.
+   * Plan `__` fields are `@internal`.
    */
-  plan?: InternalExecutionPlan;
+  plan?: ExecutionPlan;
   /**
    * Optional sync-first work runner. Only attached for the duration of a
    * planned leaf-list field completion (field-local); nested object / skip
@@ -271,8 +264,9 @@ export interface ExecutionArgs<TData = any, TVariables = any, TContext = any> {
    */
   incrementalSpec?: IncrementalSpec;
   /**
-   * Optional precompiled opaque plan. When omitted, `execute` get-or-compiles
-   * from the WeakMap cache for `(schema, document, operationName)`.
+   * Optional precompiled plan. When omitted, `execute` get-or-compiles from the
+   * WeakMap cache for `(schema, document, operationName)`. Plan `__` fields are
+   * `@internal` — do not use from application code.
    */
   plan?: ExecutionPlan;
 }

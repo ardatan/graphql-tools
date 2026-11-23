@@ -144,91 +144,71 @@ export interface ListFieldPlan extends FieldPlanBase {
  * Discriminated by `kind` so kind-specific data is required, not optional.
  */
 export type FieldPlan =
-  LeafFieldPlan | LeafListFieldPlan | ObjectFieldPlan | AbstractFieldPlan | ListFieldPlan; /**
- * @internal Runtime execution plan data used by the warm interpreter.
- * Not a public API. Prefer the opaque {@link ExecutionPlan} surface from
- * `execute.ts` (`compileExecutionPlan` + `execute({ plan })`).
+  LeafFieldPlan | LeafListFieldPlan | ObjectFieldPlan | AbstractFieldPlan | ListFieldPlan;
+
+/**
+ * Compiled execution plan for `compileExecutionPlan` / `execute({ plan })`.
+ *
+ * All `__`-prefixed fields are **@internal — do not use** from application code.
+ * They exist for the warm interpreter and may change without a major bump.
  */
-export interface InternalExecutionPlan {
+export interface ExecutionPlan {
+  /** @internal Do not use. */
+  __schema: GraphQLSchema;
+  /** @internal Do not use. */
+  __document: DocumentNode;
+  /** @internal Do not use. */
+  __operation: OperationDefinitionNode;
+  /** @internal Do not use. */
+  __operationName: string | undefined;
+  /** @internal Do not use. */
+  __fragments: Record<string, FragmentDefinitionNode>;
+  /** @internal Do not use. */
+  __rootType: GraphQLObjectType;
   /**
-   * Matches the public opaque {@link import('./executeTypes.js').ExecutionPlan}
-   * brand so the same runtime object is assignable when passed as `args.plan`.
-   */
-  readonly __executionPlanBrand?: never;
-  schema: GraphQLSchema;
-  document: DocumentNode;
-  operation: OperationDefinitionNode;
-  operationName: string | undefined;
-  fragments: Record<string, FragmentDefinitionNode>;
-  rootType: GraphQLObjectType;
-  /**
+   * @internal Do not use.
    * True when `@skip` / `@include` (or variable `@defer` label/`if`) make
-   * collected field sets depend on runtime variables. Root/subfield maps on
-   * the plan are a union over both boolean extremes; runtime still collects
-   * with real variables and looks up field plans by FieldNode identity.
+   * collected field sets depend on runtime variables.
    */
-  collectionDependsOnVariables: boolean;
+  __collectionDependsOnVariables: boolean;
   /**
-   * True when the document uses `@defer` / `@stream`. Runtime keeps the
-   * incremental interpreter; the plan still supplies per-field facts via
-   * FieldNode keys.
+   * @internal Do not use.
+   * True when the document uses `@defer` / `@stream`.
    */
-  hasIncremental: boolean;
-  /** Pre-collected root field map (stable docs) or union over bool extremes. */
-  rootFields: Map<string, Array<FieldNode>>;
-  /** Field plan keyed by the exact `fieldNodes` array identity from this plan. */
-  fieldPlanByNodes: WeakMap<ReadonlyArray<FieldNode>, FieldPlan>;
-  /**
-   * Field plan keyed by the primary AST `FieldNode` so runtime-collected
-   * fieldNodes arrays (variable skip/include) still hit the warm plan.
-   */
-  fieldPlanByFieldNode: WeakMap<FieldNode, FieldPlan>;
-  /**
-   * Subfield maps keyed by parent fieldNodes array then concrete return type.
-   * List items of the same type reuse the same map identity.
-   */
-  subfieldsByNodes: WeakMap<
+  __hasIncremental: boolean;
+  /** @internal Do not use. */
+  __rootFields: Map<string, Array<FieldNode>>;
+  /** @internal Do not use. */
+  __fieldPlanByNodes: WeakMap<ReadonlyArray<FieldNode>, FieldPlan>;
+  /** @internal Do not use. */
+  __fieldPlanByFieldNode: WeakMap<FieldNode, FieldPlan>;
+  /** @internal Do not use. */
+  __subfieldsByNodes: WeakMap<
     ReadonlyArray<FieldNode>,
     WeakMap<GraphQLObjectType, Map<string, Array<FieldNode>>>
   >;
-  /** Subfield maps keyed by parent field's primary AST node (variable collect). */
-  subfieldsByFieldNode: WeakMap<
+  /** @internal Do not use. */
+  __subfieldsByFieldNode: WeakMap<
     FieldNode,
     WeakMap<GraphQLObjectType, Map<string, Array<FieldNode>>>
   >;
-  /**
-   * Subfield execution lists keyed like `subfieldsByNodes` for stable warm path.
-   */
-  subfieldExecutionsByNodes: WeakMap<
+  /** @internal Do not use. */
+  __subfieldExecutionsByNodes: WeakMap<
     ReadonlyArray<FieldNode>,
     WeakMap<GraphQLObjectType, ReadonlyArray<PlannedFieldExecution>>
   >;
-  /** VariableValues with skip/include bools set false, for union compile. */
-  collectVariablesFalse: VariableValues;
-  /** VariableValues with skip/include bools set true, for union compile. */
-  collectVariablesTrue: VariableValues;
-  /** True when the operation declares one or more variables. */
-  hasVariables: boolean;
-  /**
-   * Compiled variable coercer closed over schema + variableDefinitions.
-   * Empty ops return EMPTY_VARIABLE_VALUES; builtin-leaf / hoisted input
-   * coercers try a fast path then fall back to getVariableValues for identical
-   * GraphQLError shapes.
-   */
-  coerceVariables: CoerceVariables;
-  /**
-   * Stable root execution list (same order as `rootFields`). Warm path can
-   * walk these instead of Map entries + WeakMap field-plan lookups.
-   * When `collectionDependsOnVariables` and `skipIncludePredicates` is set,
-   * this is the union list; runtime filters via per-entry `include`.
-   */
-  rootExecutions: ReadonlyArray<PlannedFieldExecution> | undefined;
-  /**
-   * True when `collectionDependsOnVariables` and the doc is non-incremental.
-   * Runtime filters `rootExecutions` / subfield executions with path-aware
-   * `@skip`/`@include` predicates (fields + fragments) instead of re-collecting.
-   */
-  skipIncludePredicates: boolean;
+  /** @internal Do not use. */
+  __collectVariablesFalse: VariableValues;
+  /** @internal Do not use. */
+  __collectVariablesTrue: VariableValues;
+  /** @internal Do not use. */
+  __hasVariables: boolean;
+  /** @internal Do not use. */
+  __coerceVariables: CoerceVariables;
+  /** @internal Do not use. */
+  __rootExecutions: ReadonlyArray<PlannedFieldExecution> | undefined;
+  /** @internal Do not use. */
+  __skipIncludePredicates: boolean;
 }
 
 /**

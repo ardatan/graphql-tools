@@ -25,8 +25,8 @@ import {
 import { EMPTY_VARIABLE_VALUES, INCREMENTAL_DIRECTIVES } from './planShared.js';
 import type {
   CompileExecutionPlanArgs,
+  ExecutionPlan,
   FieldPlan,
-  InternalExecutionPlan,
   PlannedFieldExecution,
 } from './planTypes.js';
 
@@ -36,7 +36,7 @@ export type {
   CoerceVariablesResult,
   CompileExecutionPlanArgs,
   FieldPlanKind,
-  InternalExecutionPlan,
+  ExecutionPlan,
   FieldPlan,
   LeafFieldPlan,
   LeafListFieldPlan,
@@ -51,8 +51,7 @@ export type {
 export { filterPlannedExecutions, getPlannedSubfieldExecutions } from './planField.js';
 
 type PlanCacheEntry =
-  | { kind: 'plan'; plan: InternalExecutionPlan }
-  | { kind: 'errors'; errors: ReadonlyArray<GraphQLError> };
+  { kind: 'plan'; plan: ExecutionPlan } | { kind: 'errors'; errors: ReadonlyArray<GraphQLError> };
 
 /**
  * document -> schema -> operationName -> compiled entry.
@@ -64,14 +63,14 @@ const planCache = new WeakMap<DocumentNode, WeakMap<GraphQLSchema, Map<string, P
  * True when `compileExecutionPlan` returned a usable plan (not errors / skip).
  */
 export function isExecutionPlan(
-  value: InternalExecutionPlan | ReadonlyArray<GraphQLError> | undefined | null,
-): value is InternalExecutionPlan {
+  value: ExecutionPlan | ReadonlyArray<GraphQLError> | undefined | null,
+): value is ExecutionPlan {
   return (
     value != null &&
     !Array.isArray(value) &&
     typeof value === 'object' &&
-    'rootFields' in value &&
-    'schema' in value
+    '__rootFields' in value &&
+    '__schema' in value
   );
 }
 
@@ -79,19 +78,19 @@ export function isExecutionPlan(
  * Resolve a field plan for runtime fieldNodes (exact array or primary AST node).
  */
 export function getPlannedFieldPlan(
-  plan: InternalExecutionPlan,
+  plan: ExecutionPlan,
   fieldNodes: ReadonlyArray<FieldNode>,
   parentType?: GraphQLObjectType,
 ): FieldPlan | undefined {
   // Exact array hit still requires parentType match: the same fieldNodes array
   // must not be reused under a different concrete parent (unions / interfaces).
-  const byNodes = plan.fieldPlanByNodes.get(fieldNodes);
+  const byNodes = plan.__fieldPlanByNodes.get(fieldNodes);
   if (byNodes != null && (parentType == null || byNodes.parentType === parentType)) {
     return byNodes;
   }
   // Same AST FieldNode can appear under multiple concrete parents (unions /
   // interfaces); only reuse when parentType matches the compiled plan.
-  const byNode = plan.fieldPlanByFieldNode.get(fieldNodes[0]!);
+  const byNode = plan.__fieldPlanByFieldNode.get(fieldNodes[0]!);
   if (byNode != null && (parentType == null || byNode.parentType === parentType)) {
     return byNode;
   }
@@ -102,26 +101,25 @@ export function getPlannedFieldPlan(
  * Resolve planned subfields for a parent fieldNodes array / primary AST node.
  */
 export function getPlannedSubfields(
-  plan: InternalExecutionPlan,
+  plan: ExecutionPlan,
   fieldNodes: ReadonlyArray<FieldNode>,
   returnType: GraphQLObjectType,
 ): Map<string, Array<FieldNode>> | undefined {
   return (
-    plan.subfieldsByNodes.get(fieldNodes)?.get(returnType) ??
-    plan.subfieldsByFieldNode.get(fieldNodes[0]!)?.get(returnType)
+    plan.__subfieldsByNodes.get(fieldNodes)?.get(returnType) ??
+    plan.__subfieldsByFieldNode.get(fieldNodes[0]!)?.get(returnType)
   );
 }
 
 /**
  * Compile a cacheable execution plan for a validated operation.
  *
- * Returns an opaque {@link import('./executeTypes.js').ExecutionPlan} for
- * `execute({ plan })`. Internal fields exist at runtime for the warm path but
- * are not part of the public TypeScript API.
+ * Returns an {@link ExecutionPlan} for `execute({ plan })`. Fields are
+ * `__`-prefixed and `@internal` — do not use from application code.
  */
 export function compileExecutionPlan(
   args: CompileExecutionPlanArgs,
-): InternalExecutionPlan | ReadonlyArray<GraphQLError> | undefined {
+): ExecutionPlan | ReadonlyArray<GraphQLError> | undefined {
   const cached = getCachedPlanEntry(args.schema, args.document, args.operationName);
   if (cached) {
     if (cached.kind === 'plan') {
@@ -152,7 +150,7 @@ export function getExecutionPlan(
   schema: GraphQLSchema,
   document: DocumentNode,
   operationName?: string | null,
-): InternalExecutionPlan | undefined {
+): ExecutionPlan | undefined {
   const cached = getCachedPlanEntry(schema, document, operationName);
   return cached?.kind === 'plan' ? cached.plan : undefined;
 }
@@ -161,9 +159,7 @@ export function getExecutionPlan(
  * Resolve the plan for one `execute` / `buildExecutionContext` call.
  * Uses the WeakMap cache; compiles synchronously on a cache miss.
  */
-export function resolvePlanForExecute(
-  args: CompileExecutionPlanArgs,
-): InternalExecutionPlan | undefined {
+export function resolvePlanForExecute(args: CompileExecutionPlanArgs): ExecutionPlan | undefined {
   const cached = getCachedPlanEntry(args.schema, args.document, args.operationName);
   if (cached?.kind === 'plan') {
     return cached.plan;
@@ -308,51 +304,51 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
   // classic collect / deferred groups at runtime).
   const skipIncludePredicates = collectionDependsOnVariables && !hasIncremental;
 
-  const plan: InternalExecutionPlan = {
-    schema,
-    document,
-    operation,
-    operationName: operationName ?? undefined,
-    fragments,
-    rootType,
-    collectionDependsOnVariables,
-    hasIncremental,
-    rootFields,
-    fieldPlanByNodes,
-    fieldPlanByFieldNode,
-    subfieldsByNodes,
-    subfieldsByFieldNode,
-    subfieldExecutionsByNodes,
-    collectVariablesFalse,
-    collectVariablesTrue,
-    hasVariables: variableDefinitions.length > 0,
-    coerceVariables,
-    rootExecutions: undefined,
-    skipIncludePredicates,
+  const plan: ExecutionPlan = {
+    __schema: schema,
+    __document: document,
+    __operation: operation,
+    __operationName: operationName ?? undefined,
+    __fragments: fragments,
+    __rootType: rootType,
+    __collectionDependsOnVariables: collectionDependsOnVariables,
+    __hasIncremental: hasIncremental,
+    __rootFields: rootFields,
+    __fieldPlanByNodes: fieldPlanByNodes,
+    __fieldPlanByFieldNode: fieldPlanByFieldNode,
+    __subfieldsByNodes: subfieldsByNodes,
+    __subfieldsByFieldNode: subfieldsByFieldNode,
+    __subfieldExecutionsByNodes: subfieldExecutionsByNodes,
+    __collectVariablesFalse: collectVariablesFalse,
+    __collectVariablesTrue: collectVariablesTrue,
+    __hasVariables: variableDefinitions.length > 0,
+    __coerceVariables: coerceVariables,
+    __rootExecutions: undefined,
+    __skipIncludePredicates: skipIncludePredicates,
   };
 
   compileFieldMap(plan, rootType, rootFields);
   compilePatchFieldMaps(plan, rootType, rootPatches);
   if (!hasIncremental) {
     if (!collectionDependsOnVariables) {
-      plan.rootExecutions = buildFieldExecutions(plan, rootType, rootFields);
+      plan.__rootExecutions = buildFieldExecutions(plan, rootType, rootFields);
     } else if (skipIncludePredicates) {
       // Conditional mutations with duplicate response names need classic
       // occurrence order (grouped plan executions preserve first-slot order).
       if (operation.operation === 'mutation') {
-        plan.rootExecutions = undefined;
+        plan.__rootExecutions = undefined;
       } else {
         const rootExecutions = buildExecutionsFromSelectionSet(
           plan,
           rootType,
           operation.selectionSet,
-          plan.rootFields,
+          plan.__rootFields,
         );
         if (rootExecutions == null) {
           // Mixed-extreme / defer-shaped selection; disable predicate path.
-          plan.skipIncludePredicates = false;
+          plan.__skipIncludePredicates = false;
         } else {
-          plan.rootExecutions = rootExecutions;
+          plan.__rootExecutions = rootExecutions;
         }
       }
     }

@@ -32,9 +32,9 @@ import {
 import { EMPTY_ARGS, EMPTY_VARIABLE_VALUES, isGraphQL17 } from './planShared.js';
 import type {
   ArgumentReader,
+  ExecutionPlan,
   FieldPlan,
   FieldPlanKind,
-  InternalExecutionPlan,
   PlannedFieldExecution,
   ResolveKind,
   StreamPlan,
@@ -51,7 +51,7 @@ type CompiledLeafListItem = { leafType: GraphQLLeafType; itemNonNull: boolean };
 type CompiledObjectListItem = { objectType: GraphQLObjectType; itemNonNull: boolean };
 
 export function compilePatchFieldMaps(
-  plan: InternalExecutionPlan,
+  plan: ExecutionPlan,
   parentType: GraphQLObjectType,
   patches: ReadonlyArray<{
     fields: Map<string, Array<FieldNode>>;
@@ -67,16 +67,16 @@ export function compilePatchFieldMaps(
 }
 
 function resolveFieldPlanForParent(
-  plan: InternalExecutionPlan,
+  plan: ExecutionPlan,
   parentType: GraphQLObjectType,
   fieldNodes: ReadonlyArray<FieldNode>,
 ): FieldPlan | undefined {
   // Exact array hit still requires parentType match (unions / interfaces).
-  const byNodes = plan.fieldPlanByNodes.get(fieldNodes);
+  const byNodes = plan.__fieldPlanByNodes.get(fieldNodes);
   if (byNodes != null && byNodes.parentType === parentType) {
     return byNodes;
   }
-  const byNode = plan.fieldPlanByFieldNode.get(fieldNodes[0]!);
+  const byNode = plan.__fieldPlanByFieldNode.get(fieldNodes[0]!);
   if (byNode != null && byNode.parentType === parentType) {
     return byNode;
   }
@@ -84,7 +84,7 @@ function resolveFieldPlanForParent(
 }
 
 export function buildFieldExecutions(
-  plan: InternalExecutionPlan,
+  plan: ExecutionPlan,
   parentType: GraphQLObjectType,
   fields: Map<string, Array<FieldNode>>,
   includeByResponseName?: Map<string, IncludePredicate>,
@@ -115,7 +115,7 @@ export function buildFieldExecutions(
  * for plan-eligible docs) so runtime can fall back to classic collect.
  */
 export function buildExecutionsFromSelectionSet(
-  plan: InternalExecutionPlan,
+  plan: ExecutionPlan,
   runtimeType: GraphQLObjectType,
   selectionSet: import('graphql').SelectionSetNode,
   preferredFieldMap?: Map<string, Array<FieldNode>>,
@@ -123,8 +123,8 @@ export function buildExecutionsFromSelectionSet(
   const entries: ConditionalFieldEntry[] = [];
   if (
     !compileConditionalSelectionSet(
-      plan.schema,
-      plan.fragments,
+      plan.__schema,
+      plan.__fragments,
       runtimeType,
       selectionSet,
       entries,
@@ -138,7 +138,7 @@ export function buildExecutionsFromSelectionSet(
 }
 
 function buildExecutionsFromParentFieldNodes(
-  plan: InternalExecutionPlan,
+  plan: ExecutionPlan,
   returnType: GraphQLObjectType,
   parentFieldNodes: ReadonlyArray<FieldNode>,
   preferredFieldMap?: Map<string, Array<FieldNode>>,
@@ -155,8 +155,8 @@ function buildExecutionsFromParentFieldNodes(
     const parentInclude = compileSkipIncludePredicate(fieldNode);
     if (
       !compileConditionalSelectionSet(
-        plan.schema,
-        plan.fragments,
+        plan.__schema,
+        plan.__fragments,
         returnType,
         fieldNode.selectionSet,
         entries,
@@ -172,7 +172,7 @@ function buildExecutionsFromParentFieldNodes(
 }
 
 function buildExecutionsFromConditionalEntries(
-  plan: InternalExecutionPlan,
+  plan: ExecutionPlan,
   parentType: GraphQLObjectType,
   entries: ReadonlyArray<ConditionalFieldEntry>,
   /**
@@ -206,9 +206,9 @@ function buildExecutionsFromConditionalEntries(
       if (compiled == null) {
         return undefined;
       }
-      plan.fieldPlanByNodes.set(fieldNodes as Array<FieldNode>, compiled);
+      plan.__fieldPlanByNodes.set(fieldNodes as Array<FieldNode>, compiled);
       for (const fieldNode of fieldNodes) {
-        plan.fieldPlanByFieldNode.set(fieldNode, compiled);
+        plan.__fieldPlanByFieldNode.set(fieldNode, compiled);
       }
       compileReturnTypeSubfields(plan, compiled);
       resolvedPlan = compiled;
@@ -224,16 +224,16 @@ function buildExecutionsFromConditionalEntries(
 }
 
 export function compileFieldMap(
-  plan: InternalExecutionPlan,
+  plan: ExecutionPlan,
   parentType: GraphQLObjectType,
   fields: Map<string, Array<FieldNode>>,
 ): void {
   for (const [responseName, fieldNodes] of fields) {
     const fieldPlan = compileFieldPlan(plan, parentType, responseName, fieldNodes);
     if (fieldPlan) {
-      plan.fieldPlanByNodes.set(fieldNodes, fieldPlan);
+      plan.__fieldPlanByNodes.set(fieldNodes, fieldPlan);
       for (const fieldNode of fieldNodes) {
-        plan.fieldPlanByFieldNode.set(fieldNode, fieldPlan);
+        plan.__fieldPlanByFieldNode.set(fieldNode, fieldPlan);
       }
       compileReturnTypeSubfields(plan, fieldPlan);
     }
@@ -241,12 +241,12 @@ export function compileFieldMap(
 }
 
 function compileFieldPlan(
-  plan: InternalExecutionPlan,
+  plan: ExecutionPlan,
   parentType: GraphQLObjectType,
   responseName: string,
   fieldNodes: Array<FieldNode>,
 ): FieldPlan | undefined {
-  const fieldDef = getFieldDefForPlan(plan.schema, parentType, fieldNodes[0]);
+  const fieldDef = getFieldDefForPlan(plan.__schema, parentType, fieldNodes[0]);
   if (!fieldDef) {
     return undefined;
   }
@@ -292,7 +292,7 @@ function compileFieldPlan(
       returnType,
       parentType,
     },
-    ...(plan.hasIncremental ? { stream: compileStreamPlan(fieldNodes[0]!) } : {}),
+    ...(plan.__hasIncremental ? { stream: compileStreamPlan(fieldNodes[0]!) } : {}),
   };
 
   let fieldPlan: FieldPlan;
@@ -761,7 +761,7 @@ function tryReadBareVariableArguments(
   return args;
 }
 
-function compileReturnTypeSubfields(plan: InternalExecutionPlan, fieldPlan: FieldPlan): void {
+function compileReturnTypeSubfields(plan: ExecutionPlan, fieldPlan: FieldPlan): void {
   const namedType = unwrapToNamedOutputType(fieldPlan.fieldDef.type);
 
   if (isObjectType(namedType)) {
@@ -774,7 +774,7 @@ function compileReturnTypeSubfields(plan: InternalExecutionPlan, fieldPlan: Fiel
   }
 
   if (isAbstractType(namedType)) {
-    const possibleTypes = plan.schema.getPossibleTypes(namedType as GraphQLAbstractType);
+    const possibleTypes = plan.__schema.getPossibleTypes(namedType as GraphQLAbstractType);
     for (const concrete of possibleTypes) {
       const subfields = collectAndStoreSubfields(plan, fieldPlan.fieldNodes, concrete);
       if (subfields) {
@@ -786,19 +786,19 @@ function compileReturnTypeSubfields(plan: InternalExecutionPlan, fieldPlan: Fiel
 }
 
 function storeSubfieldExecutions(
-  plan: InternalExecutionPlan,
+  plan: ExecutionPlan,
   parentFieldNodes: Array<FieldNode>,
   returnType: GraphQLObjectType,
   subfields: Map<string, Array<FieldNode>>,
 ): void {
   // Incremental docs keep classic collect / deferred groups at runtime.
-  if (plan.hasIncremental) {
+  if (plan.__hasIncremental) {
     return;
   }
   let executions: PlannedFieldExecution[] | undefined;
-  if (!plan.collectionDependsOnVariables) {
+  if (!plan.__collectionDependsOnVariables) {
     executions = buildFieldExecutions(plan, returnType, subfields);
-  } else if (plan.skipIncludePredicates) {
+  } else if (plan.__skipIncludePredicates) {
     executions = buildExecutionsFromParentFieldNodes(plan, returnType, parentFieldNodes, subfields);
     if (executions == null) {
       // Defer/stream inside a sub-selection , leave unset so runtime collects.
@@ -807,10 +807,10 @@ function storeSubfieldExecutions(
   } else {
     return;
   }
-  let byType = plan.subfieldExecutionsByNodes.get(parentFieldNodes);
+  let byType = plan.__subfieldExecutionsByNodes.get(parentFieldNodes);
   if (!byType) {
     byType = new WeakMap();
-    plan.subfieldExecutionsByNodes.set(parentFieldNodes, byType);
+    plan.__subfieldExecutionsByNodes.set(parentFieldNodes, byType);
   }
   byType.set(returnType, executions);
 }
@@ -832,7 +832,7 @@ export function filterPlannedExecutions(
 }
 
 function collectAndStoreSubfields(
-  plan: InternalExecutionPlan,
+  plan: ExecutionPlan,
   fieldNodes: Array<FieldNode>,
   returnType: GraphQLObjectType,
 ): Map<string, Array<FieldNode>> | undefined {
@@ -841,18 +841,18 @@ function collectAndStoreSubfields(
     fields: Map<string, Array<FieldNode>>;
     patches?: ReadonlyArray<any>;
   }> = [];
-  if (plan.collectionDependsOnVariables) {
+  if (plan.__collectionDependsOnVariables) {
     const a = collectSubFields(
-      plan.schema,
-      plan.fragments,
-      plan.collectVariablesFalse,
+      plan.__schema,
+      plan.__fragments,
+      plan.__collectVariablesFalse,
       returnType,
       fieldNodes,
     );
     const b = collectSubFields(
-      plan.schema,
-      plan.fragments,
-      plan.collectVariablesTrue,
+      plan.__schema,
+      plan.__fragments,
+      plan.__collectVariablesTrue,
       returnType,
       fieldNodes,
     );
@@ -860,8 +860,8 @@ function collectAndStoreSubfields(
     patches = [...a.patches, ...b.patches];
   } else {
     const collected = collectSubFields(
-      plan.schema,
-      plan.fragments,
+      plan.__schema,
+      plan.__fragments,
       EMPTY_VARIABLE_VALUES,
       returnType,
       fieldNodes,
@@ -870,19 +870,19 @@ function collectAndStoreSubfields(
     patches = collected.patches;
   }
 
-  let byType = plan.subfieldsByNodes.get(fieldNodes);
+  let byType = plan.__subfieldsByNodes.get(fieldNodes);
   if (!byType) {
     byType = new WeakMap();
-    plan.subfieldsByNodes.set(fieldNodes, byType);
+    plan.__subfieldsByNodes.set(fieldNodes, byType);
   }
   byType.set(returnType, fields);
 
   const primary = fieldNodes[0];
   if (primary) {
-    let byTypeForNode = plan.subfieldsByFieldNode.get(primary);
+    let byTypeForNode = plan.__subfieldsByFieldNode.get(primary);
     if (!byTypeForNode) {
       byTypeForNode = new WeakMap();
-      plan.subfieldsByFieldNode.set(primary, byTypeForNode);
+      plan.__subfieldsByFieldNode.set(primary, byTypeForNode);
     }
     byTypeForNode.set(returnType, fields);
   }
@@ -899,11 +899,11 @@ function collectAndStoreSubfields(
  * Planned subfield execution list for a stable parent field + concrete type.
  */
 export function getPlannedSubfieldExecutions(
-  plan: InternalExecutionPlan,
+  plan: ExecutionPlan,
   fieldNodes: ReadonlyArray<FieldNode>,
   returnType: GraphQLObjectType,
 ): ReadonlyArray<PlannedFieldExecution> | undefined {
-  return plan.subfieldExecutionsByNodes.get(fieldNodes)?.get(returnType);
+  return plan.__subfieldExecutionsByNodes.get(fieldNodes)?.get(returnType);
 }
 
 export function unionFieldMaps(

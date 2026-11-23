@@ -17,9 +17,9 @@ safe argument reads are already prepared, so each request does less AST work.
 
 ## What is compiled
 
-For an eligible `(schema, document, operationName)`, public `execute` get-or-compiles an opaque
-`ExecutionPlan` (or uses `args.plan` when you pass one from `compileExecutionPlan`). Internally the
-warm interpreter holds:
+For an eligible `(schema, document, operationName)`, public `execute` get-or-compiles an
+`ExecutionPlan` (or uses `args.plan` when you pass one from `compileExecutionPlan`). Plan fields are
+`__`-prefixed and marked `@internal` (do not use from app code). The warm interpreter holds:
 
 | Piece                | Role                                                                                                                                                |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -101,7 +101,7 @@ import { compileExecutionPlan, execute, isExecutionPlan } from '@graphql-tools/e
 // Same DocumentNode identity → get-or-compile plan, then execute
 const result = await execute({ schema, document, variableValues })
 
-// Explicit compile + warm reuse (opaque plan; internal fields are not public)
+// Explicit compile + warm reuse (`__` fields are @internal — do not use)
 const plan = compileExecutionPlan({ schema, document })
 if (isExecutionPlan(plan)) {
   const warm = await execute({ schema, document, plan, variableValues })

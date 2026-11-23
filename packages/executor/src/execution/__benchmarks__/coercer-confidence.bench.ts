@@ -1,6 +1,6 @@
 /**
  * Isolate variable/input-object coerce cost for baseline vs hoisted coercers.
- * Warm plan: compile once (internal module), then only call plan.coerceVariables.
+ * Warm plan: compile once (internal module), then only call plan.__coerceVariables.
  *
  * Coerce-only cases need the internal plan module and only run against tip.
  * Coerce+execute cases always run (master vs tip compare).
@@ -170,7 +170,7 @@ test('coercer confidence (coerce-only + coerce+execute)', async ({ bench }) => {
       () => {
         for (let i = 0; i < 500; i++) {
           smallCoerceN++;
-          const result = smallPlan.coerceVariables(makeSmallRaw(smallCoerceN));
+          const result = smallPlan.__coerceVariables(makeSmallRaw(smallCoerceN));
           if ('errors' in result) {
             throw new Error('coerce failed');
           }
@@ -184,7 +184,7 @@ test('coercer confidence (coerce-only + coerce+execute)', async ({ bench }) => {
       () => {
         for (let i = 0; i < 500; i++) {
           defaultsCoerceN++;
-          const result = defaultsPlan.coerceVariables({});
+          const result = defaultsPlan.__coerceVariables({});
           if ('errors' in result) {
             throw new Error('coerce failed');
           }
@@ -198,7 +198,7 @@ test('coercer confidence (coerce-only + coerce+execute)', async ({ bench }) => {
       () => {
         for (let i = 0; i < 50; i++) {
           heavyCoerceN++;
-          const result = heavyPlan.coerceVariables(makeHeavyRaw(heavyCoerceN));
+          const result = heavyPlan.__coerceVariables(makeHeavyRaw(heavyCoerceN));
           if ('errors' in result) {
             throw new Error('coerce failed');
           }

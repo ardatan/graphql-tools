@@ -105,9 +105,9 @@ describe('execution plan warm-path edges', () => {
       if (!isExecutionPlan(plan)) {
         return;
       }
-      const petsNodes = plan.rootFields.get('pets')!;
-      const dogFields = plan.subfieldsByNodes.get(petsNodes)?.get(Dog);
-      const catFields = plan.subfieldsByNodes.get(petsNodes)?.get(Cat);
+      const petsNodes = plan.__rootFields.get('pets')!;
+      const dogFields = plan.__subfieldsByNodes.get(petsNodes)?.get(Dog);
+      const catFields = plan.__subfieldsByNodes.get(petsNodes)?.get(Cat);
       expect(dogFields).toBeDefined();
       expect(catFields).toBeDefined();
       const dogNameNodes = dogFields!.get('name')!;
@@ -232,9 +232,9 @@ describe('execution plan warm-path edges', () => {
       const plan = compileExecutionPlan({ schema, document });
       expect(isExecutionPlan(plan)).toBe(true);
       if (isExecutionPlan(plan)) {
-        expect(plan.skipIncludePredicates).toBe(true);
-        expect(plan.rootExecutions).toBeDefined();
-        expect(plan.rootExecutions!.some(e => e.responseName === 'b' && e.include != null)).toBe(
+        expect(plan.__skipIncludePredicates).toBe(true);
+        expect(plan.__rootExecutions).toBeDefined();
+        expect(plan.__rootExecutions!.some(e => e.responseName === 'b' && e.include != null)).toBe(
           true,
         );
       }
@@ -257,8 +257,8 @@ describe('execution plan warm-path edges', () => {
       const plan = compileExecutionPlan({ schema, document });
       expect(isExecutionPlan(plan)).toBe(true);
       if (isExecutionPlan(plan)) {
-        expect(plan.skipIncludePredicates).toBe(true);
-        expect(plan.rootExecutions).toBeDefined();
+        expect(plan.__skipIncludePredicates).toBe(true);
+        expect(plan.__rootExecutions).toBeDefined();
       }
       expect(executeSync({ schema, document, variableValues: { s: false } })).toEqual({
         data: { a: 'a', b: 'b', c: 'c' },
@@ -318,7 +318,7 @@ describe('execution plan warm-path edges', () => {
       const plan = compileExecutionPlan({ schema, document });
       expect(isExecutionPlan(plan)).toBe(true);
       if (isExecutionPlan(plan)) {
-        const itemsPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('items')!);
+        const itemsPlan = plan.__fieldPlanByNodes.get(plan.__rootFields.get('items')!);
         expect(itemsPlan?.kind).toBe('List');
         if (itemsPlan?.kind === 'List') {
           expect(itemsPlan.objectType?.name).toBe('Item');
@@ -431,7 +431,7 @@ describe('execution plan warm-path edges', () => {
       if (!isExecutionPlan(plan)) {
         return;
       }
-      const coerced = plan.coerceVariables({});
+      const coerced = plan.__coerceVariables({});
       expect('errors' in coerced).toBe(true);
     });
 
@@ -442,7 +442,7 @@ describe('execution plan warm-path edges', () => {
       if (!isExecutionPlan(plan)) {
         return;
       }
-      const coerced = plan.coerceVariables({ name: null });
+      const coerced = plan.__coerceVariables({ name: null });
       expect('errors' in coerced).toBe(true);
     });
 
@@ -453,7 +453,7 @@ describe('execution plan warm-path edges', () => {
       if (!isExecutionPlan(plan)) {
         return;
       }
-      const coerced = plan.coerceVariables({});
+      const coerced = plan.__coerceVariables({});
       expect('variableValues' in coerced).toBe(true);
       if ('variableValues' in coerced) {
         expect(coerced.variableValues.coerced).not.toHaveProperty('name');
@@ -470,7 +470,7 @@ describe('execution plan warm-path edges', () => {
       if (!isExecutionPlan(plan)) {
         return;
       }
-      const coerced = plan.coerceVariables({ name: null });
+      const coerced = plan.__coerceVariables({ name: null });
       expect('variableValues' in coerced).toBe(true);
       if ('variableValues' in coerced) {
         expect(coerced.variableValues.coerced['name']).toBeNull();
@@ -507,7 +507,7 @@ describe('execution plan warm-path edges', () => {
       if (!isExecutionPlan(plan)) {
         return;
       }
-      const coerced = plan.coerceVariables({ name: 'Ada' });
+      const coerced = plan.__coerceVariables({ name: 'Ada' });
       expect('variableValues' in coerced).toBe(true);
       if ('variableValues' in coerced) {
         expect(coerced.variableValues.sources['name']).toMatchObject({
@@ -568,7 +568,7 @@ describe('execution plan warm-path edges', () => {
       const plan = compileExecutionPlan({ schema, document });
       expect(isExecutionPlan(plan)).toBe(true);
       if (isExecutionPlan(plan)) {
-        const fieldPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('thing')!);
+        const fieldPlan = plan.__fieldPlanByNodes.get(plan.__rootFields.get('thing')!);
         expect(fieldPlan?.skipIsTypeOf).toBe(false);
       }
       expect(executeSync({ schema, document })).toEqual({

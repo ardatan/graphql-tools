@@ -98,12 +98,11 @@ import {
   getPlannedFieldPlan,
   getPlannedSubfieldExecutions,
   getPlannedSubfields,
-  isExecutionPlan as isInternalExecutionPlan,
+  isExecutionPlan as isCompiledExecutionPlan,
   resolvePlanForExecute,
   type ArgumentReader,
   type CompileExecutionPlanArgs,
   type FieldPlan,
-  type InternalExecutionPlan,
   type LeafListFieldPlan,
   type ListFieldPlan,
   type PlannedFieldExecution,
@@ -140,26 +139,22 @@ export type {
 export { flattenIncrementalResults, isIncrementalResults, subscribe } from './executeSubscribe.js';
 
 /**
- * Compile a cacheable opaque {@link ExecutionPlan}.
+ * Compile a cacheable {@link ExecutionPlan}.
  *
- * Pass the result to `execute({ plan })` for warm reuse. Internal plan fields
- * are not part of the public TypeScript API.
+ * Pass the result to `execute({ plan })` for warm reuse. Plan fields are
+ * `__`-prefixed and `@internal` — do not rely on them from application code.
  */
 export function compileExecutionPlan(
   args: CompileExecutionPlanArgs,
 ): ExecutionPlan | ReadonlyArray<GraphQLError> | undefined {
-  const result = compileInternalExecutionPlan(args);
-  if (isInternalExecutionPlan(result)) {
-    return result as unknown as ExecutionPlan;
-  }
-  return result;
+  return compileInternalExecutionPlan(args);
 }
 
-/** True when `compileExecutionPlan` returned a usable opaque plan. */
+/** True when `compileExecutionPlan` returned a usable plan. */
 export function isExecutionPlan(
   value: ExecutionPlan | ReadonlyArray<GraphQLError> | undefined | null,
 ): value is ExecutionPlan {
-  return isInternalExecutionPlan(value as never);
+  return isCompiledExecutionPlan(value);
 }
 
 function formatContextBuildErrors(errors: ReadonlyArray<GraphQLError>): SingularExecutionResult {
@@ -244,7 +239,7 @@ export function collectFieldsFromContext(
   if (exeContext.collectFieldsDependsOnVariables) {
     // Incremental docs: predicate programs omit @defer/@stream patches — use
     // classic collect (#7). Non-incremental keeps path-aware skip/include.
-    if (exeContext.skipIncludeFieldPredicates && !exeContext.plan?.hasIncremental) {
+    if (exeContext.skipIncludeFieldPredicates && !exeContext.plan?.__hasIncremental) {
       const filtered = filterConditionalCollect(
         getConditionalCollectProgram(
           exeContext.schema,
@@ -285,7 +280,7 @@ export function collectSubfieldsFromContext(
   fieldNodes: Array<FieldNode>,
 ): FieldsAndPatches {
   if (exeContext.collectFieldsDependsOnVariables) {
-    if (exeContext.skipIncludeFieldPredicates && !exeContext.plan?.hasIncremental) {
+    if (exeContext.skipIncludeFieldPredicates && !exeContext.plan?.__hasIncremental) {
       return collectSubfieldsWithPredicates(exeContext, returnType, fieldNodes);
     }
     return collectSubfieldsWithVariables(exeContext, returnType, fieldNodes);
@@ -521,7 +516,7 @@ export function execute<TData = any, TVariables = any, TContext = any>(
 ): MaybePromise<SingularExecutionResult<TData> | IncrementalExecutionResults<TData>> {
   const knownPlan =
     args.plan != null
-      ? (args.plan as unknown as InternalExecutionPlan)
+      ? args.plan
       : (resolvePlanForExecute({
           schema: args.schema,
           document: args.document,
@@ -686,13 +681,13 @@ function getCollectFieldsDependsOnVariables(document: DocumentNode): boolean {
  * @internal
  */
 /**
- * @param knownPlan When an {@link InternalExecutionPlan} is passed, use it.
+ * @param knownPlan When an {@link ExecutionPlan} is passed, use it.
  *   Pass `null` to skip plan resolve (classic fallback). Omit to
  *   resolve/compile from the WeakMap cache (or `args.plan` when set).
  */
 export function buildExecutionContext<TData = any, TVariables = any, TContext = any>(
   args: ExecutionArgs<TData, TVariables, TContext>,
-  knownPlan?: InternalExecutionPlan | null,
+  knownPlan?: ExecutionPlan | null,
 ): ReadonlyArray<GraphQLError> | ExecutionContext {
   const {
     schema,
@@ -768,7 +763,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
   const plan =
     knownPlan === undefined
       ? args.plan != null
-        ? (args.plan as unknown as InternalExecutionPlan)
+        ? args.plan
         : resolvePlanForExecute({ schema, document, operationName })
       : (knownPlan ?? undefined);
 
@@ -778,9 +773,12 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
 
   let variableValues: VariableValues;
   if (plan != null) {
-    const coerced = plan.coerceVariables(rawVariableValues as { readonly [key: string]: unknown }, {
-      hideSuggestions,
-    });
+    const coerced = plan.__coerceVariables(
+      rawVariableValues as { readonly [key: string]: unknown },
+      {
+        hideSuggestions,
+      },
+    );
     if ('errors' in coerced) {
       return coerced.errors;
     }
@@ -982,7 +980,7 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
   exeContext: ExecutionContext<TVariables, TContext>,
 ): MaybePromise<TData> {
   const { operation, schema, fragments, variableValues, rootValue, plan } = exeContext;
-  const rootType = plan?.rootType ?? getDefinedRootType(schema, operation.operation, [operation]);
+  const rootType = plan?.__rootType ?? getDefinedRootType(schema, operation.operation, [operation]);
   if (rootType == null) {
     throw new GraphQLError(
       `Schema is not configured to execute ${operation.operation} operation.`,
@@ -997,11 +995,11 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
   // avoid a `hasIncremental` read on the stable/skip warm path.
   if (
     plan &&
-    plan.operation === operation &&
-    plan.rootType === rootType &&
-    plan.rootExecutions != null
+    plan.__operation === operation &&
+    plan.__rootType === rootType &&
+    plan.__rootExecutions != null
   ) {
-    if (!plan.collectionDependsOnVariables) {
+    if (!plan.__collectionDependsOnVariables) {
       const path = undefined;
       if (operation.operation === 'mutation') {
         return executeFieldsSerially(
@@ -1009,8 +1007,8 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
           rootType,
           rootValue,
           path,
-          plan.rootFields,
-          plan.rootExecutions,
+          plan.__rootFields,
+          plan.__rootExecutions,
         );
       }
       return executeFields(
@@ -1018,15 +1016,15 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
         rootType,
         rootValue,
         path,
-        plan.rootFields,
+        plan.__rootFields,
         undefined,
-        plan.rootExecutions,
+        plan.__rootExecutions,
       ) as TData;
     }
-    if (plan.skipIncludePredicates) {
+    if (plan.__skipIncludePredicates) {
       const path = undefined;
       const filtered = filterPlannedExecutions(
-        plan.rootExecutions,
+        plan.__rootExecutions,
         variableValues as VariableValues,
       );
       if (operation.operation === 'mutation') {
@@ -1042,7 +1040,7 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
         rootType,
         rootValue,
         path,
-        plan.rootFields,
+        plan.__rootFields,
         undefined,
         filtered,
       ) as TData;
@@ -1321,7 +1319,7 @@ function executeFields(
     path === undefined &&
     asyncPayloadRecord == null &&
     exeContext.plan != null &&
-    !exeContext.plan.hasIncremental;
+    !exeContext.plan.__hasIncremental;
   let rootRunner: PlannedWorkRunner | undefined;
   try {
     if (plannedExecutions != null) {
@@ -1333,7 +1331,7 @@ function executeFields(
         // Object-list (skipIsTypeOf items): thin nested walk (nested bench).
         if (
           exeContext.plan != null &&
-          !exeContext.plan.hasIncremental &&
+          !exeContext.plan.__hasIncremental &&
           asyncPayloadRecord == null
         ) {
           if (fieldPlan.kind === 'LeafList') {
@@ -3011,7 +3009,7 @@ function getStreamValues(
     } {
   // Stage A shape: non-incremental plan attached ⇒ no @stream.
   const plan = exeContext.plan;
-  if (plan != null && !plan.hasIncremental) {
+  if (plan != null && !plan.__hasIncremental) {
     return;
   }
 
@@ -3023,7 +3021,7 @@ function getStreamValues(
   // Incremental plan: use compiled stream facts when present.
   if (plan != null) {
     const planned =
-      plan.fieldPlanByNodes.get(fieldNodes) ?? plan.fieldPlanByFieldNode.get(fieldNodes[0]!);
+      plan.__fieldPlanByNodes.get(fieldNodes) ?? plan.__fieldPlanByFieldNode.get(fieldNodes[0]!);
     const stream = planned?.stream;
     // Only trust an explicit `none`. Missing stream metadata can happen when
     // mixed @skip/@include extremes omitted the field at compile time; fall
@@ -3762,8 +3760,8 @@ function collectAndExecuteSubfields(
   const plan = exeContext.plan;
   const plannedSubfields =
     plan != null &&
-    !plan.hasIncremental &&
-    (!plan.collectionDependsOnVariables || plan.skipIncludePredicates)
+    !plan.__hasIncremental &&
+    (!plan.__collectionDependsOnVariables || plan.__skipIncludePredicates)
       ? getPlannedSubfields(plan, fieldNodes, returnType)
       : undefined;
   if (plannedSubfields && exeContext.nulledPaths == null) {
@@ -3771,8 +3769,8 @@ function collectAndExecuteSubfields(
       plan != null ? getPlannedSubfieldExecutions(plan, fieldNodes, returnType) : undefined;
     // Variable-dependent plans without a bound execution list cannot safely
     // walk the union subfield map — fall through to classic collect.
-    if (!(plan?.skipIncludePredicates && plannedExecutions == null)) {
-      if (plannedExecutions != null && plan?.skipIncludePredicates) {
+    if (!(plan?.__skipIncludePredicates && plannedExecutions == null)) {
+      if (plannedExecutions != null && plan?.__skipIncludePredicates) {
         plannedExecutions = filterPlannedExecutions(
           plannedExecutions,
           exeContext.variableValues as VariableValues,
@@ -3784,7 +3782,7 @@ function collectAndExecuteSubfields(
         plannedExecutions != null &&
         asyncPayloadRecord == null &&
         plan != null &&
-        !plan.hasIncremental
+        !plan.__hasIncremental
       ) {
         const thin = executePlannedSyncObjectFields(
           exeContext,
