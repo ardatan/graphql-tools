@@ -10,14 +10,11 @@ import {
   GraphQLAbstractType,
   GraphQLError,
   GraphQLField,
-  GraphQLFieldResolver,
-  GraphQLFormattedError,
   GraphQLLeafType,
   GraphQLList,
   GraphQLObjectType,
   GraphQLOutputType,
   GraphQLSchema,
-  GraphQLTypeResolver,
   isAbstractType,
   isLeafType,
   isListType,
@@ -54,15 +51,11 @@ import {
   promiseReduce,
   VariableValues,
   type FieldsAndPatches,
-  type IncrementalSpec,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
-import { DisposableSymbols } from '@whatwg-node/disposablestack';
 import {
-  fakePromise,
   handleMaybePromise,
   isPromise,
-  mapAsyncIterator,
   type MaybePromise,
 } from '@whatwg-node/promise-helpers';
 import { coerceError } from './coerceError.js';
@@ -72,7 +65,6 @@ import {
   type ConditionalCollectProgram,
   type ConditionalFieldEntry,
 } from './conditionalCollect.js';
-import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import {
   cancelAsyncPayload,
   collectInitialPending,
@@ -84,9 +76,6 @@ import {
   StreamRecord,
   yieldSubsequentPayloads,
   type AsyncPayloadRecord,
-  type CompletedResult,
-  type IncrementalPublisherState,
-  type PendingResult,
   type StreamGroup,
 } from './incremental.js';
 import {
@@ -108,11 +97,17 @@ import {
   getPlannedSubfields,
   isExecutionPlan,
   type ArgumentReader,
-  type ExecutionPlan,
   type FieldPlan,
   type PlannedFieldExecution,
 } from './plan.js';
 import { promiseForObject } from './promiseForObject.js';
+import type {
+  ExecutionArgs,
+  ExecutionContext,
+  IncrementalExecutionResults,
+  InitialIncrementalExecutionResult,
+  SingularExecutionResult,
+} from './executeTypes.js';
 
 export { defaultFieldResolver, defaultTypeResolver };
 export {
@@ -145,11 +140,30 @@ const EMPTY_VARIABLE_VALUES: VariableValues = Object.freeze({
 });
 const isGraphQL17 = versionInfo.major >= 17;
 
-export interface SingularExecutionResult<TData = any, TExtensions = any> {
-  errors?: ReadonlyArray<GraphQLError>;
-  data?: TData | null;
-  extensions?: TExtensions;
-}
+export type {
+  ExecutionArgs,
+  ExecutionContext,
+  FormattedExecutionResult,
+  FormattedIncrementalDeferResult,
+  FormattedIncrementalResult,
+  FormattedIncrementalStreamResult,
+  FormattedInitialIncrementalExecutionResult,
+  FormattedSubsequentIncrementalExecutionResult,
+  IncrementalDeferResult,
+  IncrementalExecutionResults,
+  IncrementalResult,
+  IncrementalStreamResult,
+  InitialIncrementalExecutionResult,
+  SingularExecutionResult,
+  SubsequentIncrementalExecutionResult,
+} from './executeTypes.js';
+
+export {
+  flattenIncrementalResults,
+  isIncrementalResults,
+  subscribe,
+} from './executeSubscribe.js';
+
 
 /**
  * Cross-execution collectFields cache for documents whose `@skip` /
@@ -381,7 +395,7 @@ const getArgumentValuesMemo = memoize3(function getArgumentValuesMemo(
   return getArgumentValues(fieldDef, fieldNode, variableValues as any);
 });
 
-function getFieldArgumentValues(
+export function getFieldArgumentValues(
   fieldDef: GraphQLField<unknown, unknown>,
   fieldNode: FieldNode,
   variableValues: VariableValues,
@@ -471,225 +485,6 @@ const getStreamUsageMemo = memoize2(function getStreamUsageMemo(
  * Namely, schema of the type system that is currently executing,
  * and the fragments defined in the query document
  */
-export interface ExecutionContext<TVariables = any, TContext = any> {
-  schema: GraphQLSchema;
-  fragments: Record<string, FragmentDefinitionNode>;
-  rootValue: unknown;
-  contextValue: TContext;
-  operation: OperationDefinitionNode;
-  variableValues: VariableValues<TVariables>;
-  /**
-   * True when collected field sets can change with variableValues because
-   * `@skip` / `@include` / `@defer` use a variable `if` (or `@defer` `label`)
-   * in this document.
-   */
-  collectFieldsDependsOnVariables: boolean;
-  /**
-   * True when collected fields depend on variables, so collect can try a
-   * compiled `@skip`/`@include` predicate program (fields + fragments).
-   * Program compile returns null on `@defer`/`@stream` → classic collect.
-   */
-  skipIncludeFieldPredicates: boolean;
-  /** Precomputed for GraphQLResolveInfo (GQL16 coerced map vs GQL17 VariableValues). */
-  resolveInfoVariableValues: GraphQLResolveInfo['variableValues'];
-  fieldResolver: GraphQLFieldResolver<any, TContext>;
-  typeResolver: GraphQLTypeResolver<any, TContext>;
-  subscribeFieldResolver: GraphQLFieldResolver<any, TContext>;
-  errors: Array<GraphQLError>;
-  subsequentPayloads: Set<AsyncPayloadRecord>;
-  incrementalSpec: IncrementalSpec;
-  publisher?: IncrementalPublisherState;
-  /**
-   * Allocated only when the operation actually uses @defer/@stream so
-   * default execution does not pay for null-bubble bookkeeping.
-   */
-  nulledPaths?: Array<ReadonlyArray<string | number>>;
-  /**
-   * Per-execution FieldNode → DeferUsage. Document AST nodes are reused
-   * across requests, so this must not live at module scope.
-   */
-  deferUsageByFieldNode?: WeakMap<FieldNode, DeferUsage | undefined>;
-  /**
-   * Field-node arrays from a planned group → that group's DeferUsageSet.
-   * List items share the same array identity, so overlapping sibling
-   * usages stay stable across async item completion.
-   */
-  deferUsagesForFieldNodes?: WeakMap<ReadonlyArray<FieldNode>, DeferUsageSet>;
-  /**
-   * Memoize incremental subfield collect per fieldNodes array and
-   * concrete return type so list items of the same type reuse DeferUsage
-   * objects without sharing type-conditioned selections across a
-   * heterogeneous interface or union list.
-   */
-  incrementalSubfieldCache?: WeakMap<
-    ReadonlyArray<FieldNode>,
-    WeakMap<GraphQLObjectType, ReturnType<typeof collectIncrementalSubfields>>
-  >;
-  signal?: AbortSignal;
-  getAbortSignal: () => AbortSignal | undefined;
-  getAsyncHelpers: () => {
-    promiseAll: typeof Promise.all;
-    track: (maybePromises: ReadonlyArray<unknown>) => void;
-  };
-  onSignalAbort?(handler: () => void): void;
-  detachSignalListener?(): void;
-  signalPromise?: Promise<never>;
-  schemaCoordinateInErrors?: boolean;
-  /**
-   * Execution plan from `compileExecutionPlan` when available. Stable docs
-   * reuse planned field maps; incremental / variable-collect docs still attach
-   * the plan for per-field facts via FieldNode keys.
-   */
-  plan?: ExecutionPlan;
-}
-
-export interface FormattedExecutionResult<
-  TData = Record<string, unknown>,
-  TExtensions = Record<string, unknown>,
-> {
-  errors?: ReadonlyArray<GraphQLFormattedError>;
-  data?: TData | null;
-  extensions?: TExtensions;
-}
-
-export interface IncrementalExecutionResults<
-  TData = Record<string, unknown>,
-  TExtensions = Record<string, unknown>,
-> {
-  initialResult: InitialIncrementalExecutionResult<TData, TExtensions>;
-  subsequentResults: AsyncGenerator<
-    SubsequentIncrementalExecutionResult<TData, TExtensions>,
-    void,
-    void
-  >;
-}
-
-export interface InitialIncrementalExecutionResult<
-  TData = Record<string, unknown>,
-  TExtensions = Record<string, unknown>,
-> extends SingularExecutionResult<TData, TExtensions> {
-  hasNext: boolean;
-  pending?: ReadonlyArray<PendingResult>;
-  incremental?: ReadonlyArray<IncrementalResult<TData, TExtensions>>;
-  completed?: ReadonlyArray<CompletedResult>;
-  extensions?: TExtensions;
-}
-
-export interface FormattedInitialIncrementalExecutionResult<
-  TData = Record<string, unknown>,
-  TExtensions = Record<string, unknown>,
-> extends FormattedExecutionResult<TData, TExtensions> {
-  hasNext: boolean;
-  pending?: ReadonlyArray<PendingResult>;
-  incremental?: ReadonlyArray<FormattedIncrementalResult<TData, TExtensions>>;
-  completed?: ReadonlyArray<CompletedResult>;
-  extensions?: TExtensions;
-}
-
-export interface SubsequentIncrementalExecutionResult<
-  TData = Record<string, unknown>,
-  TExtensions = Record<string, unknown>,
-> {
-  hasNext: boolean;
-  pending?: ReadonlyArray<PendingResult>;
-  incremental?: ReadonlyArray<IncrementalResult<TData, TExtensions>>;
-  completed?: ReadonlyArray<CompletedResult>;
-  extensions?: TExtensions;
-}
-
-export interface FormattedSubsequentIncrementalExecutionResult<
-  TData = Record<string, unknown>,
-  TExtensions = Record<string, unknown>,
-> {
-  hasNext: boolean;
-  pending?: ReadonlyArray<PendingResult>;
-  incremental?: ReadonlyArray<FormattedIncrementalResult<TData, TExtensions>>;
-  completed?: ReadonlyArray<CompletedResult>;
-  extensions?: TExtensions;
-}
-
-export interface IncrementalDeferResult<
-  TData = Record<string, unknown>,
-  TExtensions = Record<string, unknown>,
-> extends SingularExecutionResult<TData, TExtensions> {
-  path?: ReadonlyArray<string | number>;
-  label?: string;
-  id?: string;
-  subPath?: ReadonlyArray<string | number>;
-}
-
-export interface FormattedIncrementalDeferResult<
-  TData = Record<string, unknown>,
-  TExtensions = Record<string, unknown>,
-> extends FormattedExecutionResult<TData, TExtensions> {
-  path?: ReadonlyArray<string | number>;
-  label?: string;
-  id?: string;
-  subPath?: ReadonlyArray<string | number>;
-}
-
-export interface IncrementalStreamResult<
-  TData = Array<unknown>,
-  TExtensions = Record<string, unknown>,
-> {
-  errors?: ReadonlyArray<GraphQLError>;
-  items?: TData | null;
-  path?: ReadonlyArray<string | number>;
-  label?: string;
-  id?: string;
-  extensions?: TExtensions;
-}
-
-export interface FormattedIncrementalStreamResult<
-  TData = Array<unknown>,
-  TExtensions = Record<string, unknown>,
-> {
-  errors?: ReadonlyArray<GraphQLFormattedError>;
-  items?: TData | null;
-  path?: ReadonlyArray<string | number>;
-  label?: string;
-  id?: string;
-  extensions?: TExtensions;
-}
-
-export type IncrementalResult<
-  TData = Record<string, unknown>,
-  TExtensions = Record<string, unknown>,
-> = IncrementalDeferResult<TData, TExtensions> | IncrementalStreamResult<TData, TExtensions>;
-
-export type FormattedIncrementalResult<
-  TData = Record<string, unknown>,
-  TExtensions = Record<string, unknown>,
-> =
-  | FormattedIncrementalDeferResult<TData, TExtensions>
-  | FormattedIncrementalStreamResult<TData, TExtensions>;
-
-export interface ExecutionArgs<TData = any, TVariables = any, TContext = any> {
-  schema: GraphQLSchema;
-  document: TypedDocumentNode<TData, TVariables>;
-  rootValue?: unknown;
-  contextValue?: TContext;
-  variableValues?: TVariables;
-  operationName?: Maybe<string>;
-  fieldResolver?: Maybe<GraphQLFieldResolver<any, TContext>>;
-  typeResolver?: Maybe<GraphQLTypeResolver<any, TContext>>;
-  subscribeFieldResolver?: Maybe<GraphQLFieldResolver<any, TContext>>;
-  signal?: AbortSignal;
-  schemaCoordinateInErrors?: boolean;
-  /**
-   * When true, omit "Did you mean ...?" suggestion text from variable coercion
-   * errors with GraphQL 17. GraphQL 16 ignores this option.
-   * Matches `graphql@17`'s `ExecutionArgs.hideSuggestions`.
-   */
-  hideSuggestions?: Maybe<boolean>;
-  /**
-   * Incremental delivery payload format.
-   *
-   * HTTP mapping lives in `INCREMENTAL_DELIVERY_SPECS` from `@graphql-tools/utils`.
-   * `'v0.1'` is the default.
-   */
-  incrementalSpec?: IncrementalSpec;
-}
 
 /**
  * Implements the "Executing requests" section of the GraphQL specification,
@@ -731,7 +526,7 @@ export function execute<TData = any, TVariables = any, TContext = any>(
   return executeImpl(exeContext);
 }
 
-function executeImpl<TData = any, TVariables = any, TContext = any>(
+export function executeImpl<TData = any, TVariables = any, TContext = any>(
   exeContext: ExecutionContext<TVariables, TContext>,
 ): MaybePromise<SingularExecutionResult<TData> | IncrementalExecutionResults<TData>> {
   exeContext.signal?.throwIfAborted();
@@ -1122,7 +917,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
   return exeContext;
 }
 
-function buildPerEventExecutionContext(
+export function buildPerEventExecutionContext(
   exeContext: ExecutionContext,
   payload: unknown,
 ): ExecutionContext {
@@ -2940,320 +2735,6 @@ function collectAndExecuteSubfields(
   );
 
   return subFields;
-}
-
-/**
- * Implements the "Subscribe" algorithm described in the GraphQL specification,
- * including `@defer` and `@stream` as proposed in
- * https://github.com/graphql/graphql-spec/pull/742
- *
- * Returns a Promise which resolves to either an AsyncIterator (if successful)
- * or an ExecutionResult (error). The promise will be rejected if the schema or
- * other arguments to this function are invalid, or if the resolved event stream
- * is not an async iterable.
- *
- * If the client-provided arguments to this function do not result in a
- * compliant subscription, a GraphQL Response (ExecutionResult) with descriptive
- * errors and no data will be returned.
- *
- * If the source stream could not be created due to faulty subscription resolver
- * logic or underlying systems, the promise will resolve to a single
- * ExecutionResult containing `errors` and no `data`.
- *
- * If the operation succeeded, the promise resolves to an AsyncIterator, which
- * yields a stream of result representing the response stream.
- *
- * Each result may be an ExecutionResult with no `hasNext` (if executing the
- * event did not use `@defer` or `@stream`), or an
- * `InitialIncrementalExecutionResult` or `SubsequentIncrementalExecutionResult`
- * (if executing the event used `@defer` or `@stream`). In the case of
- * incremental execution results, each event produces a single
- * `InitialIncrementalExecutionResult` followed by one or more
- * `SubsequentIncrementalExecutionResult`s; all but the last have `hasNext: true`,
- * and the last has `hasNext: false`. There is no interleaving between results
- * generated from the same original event.
- *
- * Accepts an object with named arguments.
- */
-export function subscribe<TData = any, TVariables = any, TContext = any>(
-  args: ExecutionArgs<TData, TVariables, TContext>,
-): MaybePromise<
-  | AsyncGenerator<
-      | SingularExecutionResult<TData>
-      | InitialIncrementalExecutionResult<TData>
-      | SubsequentIncrementalExecutionResult<TData>,
-      void,
-      void
-    >
-  | SingularExecutionResult<TData>
-> {
-  // If a valid execution context cannot be created due to incorrect arguments,
-  // a "Response" with only errors is returned.
-  const exeContext = buildExecutionContext(args);
-
-  // Return early errors if execution context failed.
-  if (!('schema' in exeContext)) {
-    for (const error of exeContext) {
-      // @ts-expect-error - We are intentionally modifying the errors
-      const extensions = (error.extensions ||= {});
-      const httpExtensions = (extensions['http'] ||= {});
-      httpExtensions.status = 400;
-      error.extensions['code'] = 'BAD_USER_INPUT';
-    }
-    return {
-      errors: exeContext,
-    };
-  }
-
-  const resultOrStream = createSourceEventStreamImpl(exeContext);
-
-  if (isPromise(resultOrStream)) {
-    return resultOrStream.then(resolvedResultOrStream =>
-      mapSourceToResponse(exeContext, resolvedResultOrStream),
-    );
-  }
-
-  return mapSourceToResponse(exeContext, resultOrStream);
-}
-
-export function isIncrementalResults<TData>(
-  results: any,
-): results is IncrementalExecutionResults<TData> {
-  return results?.initialResult;
-}
-
-export function flattenIncrementalResults<TData>(
-  incrementalResults: IncrementalExecutionResults<TData>,
-): AsyncGenerator<
-  SubsequentIncrementalExecutionResult<TData, Record<string, unknown>>,
-  void,
-  void
-> {
-  const subsequentIterator = incrementalResults.subsequentResults;
-  let initialResultSent = false;
-  let done = false;
-  return {
-    [Symbol.asyncIterator]() {
-      return this;
-    },
-    next() {
-      if (done) {
-        return fakePromise({ value: undefined, done });
-      }
-      if (initialResultSent) {
-        return subsequentIterator.next();
-      }
-      initialResultSent = true;
-      return fakePromise({
-        value: incrementalResults.initialResult,
-        done,
-      });
-    },
-    return() {
-      done = true;
-      return subsequentIterator.return();
-    },
-    throw(error: any) {
-      done = true;
-      return subsequentIterator.throw(error);
-    },
-    [DisposableSymbols.asyncDispose]() {
-      done = true;
-      return subsequentIterator?.[DisposableSymbols.asyncDispose]?.();
-    },
-  };
-}
-
-async function* ensureAsyncIterable(
-  someExecutionResult: SingularExecutionResult | IncrementalExecutionResults,
-): AsyncGenerator<
-  | SingularExecutionResult
-  | InitialIncrementalExecutionResult
-  | SubsequentIncrementalExecutionResult,
-  void,
-  void
-> {
-  if ('initialResult' in someExecutionResult) {
-    yield* flattenIncrementalResults(someExecutionResult);
-  } else {
-    yield someExecutionResult;
-  }
-}
-
-function mapSourceToResponse(
-  exeContext: ExecutionContext,
-  resultOrStream: SingularExecutionResult | AsyncIterable<unknown>,
-): MaybePromise<
-  | AsyncGenerator<
-      | SingularExecutionResult
-      | InitialIncrementalExecutionResult
-      | SubsequentIncrementalExecutionResult,
-      void,
-      void
-    >
-  | SingularExecutionResult
-> {
-  if (!isAsyncIterable(resultOrStream)) {
-    return resultOrStream;
-  }
-
-  // For each payload yielded from a subscription, map it over the normal
-  // GraphQL `execute` function, with `payload` as the rootValue.
-  // This implements the "MapSourceToResponseEvent" algorithm described in
-  // the GraphQL specification. The `execute` function provides the
-  // "ExecuteSubscriptionEvent" algorithm, as it is nearly identical to the
-  // "ExecuteQuery" algorithm, for which `execute` is also used.
-  return flattenAsyncIterable(
-    mapAsyncIterator(
-      resultOrStream,
-      (payload: unknown) =>
-        handleMaybePromise(
-          () => executeImpl(buildPerEventExecutionContext(exeContext, payload)),
-          ensureAsyncIterable,
-        ),
-      (error: Error) => {
-        if (error instanceof AggregateError) {
-          throw new AggregateError(
-            error.errors.map(e => wrapError(e, exeContext.operation)),
-            error.message,
-          );
-        }
-        throw wrapError(error, exeContext.operation);
-      },
-    ),
-  );
-}
-
-function wrapError(error: Error, operation: OperationDefinitionNode) {
-  return new GraphQLError(error.message, {
-    originalError: error,
-    nodes: [operation],
-  });
-}
-
-function createSourceEventStreamImpl(
-  exeContext: ExecutionContext,
-): MaybePromise<AsyncIterable<unknown> | SingularExecutionResult> {
-  try {
-    const eventStream = executeSubscription(exeContext);
-    if (isPromise(eventStream)) {
-      return eventStream.then(undefined, error => ({ errors: [error] }));
-    }
-
-    return eventStream;
-  } catch (error) {
-    return { errors: [error as GraphQLError] };
-  }
-}
-
-function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIterable<unknown>> {
-  const { schema, operation, variableValues, rootValue } = exeContext;
-
-  const rootType = schema.getSubscriptionType();
-  if (rootType == null) {
-    throw new GraphQLError('Schema is not configured to execute subscription operation.', {
-      nodes: operation,
-    });
-  }
-
-  const { fields: rootFields } = collectFieldsFromContext(
-    exeContext,
-    rootType,
-    operation.selectionSet,
-  );
-  const [responseName, fieldNodes] = [...rootFields.entries()][0];
-  const fieldName = fieldNodes[0].name.value;
-  const fieldDef = getFieldDef(schema, rootType, fieldNodes[0]);
-
-  if (!fieldDef) {
-    throw new GraphQLError(`The subscription field "${fieldName}" is not defined.`, {
-      nodes: fieldNodes,
-    });
-  }
-
-  const path = addPath(undefined, responseName, rootType.name);
-  const info = buildResolveInfo(exeContext, fieldDef, fieldNodes, rootType, path);
-
-  try {
-    // Implements the "ResolveFieldEventStream" algorithm from GraphQL specification.
-    // It differs from "ResolveFieldValue" due to providing a different `resolveFn`.
-
-    // Build a JS object of arguments from the field.arguments AST, using the
-    // variables scope to fulfill any variable references.
-    const args = getFieldArgumentValues(fieldDef, fieldNodes[0], variableValues);
-
-    // The resolve function's optional third argument is a context value that
-    // is provided to every resolve function within an execution. It is commonly
-    // used to represent an authenticated user, or request-specific caches.
-    const contextValue = exeContext.contextValue;
-
-    // Call the `subscribe()` resolver or the default resolver to produce an
-    // AsyncIterable yielding raw payloads.
-    const resolveFn = fieldDef.subscribe ?? exeContext.subscribeFieldResolver;
-    const result = resolveFn(rootValue, args, contextValue, info);
-
-    if (isPromise(result)) {
-      return result
-        .then(result => assertEventStream(result, exeContext.signal, exeContext.onSignalAbort))
-        .then(undefined, error => {
-          throw locatedError(
-            error,
-            fieldNodes,
-            pathToArray(path),
-            exeContext.schemaCoordinateInErrors && info,
-          );
-        });
-    }
-
-    return assertEventStream(result, exeContext.signal, exeContext.onSignalAbort);
-  } catch (error) {
-    throw locatedError(
-      error,
-      fieldNodes,
-      pathToArray(path),
-      exeContext.schemaCoordinateInErrors && info,
-    );
-  }
-}
-
-function assertEventStream(
-  result: unknown,
-  signal?: AbortSignal,
-  onSignalAbort?: (handler: () => void) => void,
-): AsyncIterable<unknown> {
-  signal?.throwIfAborted();
-  if (result instanceof Error) {
-    throw result;
-  }
-
-  // Assert field returned an event stream, otherwise yield an error.
-  if (!isAsyncIterable(result)) {
-    throw new GraphQLError(
-      'Subscription field must return Async Iterable. ' + `Received: ${inspect(result)}.`,
-    );
-  }
-  if (onSignalAbort) {
-    return {
-      [Symbol.asyncIterator]() {
-        const asyncIterator = result[Symbol.asyncIterator]();
-
-        if (asyncIterator.return) {
-          onSignalAbort?.(() => {
-            // Abort cleanup is best-effort: contain synchronous throws and rejected promises
-            // without waiting for cleanup or preventing other abort handlers from running.
-            handleMaybePromise(
-              () => asyncIterator.return?.(),
-              () => {},
-              () => {},
-            );
-          });
-        }
-
-        return asyncIterator;
-      },
-    };
-  }
-  return result;
 }
 
 function executeStreamField(
