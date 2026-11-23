@@ -1699,17 +1699,22 @@ function executeFields(
           if (typeof property === 'function') {
             let raw: unknown;
             try {
-              // Always pass the resolver signature — `Function.length === 0`
-              // includes rest-parameter methods that still read `arguments`.
-              const info = buildPlannedResolveInfo(exeContext, fieldPlan, fieldPath, fieldNodes);
-              raw = (
-                property as (
-                  this: unknown,
-                  fieldArgs: typeof EMPTY_ARGS,
-                  contextValue: unknown,
-                  resolveInfo: GraphQLResolveInfo,
-                ) => unknown
-              ).call(sourceValue, EMPTY_ARGS, exeContext.contextValue, info);
+              // Zero-arity methods: skip resolveInfo alloc (asyncRoot claim).
+              // Same contract as the object-list thin path below. Declared
+              // arity ≥ 1 still gets the full resolver signature.
+              if (property.length === 0) {
+                raw = (property as (this: unknown) => unknown).call(sourceValue);
+              } else {
+                const info = buildPlannedResolveInfo(exeContext, fieldPlan, fieldPath, fieldNodes);
+                raw = (
+                  property as (
+                    this: unknown,
+                    fieldArgs: typeof EMPTY_ARGS,
+                    contextValue: unknown,
+                    resolveInfo: GraphQLResolveInfo,
+                  ) => unknown
+                ).call(sourceValue, EMPTY_ARGS, exeContext.contextValue, info);
+              }
             } catch (rawError) {
               const error = locatedError(
                 coerceError(rawError),

@@ -41,34 +41,35 @@ export class PlannedWorkRunner {
       return;
     }
     this._pending++;
-    // One completion per registration: sync throw from `.then`, fulfillment,
-    // and rejection must not double-decrement `_pending`.
+    // One completion per registration: a thenable that both fulfills and
+    // rejects (or a sync throw from `.then`) must not double-decrement
+    // `_pending`. Keep the guard as a plain flag — do not allocate a nested
+    // `complete(() => …)` closure per item (dense async leaf lists).
     let completed = false;
-    const complete = (callback: () => void): void => {
+    try {
+      promise.then(
+        value => {
+          if (completed) {
+            return;
+          }
+          completed = true;
+          this._completeResolved(value, onResolve);
+        },
+        (reason: unknown) => {
+          if (completed) {
+            return;
+          }
+          completed = true;
+          this._completeRejected(reason, onReject);
+        },
+      );
+    } catch (error) {
       if (completed) {
         return;
       }
       completed = true;
-      if (this._settled) {
-        this._pending--;
-        return;
-      }
-      try {
-        callback();
-        this._pending--;
-        this._drainIfReadyOrQueued();
-      } catch (error) {
-        this._pending--;
-        this._fail(error);
-      }
-    };
-    try {
-      promise.then(
-        value => complete(() => onResolve(value)),
-        (reason: unknown) => complete(() => onReject(reason)),
-      );
-    } catch (error) {
-      complete(() => onReject(error));
+      this._pending--;
+      onReject(error);
     }
   }
 
@@ -187,6 +188,38 @@ export class PlannedWorkRunner {
     this._reject = undefined;
     if (reject !== undefined) {
       reject(error);
+    }
+  }
+
+  private _completeResolved<T>(value: T, onResolve: (value: T) => void): void {
+    if (this._settled) {
+      this._pending--;
+      return;
+    }
+    try {
+      onResolve(value);
+      this._pending--;
+      this._drainIfReadyOrQueued();
+    } catch (error) {
+      this._pending--;
+      this._fail(error);
+    }
+  }
+
+  private _completeRejected(reason: unknown, onReject: (reason: unknown) => void): void {
+    if (this._settled) {
+      this._pending--;
+      return;
+    }
+    try {
+      onReject(reason);
+      this._pending--;
+      this._drainIfReadyOrQueued();
+    } catch (error) {
+      // Non-null field bubbles from onReject must fail the runner (same as
+      // sync onResolve throws) — never escape as an unhandled rejection.
+      this._pending--;
+      this._fail(error);
     }
   }
 

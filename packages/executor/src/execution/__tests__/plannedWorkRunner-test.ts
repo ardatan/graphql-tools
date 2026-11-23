@@ -93,4 +93,27 @@ describe('PlannedWorkRunner', () => {
     });
     expect(() => runner.runUntilSettled()).toThrow();
   });
+
+  it('ignores a second settlement from a dual-callback thenable', async () => {
+    const runner = new PlannedWorkRunner();
+    const order: string[] = [];
+    const dual = {
+      then(onFulfilled: (v: string) => void, onRejected: (r: unknown) => void) {
+        onFulfilled('ok');
+        onRejected(new Error('also reject'));
+      },
+    };
+    runner.awaitValue(
+      dual as PromiseLike<string>,
+      value => {
+        order.push(value);
+      },
+      () => {
+        order.push('reject');
+      },
+    );
+    await runner.runUntilSettled();
+    expect(order).toEqual(['ok']);
+    expect(runner.pending).toBe(0);
+  });
 });
