@@ -12,8 +12,11 @@
  *   - Yoga benchmark authors query (master / tip classic / tip planned)
  *   - Hive Gateway federation-example TestQuery (same sides; yarn resolution)
  *
+ * Every sticky case reports three deltas vs the fetched baseline:
+ *   tipClassic vs origin/master HEAD, tipPlanned vs that master, tipClassic vs tipPlanned.
+ *
  * Env:
- *   CLAIM_BENCH_BASE_REF     — base branch (default master)
+ *   CLAIM_BENCH_BASE_REF     — baseline ref (default master; always fetched from origin)
  *   CLAIM_BENCH_WARM_MS      — warm budget per child (default 300)
  *   CLAIM_BENCH_MEASURE_MS   — measure budget per child (default 900)
  *   CLAIM_BENCH_SAMPLES      — samples per side (default 3)
@@ -28,7 +31,8 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const baseRef = process.env.CLAIM_BENCH_BASE_REF || process.env.GITHUB_BASE_REF || 'master';
+// Always compare against latest origin/master (not PR merge-base / GITHUB_BASE_REF).
+const baseRef = process.env.CLAIM_BENCH_BASE_REF || 'master';
 const baseRemoteRef = baseRef.startsWith('origin/') ? baseRef : `origin/${baseRef}`;
 const warmMs = Math.max(100, Number(process.env.CLAIM_BENCH_WARM_MS || '300') || 300);
 const measureMs = Math.max(200, Number(process.env.CLAIM_BENCH_MEASURE_MS || '900') || 900);
@@ -49,51 +53,12 @@ const CLAIM_FLOORS = {
   denseSkip: { label: 'Dense @skip/@include (40)', floorPct: 45 },
 };
 
-const EXTRA_CASES = [
-  { id: 'ksSyncList', label: 'Classic KS syncList (planning off)', kind: 'ks', bench: 'syncList' },
-  {
-    id: 'ksAsyncList',
-    label: 'Classic KS asyncList (planning off)',
-    kind: 'ks',
-    bench: 'asyncList',
-  },
-  {
-    id: 'ksAsyncRoot',
-    label: 'Classic KS asyncRoot (planning off)',
-    kind: 'ks',
-    bench: 'asyncRoot',
-  },
-  { id: 'ksNested', label: 'Classic KS nested (planning off)', kind: 'ks', bench: 'nested' },
-  {
-    id: 'ksDenseSkip',
-    label: 'Classic KS denseSkip (planning off)',
-    kind: 'ks',
-    bench: 'denseSkip',
-  },
-  {
-    id: 'syncApiSyncList',
-    label: 'executeSync syncList (planned)',
-    kind: 'syncApi',
-    bench: 'syncList',
-  },
-  {
-    id: 'syncApiNested',
-    label: 'executeSync nestedDefault (planned)',
-    kind: 'syncApi',
-    bench: 'nested',
-  },
-  {
-    id: 'syncApiFragments',
-    label: 'executeSync fragmentsAbstract (planned)',
-    kind: 'syncApi',
-    bench: 'fragmentsAbstract',
-  },
-  {
-    id: 'syncApiMixed',
-    label: 'executeSync mixedSyncMethods (planned)',
-    kind: 'syncApi',
-    bench: 'mixedSyncMethods',
-  },
+/** executeSync key rows (same three-way matrix as claim floors). */
+const SYNC_API_CASES = [
+  { id: 'syncApiSyncList', label: 'executeSync syncList', bench: 'syncList' },
+  { id: 'syncApiNested', label: 'executeSync nestedDefault', bench: 'nested' },
+  { id: 'syncApiFragments', label: 'executeSync fragmentsAbstract', bench: 'fragmentsAbstract' },
+  { id: 'syncApiMixed', label: 'executeSync mixedSyncMethods', bench: 'mixedSyncMethods' },
 ];
 
 function run(command, args, opts = {}) {
@@ -326,29 +291,27 @@ try {
   run('npm', ['run', 'build']);
   ensureDist(root, 'HEAD');
 
-  // --- base worktree ---
-  try {
-    run('git', ['fetch', '--no-tags', '--depth=1', 'origin', baseRef]);
-  } catch (error) {
-    console.warn(`Could not fetch ${baseRef}: ${error.message}`);
-  }
+  // --- baseline: always fetch latest origin/master (not PR merge-base) ---
+  const fetchRef = baseRemoteRef.startsWith('origin/')
+    ? baseRemoteRef.slice('origin/'.length)
+    : baseRef;
+  console.log(`\n==> Fetching latest ${fetchRef} from origin\n`);
+  run('git', ['fetch', '--no-tags', '--depth=1', 'origin', fetchRef]);
 
   const baseSha = runCapture('git', ['rev-parse', baseRemoteRef]);
   const headSha = runCapture('git', ['rev-parse', 'HEAD']);
   const outRoot = mkdtempSync(join(tmpdir(), 'claim-bench-'));
   const worktree = join(outRoot, 'base-wt');
 
-  console.log(`\n==> Base worktree ${baseSha.slice(0, 7)} at ${worktree}\n`);
+  console.log(`\n==> Baseline worktree origin/master@${baseSha.slice(0, 7)} at ${worktree}\n`);
   run('git', ['worktree', 'add', '--detach', worktree, baseSha]);
   try {
-    // Always npm ci in the base worktree. Symlinking tip node_modules alone
-    // misses package-local installs (e.g. svelte2tsx under graphql-tag-pluck),
-    // so bob/tsc fails on master. We only need executor dist for benches, but
-    // bob still typechecks the monorepo graph.
-    console.log('\n==> Installing and building base worktree (npm ci + build)\n');
+    // Always npm ci in the baseline worktree. Symlinking tip node_modules alone
+    // misses package-local installs (e.g. svelte2tsx under graphql-tag-pluck).
+    console.log('\n==> Installing and building baseline worktree (npm ci + build)\n');
     run('npm', ['ci', '--no-audit', '--no-fund'], { cwd: worktree });
     run('npm', ['run', 'build'], { cwd: worktree });
-    ensureDist(worktree, 'base');
+    ensureDist(worktree, 'baseline');
   } catch (error) {
     try {
       run('git', ['worktree', 'remove', '--force', worktree]);
@@ -361,89 +324,72 @@ try {
   /** @type {Array<Record<string, unknown>>} */
   const claimRows = [];
   /** @type {Array<Record<string, unknown>>} */
-  const extraRows = [];
+  const syncApiRows = [];
   /** @type {Record<string, unknown> | null} */
   let httpPayload = null;
 
+  function measureThreeWay({ bench, api }) {
+    const masterSamples = [];
+    const tipClassicSamples = [];
+    const tipPlannedSamples = [];
+    for (let i = 0; i < samples; i++) {
+      masterSamples.push(measureHz({ packageRoot: worktree, bench, planning: false, api }));
+      tipClassicSamples.push(measureHz({ packageRoot: root, bench, planning: false, api }));
+      tipPlannedSamples.push(measureHz({ packageRoot: root, bench, planning: true, api }));
+    }
+    const masterHz = mean(masterSamples);
+    const tipClassicHz = mean(tipClassicSamples);
+    const tipPlannedHz = mean(tipPlannedSamples);
+    return {
+      masterHz,
+      tipClassicHz,
+      tipPlannedHz,
+      deltaClassicVsMasterPct: (tipClassicHz / masterHz - 1) * 100,
+      deltaPlannedVsMasterPct: (tipPlannedHz / masterHz - 1) * 100,
+      deltaClassicVsPlannedPct: (tipClassicHz / tipPlannedHz - 1) * 100,
+    };
+  }
+
+  function threeWayTableRow(label, row, extraCols = '') {
+    return `| ${label} | ${Math.round(row.masterHz).toLocaleString('en-US')} | ${Math.round(row.tipClassicHz).toLocaleString('en-US')} | ${Math.round(row.tipPlannedHz).toLocaleString('en-US')} | ${pct(row.deltaClassicVsMasterPct)} | ${pct(row.deltaPlannedVsMasterPct)} | ${pct(row.deltaClassicVsPlannedPct)}${extraCols} |`;
+  }
+
   try {
     for (const [id, meta] of Object.entries(CLAIM_FLOORS)) {
-      const masterSamples = [];
-      const tipSamples = [];
-      for (let i = 0; i < samples; i++) {
-        masterSamples.push(
-          measureHz({ packageRoot: worktree, bench: id, planning: true, api: 'execute' }),
-        );
-        tipSamples.push(
-          measureHz({ packageRoot: root, bench: id, planning: true, api: 'execute' }),
-        );
-      }
-      const masterHz = mean(masterSamples);
-      const tipHz = mean(tipSamples);
-      const deltaPct = (tipHz / masterHz - 1) * 100;
-      const ok = deltaPct + 1e-9 >= meta.floorPct;
+      const row = measureThreeWay({ bench: id, api: 'execute' });
+      const ok = row.deltaPlannedVsMasterPct + 1e-9 >= meta.floorPct;
       claimRows.push({
         id,
         label: meta.label,
         kind: 'claim',
-        masterHz,
-        tipHz,
-        deltaPct,
+        api: 'execute',
         floorPct: meta.floorPct,
         ok,
-        api: 'execute',
-        tipPlanning: true,
+        ...row,
       });
       console.log(
-        `${meta.label}: master=${Math.round(masterHz)} tip=${Math.round(tipHz)} Δ=${pct(deltaPct)} floor=+${meta.floorPct}% ${ok ? 'PASS' : 'FAIL'}`,
+        `${meta.label}: master=${Math.round(row.masterHz)} classic=${Math.round(row.tipClassicHz)} planned=${Math.round(row.tipPlannedHz)} Δc/m=${pct(row.deltaClassicVsMasterPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)} Δc/p=${pct(row.deltaClassicVsPlannedPct)} floor=+${meta.floorPct}% ${ok ? 'PASS' : 'FAIL'}`,
       );
     }
 
-    for (const extra of EXTRA_CASES) {
-      const masterSamples = [];
-      const tipSamples = [];
-      const tipPlanning = extra.kind !== 'ks';
-      const api = extra.kind === 'syncApi' ? 'executeSync' : 'execute';
-      for (let i = 0; i < samples; i++) {
-        masterSamples.push(
-          measureHz({
-            packageRoot: worktree,
-            bench: extra.bench,
-            planning: true,
-            api,
-          }),
-        );
-        tipSamples.push(
-          measureHz({
-            packageRoot: root,
-            bench: extra.bench,
-            planning: tipPlanning,
-            api,
-          }),
-        );
-      }
-      const masterHz = mean(masterSamples);
-      const tipHz = mean(tipSamples);
-      const deltaPct = (tipHz / masterHz - 1) * 100;
-      extraRows.push({
-        id: extra.id,
-        label: extra.label,
-        kind: extra.kind,
-        masterHz,
-        tipHz,
-        deltaPct,
-        api,
-        tipPlanning,
+    for (const syncCase of SYNC_API_CASES) {
+      const row = measureThreeWay({ bench: syncCase.bench, api: 'executeSync' });
+      syncApiRows.push({
+        id: syncCase.id,
+        label: syncCase.label,
+        kind: 'syncApi',
+        api: 'executeSync',
+        ...row,
       });
       console.log(
-        `${extra.label}: master=${Math.round(masterHz)} tip=${Math.round(tipHz)} Δ=${pct(deltaPct)}`,
+        `${syncCase.label}: master=${Math.round(row.masterHz)} classic=${Math.round(row.tipClassicHz)} planned=${Math.round(row.tipPlannedHz)} Δc/m=${pct(row.deltaClassicVsMasterPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)} Δc/p=${pct(row.deltaClassicVsPlannedPct)}`,
       );
     }
 
     if (!skipHttp) {
       console.log('\n==> Yoga authors + Hive federation-example HTTP benches\n');
-      const resultsDirEarly = join(root, 'benchmarks/results');
-      mkdirSync(resultsDirEarly, { recursive: true });
-      const httpJson = join(resultsDirEarly, 'claim-http.json');
+      mkdirSync(resultsDir, { recursive: true });
+      const httpJson = join(resultsDir, 'claim-http.json');
       run(process.execPath, [join(root, 'scripts/claim-http-bench-ci.mjs')], {
         env: {
           ...process.env,
@@ -457,6 +403,15 @@ try {
         stdio: 'inherit',
       });
       httpPayload = JSON.parse(readFileSync(httpJson, 'utf8'));
+      // Normalize HTTP rows to the same three-delta fields.
+      for (const key of ['yoga', 'hive']) {
+        const row = httpPayload?.[key];
+        if (row && row.tipClassicHz != null && row.tipPlannedHz != null && row.masterHz != null) {
+          row.deltaClassicVsMasterPct = (row.tipClassicHz / row.masterHz - 1) * 100;
+          row.deltaPlannedVsMasterPct = (row.tipPlannedHz / row.masterHz - 1) * 100;
+          row.deltaClassicVsPlannedPct = (row.tipClassicHz / row.tipPlannedHz - 1) * 100;
+        }
+      }
     }
   } finally {
     try {
@@ -469,8 +424,8 @@ try {
 
   const payload = {
     tip: headSha,
-    base: baseSha,
-    baseRef: baseRemoteRef,
+    baseline: baseSha,
+    baselineRef: baseRemoteRef,
     measuredAt: new Date().toISOString(),
     warmMs,
     measureMs,
@@ -478,7 +433,7 @@ try {
     httpSamples,
     floors: CLAIM_FLOORS,
     claims: claimRows,
-    extras: extraRows,
+    syncApi: syncApiRows,
     yoga: httpPayload?.yoga ?? null,
     hive: httpPayload?.hive ?? null,
     hiveNote: httpPayload?.hiveNote ?? null,
@@ -486,57 +441,36 @@ try {
 
   writeFileSync(join(resultsDir, 'claim-floors.json'), `${JSON.stringify(payload, null, 2)}\n`);
 
-  function threeWayMdRows(row, label = 'authors') {
-    if (!row) return [];
-    const benchLabel =
-      label === 'federation-example TestQuery' ? 'federation-example TestQuery' : 'Yoga authors';
-    return [
-      `| ${benchLabel} | ${Math.round(row.masterHz).toLocaleString('en-US')} | ${Math.round(row.tipClassicHz).toLocaleString('en-US')} | ${Math.round(row.tipPlannedHz).toLocaleString('en-US')} | ${pct(row.deltaPlannedVsMasterPct)} | ${pct(row.deltaPlannedVsClassicPct)} |`,
-    ];
-  }
-
-  function caseRows(kind) {
-    return extraRows
-      .filter(row => row.kind === kind)
-      .map(
-        row =>
-          `| ${row.label} | ${Math.round(row.masterHz).toLocaleString('en-US')} | ${Math.round(row.tipHz).toLocaleString('en-US')} | ${pct(row.deltaPct)} |`,
-      );
-  }
-
-  const ksRows = caseRows('ks');
-  const syncApiRows = caseRows('syncApi');
+  const threeWayHeader = [
+    '| Bench | Master hz | Tip classic hz | Tip planned hz | Δ classic vs master | Δ planned vs master | Δ classic vs planned |',
+    '| --- | ---: | ---: | ---: | ---: | ---: | ---: |',
+  ];
 
   const md = [
     '<!-- graphql-tools-claim-floors-v1 -->',
-    '## Claim floors vs master (process-isolated)',
+    '## Claim floors vs origin/master (process-isolated)',
     '',
-    `Tip \`${headSha.slice(0, 9)}\` vs \`${baseRemoteRef}\` (\`${baseSha.slice(0, 9)}\`), Node ${process.version}, compiled dist. Process-isolated child processes (not in-process Vitest).`,
+    `HEAD \`${headSha.slice(0, 9)}\` vs \`${baseRemoteRef}\` (\`${baseSha.slice(0, 9)}\` fetched this run), Node ${process.version}, compiled dist.`,
     '',
-    '**Hard floors (never ship below):** Sync leaf ≥ **+200%**, Async leaf ≥ **+100%**, Async root ≥ **+80%**, Nested ≥ **+137%**, DenseSkip ≥ **+45%**.',
+    'Each row is a three-way: **tip classic** (`setExecutionPlanningEnabled(false)`) vs origin/master, **tip planned** vs that master, and **tip classic vs tip planned**.',
     '',
-    '| Bench | Master hz | Tip hz | Δ | Floor | Status |',
-    '| --- | ---: | ---: | ---: | ---: | --- |',
+    '**Hard floors (never ship below; tip planned vs master):** Sync leaf ≥ **+200%**, Async leaf ≥ **+100%**, Async root ≥ **+80%**, Nested ≥ **+137%**, DenseSkip ≥ **+45%**.',
+    '',
+    '| Bench | Master hz | Tip classic hz | Tip planned hz | Δ classic vs master | Δ planned vs master | Δ classic vs planned | Floor | Status |',
+    '| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |',
     ...claimRows.map(
       row =>
-        `| ${row.label} | ${Math.round(row.masterHz).toLocaleString('en-US')} | ${Math.round(row.tipHz).toLocaleString('en-US')} | ${pct(row.deltaPct)} | ≥+${row.floorPct}% | ${row.ok ? '✅' : '❌'} |`,
+        `${threeWayTableRow(row.label, row, ` | ≥+${row.floorPct}% | ${row.ok ? '✅' : '❌'}`)}`,
     ),
     '',
-    '### Classic kill-switch (planning off)',
+    '### Classic kill-switch',
     '',
-    '| Case | Master hz | Tip hz | Δ |',
-    '| --- | ---: | ---: | ---: |',
-    ...ksRows,
+    'Tip classic column above is the public kill-switch (`setExecutionPlanningEnabled(false)` + `execute`) vs the same origin/master baseline.',
     '',
-    '_Tip with `setExecutionPlanningEnabled(false)` + `execute` vs master classic._',
+    '### executeSync key rows',
     '',
-    '### executeSync key rows (planned)',
-    '',
-    '| Case | Master hz | Tip hz | Δ |',
-    '| --- | ---: | ---: | ---: |',
-    ...syncApiRows,
-    '',
-    '_`executeSync` on both sides (syncList, nestedDefault, fragmentsAbstract, mixedSyncMethods)._',
+    ...threeWayHeader,
+    ...syncApiRows.map(row => threeWayTableRow(row.label, row)),
     '',
   ];
 
@@ -545,26 +479,20 @@ try {
     const hive = httpPayload?.hive;
     const hiveNote = httpPayload?.hiveNote;
     md.push(
-      '### Yoga authors HTTP (master / tip classic / tip planned)',
+      '### Yoga authors HTTP',
       '',
       'Yoga benchmark schema + `authors` query (`graphql-yoga/benchmark`), `setExecuteFn` → tip/master `@graphql-tools/executor` dist.',
       '',
-      '| Bench | Master hz | Tip classic hz | Tip planned hz | Δ planned vs master | Δ planned vs tip classic |',
-      '| --- | ---: | ---: | ---: | ---: | ---: |',
-      ...threeWayMdRows(yoga),
+      ...threeWayHeader,
+      ...(yoga ? [threeWayTableRow('Yoga authors', yoga)] : []),
       '',
     );
-    md.push('### Hive Gateway federation-example (master / tip classic / tip planned)', '');
+    md.push('### Hive Gateway federation-example', '');
     if (hiveNote) {
       md.push(`_${hiveNote}_`, '');
     }
     if (hive) {
-      md.push(
-        '| Bench | Master hz | Tip classic hz | Tip planned hz | Δ planned vs master | Δ planned vs tip classic |',
-        '| --- | ---: | ---: | ---: | ---: | ---: |',
-        ...threeWayMdRows(hive, 'federation-example TestQuery'),
-        '',
-      );
+      md.push(...threeWayHeader, threeWayTableRow('federation-example TestQuery', hive), '');
     }
   }
 
@@ -574,7 +502,7 @@ try {
   const failed = claimRows.filter(row => !row.ok);
   if (failOnFloor && failed.length > 0) {
     console.error(
-      `Claim floor miss (${failed.length}): ${failed.map(r => `${r.id}=${pct(r.deltaPct)}`).join(', ')}`,
+      `Claim floor miss (${failed.length}): ${failed.map(r => `${r.id}=${pct(r.deltaPlannedVsMasterPct)}`).join(', ')}`,
     );
     process.exit(1);
   }

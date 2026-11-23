@@ -204,7 +204,10 @@ function threeWay(measureFn) {
     masterHz,
     tipClassicHz,
     tipPlannedHz,
+    deltaClassicVsMasterPct: (tipClassicHz / masterHz - 1) * 100,
     deltaPlannedVsMasterPct: (tipPlannedHz / masterHz - 1) * 100,
+    deltaClassicVsPlannedPct: (tipClassicHz / tipPlannedHz - 1) * 100,
+    // Alias kept for older readers of claim-http.json
     deltaPlannedVsClassicPct: (tipPlannedHz / tipClassicHz - 1) * 100,
   };
 }
@@ -377,7 +380,7 @@ if (!skipYoga) {
     ...row,
   };
   console.log(
-    `Yoga authors: master=${Math.round(row.masterHz)} tip-classic=${Math.round(row.tipClassicHz)} tip-planned=${Math.round(row.tipPlannedHz)} Δvs master=${pct(row.deltaPlannedVsMasterPct)} Δvs classic=${pct(row.deltaPlannedVsClassicPct)}`,
+    `Yoga authors: master=${Math.round(row.masterHz)} classic=${Math.round(row.tipClassicHz)} planned=${Math.round(row.tipPlannedHz)} Δc/m=${pct(row.deltaClassicVsMasterPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)} Δc/p=${pct(row.deltaClassicVsPlannedPct)}`,
   );
 }
 
@@ -404,7 +407,9 @@ if (!skipHive) {
       masterHz: master.hz,
       tipClassicHz: tipClassic.hz,
       tipPlannedHz: tipPlanned.hz,
+      deltaClassicVsMasterPct: (tipClassic.hz / master.hz - 1) * 100,
       deltaPlannedVsMasterPct: (tipPlanned.hz / master.hz - 1) * 100,
+      deltaClassicVsPlannedPct: (tipClassic.hz / tipPlanned.hz - 1) * 100,
       deltaPlannedVsClassicPct: (tipPlanned.hz / tipClassic.hz - 1) * 100,
       productsSize: Number(process.env.CLAIM_BENCH_HIVE_PRODUCTS_SIZE || '1000'),
       raw: {
@@ -416,7 +421,7 @@ if (!skipHive) {
     payload.hiveNote =
       'Hive Gateway `e2e/federation-example` (federation TestQuery, PRODUCTS_SIZE configurable). Executor via yarn resolution to packed `@graphql-tools/executor`. Tip classic uses `GRAPHQL_TOOLS_EXECUTOR_PLANNING=0`. No proxy path.';
     console.log(
-      `Hive federation: master=${payload.hive.masterHz.toFixed(2)} tip-classic=${payload.hive.tipClassicHz.toFixed(2)} tip-planned=${payload.hive.tipPlannedHz.toFixed(2)} Δvs master=${pct(payload.hive.deltaPlannedVsMasterPct)} Δvs classic=${pct(payload.hive.deltaPlannedVsClassicPct)}`,
+      `Hive federation: master=${payload.hive.masterHz.toFixed(2)} classic=${payload.hive.tipClassicHz.toFixed(2)} planned=${payload.hive.tipPlannedHz.toFixed(2)} Δc/m=${pct(payload.hive.deltaClassicVsMasterPct)} Δp/m=${pct(payload.hive.deltaPlannedVsMasterPct)} Δc/p=${pct(payload.hive.deltaClassicVsPlannedPct)}`,
     );
   } catch (error) {
     payload.hiveNote = `Hive federation-example bench failed: ${error.message}`;

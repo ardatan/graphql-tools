@@ -92,7 +92,8 @@ jobs:
 
       - name: Run process-isolated claim / KS / Yoga / Hive benches
         env:
-          GITHUB_BASE_REF: ${{ github.base_ref || 'master' }}
+          # Always tip vs latest origin/master (not PR merge-base).
+          CLAIM_BENCH_BASE_REF: master
           CLAIM_BENCH_FAIL_ON_FLOOR: '1'
           CLAIM_BENCH_SAMPLES: '3'
           CLAIM_BENCH_HTTP_SAMPLES: '2'
