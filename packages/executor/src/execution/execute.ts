@@ -1985,14 +1985,16 @@ function completePlannedObjectListValue(
   const asyncUpdates: Promise<void>[] = [];
   const nullNullableItem = (bubbled: unknown, itemPath: Path, itemIndex: number): void => {
     exeContext.signal?.throwIfAborted();
-    if (itemNonNull) {
-      throw bubbled;
-    }
-    const error =
-      bubbled instanceof GraphQLError
-        ? bubbled
-        : locatedError(coerceError(bubbled), undefined, pathToArray(itemPath));
-    completedResults[itemIndex] = handleFieldError(error, itemObjectType, exeContext.errors);
+    // Match classic completeListItemValue: always locate with fieldNodes +
+    // schemaCoordinate so path/locations/coordinate match (incl. GraphQLError).
+    const error = locatedError(
+      coerceError(bubbled),
+      fieldNodes,
+      pathToArray(itemPath),
+      exeContext.schemaCoordinateInErrors && info,
+    );
+    // itemType carries NonNull — handleFieldError throws for NonNull items.
+    completedResults[itemIndex] = handleFieldError(error, itemType, exeContext.errors);
   };
   const trackAsync = (work: Promise<void>): void => {
     // Observe immediately so an early loop exit cannot leave an unhandled rejection.
@@ -2096,6 +2098,7 @@ function completePlannedObjectListValue(
           ),
           fieldNodes,
           pathToArray(itemPath),
+          exeContext.schemaCoordinateInErrors && info,
         );
       }
       completedResults[index] = null;
@@ -2104,7 +2107,12 @@ function completePlannedObjectListValue(
     if (item instanceof Error) {
       try {
         completedResults[index] = handleFieldError(
-          locatedError(item, fieldNodes, pathToArray(itemPath)),
+          locatedError(
+            item,
+            fieldNodes,
+            pathToArray(itemPath),
+            exeContext.schemaCoordinateInErrors && info,
+          ),
           itemType,
           exeContext.errors,
         );
@@ -2123,16 +2131,23 @@ function completePlannedObjectListValue(
             }
             if (resolved == null) {
               if (itemNonNull) {
-                throw new Error(
-                  `Cannot return null for non-nullable field ${fieldPlan.parentType.name}.${fieldPlan.fieldDef.name}.`,
+                throw locatedError(
+                  new Error(
+                    `Cannot return null for non-nullable field ${fieldPlan.parentType.name}.${fieldPlan.fieldDef.name}.`,
+                  ),
+                  fieldNodes,
+                  pathToArray(itemPath),
+                  exeContext.schemaCoordinateInErrors && info,
                 );
               }
               completedResults[itemIndex] = null;
               return;
             }
             if (!isObjectLike(resolved)) {
+              // Primitive source with custom field resolvers may return a
+              // thenable from completeListItemValue — await it like the sync path.
               const one: Array<unknown> = [];
-              completeListItemValue(
+              const asyncItem = completeListItemValue(
                 resolved,
                 one,
                 exeContext.errors,
@@ -2142,6 +2157,11 @@ function completePlannedObjectListValue(
                 info,
                 itemPath,
               );
+              if (asyncItem) {
+                return Promise.resolve(one[0]).then(value => {
+                  completedResults[itemIndex] = value;
+                });
+              }
               completedResults[itemIndex] = one[0];
               return;
             }
@@ -2200,8 +2220,8 @@ function completePlannedObjectListValue(
   }
   return completedResults;
 }
+
 /**
- * Field-local leaf-list path:/**
  * Field-local leaf-list path: PlannedWorkRunner only for this field's items.
  * Returns a Promise when the field (or its items) are async; `undefined` to
  * decline and fall through to `executeField`.

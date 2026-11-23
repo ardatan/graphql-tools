@@ -50,6 +50,20 @@ function executeClassicSync(args: Parameters<typeof executeSync>[0]): SingularEx
   return result as SingularExecutionResult;
 }
 
+async function executeClassic(
+  args: Parameters<typeof execute>[0],
+): Promise<SingularExecutionResult> {
+  const ctx = buildExecutionContext(args, null);
+  if (!('schema' in ctx)) {
+    return { errors: [...ctx] };
+  }
+  const result = await executeImpl(ctx);
+  if (result != null && typeof result === 'object' && 'initialResult' in result) {
+    throw new Error('expected singular classic result');
+  }
+  return result as SingularExecutionResult;
+}
+
 describe('execution plan warm-path edges', () => {
   describe('union / interface FieldNode keys', () => {
     const Dog = new GraphQLObjectType({
@@ -1821,5 +1835,157 @@ describe('list completion: retain preflight item reads', () => {
     } finally {
       GraphQLString.serialize = originalSerialize;
     }
+  });
+});
+
+describe('object-list thin path: r8 differential matrix', () => {
+  const Item = new GraphQLObjectType({
+    name: 'R8Item',
+    fields: {
+      id: {
+        type: new GraphQLNonNull(GraphQLString),
+        // Async child resolver: completeListItemValue returns a thenable that
+        // the object-list thin path must await (r8 §3).
+        async resolve(source: unknown) {
+          return String(source);
+        },
+      },
+    },
+  });
+  const ItemPlain = new GraphQLObjectType({
+    name: 'R8ItemPlain',
+    fields: {
+      id: { type: new GraphQLNonNull(GraphQLString) },
+    },
+  });
+
+  function nonNullUsersSchema(itemType: GraphQLObjectType = ItemPlain) {
+    return new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          // Default property resolve → thin object-list path.
+          users: { type: new GraphQLList(new GraphQLNonNull(itemType)) },
+          ok: { type: GraphQLString, resolve: () => 'yes' },
+        },
+      }),
+    });
+  }
+
+  function nullableUsersSchema(itemType: GraphQLObjectType = ItemPlain) {
+    return new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(itemType) },
+          ok: { type: GraphQLString, resolve: () => 'yes' },
+        },
+      }),
+    });
+  }
+
+  it('localizes sync NonNull null item at the item path', () => {
+    const schema = nonNullUsersSchema();
+    const document = parse('{ users { id } ok }');
+    const rootValue = { users: [{ id: '1' }, null] };
+    const planned = executeSync({ schema, document, rootValue });
+    const classic = executeClassicSync({ schema, document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { users: null, ok: 'yes' },
+      errors: [{ path: ['users', 1], message: expect.stringContaining('non-nullable') }],
+    });
+  });
+
+  it('localizes Promise.resolve(null) NonNull item at the item path', async () => {
+    const schema = nonNullUsersSchema();
+    const document = parse('{ users { id } ok }');
+    const rootValue = { users: [{ id: '1' }, Promise.resolve(null)] };
+    const planned = await execute({ schema, document, rootValue });
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { users: null, ok: 'yes' },
+      errors: [{ path: ['users', 1], message: expect.stringContaining('non-nullable') }],
+    });
+  });
+
+  it('localizes Promise.reject(Error) with path and locations (nullable item)', async () => {
+    const schema = nullableUsersSchema();
+    const document = parse('{ users { id } ok }');
+    const rootValue = {
+      users: [Promise.reject(new Error('reject boom'))],
+    };
+    const planned = await execute({ schema, document, rootValue });
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { users: [null], ok: 'yes' },
+      errors: [{ message: 'reject boom', path: ['users', 0], locations: [{ line: 1, column: 3 }] }],
+    });
+  });
+
+  it('localizes Promise.reject(GraphQLError) like classic', async () => {
+    const schema = nullableUsersSchema();
+    const document = parse('{ users { id } ok }');
+    const rootValue = {
+      users: [Promise.reject(new GraphQLError('gql reject'))],
+    };
+    const planned = await execute({ schema, document, rootValue });
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { users: [null], ok: 'yes' },
+      errors: [{ message: 'gql reject', path: ['users', 0] }],
+    });
+  });
+
+  it('localizes Promise.resolve(Error) with classic metadata', async () => {
+    const schema = nullableUsersSchema();
+    const document = parse('{ users { id } ok }');
+    const rootValue = {
+      users: [Promise.resolve(new Error('resolved err'))],
+    };
+    const planned = await execute({ schema, document, rootValue });
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { users: [null], ok: 'yes' },
+      errors: [
+        { message: 'resolved err', path: ['users', 0], locations: [{ line: 1, column: 3 }] },
+      ],
+    });
+  });
+
+  it('awaits async child completion for Promise.resolve(primitive) object items', async () => {
+    const schema = nonNullUsersSchema(Item);
+    const document = parse('{ users { id } }');
+    const rootValue = { users: [Promise.resolve(42)] };
+    const planned = await execute({ schema, document, rootValue });
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toEqual({ data: { users: [{ id: '42' }] } });
+  });
+
+  it('matches classic schemaCoordinateInErrors on object-list item errors', async () => {
+    const schema = nullableUsersSchema();
+    const document = parse('{ users { id } ok }');
+    const rootValue = {
+      users: [Promise.reject(new Error('coord boom'))],
+    };
+    const args = { schema, document, rootValue, schemaCoordinateInErrors: true };
+    const planned = await execute(args);
+    const classic = await executeClassic(args);
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { users: [null], ok: 'yes' },
+      errors: [
+        {
+          message: 'coord boom',
+          path: ['users', 0],
+          coordinate: 'Query.users',
+        },
+      ],
+    });
   });
 });
