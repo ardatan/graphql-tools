@@ -19,24 +19,15 @@
  *   CLAIM_BENCH_OUT_JSON — write path (default benchmarks/results/claim-http.json)
  */
 import { spawnSync } from 'node:child_process';
-import {
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const tipRoot = resolve(
-  process.env.CLAIM_BENCH_TIP_ROOT ||
-    fileURLToPath(new URL('..', import.meta.url)),
+  process.env.CLAIM_BENCH_TIP_ROOT || fileURLToPath(new URL('..', import.meta.url)),
 );
-const masterRoot = resolve(
-  process.env.CLAIM_BENCH_MASTER_ROOT || '',
-);
+const masterRoot = resolve(process.env.CLAIM_BENCH_MASTER_ROOT || '');
 if (!masterRoot || !existsSync(masterRoot)) {
   console.error('CLAIM_BENCH_MASTER_ROOT must point at a built master worktree.');
   process.exit(2);
@@ -48,8 +39,7 @@ const httpSamples = Math.max(1, Number(process.env.CLAIM_BENCH_HTTP_SAMPLES || '
 const skipYoga = process.env.CLAIM_BENCH_SKIP_YOGA === '1';
 const skipHive = process.env.CLAIM_BENCH_SKIP_HIVE === '1';
 const hiveGatewayDir =
-  process.env.CLAIM_BENCH_HIVE_GATEWAY_DIR ||
-  join(tmpdir(), 'graphql-tools-hive-gateway-ci');
+  process.env.CLAIM_BENCH_HIVE_GATEWAY_DIR || join(tmpdir(), 'graphql-tools-hive-gateway-ci');
 const hiveGatewayRef = process.env.CLAIM_BENCH_HIVE_GATEWAY_REF || 'main';
 const outJson = resolve(
   tipRoot,
@@ -350,15 +340,9 @@ function runHiveFederationToolsHz({ planning }) {
   //   Hive Gateway w/ Tools                      122.50  6.8328  ...
   const toolsLine = out
     .split('\n')
-    .find(
-      line =>
-        /Hive Gateway w\/ Tools/i.test(line) &&
-        !/Hive Router Query Planner/i.test(line),
-    );
+    .find(line => /Hive Gateway w\/ Tools/i.test(line) && !/Hive Router Query Planner/i.test(line));
   if (!toolsLine) {
-    throw new Error(
-      `Could not find "Hive Gateway w/ Tools" in bench output:\n${out.slice(-3000)}`,
-    );
+    throw new Error(`Could not find "Hive Gateway w/ Tools" in bench output:\n${out.slice(-3000)}`);
   }
   const nums = toolsLine.match(/(\d+(?:\.\d+)?)/g);
   if (!nums || nums.length === 0) {

@@ -5,6 +5,8 @@
  * Looks for an existing issue comment containing the marker
  * `<!-- graphql-tools-claim-floors-v1 -->` and updates it; otherwise creates one.
  *
+ * Tolerates a missing claim-floors.md (posts a stub so the sticky still updates).
+ *
  * Env:
  *   GH_TOKEN                 — required (GitHub token with issues:write)
  *   GITHUB_REPOSITORY        — owner/repo (Actions sets this)
@@ -12,8 +14,8 @@
  *   CLAIM_BENCH_PR_NUMBER    — override PR number
  *   CLAIM_BENCH_MD_PATH      — markdown file (default benchmarks/results/claim-floors.md)
  */
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const MARKER = '<!-- graphql-tools-claim-floors-v1 -->';
@@ -48,11 +50,29 @@ const mdPath = resolve(
   root,
   process.env.CLAIM_BENCH_MD_PATH || 'benchmarks/results/claim-floors.md',
 );
-const body = readFileSync(mdPath, 'utf8');
-if (!body.includes(MARKER)) {
-  console.error(`Markdown at ${mdPath} is missing marker ${MARKER}`);
-  process.exit(2);
+
+function loadBody() {
+  if (existsSync(mdPath)) {
+    const body = readFileSync(mdPath, 'utf8');
+    if (body.includes(MARKER)) {
+      return body;
+    }
+    return `${MARKER}\n${body}\n`;
+  }
+  const stub = [
+    MARKER,
+    '## Claim floors vs master (process-isolated)',
+    '',
+    `_Bench harness did not produce \`${mdPath.replace(root + '/', '')}\` this run (build or measure failed before writing results)._`,
+    '',
+  ].join('\n');
+  mkdirSync(dirname(mdPath), { recursive: true });
+  writeFileSync(mdPath, `${stub}\n`);
+  console.warn(`Missing ${mdPath}; wrote stub sticky body for upsert.`);
+  return stub;
 }
+
+const body = loadBody();
 
 async function gh(path, init = {}) {
   const res = await fetch(`https://api.github.com${path}`, {
@@ -79,7 +99,6 @@ async function gh(path, init = {}) {
 }
 
 async function findStickyComment() {
-  // Paginate issue comments until we find the marker.
   for (let page = 1; page <= 20; page++) {
     const comments = await gh(
       `/repos/${owner}/${repoName}/issues/${prNumber}/comments?per_page=100&page=${page}`,
@@ -87,9 +106,7 @@ async function findStickyComment() {
     if (!Array.isArray(comments) || comments.length === 0) {
       return null;
     }
-    const hit = comments.find(
-      c => typeof c.body === 'string' && c.body.includes(MARKER),
-    );
+    const hit = comments.find(c => typeof c.body === 'string' && c.body.includes(MARKER));
     if (hit) {
       return hit;
     }
