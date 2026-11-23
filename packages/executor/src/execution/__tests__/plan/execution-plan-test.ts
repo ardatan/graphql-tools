@@ -945,7 +945,15 @@ describe('execution plan', () => {
       name: 'ListPartialUser',
       fields: {
         id: { type: new GraphQLNonNull(GraphQLString) },
-        name: { type: GraphQLString },
+        // Args force thin decline after `id` completes (leaf methods are invoked).
+        name: {
+          type: GraphQLString,
+          args: { lang: { type: GraphQLString } },
+          resolve: (obj, { lang }) => {
+            const base = typeof obj.name === 'function' ? obj.name() : obj.name;
+            return lang ? `${base}:${lang}` : base;
+          },
+        },
       },
     });
     const listPartialSchema = new GraphQLSchema({
@@ -957,7 +965,7 @@ describe('execution plan', () => {
         },
       }),
     });
-    const document = parse('{ users { id name } }');
+    const document = parse('{ users { id name(lang: "en") } }');
     const result = executeSync({
       schema: listPartialSchema,
       document,
@@ -974,18 +982,18 @@ describe('execution plan', () => {
             name: 'Ada',
           },
           {
-            // Method forces thin miss for this item only.
-            id() {
-              return 'u2';
+            // Completes `id` then declines at arg-bearing `name`.
+            id: 'u2',
+            name() {
+              return 'Grace';
             },
-            name: 'Grace',
           },
         ],
       },
     });
     expect(result).toEqual({
       data: {
-        users: [null, { id: 'u2', name: 'Grace' }],
+        users: [null, { id: 'u2', name: 'Grace:en' }],
       },
       errors: [expect.objectContaining({ message: 'first id once' })],
     });
@@ -993,15 +1001,23 @@ describe('execution plan', () => {
   });
 
   it('preserves completed children when a list item thin walk declines mid-object', () => {
-    // Thin walk reads `id` then declines at method `name`. Completed `id` must
-    // not be discarded — classic finish should only run remaining fields.
+    // Thin walk reads `id` then declines at arg-bearing `name`. Completed `id`
+    // must not be discarded — classic finish should only run remaining fields.
     let idReads = 0;
     let nameCalls = 0;
     const userType = new GraphQLObjectType({
       name: 'DeclinePreserveUser',
       fields: {
         id: { type: GraphQLString },
-        name: { type: GraphQLString },
+        name: {
+          type: GraphQLString,
+          args: { lang: { type: GraphQLString } },
+          resolve: (obj, { lang }) => {
+            nameCalls += 1;
+            const base = typeof obj.name === 'function' ? obj.name() : obj.name;
+            return lang ? `${base}:${lang}` : base;
+          },
+        },
       },
     });
     const schema = new GraphQLSchema({
@@ -1014,7 +1030,7 @@ describe('execution plan', () => {
     });
     const result = executeSync({
       schema,
-      document: parse('{ users { id name } }'),
+      document: parse('{ users { id name(lang: "en") } }'),
       rootValue: {
         users: [
           {
@@ -1022,16 +1038,13 @@ describe('execution plan', () => {
               idReads += 1;
               return 'u1';
             },
-            name() {
-              nameCalls += 1;
-              return 'Ada';
-            },
+            name: 'Ada',
           },
         ],
       },
     });
     expect(result).toEqual({
-      data: { users: [{ id: 'u1', name: 'Ada' }] },
+      data: { users: [{ id: 'u1', name: 'Ada:en' }] },
     });
     expect(idReads).toBe(1);
     expect(nameCalls).toBe(1);
@@ -1198,9 +1211,11 @@ describe('execution plan', () => {
         schema,
         document: parse('{ obj { a b } }'),
       });
-      // Allow microtasks from the sunk rejection to flush.
-      await Promise.resolve();
-      await Promise.resolve();
+      // Wait a real event-loop turn so deferred unhandled rejections surface
+      // while the listener is still attached (microtasks alone are not enough).
+      await new Promise<void>(resolve => {
+        setImmediate(resolve);
+      });
       expect(unhandled).toEqual([]);
       expect(result).toMatchObject({
         errors: expect.arrayContaining([expect.objectContaining({ message: 'b boom' })]),
