@@ -1925,6 +1925,32 @@ function completePlannedObjectListValue(
       continue;
     }
     const itemPath = addPath(path, index, undefined);
+    const itemIndex = index;
+    const nullNullableItem = (bubbled: unknown): void => {
+      // Abort must not become a nullable list-item failure.
+      exeContext.signal?.throwIfAborted();
+      // NonNull child bubbled from the item — null nullable items and continue.
+      if (itemNonNull) {
+        throw bubbled;
+      }
+      const error =
+        bubbled instanceof GraphQLError
+          ? bubbled
+          : locatedError(coerceError(bubbled), undefined, pathToArray(itemPath));
+      completedResults[itemIndex] = handleFieldError(error, itemObjectType, exeContext.errors);
+    };
+    const settleItemAsync = (work: MaybePromise<void>): void => {
+      // Per-item catch: async NonNull field / finish rejections must not reject
+      // Promise.all and null the whole nullable list field.
+      asyncUpdates.push(
+        Promise.resolve(work).then(
+          () => undefined,
+          (bubbled: unknown) => {
+            nullNullableItem(bubbled);
+          },
+        ),
+      );
+    };
     try {
       const nested = executePlannedSyncObjectFields(
         exeContext,
@@ -1933,7 +1959,6 @@ function completePlannedObjectListValue(
         itemPath,
         subExecutions,
       );
-      const itemIndex = index;
       const assignItem = (
         value: Record<string, unknown> | ThinObjectPartial | undefined,
       ): MaybePromise<void> => {
@@ -1974,25 +1999,15 @@ function completePlannedObjectListValue(
         completedResults[itemIndex] = value;
       };
       if (isPromise(nested)) {
-        asyncUpdates.push(nested.then(value => assignItem(value)).then(() => undefined));
+        settleItemAsync(nested.then(value => assignItem(value)));
         continue;
       }
       const assigned = assignItem(nested);
       if (isPromise(assigned)) {
-        asyncUpdates.push(assigned.then(() => undefined));
+        settleItemAsync(assigned);
       }
     } catch (bubbled) {
-      // Abort must not become a nullable list-item failure.
-      exeContext.signal?.throwIfAborted();
-      // NonNull child bubbled from the item — null nullable items and continue.
-      if (itemNonNull) {
-        throw bubbled;
-      }
-      const error =
-        bubbled instanceof GraphQLError
-          ? bubbled
-          : locatedError(coerceError(bubbled), undefined, pathToArray(itemPath));
-      completedResults[index] = handleFieldError(error, itemObjectType, exeContext.errors);
+      nullNullableItem(bubbled);
     }
   }
   if (asyncUpdates.length > 0) {
@@ -4064,7 +4079,12 @@ function thinObjectMiss(
   recordedGetterError: boolean,
   pendingLeaves?: ThinObjectPartial['pendingLeaves'],
 ): Record<string, unknown> | ThinObjectPartial | undefined {
-  if (!recordedGetterError && (pendingLeaves == null || pendingLeaves.size === 0)) {
+  const hasPending = pendingLeaves != null && pendingLeaves.size > 0;
+  // Preserve already-completed children when declining mid-walk (e.g. a method
+  // sibling after a successful getter). Returning undefined here forced a full
+  // classic item replay that re-read those getters.
+  const hasCompleted = Object.keys(results).length > 0;
+  if (!recordedGetterError && !hasPending && !hasCompleted) {
     return undefined;
   }
   const partial: ThinObjectPartial = {

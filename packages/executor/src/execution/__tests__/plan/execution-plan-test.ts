@@ -988,6 +988,90 @@ describe('execution plan', () => {
     expect(firstIdReads).toBe(1);
   });
 
+  it('preserves completed children when a list item thin walk declines mid-object', () => {
+    // Thin walk reads `id` then declines at method `name`. Completed `id` must
+    // not be discarded — classic finish should only run remaining fields.
+    let idReads = 0;
+    let nameCalls = 0;
+    const userType = new GraphQLObjectType({
+      name: 'DeclinePreserveUser',
+      fields: {
+        id: { type: GraphQLString },
+        name: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: {
+            type: new GraphQLList(userType),
+            resolve: () => [
+              {
+                get id() {
+                  idReads += 1;
+                  return 'u1';
+                },
+                name() {
+                  nameCalls += 1;
+                  return 'Ada';
+                },
+              },
+            ],
+          },
+        },
+      }),
+    });
+    const result = executeSync({
+      schema,
+      document: parse('{ users { id name } }'),
+    });
+    expect(result).toEqual({
+      data: { users: [{ id: 'u1', name: 'Ada' }] },
+    });
+    expect(idReads).toBe(1);
+    expect(nameCalls).toBe(1);
+  });
+
+  it('nulls a nullable list item when an async NonNull child rejects', async () => {
+    // Async rejection inside one item must not reject Promise.all and null the
+    // whole `users: [User]` field — sibling items stay.
+    const userType = new GraphQLObjectType({
+      name: 'AsyncNullItemUser',
+      fields: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: {
+            type: new GraphQLList(userType),
+            resolve: () => [
+              {
+                id() {
+                  return Promise.reject(new Error('id rejected'));
+                },
+              },
+              { id: 'u2' },
+            ],
+          },
+        },
+      }),
+    });
+    const result = await execute({
+      schema,
+      document: parse('{ users { id } }'),
+    });
+    expect(result).toEqual({
+      data: {
+        users: [null, { id: 'u2' }],
+      },
+      errors: [expect.objectContaining({ message: 'id rejected' })],
+    });
+  });
+
   it('preserves nested partial thin results when a sibling needs classic', () => {
     let idReads = 0;
     const profileType = new GraphQLObjectType({
