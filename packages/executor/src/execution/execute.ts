@@ -1140,7 +1140,11 @@ export function buildPerEventExecutionContext(
     onSignalAbort: exeContext.onSignalAbort,
     schemaCoordinateInErrors: exeContext.schemaCoordinateInErrors,
     plan: exeContext.plan,
-    defaultPropertyResolvesPristine: exeContext.defaultPropertyResolvesPristine,
+    // Recompute per payload — live fieldDef.resolve may change mid-subscription.
+    defaultPropertyResolvesPristine: areDefaultPropertyResolvesPristine(
+      exeContext.plan,
+      exeContext.fieldResolver,
+    ),
   };
   const parentDescriptor = Object.getOwnPropertyDescriptor(exeContext, 'signalPromise');
   if (parentDescriptor?.get) {
@@ -2520,14 +2524,22 @@ function executePlannedSyncObjectFieldsPlain(
         return thinObjectMiss(results, false, pendingLeaves);
       }
       if (isThinObjectPartial(nested)) {
-        const finished = finishThinObjectPartial(
+        // Cold helper catches sync finisher throws (CR 8468); Plain stays clean.
+        const finished = finishThinNestedPlainWithBoundary(
           exeContext,
-          fieldPlan.objectType,
+          parentType,
+          fieldPlan,
+          fieldNodes,
+          responseName,
           property,
-          addPath(path, responseName, parentType.name),
+          childPath,
           nestedSub,
           nested,
+          results,
         );
+        if (finished === NESTED_BOUNDARY_NULL) {
+          continue;
+        }
         if (isPromise(finished)) {
           results[responseName] = undefined;
           const parentPartial = thinObjectMiss(results, true, pendingLeaves) as ThinObjectPartial;
@@ -4231,6 +4243,8 @@ function isLiveDefaultPropertyResolve(
  * True when a nested thin walk can throw past the child (NonNull bubble).
  * When false, callers skip try/catch around nested recursion (nestedDefault).
  * Cached on the stable plan execution array identity.
+ * finishThinObjectPartial is still caught at the nested field (CR 8468);
+ * coerceError is throw-safe for Object.create(null) (CR 8456).
  */
 const plannedSubExecutionsMayBubbleNonNullCache = new WeakMap<
   ReadonlyArray<PlannedFieldExecution>,
@@ -4280,6 +4294,46 @@ function completeNestedPlainWithNonNullBoundary(
       property,
       childPath,
       nestedSub,
+    );
+  } catch (bubbled) {
+    exeContext.signal?.throwIfAborted();
+    if (fieldPlan.nonNull) {
+      throw bubbled;
+    }
+    const error = locatedError(
+      coerceError(bubbled),
+      fieldNodes,
+      pathToArray(childPath),
+      exeContext.schemaCoordinateInErrors && schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+    );
+    results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+    return NESTED_BOUNDARY_NULL;
+  }
+}
+
+/**
+ * Cold finishThin at nested field (CR 8468) — keeps Plain try/catch-free.
+ */
+function finishThinNestedPlainWithBoundary(
+  exeContext: ExecutionContext,
+  parentType: GraphQLObjectType,
+  fieldPlan: ObjectFieldPlan,
+  fieldNodes: ReadonlyArray<FieldNode>,
+  responseName: string,
+  property: unknown,
+  childPath: Path,
+  nestedSub: ReadonlyArray<PlannedFieldExecution>,
+  nested: ThinObjectPartial,
+  results: Record<string, unknown>,
+): Record<string, unknown> | typeof NESTED_BOUNDARY_NULL | Promise<Record<string, unknown>> {
+  try {
+    return finishThinObjectPartial(
+      exeContext,
+      fieldPlan.objectType,
+      property,
+      childPath,
+      nestedSub,
+      nested,
     );
   } catch (bubbled) {
     exeContext.signal?.throwIfAborted();
@@ -6365,14 +6419,23 @@ function executePlannedSyncObjectFieldsPreCR(
         nested != null &&
         (nested as ThinObjectPartial)[THIN_OBJECT_PARTIAL] === true
       ) {
-        const finished = finishThinObjectPartial(
+        const finished = finishThinNestedPlainWithBoundary(
           exeContext,
-          fieldPlan.objectType,
+          parentType,
+          fieldPlan,
+          fieldNodes,
+          responseName,
           property,
-          addPath(path, responseName, parentType.name),
+          childPath,
           subExecutions,
           nested as ThinObjectPartial,
+          results,
         );
+        if (finished === NESTED_BOUNDARY_NULL) {
+          recordedGetterError = true;
+          n++;
+          continue;
+        }
         if (isPromise(finished)) {
           results[responseName] = undefined;
           const parentPartial = thinObjectMiss(results, true, undefined) as ThinObjectPartial;
@@ -6788,14 +6851,22 @@ function tryExecutePlannedSyncObjectFieldsFast(
       if (isThinObjectPartial(nested)) {
         // Finish nested partial here so completed children (e.g. one-shot
         // getter errors) are not re-walked by a parent NEED_HEAVY / From.
-        const finished = finishThinObjectPartial(
+        const finished = finishThinNestedPlainWithBoundary(
           exeContext,
-          fieldPlan.objectType,
+          parentType,
+          fieldPlan,
+          fieldNodes,
+          responseName,
           property,
           childPath,
           nestedSubExecutions,
           nested,
+          results,
         );
+        if (finished === NESTED_BOUNDARY_NULL) {
+          recordedGetterError = true;
+          continue;
+        }
         if (isPromise(finished)) {
           // Reserve the response key so finishThin does not classic-replay this
           // nested field (one-shot safe). Always return a partial with
@@ -7269,14 +7340,22 @@ function executePlannedSyncObjectFieldsFrom(
         nested: Record<string, unknown> | ThinObjectPartial | undefined,
       ): Record<string, unknown> | ThinObjectPartial | undefined => {
         if (isThinObjectPartial(nested)) {
-          const finished = finishThinObjectPartial(
-            exeContext,
-            fieldPlan.objectType!,
-            property,
-            childPath,
-            nestedSubExecutions,
-            nested,
-          );
+          // Sync finishThin failures must null this field (not a parent) — CR 8468.
+          let finished: MaybePromise<Record<string, unknown>>;
+          try {
+            finished = finishThinObjectPartial(
+              exeContext,
+              fieldPlan.objectType!,
+              property,
+              childPath,
+              nestedSubExecutions,
+              nested,
+            );
+          } catch (bubbled) {
+            nullNestedField(bubbled);
+            recordedGetterError = true;
+            return undefined; // continue sync loop
+          }
           if (isPromise(finished)) {
             // Do not block parent siblings on nested finish (deadlocks
             // release()-style cross-deps). Observe at this field boundary.
@@ -7312,7 +7391,8 @@ function executePlannedSyncObjectFieldsFrom(
         return undefined; // continue sync loop
       };
       let nested: ReturnType<typeof executePlannedSyncObjectFields>;
-      // Skip try/catch when no child can NonNull-bubble (nestedDefault hot path).
+      // Skip try/catch around recurse when no NonNull child (nestedDefault).
+      // finishThin sync failures are caught in applyNested — CR 8468.
       if (plannedSubExecutionsMayBubbleNonNull(nestedSubExecutions)) {
         try {
           nested = executePlannedSyncObjectFields(
@@ -7323,7 +7403,7 @@ function executePlannedSyncObjectFieldsFrom(
             nestedSubExecutions,
           );
         } catch (bubbled) {
-          // NonNull child bubbled — stop at this nullable object field.
+          // NonNull child bubbled — stop at this nested object field.
           nullNestedField(bubbled);
           recordedGetterError = true;
           exeContext.signal?.throwIfAborted();

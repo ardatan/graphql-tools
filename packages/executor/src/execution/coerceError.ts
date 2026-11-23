@@ -20,5 +20,10 @@ export function coerceError(error: unknown): Error {
     }
   }
 
-  return new Error(String(error));
+  // Object.create(null) / odd throwables: String(x) can throw TypeError.
+  try {
+    return new Error(String(error));
+  } catch {
+    return new Error('Unexpected error value');
+  }
 }
