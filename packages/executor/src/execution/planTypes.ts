@@ -23,9 +23,9 @@ export type CoerceVariables = (
 
 /**
  * Discriminator for {@link FieldPlan}. Values match FieldPlan interface stems
- * (`LeafFieldPlan` → `'Leaf'`, `LeafListFieldPlan` → `'LeafList'`, …).
+ * (`LeafFieldPlan` → `'leaf'`, `LeafListFieldPlan` → `'leafList'`, …).
  */
-export type FieldPlanKind = 'Leaf' | 'LeafList' | 'Object' | 'Abstract' | 'List';
+export type FieldPlanKind = 'leaf' | 'leafList' | 'object' | 'abstract' | 'list';
 
 /**
  * How the warm path obtains the field value.
@@ -96,14 +96,14 @@ interface FieldPlanBase {
 
 /** Leaf scalar/enum completion. */
 export interface LeafFieldPlan extends FieldPlanBase {
-  kind: 'Leaf';
+  kind: 'leaf';
   leafType: GraphQLLeafType;
   skipIsTypeOf: false;
 }
 
 /** List of leaf scalars/enums. */
 export interface LeafListFieldPlan extends FieldPlanBase {
-  kind: 'LeafList';
+  kind: 'leafList';
   /** Item leaf type (after unwrapping list / item NonNull). */
   leafType: GraphQLLeafType;
   /** True when list items are wrapped in NonNull. */
@@ -113,7 +113,7 @@ export interface LeafListFieldPlan extends FieldPlanBase {
 
 /** Concrete object completion. */
 export interface ObjectFieldPlan extends FieldPlanBase {
-  kind: 'Object';
+  kind: 'object';
   objectType: GraphQLObjectType;
   /** True when `objectType` has no `isTypeOf` predicate. */
   skipIsTypeOf: boolean;
@@ -121,7 +121,7 @@ export interface ObjectFieldPlan extends FieldPlanBase {
 
 /** Interface / union completion. */
 export interface AbstractFieldPlan extends FieldPlanBase {
-  kind: 'Abstract';
+  kind: 'abstract';
   skipIsTypeOf: false;
 }
 
@@ -131,7 +131,7 @@ export interface AbstractFieldPlan extends FieldPlanBase {
  * are set for the thin nested walk (flattened; no nested PlannedObjectList).
  */
 export interface ListFieldPlan extends FieldPlanBase {
-  kind: 'List';
+  kind: 'list';
   /** Item object type when the thin object-list path applies. */
   objectType?: GraphQLObjectType;
   /** True when list items are NonNull; only set with `objectType`. */

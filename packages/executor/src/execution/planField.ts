@@ -297,46 +297,46 @@ function compileFieldPlan(
 
   let fieldPlan: FieldPlan;
   switch (kind) {
-    case 'Leaf':
+    case 'leaf':
       fieldPlan = {
         ...base,
-        kind: 'Leaf',
+        kind: 'leaf',
         leafType: type as GraphQLLeafType,
         skipIsTypeOf: false,
       };
       break;
-    case 'LeafList':
+    case 'leafList':
       fieldPlan = {
         ...base,
-        kind: 'LeafList',
+        kind: 'leafList',
         leafType: listItemLeaf!.leafType,
         itemNonNull: listItemLeaf!.itemNonNull,
         skipIsTypeOf: false,
       };
       break;
-    case 'Object': {
+    case 'object': {
       const objectType = type as GraphQLObjectType;
       fieldPlan = {
         ...base,
-        kind: 'Object',
+        kind: 'object',
         objectType,
         skipIsTypeOf: objectType.isTypeOf == null,
       };
       break;
     }
-    case 'Abstract':
+    case 'abstract':
       fieldPlan = {
         ...base,
-        kind: 'Abstract',
+        kind: 'abstract',
         skipIsTypeOf: false,
       };
       break;
-    case 'List':
+    case 'list':
     default: {
       const listItemObject = compileListItemObject(type);
       fieldPlan = {
         ...base,
-        kind: 'List',
+        kind: 'list',
         ...(listItemObject != null
           ? {
               objectType: listItemObject.objectType,
@@ -419,21 +419,21 @@ function classifyFieldPlanKind(
   listItemLeaf: CompiledLeafListItem | undefined,
 ): FieldPlanKind {
   if (isLeafType(typeAfterNonNull)) {
-    return 'Leaf';
+    return 'leaf';
   }
   if (isListType(typeAfterNonNull)) {
     if (listItemLeaf != null) {
-      return 'LeafList';
+      return 'leafList';
     }
-    return 'List';
+    return 'list';
   }
   if (isObjectType(typeAfterNonNull)) {
-    return 'Object';
+    return 'object';
   }
   if (isAbstractType(typeAfterNonNull)) {
-    return 'Abstract';
+    return 'abstract';
   }
-  return 'List';
+  return 'list';
 }
 
 /**

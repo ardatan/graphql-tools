@@ -616,17 +616,17 @@ describe('execution plan', () => {
       return;
     }
     const itemsPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('items')!);
-    expect(itemsPlan?.kind).toBe('List');
-    if (itemsPlan?.kind === 'List') {
+    expect(itemsPlan?.kind).toBe('list');
+    if (itemsPlan?.kind === 'list') {
       expect(itemsPlan.objectType).toBe(itemType);
       expect(itemsPlan.itemNonNull).toBe(false);
     }
     const itemFields = plan.__subfieldsByNodes.get(plan.rootFields.get('items')!)?.get(itemType);
     expect(itemFields).toBeDefined();
     const namePlan = plan.__fieldPlanByNodes.get(itemFields!.get('name')!);
-    expect(namePlan?.kind).toBe('Leaf');
+    expect(namePlan?.kind).toBe('leaf');
     const friendPlan = plan.__fieldPlanByNodes.get(itemFields!.get('friend')!);
-    expect(friendPlan?.kind).toBe('Object');
+    expect(friendPlan?.kind).toBe('object');
     expect(friendPlan?.skipIsTypeOf).toBe(true);
   });
 
@@ -646,8 +646,8 @@ describe('execution plan', () => {
       return;
     }
     const fieldPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('values')!);
-    expect(fieldPlan?.kind).toBe('LeafList');
-    if (fieldPlan?.kind === 'LeafList') {
+    expect(fieldPlan?.kind).toBe('leafList');
+    if (fieldPlan?.kind === 'leafList') {
       expect(fieldPlan.itemNonNull).toBe(false);
       expect(fieldPlan.leafType.name).toBe('Int');
     }

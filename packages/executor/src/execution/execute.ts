@@ -1334,7 +1334,7 @@ function executeFields(
           !exeContext.plan.hasIncremental &&
           asyncPayloadRecord == null
         ) {
-          if (fieldPlan.kind === 'LeafList') {
+          if (fieldPlan.kind === 'leafList') {
             const leafResult = executeLeafListFieldWithLocalRunner(
               exeContext,
               parentType,
@@ -1353,7 +1353,7 @@ function executeFields(
               }
               continue;
             }
-          } else if (fieldPlan.kind === 'List' && fieldPlan.objectType != null) {
+          } else if (fieldPlan.kind === 'list' && fieldPlan.objectType != null) {
             const objectListResult = executeObjectListFieldThin(
               exeContext,
               parentType,
@@ -1394,7 +1394,7 @@ function executeFields(
         if (
           rootAsync &&
           exeContext.fieldResolver === defaultFieldResolver &&
-          fieldPlan.kind === 'Leaf' &&
+          fieldPlan.kind === 'leaf' &&
           fieldPlan.leafType != null &&
           fieldPlan.resolveKind === 'defaultProperty' &&
           !fieldPlan.hasArgs &&
@@ -2497,7 +2497,7 @@ function executeField(
     ) {
       // Prefer compile-time leaf facts from the plan; fall back to per-fieldDef memo.
       const plannedLeaf =
-        fieldPlan?.kind === 'Leaf'
+        fieldPlan?.kind === 'leaf'
           ? {
               leafType: fieldPlan.leafType,
               nonNull: fieldPlan.nonNull,
@@ -2579,7 +2579,7 @@ function executeField(
             return serialized;
           }
         }
-      } else if (fieldPlan?.kind === 'LeafList') {
+      } else if (fieldPlan?.kind === 'leafList') {
         // Planned list-of-leaf: still go through completeValue so thenable
         // detection stays a single isPromise read (see scalar-list-paths tests).
         // completeListValue uses listItemLeaf + an indexed array loop.
@@ -2903,10 +2903,10 @@ function completeValue(
       : undefined;
   if (fieldPlan != null && returnType === plannedNamedType) {
     switch (fieldPlan.kind) {
-      case 'Leaf':
+      case 'leaf':
         return completeLeafValue(fieldPlan.leafType, result);
-      case 'LeafList':
-      case 'List':
+      case 'leafList':
+      case 'list':
         if (!isListType(returnType)) {
           break;
         }
@@ -2919,7 +2919,7 @@ function completeValue(
           result,
           asyncPayloadRecord,
         );
-      case 'Abstract':
+      case 'abstract':
         return completeAbstractValue(
           exeContext,
           returnType as GraphQLAbstractType,
@@ -2929,7 +2929,7 @@ function completeValue(
           result,
           asyncPayloadRecord,
         );
-      case 'Object':
+      case 'object':
         return completeObjectValue(
           exeContext,
           fieldPlan.objectType,
@@ -3195,7 +3195,7 @@ function completeListValue(
   const fieldPlan = exeContext.plan
     ? getPlannedFieldPlan(exeContext.plan, fieldNodes, info.parentType)
     : undefined;
-  const plannedLeafList = !stream && fieldPlan?.kind === 'LeafList' ? fieldPlan : undefined;
+  const plannedLeafList = !stream && fieldPlan?.kind === 'leafList' ? fieldPlan : undefined;
   const leafItemType =
     plannedLeafList?.leafType ??
     (!stream && isLeafType(nullableItemType) ? nullableItemType : undefined);
@@ -3597,7 +3597,7 @@ function completeObjectValue(
     ? getPlannedFieldPlan(exeContext.plan, fieldNodes, info.parentType)
     : undefined;
   if (
-    fieldPlan?.kind === 'Object' &&
+    fieldPlan?.kind === 'object' &&
     fieldPlan.skipIsTypeOf &&
     fieldPlan.objectType === returnType &&
     returnType.isTypeOf == null
@@ -3687,7 +3687,7 @@ function executePlannedSyncObjectFields(
     if (property != null && typeof property === 'object' && isPromise(property)) {
       return undefined;
     }
-    if (fieldPlan.kind === 'Leaf' && fieldPlan.leafType != null) {
+    if (fieldPlan.kind === 'leaf' && fieldPlan.leafType != null) {
       if (property == null) {
         if (fieldPlan.nonNull) {
           // NonNull bubble — classic path for exact error handling.
@@ -3707,7 +3707,7 @@ function executePlannedSyncObjectFields(
       }
       continue;
     }
-    if (fieldPlan.kind === 'Object' && fieldPlan.skipIsTypeOf && fieldPlan.objectType != null) {
+    if (fieldPlan.kind === 'object' && fieldPlan.skipIsTypeOf && fieldPlan.objectType != null) {
       if (property == null) {
         if (fieldPlan.nonNull) {
           return undefined;

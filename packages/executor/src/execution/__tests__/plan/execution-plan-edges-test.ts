@@ -319,8 +319,8 @@ describe('execution plan warm-path edges', () => {
       expect(isExecutionPlan(plan)).toBe(true);
       if (isExecutionPlan(plan)) {
         const itemsPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('items')!);
-        expect(itemsPlan?.kind).toBe('List');
-        if (itemsPlan?.kind === 'List') {
+        expect(itemsPlan?.kind).toBe('list');
+        if (itemsPlan?.kind === 'list') {
           expect(itemsPlan.objectType?.name).toBe('Item');
         }
       }
