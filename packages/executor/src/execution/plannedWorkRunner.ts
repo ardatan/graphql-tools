@@ -70,11 +70,14 @@ export class PlannedWorkRunner {
     if (this._failure !== undefined) {
       throw this._failure;
     }
+    if (this._settled) {
+      return;
+    }
     this._drain();
     if (this._failure !== undefined) {
       throw this._failure;
     }
-    if (this._pending === 0) {
+    if (this._settled || this._pending === 0) {
       return;
     }
     return new Promise<void>((resolve, reject) => {
@@ -86,6 +89,27 @@ export class PlannedWorkRunner {
   /** Run `callback` once when the queue next goes idle (pending==0, no jobs). */
   runWhenDrained(callback: () => void): void {
     this._onDrained = callback;
+  }
+
+  /**
+   * Stop waiting for outstanding thenables without treating them as failure.
+   * Used when a leaf list has already null-bubbled: remaining item promises
+   * may never settle, and the field value is already written.
+   * Late completions become no-ops via the existing `_settled` guards.
+   */
+  forceSettle(): void {
+    if (this._settled || this._failure !== undefined) {
+      return;
+    }
+    this._settled = true;
+    this._jobs = undefined;
+    this._onDrained = undefined;
+    const resolve = this._resolve;
+    this._resolve = undefined;
+    this._reject = undefined;
+    if (resolve !== undefined) {
+      resolve();
+    }
   }
 
   drain(): void {

@@ -2157,6 +2157,13 @@ function completePlannedLeafListValue(
 
   const completedResults: Array<unknown> = Array.isArray(result) ? new Array(result.length) : [];
   let listBubbled: unknown;
+  // Track the field-local runner actually allocated for item thenables so a
+  // NonNull bubble can forceSettle without waiting on never-settling siblings.
+  let listRunner: PlannedWorkRunner | undefined;
+  const getListRunner = (): PlannedWorkRunner => {
+    listRunner = getRunner();
+    return listRunner;
+  };
   const bubbleListField = (rawError: unknown, index: number): void => {
     if (listBubbled !== undefined) {
       return;
@@ -2167,6 +2174,9 @@ function completePlannedLeafListValue(
     // Non-null item failure nulls the whole list field (field return type).
     listBubbled = handleFieldError(error, returnType, errors);
     writeField(listBubbled);
+    // Fail-fast: remaining item promises must not keep the field-local runner
+    // busy (classic Promise.all rejects the aggregate and does not wait).
+    listRunner?.forceSettle();
   };
   const writeItem = (index: number, item: unknown): void => {
     if (listBubbled !== undefined) {
@@ -2188,7 +2198,7 @@ function completePlannedLeafListValue(
       );
       // serialize() may return a thenable (async scalars).
       if (isPromise(completed)) {
-        getRunner().awaitValue(
+        getListRunner().awaitValue(
           completed,
           resolved => {
             if (listBubbled === undefined) {
@@ -2224,7 +2234,7 @@ function completePlannedLeafListValue(
     }
     if (isPromise(item)) {
       // Hot async-list path: serialize in the then-callback (skip writeItem frame).
-      getRunner().awaitValue(
+      getListRunner().awaitValue(
         item,
         resolved => {
           if (listBubbled !== undefined) {
