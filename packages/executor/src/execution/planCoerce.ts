@@ -26,6 +26,13 @@ import {
 } from './planShared.js';
 import type { CoerceVariables, CoerceVariablesResult } from './planTypes.js';
 
+/**
+ * Sentinel from hoisted input coercers: valid input that the fast path cannot
+ * handle (e.g. Set / custom array iterator). Runtime skips diagnose and falls
+ * back to getVariableValues.
+ */
+const INPUT_COERCE_DEFER = Symbol.for('@graphql-tools/executor.inputCoerceDefer');
+
 function coerceDefaultLiteral(literal: ValueNode, type: GraphQLInputType): unknown {
   // valueFromAST shares this module's graphql instance (avoid require()-ing a
   // second copy under vitest). Custom GraphQL 17 scalars that only normalize
@@ -202,7 +209,11 @@ function tryCoerceHoistedVariables(
     if (read.kind === 'missing') {
       sources[binding.name] = { signature };
       if (binding.hasDefault) {
-        coerced[binding.name] = clonePlanDefaultValue(binding.defaultValue);
+        coerced[binding.name] = materializePlanDefaultValue(
+          binding.defaultValue,
+          binding.defaultLiteral,
+          binding.variableType,
+        );
         continue;
       }
       if (binding.nonNull) {
@@ -220,6 +231,10 @@ function tryCoerceHoistedVariables(
       };
     }
     const coercedValue = binding.coerce(value);
+    if (coercedValue === INPUT_COERCE_DEFER) {
+      // Valid iterable / custom-iterator input: classic getVariableValues.
+      return undefined;
+    }
     if (coercedValue === undefined) {
       const diagnosed = diagnoseVariableCoerceMiss(
         binding.name,
@@ -276,22 +291,30 @@ function compileInputValueCoercer(
       if (raw == null) {
         return null;
       }
-      // Arrays stay on the indexed fast path. Other iterables (generators) are
-      // one-shot: Array.from would exhaust them before a failed item coerce, so
-      // diagnose/getVariableValues would see `[]`. Decline and let classic
-      // coercion consume the iterable once.
+      // Non-array iterables (Set, generators) and arrays with a custom iterator
+      // must use classic getVariableValues (indexed path would miss yielded
+      // values; Array.from on generators cannot be rewound after a miss).
       if (!Array.isArray(raw)) {
         if (isIterableObject(raw)) {
-          return undefined;
+          return INPUT_COERCE_DEFER;
         }
         // graphql-js: non-iterable non-null → singleton wrap.
         const item = itemCoercer(raw);
+        if (item === INPUT_COERCE_DEFER) {
+          return INPUT_COERCE_DEFER;
+        }
         return item === undefined ? undefined : [item];
+      }
+      if (raw[Symbol.iterator] !== Array.prototype[Symbol.iterator]) {
+        return INPUT_COERCE_DEFER;
       }
       const list = raw;
       const out: unknown[] = [];
       for (let i = 0; i < list.length; i++) {
         const item = itemCoercer(list[i]);
+        if (item === INPUT_COERCE_DEFER) {
+          return INPUT_COERCE_DEFER;
+        }
         if (item === undefined) {
           return undefined;
         }
@@ -410,6 +433,9 @@ function compileInputValueCoercer(
           return undefined;
         }
         const coercedField = field.coerce(obj[onlyKey]);
+        if (coercedField === INPUT_COERCE_DEFER) {
+          return INPUT_COERCE_DEFER;
+        }
         if (coercedField === undefined || coercedField == null) {
           return undefined;
         }
@@ -449,6 +475,9 @@ function compileInputValueCoercer(
           continue;
         }
         const coercedField = field.coerce(fieldValue);
+        if (coercedField === INPUT_COERCE_DEFER) {
+          return INPUT_COERCE_DEFER;
+        }
         if (coercedField === undefined) {
           return undefined;
         }
@@ -489,6 +518,23 @@ function getInputFieldDefaultValue(field: {
   return undefined;
 }
 
+/**
+ * Apply a plan-held variable default for one execution. AST defaults are
+ * re-coerced from the literal so custom scalars (Date, etc.) return a fresh
+ * instance instead of sharing a mutable plan-held value.
+ */
+function materializePlanDefaultValue(
+  defaultValue: unknown,
+  defaultLiteral: ValueNode | undefined,
+  variableType: GraphQLInputType,
+): unknown {
+  if (defaultLiteral != null) {
+    const fresh = coerceDefaultLiteral(defaultLiteral, variableType);
+    return fresh === undefined ? clonePlanDefaultValue(defaultValue) : fresh;
+  }
+  return clonePlanDefaultValue(defaultValue);
+}
+
 /** Fresh copy of plan-held defaults so resolvers cannot mutate shared state. */
 function clonePlanDefaultValue(value: unknown): unknown {
   if (value == null || typeof value !== 'object') {
@@ -501,8 +547,8 @@ function clonePlanDefaultValue(value: unknown): unknown {
     }
     return out;
   }
-  // Preserve custom scalar instances (Date, etc.). Only deep-clone plain
-  // objects / null-prototype maps from valueFromAST.
+  // Preserve custom scalar instances (Date, etc.) when no AST literal remains
+  // to re-parse. Only deep-clone plain / null-prototype maps.
   const proto = Object.getPrototypeOf(value);
   if (proto !== Object.prototype && proto !== null) {
     return value;
@@ -622,7 +668,11 @@ function tryCoerceBuiltinLeafVariables(
     if (read.kind === 'missing') {
       sources[binding.name] = { signature };
       if (binding.hasDefault) {
-        coerced[binding.name] = clonePlanDefaultValue(binding.defaultValue);
+        coerced[binding.name] = materializePlanDefaultValue(
+          binding.defaultValue,
+          binding.defaultLiteral,
+          binding.variableType,
+        );
         continue;
       }
       if (binding.nonNull) {

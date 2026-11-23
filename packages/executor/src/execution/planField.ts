@@ -11,6 +11,8 @@ import {
   GraphQLOutputType,
   GraphQLSchema,
   isAbstractType,
+  isInputObjectType,
+  isInputType,
   isLeafType,
   isListType,
   isNonNullType,
@@ -718,12 +720,32 @@ function getFieldArgDefaultValue(argDef: GraphQLArgument): unknown | undefined {
     return coerceInputValue(gql17Default.value, argDef.type);
   }
   if (gql17Default.literal != null) {
+    // valueFromAST alone skips nested GraphQL 17 input-field defaults; callers
+    // that need those must use getArgumentValues (see needsLibraryArgDefault).
     const compiled = valueFromAST(gql17Default.literal, argDef.type);
     if (compiled !== undefined) {
       return compiled;
     }
   }
   return undefined;
+}
+
+/**
+ * True when applying this arg's schema default needs graphql-js argument
+ * reading (nested GQL17 input-field defaults on literal `{}` forms).
+ */
+function needsLibraryArgDefault(argDef: GraphQLArgument): boolean {
+  const gql17Default = (
+    argDef as GraphQLArgument & { default?: { literal?: ValueNode; value?: unknown } }
+  ).default;
+  if (gql17Default?.literal == null) {
+    return false;
+  }
+  let type = argDef.type;
+  while (isNonNullType(type) || isListType(type)) {
+    type = type.ofType;
+  }
+  return isInputType(type) && isInputObjectType(type);
 }
 
 /**
@@ -748,6 +770,10 @@ function tryReadBareVariableArguments(
     const binding = byArg.get(argDef.name);
     if (binding !== undefined) {
       if (!Object.prototype.hasOwnProperty.call(coerced, binding.variableName)) {
+        // Nested GQL17 input defaults need getArgumentValues.
+        if (needsLibraryArgDefault(argDef)) {
+          return undefined;
+        }
         const defaultValue = getFieldArgDefaultValue(argDef);
         if (defaultValue !== undefined) {
           args[argDef.name] = defaultValue;
@@ -765,6 +791,9 @@ function tryReadBareVariableArguments(
       }
       args[argDef.name] = value;
       continue;
+    }
+    if (needsLibraryArgDefault(argDef)) {
+      return undefined;
     }
     const defaultValue = getFieldArgDefaultValue(argDef);
     if (defaultValue !== undefined) {

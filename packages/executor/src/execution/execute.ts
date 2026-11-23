@@ -799,14 +799,21 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
 
   // Planned path: use the known plan. Classic fallback: `null` skips resolve.
   // Direct callers that omit knownPlan use `args.plan` or get-or-compile.
+  // Explicit knownPlan is validated like args.plan (mismatched schema/document
+  // /operation must not reuse another request's coercer or field maps).
+  const planMatchArgs = { schema, document, operationName };
   const plan =
     knownPlan === undefined
       ? args.plan != null
-        ? planMatchesExecuteArgs(args.plan, { schema, document, operationName })
+        ? planMatchesExecuteArgs(args.plan, planMatchArgs)
           ? args.plan
-          : resolvePlanForExecute({ schema, document, operationName })
-        : resolvePlanForExecute({ schema, document, operationName })
-      : (knownPlan ?? undefined);
+          : resolvePlanForExecute(planMatchArgs)
+        : resolvePlanForExecute(planMatchArgs)
+      : knownPlan == null
+        ? undefined
+        : planMatchesExecuteArgs(knownPlan, planMatchArgs)
+          ? knownPlan
+          : resolvePlanForExecute(planMatchArgs);
 
   // FIXME: https://github.com/graphql/graphql-js/issues/2203
   /* c8 ignore next */
@@ -1523,7 +1530,7 @@ function executeFields(
             try {
               // Always pass the resolver signature — `Function.length === 0`
               // includes rest-parameter methods that still read `arguments`.
-              const info = buildPlannedResolveInfo(exeContext, fieldPlan, fieldPath);
+              const info = buildPlannedResolveInfo(exeContext, fieldPlan, fieldPath, fieldNodes);
               raw = (
                 property as (
                   this: unknown,
@@ -1794,12 +1801,19 @@ function executeObjectListFieldThin(
       }
       // Already invoked user code / held a thenable; finish via classic list
       // completion without re-resolving the field.
-      const info = buildPlannedResolveInfo(exeContext, fieldPlan, path);
+      const info = buildPlannedResolveInfo(exeContext, fieldPlan, path, fieldNodes);
       const returnType = fieldPlan.returnType;
       const listType = (
         isNonNullType(returnType) ? returnType.ofType : returnType
       ) as GraphQLList<GraphQLOutputType>;
-      return completeListValue(exeContext, listType, fieldNodes, info, path, resolved);
+      const completed = completeListValue(exeContext, listType, fieldNodes, info, path, resolved);
+      if (isPromise(completed)) {
+        return completed.then(
+          value => value,
+          rawError => handleFieldError(locate(rawError), fieldPlan.returnType, exeContext.errors),
+        );
+      }
+      return completed;
     } catch (rawError) {
       return handleFieldError(locate(rawError), fieldPlan.returnType, exeContext.errors);
     }
@@ -1822,7 +1836,7 @@ function executeObjectListFieldThin(
     }
     const property = (source as Record<string, unknown>)[fieldPlan.fieldDef.name];
     if (typeof property === 'function') {
-      const info = buildPlannedResolveInfo(exeContext, fieldPlan, path);
+      const info = buildPlannedResolveInfo(exeContext, fieldPlan, path, fieldNodes);
       const methodArgs =
         args ??
         getFieldArgumentValues(
@@ -1874,8 +1888,9 @@ function completePlannedObjectListValue(
     }
     return null;
   }
-  if (!usesDefaultArrayIterator(result)) {
-    // Custom iterators / non-arrays → classic path (for-of / completeListValue).
+  // Async iterators take precedence over indexed sync arrays (classic path).
+  if (isAsyncIterable(result) || !usesDefaultArrayIterator(result)) {
+    // Custom iterators / async iterables / non-arrays → classic completion.
     return undefined;
   }
   // Decline before touching items when any slot needs the classic path, so we
@@ -1990,6 +2005,7 @@ function executeLeafListFieldWithLocalRunner(
           );
           writeField(handleFieldError(error, fieldPlan.returnType, exeContext.errors));
           filterSubsequentPayloads(exeContext, fieldPath, undefined);
+          runner?.forceSettle();
           exeContext.plannedRunner = parentRunner;
           return fieldValue;
         },
@@ -2005,12 +2021,20 @@ function executeLeafListFieldWithLocalRunner(
       exeContext.plannedRunner = parentRunner;
       return fieldValue;
     }
+    // Iterator throw / field error can return null after registering item
+    // thenables. Do not wait on those items (they may never settle).
+    if (fieldValue == null) {
+      runner.forceSettle();
+      exeContext.plannedRunner = parentRunner;
+      return fieldValue;
+    }
     const settled = settleLocalLeafList(runner, parentRunner, exeContext, () => fieldValue);
     if (isPromise(settled)) {
       results[responseName] = settled;
     }
     return settled;
   } catch (rawError) {
+    runner?.forceSettle();
     exeContext.plannedRunner = parentRunner;
     throw rawError;
   }
@@ -2080,7 +2104,7 @@ function executePlannedLeafListField(
       }
       const property = (source as Record<string, unknown>)[fieldPlan.fieldDef.name];
       if (typeof property === 'function') {
-        const info = buildPlannedResolveInfo(exeContext, fieldPlan, path);
+        const info = buildPlannedResolveInfo(exeContext, fieldPlan, path, fieldNodes);
         const methodArgs =
           args ??
           getFieldArgumentValues(
@@ -2111,7 +2135,7 @@ function executePlannedLeafListField(
         result = property;
       }
     } else {
-      const info = buildPlannedResolveInfo(exeContext, fieldPlan, path);
+      const info = buildPlannedResolveInfo(exeContext, fieldPlan, path, fieldNodes);
       const args = getFieldArgumentValues(
         fieldPlan.fieldDef,
         fieldNodes[0],
@@ -2185,11 +2209,11 @@ function completePlannedLeafListValue(
   }
   if (isAsyncIterable(result)) {
     // Async iterables keep the classic path (stream / incremental aware).
-    const info = buildPlannedResolveInfo(exeContext, fieldPlan, path);
+    const info = buildPlannedResolveInfo(exeContext, fieldPlan, path, fieldNodes);
     return completeListValue(exeContext, listType, fieldNodes, info, path, result);
   }
   if (!isIterableObject(result)) {
-    const info = buildPlannedResolveInfo(exeContext, fieldPlan, path);
+    const info = buildPlannedResolveInfo(exeContext, fieldPlan, path, fieldNodes);
     throw new GraphQLError(
       `Expected Iterable, but did not find one for field "${info.parentType.name}.${info.fieldName}".`,
     );
@@ -2717,7 +2741,7 @@ function executeField(
   const resolveFn = fieldDef.resolve ?? exeContext.fieldResolver;
   const resolveInfoForPath = (fieldPath: Path): GraphQLResolveInfo =>
     fieldPlan != null
-      ? buildPlannedResolveInfo(exeContext, fieldPlan, fieldPath)
+      ? buildPlannedResolveInfo(exeContext, fieldPlan, fieldPath, fieldNodes)
       : buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, fieldPath);
 
   let info: GraphQLResolveInfo | undefined;
@@ -3040,17 +3064,20 @@ export function buildResolveInfo(
 }
 
 /**
- * Warm plan path: reuse compiled fieldName / fieldNodes / returnType / parentType.
+ * Warm plan path: reuse compiled fieldName / returnType / parentType.
+ * Prefer runtime-collected `fieldNodes` when provided so skip/include order
+ * matches classic collect (union plan nodes can include skipped occurrences).
  */
 function buildPlannedResolveInfo(
   exeContext: ExecutionContext,
   fieldPlan: FieldPlan,
   path: Path,
+  fieldNodes?: ReadonlyArray<FieldNode> | Array<FieldNode>,
 ): GraphQLResolveInfo {
   const staticInfo = fieldPlan.resolveInfoStatic;
   return {
     fieldName: staticInfo.fieldName,
-    fieldNodes: staticInfo.fieldNodes,
+    fieldNodes: fieldNodes ?? staticInfo.fieldNodes,
     returnType: staticInfo.returnType,
     parentType: staticInfo.parentType,
     path,
