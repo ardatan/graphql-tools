@@ -2599,8 +2599,10 @@ function completePlannedObjectListValue(
     return undefined;
   }
   // Defer skip/include filtering until the list value is known. Empty lists must
-  // not evaluate child predicates (classic never completes items). Null items
-  // complete to null without predicates; predicate throws attach per non-null item.
+  // not evaluate child predicates (classic never completes items). If predicates
+  // throw, decline to ordinary completeListValue on this already-resolved list
+  // (no parent resolver replay) — do not synthesize per-item predicate errors
+  // (thenables / Error items must settle before child directives run).
   let effectiveSubExecutions = subExecutions;
   const plan = exeContext.plan;
   if (plan?.skipIncludePredicates === true) {
@@ -2609,41 +2611,8 @@ function completePlannedObjectListValue(
     }
     try {
       effectiveSubExecutions = filterPlannedExecutions(subExecutions, exeContext.variableValues);
-    } catch (rawError) {
-      const listType = (
-        isNonNullType(fieldPlan.returnType) ? fieldPlan.returnType.ofType : fieldPlan.returnType
-      ) as GraphQLList<GraphQLOutputType>;
-      const itemType = listType.ofType;
-      const completedResults: Array<unknown> = new Array(result.length);
-      for (let i = 0; i < result.length; i++) {
-        const item = result[i];
-        if (item == null) {
-          if (itemNonNull) {
-            const itemPath = addPath(path, i, undefined);
-            throw locatedError(
-              new Error(
-                `Cannot return null for non-nullable field ${fieldPlan.parentType.name}.${fieldPlan.fieldDef.name}.`,
-              ),
-              fieldNodes,
-              pathToArray(itemPath),
-              exeContext.schemaCoordinateInErrors &&
-                buildPlannedResolveInfo(exeContext, fieldPlan, path, fieldNodes),
-            );
-          }
-          completedResults[i] = null;
-          continue;
-        }
-        const itemPath = addPath(path, i, undefined);
-        const error = locatedError(
-          coerceError(rawError),
-          fieldNodes,
-          pathToArray(itemPath),
-          exeContext.schemaCoordinateInErrors &&
-            schemaCoordinateInfo(fieldPlan.fieldDef, fieldPlan.parentType),
-        );
-        completedResults[i] = handleFieldError(error, itemType, exeContext.errors);
-      }
-      return completedResults;
+    } catch {
+      return undefined;
     }
     if (effectiveSubExecutions.length === 0) {
       return undefined;

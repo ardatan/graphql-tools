@@ -4692,4 +4692,129 @@ describe('differential parity: classic vs planned (R9)', () => {
       expect(planned.errors?.[0]?.extensions?.['CRITICAL_ERROR']).toBe(true);
     });
   });
+
+  // R32: predicate filter throw must decline to ordinary list completion so
+  // thenables / Error items settle before child @include runs.
+  describe('R32 predicate completion', () => {
+    const itemType = new GraphQLObjectType({
+      name: 'R32PredItem',
+      fields: {
+        id: { type: GraphQLString },
+        name: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(itemType) },
+          ok: { type: GraphQLString, resolve: () => 'yes' },
+        },
+      }),
+    });
+    const document = parse('query ($show: Boolean) { items { id name @include(if: $show) } ok }');
+    const vars = { show: null };
+
+    it('Promise.resolve(null) does not invent @include errors', async () => {
+      const rootValue = { items: [Promise.resolve(null)] };
+      const planned = assertSingular(
+        await execute({ schema, document, rootValue, variableValues: vars }),
+      );
+      const classic = await executeClassic({
+        schema,
+        document,
+        rootValue,
+        variableValues: vars,
+      });
+      expect(planned).toEqual(classic);
+      expect(planned).toEqual({ data: { items: [null], ok: 'yes' } });
+    });
+
+    it('Promise.reject keeps rejection (no unhandled / no include swap)', async () => {
+      const rootValue = { items: [Promise.reject(new Error('rej'))] };
+      const planned = assertSingular(
+        await execute({ schema, document, rootValue, variableValues: vars }),
+      );
+      const classic = await executeClassic({
+        schema,
+        document,
+        rootValue,
+        variableValues: vars,
+      });
+      expect(planned).toEqual(classic);
+      expect(planned).toMatchObject({
+        data: { items: [null], ok: 'yes' },
+        errors: [expect.objectContaining({ message: 'rej', path: ['items', 0] })],
+      });
+    });
+
+    it('Error item keeps Error message before child directives', async () => {
+      const rootValue = { items: [new Error('err')] };
+      const planned = assertSingular(
+        await execute({ schema, document, rootValue, variableValues: vars }),
+      );
+      const classic = await executeClassic({
+        schema,
+        document,
+        rootValue,
+        variableValues: vars,
+      });
+      expect(planned).toEqual(classic);
+      expect(planned).toMatchObject({
+        data: { items: [null], ok: 'yes' },
+        errors: [expect.objectContaining({ message: 'err', path: ['items', 0] })],
+      });
+    });
+
+    it('mixed null / thenable / thenable-null matches classic paths', async () => {
+      const rootValue = {
+        items: [null, Promise.resolve({ id: '2' }), Promise.resolve(null)],
+      };
+      const planned = assertSingular(
+        await execute({ schema, document, rootValue, variableValues: vars }),
+      );
+      const classic = await executeClassic({
+        schema,
+        document,
+        rootValue,
+        variableValues: vars,
+      });
+      expect(planned).toEqual(classic);
+      expect(planned.data).toEqual({ items: [null, null, null], ok: 'yes' });
+      expect(planned.errors?.map(e => e.path)).toEqual([['items', 1]]);
+    });
+
+    it('live isTypeOf matches classic for explicit plan and cached warm path', async () => {
+      const Item = new GraphQLObjectType({
+        name: 'R32LiveIsTypeOfItem',
+        fields: { id: { type: GraphQLString } },
+      });
+      const liveSchema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: { items: { type: new GraphQLList(Item) } },
+        }),
+      });
+      const liveDocument = parse('{ items { id } }');
+      const plan = compileExecutionPlan({ schema: liveSchema, document: liveDocument });
+      if (!isExecutionPlan(plan)) {
+        throw new Error('expected execution plan');
+      }
+      Item.isTypeOf = () => false;
+      const rootValue = { items: [{ id: 'a' }] };
+      const classic = await executeClassic({
+        schema: liveSchema,
+        document: liveDocument,
+        rootValue,
+      });
+      const cached = assertSingular(
+        await execute({ schema: liveSchema, document: liveDocument, rootValue }),
+      );
+      const explicit = assertSingular(await execute({ plan, rootValue }));
+      expect(cached).toEqual(classic);
+      expect(explicit).toEqual(classic);
+      expect(classic.data).toEqual({ items: [null] });
+      expect(classic.errors?.[0]?.path).toEqual(['items', 0]);
+    });
+  });
 });
