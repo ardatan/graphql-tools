@@ -516,20 +516,51 @@ const getStreamUsageMemo = memoize2(function getStreamUsageMemo(
 export function execute<TData = any, TVariables = any, TContext = any>(
   args: ExecutionArgs<TData, TVariables, TContext>,
 ): MaybePromise<SingularExecutionResult<TData> | IncrementalExecutionResults<TData>> {
-  const knownPlan =
-    args.plan != null
+  // Honor abort before cold plan compile (custom scalar literal work).
+  args.signal?.throwIfAborted();
+
+  let knownPlan: ExecutionPlan | null = null;
+  if (args.plan != null) {
+    knownPlan = planMatchesExecuteArgs(args.plan, args)
       ? args.plan
       : (resolvePlanForExecute({
           schema: args.schema,
           document: args.document,
           operationName: args.operationName,
         }) ?? null);
+  } else {
+    knownPlan =
+      resolvePlanForExecute({
+        schema: args.schema,
+        document: args.document,
+        operationName: args.operationName,
+      }) ?? null;
+  }
 
   const exeContext = buildExecutionContext(args, knownPlan);
   if (!('schema' in exeContext)) {
     return formatContextBuildErrors(exeContext);
   }
   return executeImpl(exeContext);
+}
+
+/** True when a caller-supplied plan is for this schema/document/operation. */
+function planMatchesExecuteArgs(
+  plan: ExecutionPlan,
+  args: {
+    schema: GraphQLSchema;
+    document: DocumentNode;
+    operationName?: string | null;
+  },
+): boolean {
+  if (plan.schema !== args.schema || plan.document !== args.document) {
+    return false;
+  }
+  const requested = args.operationName ?? null;
+  if (requested == null) {
+    return true;
+  }
+  return (plan.operation.name?.value ?? null) === requested;
 }
 
 export function executeImpl<TData = any, TVariables = any, TContext = any>(
@@ -1399,7 +1430,25 @@ function executeFields(
           !fieldPlan.hasArgs &&
           (isObjectLike(sourceValue) || typeof sourceValue === 'function')
         ) {
-          const property = (sourceValue as Record<string, unknown>)[fieldPlan.fieldDef.name];
+          let property: unknown;
+          try {
+            property = (sourceValue as Record<string, unknown>)[fieldPlan.fieldDef.name];
+          } catch (rawError) {
+            const error = locatedError(
+              coerceError(rawError),
+              fieldNodes,
+              pathToArray(fieldPath),
+              exeContext.schemaCoordinateInErrors &&
+                schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+            );
+            results[responseName] = handleFieldError(
+              error,
+              fieldPlan.returnType,
+              exeContext.errors,
+            );
+            rootLeafHandled = true;
+            continue;
+          }
           const leafType = fieldPlan.leafType;
           const completeRootLeafValue = (value: unknown, slot: string): void => {
             try {
@@ -1462,19 +1511,17 @@ function executeFields(
           if (typeof property === 'function') {
             let raw: unknown;
             try {
-              if (property.length === 0) {
-                raw = (property as (this: unknown) => unknown).call(sourceValue);
-              } else {
-                const info = buildPlannedResolveInfo(exeContext, fieldPlan, fieldPath);
-                raw = (
-                  property as (
-                    this: unknown,
-                    fieldArgs: typeof EMPTY_ARGS,
-                    contextValue: unknown,
-                    resolveInfo: GraphQLResolveInfo,
-                  ) => unknown
-                ).call(sourceValue, EMPTY_ARGS, exeContext.contextValue, info);
-              }
+              // Always pass the resolver signature — `Function.length === 0`
+              // includes rest-parameter methods that still read `arguments`.
+              const info = buildPlannedResolveInfo(exeContext, fieldPlan, fieldPath);
+              raw = (
+                property as (
+                  this: unknown,
+                  fieldArgs: typeof EMPTY_ARGS,
+                  contextValue: unknown,
+                  resolveInfo: GraphQLResolveInfo,
+                ) => unknown
+              ).call(sourceValue, EMPTY_ARGS, exeContext.contextValue, info);
             } catch (rawError) {
               const error = locatedError(
                 coerceError(rawError),
@@ -1634,13 +1681,22 @@ function executeFields(
   if (rootRunner != null) {
     const settled = rootRunner.runUntilSettled();
     if (isPromise(settled)) {
-      const done = settled.then(() => results);
-      if (exeContext.signalPromise) {
+      // Field-local leaf lists may also leave promises in `results`; wait for
+      // both the root runner and those slots (unobserved rejections otherwise).
+      const done = settled.then(() =>
+        containsPromise
+          ? promiseForObject(results, exeContext.signal, exeContext.signalPromise)
+          : results,
+      );
+      if (exeContext.signalPromise && !containsPromise) {
         return Promise.race([exeContext.signalPromise, done]);
       }
       return done;
     }
     exeContext.signal?.throwIfAborted();
+    if (containsPromise) {
+      return promiseForObject(results, exeContext.signal, exeContext.signalPromise);
+    }
     return results;
   }
   // If there are no promises, we can just return the object
@@ -1667,15 +1723,23 @@ function executeObjectListFieldThin(
   fieldPlan: ListFieldPlan,
 ): MaybePromise<ReadonlyArray<unknown> | null> | undefined {
   const objectType = fieldPlan.objectType;
-  if (objectType == null || fieldPlan.resolveKind !== 'defaultProperty') {
+  if (
+    objectType == null ||
+    fieldPlan.resolveKind !== 'defaultProperty' ||
+    exeContext.fieldResolver !== defaultFieldResolver
+  ) {
     return undefined;
   }
   const plan = exeContext.plan;
   if (plan == null) {
     return undefined;
   }
-  const subExecutions = getPlannedSubfieldExecutions(plan, fieldNodes, objectType);
-  if (subExecutions == null || subExecutions.length === 0) {
+  const rawSubExecutions = getPlannedSubfieldExecutions(plan, fieldNodes, objectType);
+  if (rawSubExecutions == null || rawSubExecutions.length === 0) {
+    return undefined;
+  }
+  const subExecutions = filterPlannedExecutions(rawSubExecutions, exeContext.variableValues);
+  if (subExecutions.length === 0) {
     return undefined;
   }
   const locate = (rawError: unknown): GraphQLError =>
@@ -1691,8 +1755,9 @@ function executeObjectListFieldThin(
     if (!(isObjectLike(source) || typeof source === 'function')) {
       return undefined;
     }
+    let args: { [argument: string]: unknown } | undefined;
     if (fieldPlan.hasArgs) {
-      getFieldArgumentValues(
+      args = getFieldArgumentValues(
         fieldPlan.fieldDef,
         fieldNodes[0],
         exeContext.variableValues,
@@ -1702,26 +1767,24 @@ function executeObjectListFieldThin(
     }
     const property = (source as Record<string, unknown>)[fieldPlan.fieldDef.name];
     if (typeof property === 'function') {
-      if (!fieldPlan.hasArgs && property.length === 0) {
-        result = (property as (this: unknown) => unknown).call(source);
-      } else {
-        const info = buildPlannedResolveInfo(exeContext, fieldPlan, path);
-        const args = getFieldArgumentValues(
+      const info = buildPlannedResolveInfo(exeContext, fieldPlan, path);
+      const methodArgs =
+        args ??
+        getFieldArgumentValues(
           fieldPlan.fieldDef,
           fieldNodes[0],
           exeContext.variableValues,
           fieldPlan.argumentReader,
           fieldPlan.readArguments,
         );
-        result = (
-          property as (
-            this: unknown,
-            fieldArgs: typeof args,
-            contextValue: unknown,
-            resolveInfo: GraphQLResolveInfo,
-          ) => unknown
-        ).call(source, args, exeContext.contextValue, info);
-      }
+      result = (
+        property as (
+          this: unknown,
+          fieldArgs: typeof methodArgs,
+          contextValue: unknown,
+          resolveInfo: GraphQLResolveInfo,
+        ) => unknown
+      ).call(source, methodArgs, exeContext.contextValue, info);
     } else if (property instanceof Error) {
       throw property;
     } else if (isPromise(property)) {
@@ -1951,8 +2014,9 @@ function executePlannedLeafListField(
       exeContext.fieldResolver === defaultFieldResolver &&
       (isObjectLike(source) || typeof source === 'function')
     ) {
+      let args: { [argument: string]: unknown } | undefined;
       if (fieldPlan.hasArgs) {
-        getFieldArgumentValues(
+        args = getFieldArgumentValues(
           fieldPlan.fieldDef,
           fieldNodes[0],
           exeContext.variableValues,
@@ -1962,27 +2026,24 @@ function executePlannedLeafListField(
       }
       const property = (source as Record<string, unknown>)[fieldPlan.fieldDef.name];
       if (typeof property === 'function') {
-        // Zero-arg methods (bench roots) skip resolveInfo allocation.
-        if (!fieldPlan.hasArgs && property.length === 0) {
-          result = (property as (this: unknown) => unknown).call(source);
-        } else {
-          const info = buildPlannedResolveInfo(exeContext, fieldPlan, path);
-          const args = getFieldArgumentValues(
+        const info = buildPlannedResolveInfo(exeContext, fieldPlan, path);
+        const methodArgs =
+          args ??
+          getFieldArgumentValues(
             fieldPlan.fieldDef,
             fieldNodes[0],
             exeContext.variableValues,
             fieldPlan.argumentReader,
             fieldPlan.readArguments,
           );
-          result = (
-            property as (
-              this: unknown,
-              fieldArgs: typeof args,
-              contextValue: unknown,
-              resolveInfo: GraphQLResolveInfo,
-            ) => unknown
-          ).call(source, args, exeContext.contextValue, info);
-        }
+        result = (
+          property as (
+            this: unknown,
+            fieldArgs: typeof methodArgs,
+            contextValue: unknown,
+            resolveInfo: GraphQLResolveInfo,
+          ) => unknown
+        ).call(source, methodArgs, exeContext.contextValue, info);
       } else if (property instanceof Error) {
         throw property;
       } else if (property == null) {
@@ -2516,9 +2577,10 @@ function executeField(
           : null;
       const leafMemo = plannedLeaf ?? getLeafFieldMemo(fieldDef);
       if (leafMemo !== null) {
+        let args: { [argument: string]: unknown } | undefined;
         if (leafMemo.hasArgs) {
           // Coerce before property read (graphql-js order / required-arg errors).
-          getFieldArgumentValues(
+          args = getFieldArgumentValues(
             fieldDef,
             fieldNodes[0],
             exeContext.variableValues,
@@ -2531,21 +2593,23 @@ function executeField(
           // Same calling convention as defaultFieldResolver, with `this` =
           // source. Use .call so we do not re-read source[name].
           info = resolveInfoForPath(path);
-          const args = getFieldArgumentValues(
-            fieldDef,
-            fieldNodes[0],
-            exeContext.variableValues,
-            fieldPlan?.argumentReader,
-            fieldPlan?.readArguments,
-          );
+          const methodArgs =
+            args ??
+            getFieldArgumentValues(
+              fieldDef,
+              fieldNodes[0],
+              exeContext.variableValues,
+              fieldPlan?.argumentReader,
+              fieldPlan?.readArguments,
+            );
           result = (
             property as (
               this: unknown,
-              fieldArgs: typeof args,
+              fieldArgs: typeof methodArgs,
               contextValue: unknown,
               resolveInfo: GraphQLResolveInfo,
             ) => unknown
-          ).call(source, args, exeContext.contextValue, info);
+          ).call(source, methodArgs, exeContext.contextValue, info);
           resolvedViaDefaultProperty = true;
         } else if (property instanceof Error) {
           throw property;
@@ -3678,6 +3742,9 @@ function executePlannedSyncObjectFields(
   path: Path,
   plannedExecutions: ReadonlyArray<PlannedFieldExecution>,
 ): Record<string, unknown> | undefined {
+  if (exeContext.fieldResolver !== defaultFieldResolver) {
+    return undefined;
+  }
   if (!isObjectLike(sourceValue) && typeof sourceValue !== 'function') {
     return undefined;
   }
@@ -3688,7 +3755,13 @@ function executePlannedSyncObjectFields(
     if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
       return undefined;
     }
-    const property = source[fieldPlan.fieldDef.name];
+    let property: unknown;
+    try {
+      property = source[fieldPlan.fieldDef.name];
+    } catch {
+      // Throwing getters need the classic per-field error boundary.
+      return undefined;
+    }
     if (typeof property === 'function' || property instanceof Error) {
       return undefined;
     }
@@ -3731,8 +3804,8 @@ function executePlannedSyncObjectFields(
       if (plan == null) {
         return undefined;
       }
-      const subExecutions = getPlannedSubfieldExecutions(plan, fieldNodes, fieldPlan.objectType);
-      if (subExecutions == null) {
+      const rawSub = getPlannedSubfieldExecutions(plan, fieldNodes, fieldPlan.objectType);
+      if (rawSub == null) {
         return undefined;
       }
       const nested = executePlannedSyncObjectFields(
@@ -3740,7 +3813,7 @@ function executePlannedSyncObjectFields(
         fieldPlan.objectType,
         property,
         addPath(path, responseName, parentType.name),
-        subExecutions,
+        filterPlannedExecutions(rawSub, exeContext.variableValues),
       );
       if (nested === undefined) {
         return undefined;

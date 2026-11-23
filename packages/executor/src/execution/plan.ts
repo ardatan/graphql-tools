@@ -136,7 +136,16 @@ export function compileExecutionPlan(
   }
 
   const entry = compileExecutionPlanUncached(args);
-  setCachedPlanEntry(args.schema, args.document, args.operationName, entry);
+  // Unknown operation-name misses must not accumulate unbounded Map keys under
+  // a live DocumentNode; successful plans (and other error kinds) still cache.
+  if (
+    !(
+      entry.kind === 'errors' &&
+      entry.errors.every(error => error.message.startsWith('Unknown operation named "'))
+    )
+  ) {
+    setCachedPlanEntry(args.schema, args.document, args.operationName, entry);
+  }
   if (entry.kind === 'plan') {
     return entry.plan;
   }

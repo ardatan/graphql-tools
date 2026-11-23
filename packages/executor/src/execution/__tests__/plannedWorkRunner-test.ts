@@ -85,4 +85,12 @@ describe('PlannedWorkRunner', () => {
     expect(sawReject).toBe(false);
     expect(runner.isBusy).toBe(false);
   });
+
+  it('reports a job that throws undefined as failure', () => {
+    const runner = new PlannedWorkRunner();
+    runner.enqueue(() => {
+      throw undefined;
+    });
+    expect(() => runner.runUntilSettled()).toThrow();
+  });
 });

@@ -16,6 +16,8 @@ export class PlannedWorkRunner {
   private _resolve: (() => void) | undefined;
   private _reject: ((reason: unknown) => void) | undefined;
   private _settled = false;
+  /** Distinguishes “no failure” from a thrown `undefined` stored in `_failure`. */
+  private _failed = false;
   private _failure: unknown;
   private _onDrained: (() => void) | undefined;
 
@@ -67,14 +69,14 @@ export class PlannedWorkRunner {
    * when pending returns to 0 and the stack is empty again.
    */
   runUntilSettled(): MaybePromise<void> {
-    if (this._failure !== undefined) {
+    if (this._failed) {
       throw this._failure;
     }
     if (this._settled) {
       return;
     }
     this._drain();
-    if (this._failure !== undefined) {
+    if (this._failed) {
       throw this._failure;
     }
     if (this._settled || this._pending === 0) {
@@ -98,7 +100,7 @@ export class PlannedWorkRunner {
    * Late completions become no-ops via the existing `_settled` guards.
    */
   forceSettle(): void {
-    if (this._settled || this._failure !== undefined) {
+    if (this._settled || this._failed) {
       return;
     }
     this._settled = true;
@@ -152,10 +154,11 @@ export class PlannedWorkRunner {
   private _fail(error: unknown): void {
     // Store failure without throwing when settle has not attached reject yet.
     // Already-resolved item thenables can microtask-fail before runUntilSettled
-    // returns a Promise; the next runUntilSettled observes `_failure`.
-    if (this._failure !== undefined) {
+    // returns a Promise; the next runUntilSettled observes `_failed`.
+    if (this._failed) {
       return;
     }
+    this._failed = true;
     this._settled = true;
     this._failure = error;
     this._jobs = undefined;

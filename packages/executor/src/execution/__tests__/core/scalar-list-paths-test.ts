@@ -75,27 +75,26 @@ describe('scalar list completion paths', () => {
 
   it('does not wait for remaining items after an async non-null item rejects', async () => {
     const { schema, document } = setup(false);
-    const hang = new Promise<number>(() => undefined);
-    const resultPromise = Promise.resolve(
-      execute({
-        schema,
-        document,
-        rootValue: { values: [Promise.reject(new Error('bad')), hang] },
-      }),
-    );
-    const timeout = new Promise<'TIMEOUT'>(resolve => {
-      setTimeout(() => resolve('TIMEOUT'), 500);
+    let resolveHang!: (value: number) => void;
+    const hang = new Promise<number>(resolve => {
+      resolveHang = resolve;
     });
-    const raced = await Promise.race([
-      resultPromise.then(result => ({ result })),
-      timeout.then(timedOut => ({ timedOut })),
-    ]);
-    expect(raced).toMatchObject({
-      result: {
+    try {
+      // If settle kept waiting on `hang`, this would hit Jest's test timeout.
+      const result = await Promise.resolve(
+        execute({
+          schema,
+          document,
+          rootValue: { values: [Promise.reject(new Error('bad')), hang] },
+        }),
+      );
+      expect(result).toMatchObject({
         data: { alias: null },
         errors: [{ message: 'bad', path: ['alias', 0] }],
-      },
-    });
+      });
+    } finally {
+      resolveHang(0);
+    }
   });
 
   it('retains the existing null and promised input behavior', async () => {
