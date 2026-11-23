@@ -10,4 +10,4 @@ Pair with a document parser cache (e.g. Yoga `useParserAndValidationCache`) so t
 
 Measured warm-path wins vs previous master (process-isolated microbenches, Node 22): sync list ~+200%, async list ~+100%, async root fields ~+80%, nested default-resolver ~+137%, dense `@skip`/`@include` ~+45%+. Property-bag and related benches stay ahead of master on the warm planned path.
 
-Docs: [Planned execution](https://www.graphql-tools.com/docs/execution-plan).
+Docs: [Planned execution](https://www.graphql-tools.com/docs/planned-execution).
