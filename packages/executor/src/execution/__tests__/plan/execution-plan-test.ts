@@ -611,7 +611,7 @@ describe('execution plan', () => {
     expect(fieldPlan?.resolveInfoStatic.fieldNodes).toBe(plan.rootFields.get('hello'));
   });
 
-  it('records completionKind and skipIsTypeOf for object fields', () => {
+  it('records kind and skipIsTypeOf for object fields', () => {
     const document = parse('{ items { name friend { name } } }');
     const plan = compileExecutionPlan({ schema, document });
     expect(isExecutionPlan(plan)).toBe(true);
@@ -619,17 +619,17 @@ describe('execution plan', () => {
       return;
     }
     const itemsPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('items')!);
-    expect(itemsPlan?.completionKind).toBe('objectList');
-    if (itemsPlan?.completionKind === 'objectList') {
-      expect(itemsPlan.listItemObject.objectType).toBe(itemType);
-      expect(itemsPlan.listItemObject.itemNonNull).toBe(false);
+    expect(itemsPlan?.kind).toBe('List');
+    if (itemsPlan?.kind === 'List') {
+      expect(itemsPlan.objectType).toBe(itemType);
+      expect(itemsPlan.itemNonNull).toBe(false);
     }
     const itemFields = plan.subfieldsByNodes.get(plan.rootFields.get('items')!)?.get(itemType);
     expect(itemFields).toBeDefined();
     const namePlan = plan.fieldPlanByNodes.get(itemFields!.get('name')!);
-    expect(namePlan?.completionKind).toBe('leaf');
+    expect(namePlan?.kind).toBe('Leaf');
     const friendPlan = plan.fieldPlanByNodes.get(itemFields!.get('friend')!);
-    expect(friendPlan?.completionKind).toBe('object');
+    expect(friendPlan?.kind).toBe('Object');
     expect(friendPlan?.skipIsTypeOf).toBe(true);
   });
 
@@ -649,12 +649,10 @@ describe('execution plan', () => {
       return;
     }
     const fieldPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('values')!);
-    expect(fieldPlan?.completionKind).toBe('leafList');
-    if (fieldPlan?.completionKind === 'leafList') {
-      expect(fieldPlan.listItemLeaf).toMatchObject({
-        itemNonNull: false,
-      });
-      expect(fieldPlan.listItemLeaf.leafType.name).toBe('Int');
+    expect(fieldPlan?.kind).toBe('LeafList');
+    if (fieldPlan?.kind === 'LeafList') {
+      expect(fieldPlan.itemNonNull).toBe(false);
+      expect(fieldPlan.leafType.name).toBe('Int');
     }
   });
 

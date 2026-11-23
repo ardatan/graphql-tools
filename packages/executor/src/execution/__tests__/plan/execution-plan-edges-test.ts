@@ -1,6 +1,6 @@
 /**
  * Dangerous warm-path edges for the cacheable execution plan (checkpoint tip).
- * These lock in fixes for union FieldNode leakage, list-item completionKind,
+ * These lock in fixes for union FieldNode leakage, list-item kind,
  * leaf coerceVariables nullability / GQL17 sources, and related pitfalls.
  */
 import {
@@ -287,7 +287,7 @@ describe('execution plan warm-path edges', () => {
     });
   });
 
-  describe('list-item completionKind', () => {
+  describe('list-item kind', () => {
     it('completes list-of-object items as objects (not with parent list kind)', () => {
       const friendType = new GraphQLObjectType({
         name: 'Friend',
@@ -318,11 +318,13 @@ describe('execution plan warm-path edges', () => {
       const plan = compileExecutionPlan({ schema, document });
       expect(isExecutionPlan(plan)).toBe(true);
       if (isExecutionPlan(plan)) {
-        expect(plan.fieldPlanByNodes.get(plan.rootFields.get('items')!)?.completionKind).toBe(
-          'objectList',
-        );
+        const itemsPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('items')!);
+        expect(itemsPlan?.kind).toBe('List');
+        if (itemsPlan?.kind === 'List') {
+          expect(itemsPlan.objectType?.name).toBe('Item');
+        }
       }
-      // Warm execute: nested object fields must not inherit list completionKind.
+      // Warm execute: nested object fields must not inherit list kind.
       expect(executeSync({ schema, document })).toEqual({
         data: {
           items: [

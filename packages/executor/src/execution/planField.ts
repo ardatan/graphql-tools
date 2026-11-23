@@ -32,12 +32,10 @@ import {
 import { EMPTY_ARGS, EMPTY_VARIABLE_VALUES, isGraphQL17 } from './planShared.js';
 import type {
   ArgumentReader,
-  CompletionKind,
   FieldPlan,
+  FieldPlanKind,
   InternalExecutionPlan,
   PlannedFieldExecution,
-  PlannedLeafList,
-  PlannedObjectList,
   ResolveKind,
   StreamPlan,
 } from './planTypes.js';
@@ -46,6 +44,11 @@ import {
   compileSkipIncludePredicate,
   type IncludePredicate,
 } from './skipIncludePredicates.js';
+
+/** Local compile helper: leaf list item facts before flattening onto FieldPlan. */
+type CompiledLeafListItem = { leafType: GraphQLLeafType; itemNonNull: boolean };
+/** Local compile helper: object list item facts before flattening onto FieldPlan. */
+type CompiledObjectListItem = { objectType: GraphQLObjectType; itemNonNull: boolean };
 
 export function compilePatchFieldMaps(
   plan: InternalExecutionPlan,
@@ -256,7 +259,7 @@ function compileFieldPlan(
   }
 
   const listItemLeaf = compileListItemLeaf(type);
-  const completionKind = classifyCompletionKind(type, listItemLeaf);
+  const kind = classifyFieldPlanKind(type, listItemLeaf);
   const fieldResolve = fieldDef.resolve;
   const resolveKind: ResolveKind =
     fieldResolve != null && fieldResolve !== defaultFieldResolver
@@ -293,56 +296,57 @@ function compileFieldPlan(
   };
 
   let fieldPlan: FieldPlan;
-  switch (completionKind) {
-    case 'leaf':
+  switch (kind) {
+    case 'Leaf':
       fieldPlan = {
         ...base,
-        completionKind: 'leaf',
+        kind: 'Leaf',
         leafType: type as GraphQLLeafType,
         skipIsTypeOf: false,
       };
       break;
-    case 'leafList':
+    case 'LeafList':
       fieldPlan = {
         ...base,
-        completionKind: 'leafList',
-        listItemLeaf: listItemLeaf!,
+        kind: 'LeafList',
+        leafType: listItemLeaf!.leafType,
+        itemNonNull: listItemLeaf!.itemNonNull,
         skipIsTypeOf: false,
       };
       break;
-    case 'object': {
+    case 'Object': {
       const objectType = type as GraphQLObjectType;
       fieldPlan = {
         ...base,
-        completionKind: 'object',
+        kind: 'Object',
         objectType,
         skipIsTypeOf: objectType.isTypeOf == null,
       };
       break;
     }
-    case 'abstract':
+    case 'Abstract':
       fieldPlan = {
         ...base,
-        completionKind: 'abstract',
+        kind: 'Abstract',
         skipIsTypeOf: false,
       };
       break;
-    case 'objectList':
+    case 'List':
+    default: {
+      const listItemObject = compileListItemObject(type);
       fieldPlan = {
         ...base,
-        completionKind: 'objectList',
-        listItemObject: compileListItemObject(type)!,
+        kind: 'List',
+        ...(listItemObject != null
+          ? {
+              objectType: listItemObject.objectType,
+              itemNonNull: listItemObject.itemNonNull,
+            }
+          : {}),
         skipIsTypeOf: false,
       };
       break;
-    case 'list':
-    default:
-      fieldPlan = {
-        ...base,
-        completionKind: 'list',
-        skipIsTypeOf: false,
-      };
-      break;
+    }
   }
   return fieldPlan;
 }
@@ -410,35 +414,32 @@ function compileStreamPlan(fieldNode: FieldNode): StreamPlan {
   return { kind: 'static', initialCount, label };
 }
 
-function classifyCompletionKind(
+function classifyFieldPlanKind(
   typeAfterNonNull: GraphQLOutputType,
-  listItemLeaf: PlannedLeafList | undefined,
-): CompletionKind {
+  listItemLeaf: CompiledLeafListItem | undefined,
+): FieldPlanKind {
   if (isLeafType(typeAfterNonNull)) {
-    return 'leaf';
+    return 'Leaf';
   }
   if (isListType(typeAfterNonNull)) {
     if (listItemLeaf != null) {
-      return 'leafList';
+      return 'LeafList';
     }
-    if (compileListItemObject(typeAfterNonNull) != null) {
-      return 'objectList';
-    }
-    return 'list';
+    return 'List';
   }
   if (isObjectType(typeAfterNonNull)) {
-    return 'object';
+    return 'Object';
   }
   if (isAbstractType(typeAfterNonNull)) {
-    return 'abstract';
+    return 'Abstract';
   }
-  return 'list';
+  return 'List';
 }
 
 /**
- * If `type` is List or NonNull(List) of (NonNull) leaf, return leaf completion facts.
+ * If `type` is List or NonNull(List) of (NonNull) leaf, return leaf item facts.
  */
-function compileListItemLeaf(type: GraphQLOutputType): PlannedLeafList | undefined {
+function compileListItemLeaf(type: GraphQLOutputType): CompiledLeafListItem | undefined {
   let current: GraphQLOutputType = type;
   if (isNonNullType(current)) {
     current = current.ofType;
@@ -460,9 +461,9 @@ function compileListItemLeaf(type: GraphQLOutputType): PlannedLeafList | undefin
 
 /**
  * If `type` is List or NonNull(List) of (NonNull) concrete object without
- * `isTypeOf`, return object-list completion facts for the nested warm path.
+ * `isTypeOf`, return object-list item facts for the nested warm path.
  */
-function compileListItemObject(type: GraphQLOutputType): PlannedObjectList | undefined {
+function compileListItemObject(type: GraphQLOutputType): CompiledObjectListItem | undefined {
   let current: GraphQLOutputType = type;
   if (isNonNullType(current)) {
     current = current.ofType;

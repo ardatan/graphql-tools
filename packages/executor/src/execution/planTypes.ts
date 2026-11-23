@@ -22,28 +22,10 @@ export type CoerceVariables = (
 ) => CoerceVariablesResult;
 
 /**
- * When the field returns a list of scalars/enums (optionally non-null items),
- * the warm plan path can complete arrays without re-classifying the item type.
+ * Discriminator for {@link FieldPlan}. Values match FieldPlan interface stems
+ * (`LeafFieldPlan` → `'Leaf'`, `LeafListFieldPlan` → `'LeafList'`, …).
  */
-export interface PlannedLeafList {
-  leafType: GraphQLLeafType;
-  /** True when list items are wrapped in NonNull. */
-  itemNonNull: boolean;
-}
-
-/**
- * When the field returns a list of concrete objects without `isTypeOf`,
- * nested default-resolver lists can walk bound subfield executions per item.
- */
-export interface PlannedObjectList {
-  objectType: GraphQLObjectType;
-  itemNonNull: boolean;
-}
-
-/**
- * How the warm path completes this field's return value (after NonNull unwrap).
- */
-export type CompletionKind = 'leaf' | 'leafList' | 'objectList' | 'object' | 'abstract' | 'list';
+export type FieldPlanKind = 'Leaf' | 'LeafList' | 'Object' | 'Abstract' | 'List';
 
 /**
  * How the warm path obtains the field value.
@@ -114,30 +96,24 @@ interface FieldPlanBase {
 
 /** Leaf scalar/enum completion. */
 export interface LeafFieldPlan extends FieldPlanBase {
-  completionKind: 'leaf';
+  kind: 'Leaf';
   leafType: GraphQLLeafType;
   skipIsTypeOf: false;
 }
 
 /** List of leaf scalars/enums. */
 export interface LeafListFieldPlan extends FieldPlanBase {
-  completionKind: 'leafList';
-  listItemLeaf: PlannedLeafList;
-  skipIsTypeOf: false;
-}
-
-/**
- * List of concrete objects without `isTypeOf` (thin nested object-list walk).
- */
-export interface ObjectListFieldPlan extends FieldPlanBase {
-  completionKind: 'objectList';
-  listItemObject: PlannedObjectList;
+  kind: 'LeafList';
+  /** Item leaf type (after unwrapping list / item NonNull). */
+  leafType: GraphQLLeafType;
+  /** True when list items are wrapped in NonNull. */
+  itemNonNull: boolean;
   skipIsTypeOf: false;
 }
 
 /** Concrete object completion. */
 export interface ObjectFieldPlan extends FieldPlanBase {
-  completionKind: 'object';
+  kind: 'Object';
   objectType: GraphQLObjectType;
   /** True when `objectType` has no `isTypeOf` predicate. */
   skipIsTypeOf: boolean;
@@ -145,31 +121,30 @@ export interface ObjectFieldPlan extends FieldPlanBase {
 
 /** Interface / union completion. */
 export interface AbstractFieldPlan extends FieldPlanBase {
-  completionKind: 'abstract';
+  kind: 'Abstract';
   skipIsTypeOf: false;
 }
 
 /**
- * Other lists (abstract item types, objects with `isTypeOf`, nested lists, etc.).
- * No thin object-list facts; classic list completion.
+ * Non-leaf lists (objects / abstracts / nested lists).
+ * When items are concrete objects without `isTypeOf`, `objectType` + `itemNonNull`
+ * are set for the thin nested walk (flattened; no nested PlannedObjectList).
  */
 export interface ListFieldPlan extends FieldPlanBase {
-  completionKind: 'list';
+  kind: 'List';
+  /** Item object type when the thin object-list path applies. */
+  objectType?: GraphQLObjectType;
+  /** True when list items are NonNull; only set with `objectType`. */
+  itemNonNull?: boolean;
   skipIsTypeOf: false;
 }
 
 /**
  * Per-field static facts compiled once for a (schema, document, operation) plan.
- * Discriminated by `completionKind` so kind-specific data is required, not optional.
+ * Discriminated by `kind` so kind-specific data is required, not optional.
  */
 export type FieldPlan =
-  | LeafFieldPlan
-  | LeafListFieldPlan
-  | ObjectListFieldPlan
-  | ObjectFieldPlan
-  | AbstractFieldPlan
-  | ListFieldPlan;
-/**
+  LeafFieldPlan | LeafListFieldPlan | ObjectFieldPlan | AbstractFieldPlan | ListFieldPlan; /**
  * @internal Runtime execution plan data used by the warm interpreter.
  * Not a public API. Prefer the opaque {@link ExecutionPlan} surface from
  * `execute.ts` (compile + `plan.execute`).
