@@ -5549,8 +5549,7 @@ function executePlannedSyncObjectFieldsPreCR(
         coerceError(rawError),
         fieldNodes,
         pathToArray(fieldPath),
-        exeContext.schemaCoordinateInErrors &&
-          schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+        exeContext.schemaCoordinateInErrors && schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
       );
       results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
       recordedGetterError = true;
@@ -5609,8 +5608,7 @@ function executePlannedSyncObjectFieldsPreCR(
         property,
         fieldNodes,
         pathToArray(fieldPath),
-        exeContext.schemaCoordinateInErrors &&
-          schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+        exeContext.schemaCoordinateInErrors && schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
       );
       results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
       recordedGetterError = true;
@@ -5689,9 +5687,7 @@ function executePlannedSyncObjectFieldsPreCR(
         subExecutions,
       );
       if (nested === undefined) {
-        return n > 0 || recordedGetterError
-          ? thinObjectMiss(results, true, undefined)
-          : undefined;
+        return n > 0 || recordedGetterError ? thinObjectMiss(results, true, undefined) : undefined;
       }
       if (
         typeof nested === 'object' &&
