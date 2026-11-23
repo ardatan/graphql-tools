@@ -107,7 +107,7 @@ describe('R35 classic parity (CR triage3)', () => {
     const rootValue = { items: [{ id: 'raw' }] };
     const plan = compileExecutionPlan({ schema, document });
     expect(isExecutionPlan(plan)).toBe(true);
-    Item.getFields().id.resolve = () => 'x';
+    Item.getFields()['id'].resolve = () => 'x';
 
     const classic = singular(await executeClassic({ schema, document, rootValue }));
     const planned = singular(await execute({ schema, document, rootValue, plan: plan as any }));
@@ -130,7 +130,7 @@ describe('R35 classic parity (CR triage3)', () => {
     const rootValue = { user: { id: 'raw' } };
     const plan = compileExecutionPlan({ schema, document });
     expect(isExecutionPlan(plan)).toBe(true);
-    User.getFields().id.resolve = () => 'live';
+    User.getFields()['id'].resolve = () => 'live';
 
     const classic = singular(await executeClassic({ schema, document, rootValue }));
     const planned = singular(await execute({ schema, document, rootValue, plan: plan as any }));
