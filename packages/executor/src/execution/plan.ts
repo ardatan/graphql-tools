@@ -152,7 +152,7 @@ export function getPlannedSubfields(
  * `execute` compiles/caches via {@link resolvePlanForExecute}.
  */
 /**
- * @experimental Compile a cacheable execution plan for a validated operation.
+ * Compile a cacheable execution plan for a validated operation.
  *
  * Returns an opaque {@link import('./executeTypes.js').ExecutionPlan} with
  * `plan.execute(...)`. Internal fields exist at runtime for the warm path but
@@ -205,7 +205,7 @@ export function resolvePlanForExecute(
 ): InternalExecutionPlan | undefined {
   const cached = getCachedPlanEntry(args.schema, args.document, args.operationName);
   if (cached?.kind === 'plan') {
-    return cached.plan;
+    return sealExecutionPlan(cached.plan);
   }
   if (cached != null) {
     // errors: do not retry every request

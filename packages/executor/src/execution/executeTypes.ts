@@ -54,10 +54,10 @@ export type PlannedExecuteArgs<_TData = any, TVariables = any, TContext = any> =
 };
 
 /**
- * @experimental Opaque compiled execution plan.
+ * Opaque compiled execution plan.
  *
- * Prefer `plan.execute(...)` for warm reuse. Internal plan fields are not part
- * of the public API and may change without notice.
+ * Prefer `plan.execute(...)` for warm reuse. Public `execute` get-or-compiles a
+ * plan then calls this. Internal plan fields are not part of the public API.
  */
 export interface ExecutionPlan {
   execute<TData = any, TVariables = any, TContext = any>(

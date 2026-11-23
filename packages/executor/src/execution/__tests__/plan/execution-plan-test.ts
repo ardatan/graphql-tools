@@ -108,6 +108,19 @@ describe('execution plan', () => {
     expect(viaPlan).toEqual(viaExecute);
   });
 
+  it('public execute get-or-compiles and matches plan.execute', () => {
+    const document = parse('{ a b }');
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    expect(executeSync({ schema, document })).toEqual(plan.execute!({}));
+    const exeContext = buildExecutionContext({ schema, document });
+    assertExeContext(exeContext);
+    expect(exeContext.plan).toBe(plan);
+  });
+
   it('compiles the plan once when a document parser cache reuses DocumentNode identity', () => {
     // Mimics Yoga useParserAndValidationCache / Envelop parser-cache: same
     // query string → same DocumentNode → plan WeakMap hit on second execute.
