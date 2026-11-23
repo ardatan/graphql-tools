@@ -6,8 +6,10 @@
  *   benchmarks/results/bench-matrix.json
  *   benchmarks/results/bench-matrix.md
  *
- * Sticky markdown (process-isolated; upserted each commit) is a three-way matrix only:
- *   tipClassic vs origin/master HEAD, tipPlanned vs that master, tipClassic vs tipPlanned
+ * Sticky deltas (process-isolated; upserted each commit), in column order:
+ *   (1) tip planned vs tip classic
+ *   (2) tip planned vs master planned when baseline exports planning, else vs master classic
+ *   (3) tip classic vs master classic
  * for execute scenarios, executeSync key rows, Yoga authors, and Hive federation-example.
  *
  * Env:
@@ -21,6 +23,7 @@
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -274,6 +277,17 @@ function ensureDist(packageRoot, label) {
   }
 }
 
+/** True when the built executor exports `setExecutionPlanningEnabled`. */
+function packageHasPlanning(packageRoot) {
+  try {
+    const req = createRequire(join(packageRoot, 'package.json'));
+    const ex = req(join(packageRoot, 'packages/executor/dist/cjs/index.js'));
+    return typeof ex.setExecutionPlanningEnabled === 'function';
+  } catch {
+    return false;
+  }
+}
+
 const resultsDir = join(root, 'benchmarks/results');
 const RESULTS_JSON = join(resultsDir, 'bench-matrix.json');
 const RESULTS_MD = join(resultsDir, 'bench-matrix.md');
@@ -340,31 +354,54 @@ try {
   /** @type {Record<string, unknown> | null} */
   let httpPayload = null;
 
+  const masterHasPlanning = packageHasPlanning(worktree);
+  console.log(
+    `\n==> Baseline planning API: ${masterHasPlanning ? 'yes (measure master planned)' : 'no (planned vs master uses classic)'}\n`,
+  );
+
   function measureThreeWay({ bench, api }) {
-    const masterSamples = [];
+    const masterClassicSamples = [];
+    const masterPlannedSamples = [];
     const tipClassicSamples = [];
     const tipPlannedSamples = [];
     for (let i = 0; i < samples; i++) {
-      masterSamples.push(measureHz({ packageRoot: worktree, bench, planning: false, api }));
+      masterClassicSamples.push(measureHz({ packageRoot: worktree, bench, planning: false, api }));
+      if (masterHasPlanning) {
+        masterPlannedSamples.push(measureHz({ packageRoot: worktree, bench, planning: true, api }));
+      }
       tipClassicSamples.push(measureHz({ packageRoot: root, bench, planning: false, api }));
       tipPlannedSamples.push(measureHz({ packageRoot: root, bench, planning: true, api }));
     }
-    const masterHz = mean(masterSamples);
+    const masterClassicHz = mean(masterClassicSamples);
+    const masterPlannedHz = masterHasPlanning ? mean(masterPlannedSamples) : null;
     const tipClassicHz = mean(tipClassicSamples);
     const tipPlannedHz = mean(tipPlannedSamples);
+    const masterForPlannedHz = masterPlannedHz ?? masterClassicHz;
     return {
-      masterHz,
+      masterClassicHz,
+      masterPlannedHz,
+      // Alias: "master hz" in older readers = classic.
+      masterHz: masterClassicHz,
       tipClassicHz,
       tipPlannedHz,
-      deltaClassicVsMasterPct: (tipClassicHz / masterHz - 1) * 100,
-      deltaPlannedVsMasterPct: (tipPlannedHz / masterHz - 1) * 100,
-      // How much better tip planned is than tip classic.
+      masterHasPlanning,
+      masterPlannedBaseline: masterHasPlanning ? 'planned' : 'classic',
+      // (1) tip planned vs tip classic
       deltaPlannedVsClassicPct: (tipPlannedHz / tipClassicHz - 1) * 100,
+      // (2) tip planned vs master planned (else master classic)
+      deltaPlannedVsMasterPct: (tipPlannedHz / masterForPlannedHz - 1) * 100,
+      // (3) tip classic vs master classic
+      deltaClassicVsMasterPct: (tipClassicHz / masterClassicHz - 1) * 100,
     };
   }
 
+  function fmtHz(n) {
+    if (n == null || !Number.isFinite(n)) return '—';
+    return Math.round(n).toLocaleString('en-US');
+  }
+
   function threeWayTableRow(label, row, extraCols = '') {
-    return `| ${label} | ${Math.round(row.masterHz).toLocaleString('en-US')} | ${Math.round(row.tipClassicHz).toLocaleString('en-US')} | ${Math.round(row.tipPlannedHz).toLocaleString('en-US')} | ${pct(row.deltaClassicVsMasterPct)} | ${pct(row.deltaPlannedVsMasterPct)} | ${pct(row.deltaPlannedVsClassicPct)}${extraCols} |`;
+    return `| ${label} | ${fmtHz(row.masterClassicHz ?? row.masterHz)} | ${fmtHz(row.tipClassicHz)} | ${fmtHz(row.tipPlannedHz)} | ${pct(row.deltaPlannedVsClassicPct)} | ${pct(row.deltaPlannedVsMasterPct)} | ${pct(row.deltaClassicVsMasterPct)}${extraCols} |`;
   }
 
   try {
@@ -378,7 +415,7 @@ try {
         ...row,
       });
       console.log(
-        `${meta.label}: master=${Math.round(row.masterHz)} classic=${Math.round(row.tipClassicHz)} planned=${Math.round(row.tipPlannedHz)} Δc/m=${pct(row.deltaClassicVsMasterPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)} Δp/c=${pct(row.deltaPlannedVsClassicPct)}`,
+        `${meta.label}: mc=${Math.round(row.masterClassicHz)} tc=${Math.round(row.tipClassicHz)} tp=${Math.round(row.tipPlannedHz)} Δp/c=${pct(row.deltaPlannedVsClassicPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)}(${row.masterPlannedBaseline}) Δc/m=${pct(row.deltaClassicVsMasterPct)}`,
       );
     }
 
@@ -392,7 +429,7 @@ try {
         ...row,
       });
       console.log(
-        `${syncCase.label}: master=${Math.round(row.masterHz)} classic=${Math.round(row.tipClassicHz)} planned=${Math.round(row.tipPlannedHz)} Δc/m=${pct(row.deltaClassicVsMasterPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)} Δp/c=${pct(row.deltaPlannedVsClassicPct)}`,
+        `${syncCase.label}: mc=${Math.round(row.masterClassicHz)} tc=${Math.round(row.tipClassicHz)} tp=${Math.round(row.tipPlannedHz)} Δp/c=${pct(row.deltaPlannedVsClassicPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)}(${row.masterPlannedBaseline}) Δc/m=${pct(row.deltaClassicVsMasterPct)}`,
       );
     }
 
@@ -413,14 +450,20 @@ try {
         stdio: 'inherit',
       });
       httpPayload = JSON.parse(readFileSync(httpJson, 'utf8'));
-      // Normalize HTTP rows to the same three-delta fields.
+      // Normalize HTTP rows to the same three-delta fields / aliases.
       for (const key of ['yoga', 'hive']) {
         const row = httpPayload?.[key];
-        if (row && row.tipClassicHz != null && row.tipPlannedHz != null && row.masterHz != null) {
-          row.deltaClassicVsMasterPct = (row.tipClassicHz / row.masterHz - 1) * 100;
-          row.deltaPlannedVsMasterPct = (row.tipPlannedHz / row.masterHz - 1) * 100;
-          row.deltaPlannedVsClassicPct = (row.tipPlannedHz / row.tipClassicHz - 1) * 100;
-        }
+        if (!row || row.tipClassicHz == null || row.tipPlannedHz == null) continue;
+        const masterClassicHz = row.masterClassicHz ?? row.masterHz;
+        if (masterClassicHz == null) continue;
+        row.masterClassicHz = masterClassicHz;
+        row.masterHz = masterClassicHz;
+        const masterForPlannedHz = row.masterPlannedHz ?? masterClassicHz;
+        row.masterHasPlanning = Boolean(row.masterHasPlanning ?? row.masterPlannedHz != null);
+        row.masterPlannedBaseline = row.masterHasPlanning ? 'planned' : 'classic';
+        row.deltaPlannedVsClassicPct = (row.tipPlannedHz / row.tipClassicHz - 1) * 100;
+        row.deltaPlannedVsMasterPct = (row.tipPlannedHz / masterForPlannedHz - 1) * 100;
+        row.deltaClassicVsMasterPct = (row.tipClassicHz / masterClassicHz - 1) * 100;
       }
     }
   } finally {
@@ -441,6 +484,7 @@ try {
     measureMs,
     samples,
     httpSamples,
+    masterHasPlanning,
     execute: claimRows,
     syncApi: syncApiRows,
     yoga: httpPayload?.yoga ?? null,
@@ -451,9 +495,13 @@ try {
   writeFileSync(RESULTS_JSON, `${JSON.stringify(payload, null, 2)}\n`);
 
   const threeWayHeader = [
-    '| Bench | Master hz | Tip classic hz | Tip planned hz | Δ classic vs master | Δ planned vs master | Δ planned vs classic |',
+    '| Bench | Master classic hz | Tip classic hz | Tip planned hz | Δ planned vs classic | Δ planned vs master | Δ classic vs master |',
     '| --- | ---: | ---: | ---: | ---: | ---: | ---: |',
   ];
+
+  const masterPlannedNote = masterHasPlanning
+    ? 'Baseline exports planning: **Δ planned vs master** is tip planned vs **master planned**.'
+    : 'Baseline has no planning API: **Δ planned vs master** is tip planned vs **master classic**.';
 
   const md = [
     MARKER,
@@ -461,7 +509,9 @@ try {
     '',
     `HEAD \`${headSha.slice(0, 9)}\` vs \`${baseRemoteRef}\` (\`${baseSha.slice(0, 9)}\` fetched this run), Node ${process.version}, compiled dist.`,
     '',
-    'Each row is a three-way: **tip classic** (`setExecutionPlanningEnabled(false)`) vs origin/master, **tip planned** vs that master, and **tip planned vs tip classic** (how much better planned is than classic).',
+    'Deltas (in order): **(1) tip planned vs tip classic**, **(2) tip planned vs master** (master planned when the baseline exports planning, else master classic), **(3) tip classic vs master classic**.',
+    '',
+    masterPlannedNote,
     '',
     '### execute',
     '',

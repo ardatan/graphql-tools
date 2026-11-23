@@ -20,6 +20,7 @@
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -220,26 +221,51 @@ function pct(n) {
   return `${sign}${n.toFixed(1)}%`;
 }
 
+/** True when the built executor exports `setExecutionPlanningEnabled`. */
+function packageHasPlanning(packageRoot) {
+  try {
+    const req = createRequire(join(packageRoot, 'package.json'));
+    const ex = req(join(packageRoot, 'packages/executor/dist/cjs/index.js'));
+    return typeof ex.setExecutionPlanningEnabled === 'function';
+  } catch {
+    return false;
+  }
+}
+
+const masterHasPlanning = packageHasPlanning(masterRoot);
+
 function threeWay(measureFn) {
-  const masterSamples = [];
+  const masterClassicSamples = [];
+  const masterPlannedSamples = [];
   const tipClassicSamples = [];
   const tipPlannedSamples = [];
   for (let i = 0; i < httpSamples; i++) {
-    masterSamples.push(measureFn({ side: 'master', planning: false }));
+    masterClassicSamples.push(measureFn({ side: 'master', planning: false }));
+    if (masterHasPlanning) {
+      masterPlannedSamples.push(measureFn({ side: 'master', planning: true }));
+    }
     tipClassicSamples.push(measureFn({ side: 'tip', planning: false }));
     tipPlannedSamples.push(measureFn({ side: 'tip', planning: true }));
   }
-  const masterHz = mean(masterSamples);
+  const masterClassicHz = mean(masterClassicSamples);
+  const masterPlannedHz = masterHasPlanning ? mean(masterPlannedSamples) : null;
   const tipClassicHz = mean(tipClassicSamples);
   const tipPlannedHz = mean(tipPlannedSamples);
+  const masterForPlannedHz = masterPlannedHz ?? masterClassicHz;
   return {
-    masterHz,
+    masterClassicHz,
+    masterPlannedHz,
+    masterHz: masterClassicHz,
     tipClassicHz,
     tipPlannedHz,
-    deltaClassicVsMasterPct: (tipClassicHz / masterHz - 1) * 100,
-    deltaPlannedVsMasterPct: (tipPlannedHz / masterHz - 1) * 100,
-    // How much better tip planned is than tip classic.
+    masterHasPlanning,
+    masterPlannedBaseline: masterHasPlanning ? 'planned' : 'classic',
+    // (1) tip planned vs tip classic
     deltaPlannedVsClassicPct: (tipPlannedHz / tipClassicHz - 1) * 100,
+    // (2) tip planned vs master planned (else master classic)
+    deltaPlannedVsMasterPct: (tipPlannedHz / masterForPlannedHz - 1) * 100,
+    // (3) tip classic vs master classic
+    deltaClassicVsMasterPct: (tipClassicHz / masterClassicHz - 1) * 100,
   };
 }
 
@@ -397,6 +423,7 @@ const payload = {
   warmMs,
   measureMs,
   httpSamples,
+  masterHasPlanning,
   yoga: null,
   hive: null,
   hiveNote: null,
@@ -411,7 +438,7 @@ if (!skipYoga) {
     ...row,
   };
   console.log(
-    `Yoga authors: master=${Math.round(row.masterHz)} classic=${Math.round(row.tipClassicHz)} planned=${Math.round(row.tipPlannedHz)} Δc/m=${pct(row.deltaClassicVsMasterPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)} Δp/c=${pct(row.deltaPlannedVsClassicPct)}`,
+    `Yoga authors: mc=${Math.round(row.masterClassicHz)} tc=${Math.round(row.tipClassicHz)} tp=${Math.round(row.tipPlannedHz)} Δp/c=${pct(row.deltaPlannedVsClassicPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)}(${row.masterPlannedBaseline}) Δc/m=${pct(row.deltaClassicVsMasterPct)}`,
   );
 }
 
@@ -430,28 +457,38 @@ if (!skipHive) {
 
     console.log('\n==> Hive federation-example — master executor resolution\n');
     applyExecutorResolution(masterPack);
-    const master = runHiveFederationToolsHz({ planning: false });
+    const masterClassic = runHiveFederationToolsHz({ planning: false });
+    const masterPlanned = masterHasPlanning ? runHiveFederationToolsHz({ planning: true }) : null;
+    const masterForPlannedHz = masterPlanned?.hz ?? masterClassic.hz;
 
     payload.hive = {
       bench: 'hive-gateway-federation-example',
       fixture: 'graphql-hive/gateway e2e/federation-example TestQuery',
-      masterHz: master.hz,
+      masterClassicHz: masterClassic.hz,
+      masterPlannedHz: masterPlanned?.hz ?? null,
+      masterHz: masterClassic.hz,
       tipClassicHz: tipClassic.hz,
       tipPlannedHz: tipPlanned.hz,
-      deltaClassicVsMasterPct: (tipClassic.hz / master.hz - 1) * 100,
-      deltaPlannedVsMasterPct: (tipPlanned.hz / master.hz - 1) * 100,
+      masterHasPlanning,
+      masterPlannedBaseline: masterHasPlanning ? 'planned' : 'classic',
       deltaPlannedVsClassicPct: (tipPlanned.hz / tipClassic.hz - 1) * 100,
+      deltaPlannedVsMasterPct: (tipPlanned.hz / masterForPlannedHz - 1) * 100,
+      deltaClassicVsMasterPct: (tipClassic.hz / masterClassic.hz - 1) * 100,
       productsSize: Number(process.env.CLAIM_BENCH_HIVE_PRODUCTS_SIZE || '1000'),
       raw: {
-        master: master.rawLine,
+        masterClassic: masterClassic.rawLine,
+        masterPlanned: masterPlanned?.rawLine ?? null,
         tipClassic: tipClassic.rawLine,
         tipPlanned: tipPlanned.rawLine,
       },
     };
     payload.hiveNote =
-      'Hive Gateway `e2e/federation-example` (federation TestQuery, PRODUCTS_SIZE configurable). Executor via yarn resolution to packed `@graphql-tools/executor`. Tip classic uses `GRAPHQL_TOOLS_EXECUTOR_PLANNING=0`. No proxy path.';
+      'Hive Gateway `e2e/federation-example` (federation TestQuery, PRODUCTS_SIZE configurable). Executor via yarn resolution to packed `@graphql-tools/executor`. Tip classic uses `GRAPHQL_TOOLS_EXECUTOR_PLANNING=0`. No proxy path. ' +
+      (masterHasPlanning
+        ? 'Δ planned vs master uses master planned.'
+        : 'Δ planned vs master uses master classic (baseline has no planning API).');
     console.log(
-      `Hive federation: master=${payload.hive.masterHz.toFixed(2)} classic=${payload.hive.tipClassicHz.toFixed(2)} planned=${payload.hive.tipPlannedHz.toFixed(2)} Δc/m=${pct(payload.hive.deltaClassicVsMasterPct)} Δp/m=${pct(payload.hive.deltaPlannedVsMasterPct)} Δp/c=${pct(payload.hive.deltaPlannedVsClassicPct)}`,
+      `Hive federation: mc=${payload.hive.masterClassicHz.toFixed(2)} tc=${payload.hive.tipClassicHz.toFixed(2)} tp=${payload.hive.tipPlannedHz.toFixed(2)} Δp/c=${pct(payload.hive.deltaPlannedVsClassicPct)} Δp/m=${pct(payload.hive.deltaPlannedVsMasterPct)}(${payload.hive.masterPlannedBaseline}) Δc/m=${pct(payload.hive.deltaClassicVsMasterPct)}`,
     );
   } catch (error) {
     payload.hiveNote = `Hive federation-example bench failed: ${error.message}`;
