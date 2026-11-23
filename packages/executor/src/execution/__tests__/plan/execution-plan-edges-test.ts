@@ -36,6 +36,7 @@ import {
   getPlannedSubfieldExecutions,
   getPlannedSubfields,
   isExecutionPlan,
+  isExecutionPlanningEnabled,
   type InternalExecutionPlan,
 } from '../../plan.js';
 
@@ -3478,6 +3479,7 @@ describe('object-list thin path: r8 differential matrix', () => {
     expect(planned).toEqual(classic);
     // Preallocated output must not keep a trailing hole as null.
     expect(planned).toEqual({ data: { users: [{ id: '1' }] } });
+    expect(planned.data?.users).toHaveLength(1);
   });
 
   (process.env['LEAK_TEST'] ? it.skip : it)(
@@ -3635,6 +3637,7 @@ describe('object-list thin path: r8 differential matrix', () => {
     const planned = executeSync({ schema, document });
     const classic = executeClassicSync({ schema, document });
     expect(planned).toEqual({ data: { values: ['1'] } });
+    expect(planned.data?.values).toStrictEqual(['1']);
     expect(planned).toEqual(classic);
   });
 
@@ -4714,6 +4717,12 @@ describe('differential parity: classic vs planned (R9)', () => {
     });
     const document = parse('query ($show: Boolean) { items { id name @include(if: $show) } ok }');
     const vars = { show: null };
+
+    it('document-mode planned regressions run with planning enabled', () => {
+      // Keep document-mode execute (automatic plan lookup / cache reuse). Do not
+      // force explicit plans into every call — that bypasses the warm path.
+      expect(isExecutionPlanningEnabled()).toBe(true);
+    });
 
     it('Promise.resolve(null) does not invent @include errors', async () => {
       const rootValue = { items: [Promise.resolve(null)] };

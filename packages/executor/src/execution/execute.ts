@@ -2082,7 +2082,9 @@ function executeObjectListFieldThin(
     } else {
       result = property;
     }
-    if (result != null && typeof result === 'object' && isPromise(result)) {
+    // Await thenables including callable thenables (typeof === 'function').
+    // Object-only guards skip those and feed the function into list completion.
+    if (isPromise(result)) {
       return result.then(
         resolved =>
           completeObjectListThinResolved(
@@ -2383,15 +2385,36 @@ function executePlannedSyncObjectFieldsPlain(
       if (rawSub == null) {
         return thinObjectMiss(results, false, pendingLeaves);
       }
-      const nestedSub =
-        plan.skipIncludePredicates === true
-          ? filterPlannedExecutions(rawSub, exeContext.variableValues)
-          : rawSub;
+      const childPath = addPath(path, responseName, parentType.name);
+      let nestedSub = rawSub;
+      if (plan.skipIncludePredicates === true) {
+        try {
+          nestedSub = filterPlannedExecutions(rawSub, exeContext.variableValues);
+        } catch (bubbled) {
+          // Directive errors at the nested field boundary (preserve siblings).
+          if (fieldPlan.nonNull) {
+            throw bubbled;
+          }
+          const error = locatedError(
+            coerceError(bubbled),
+            fieldNodes,
+            pathToArray(childPath),
+            exeContext.schemaCoordinateInErrors &&
+              schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+          );
+          results[responseName] = handleFieldError(
+            error,
+            fieldPlan.returnType,
+            exeContext.errors,
+          );
+          continue;
+        }
+      }
       const nested = executePlannedSyncObjectFieldsPlain(
         exeContext,
         fieldPlan.objectType,
         property,
-        addPath(path, responseName, parentType.name),
+        childPath,
         nestedSub,
       );
       if (nested === undefined) {
@@ -2976,7 +2999,9 @@ function completePlannedObjectListValuePhaseB(
               completedResults[itemIndex] = null;
               return;
             }
-            if (!isObjectLike(resolved)) {
+            // Live isTypeOf may appear after the item was pending — use generic
+            // object completion so a false predicate nulls the item (classic).
+            if (!isObjectLike(resolved) || itemObjectType.isTypeOf != null) {
               const one: Array<unknown> = [];
               const asyncItem = completeListItemValue(
                 resolved,
@@ -3685,25 +3710,8 @@ function completePlannedLeafListValue(
         if (listBubbled !== undefined) {
           return;
         }
-        if (resolved == null) {
-          try {
-            completedResults[index] = handlePlannedLeafListItemError(
-              new Error(
-                `Expected \`${inspect(leafType)}.serialize(...)\` to return non-nullable value, returned: ${inspect(resolved)}`,
-              ),
-              itemType,
-              fieldNodes,
-              path,
-              index,
-              errors,
-              exeContext,
-              coordinateInfo,
-            );
-          } catch (bubble) {
-            bubbleListField(bubble, index);
-          }
-          return;
-        }
+        // Classic stores a fulfilled serializer null without inventing an
+        // error here (async nullish passthrough) — do not depend on input shape.
         completedResults[index] = resolved;
       },
       rawError => {
@@ -3757,21 +3765,15 @@ function completePlannedLeafListValue(
                         : String(resolved);
                   return;
                 }
-                const serialized = leafType.serialize(resolved);
-                if (serialized != null && !isPromise(serialized)) {
-                  completedResults[index] = serialized;
-                  return;
-                }
+                // completeLeafValue: sync serialize GraphQLError → Error (drop
+                // CRITICAL_ERROR); thenable serialize still settles via reject path.
+                const serialized = completeLeafValue(leafType, resolved);
                 if (isPromise(serialized)) {
                   settleSerializedPromise(index, serialized);
                   return;
                 }
-                // First serialize returned nullish — match completeLeafValue
-                // without falling through to writeItem (which would serialize again).
-                throw new Error(
-                  `Expected \`${inspect(leafType)}.serialize(${inspect(resolved)})\` to ` +
-                    `return non-nullable value, returned: ${inspect(serialized)}`,
-                );
+                completedResults[index] = serialized;
+                return;
               } catch (rawError) {
                 try {
                   completedResults[index] = handlePlannedLeafListItemError(
@@ -5917,15 +5919,36 @@ function executePlannedSyncObjectFieldsPreCR(
           ? thinObjectMiss(results, recordedGetterError, undefined)
           : undefined;
       }
-      const subExecutions =
-        plan.skipIncludePredicates === true
-          ? filterPlannedExecutions(rawSubExecutions, exeContext.variableValues)
-          : rawSubExecutions;
+      const childPath = addPath(path, responseName, parentType.name);
+      let subExecutions = rawSubExecutions;
+      if (plan.skipIncludePredicates === true) {
+        try {
+          subExecutions = filterPlannedExecutions(rawSubExecutions, exeContext.variableValues);
+        } catch (bubbled) {
+          if (fieldPlan.nonNull) {
+            throw bubbled;
+          }
+          const error = locatedError(
+            coerceError(bubbled),
+            fieldNodes,
+            pathToArray(childPath),
+            exeContext.schemaCoordinateInErrors &&
+              schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+          );
+          results[responseName] = handleFieldError(
+            error,
+            fieldPlan.returnType,
+            exeContext.errors,
+          );
+          n++;
+          continue;
+        }
+      }
       const nested = executePlannedSyncObjectFieldsPreCR(
         exeContext,
         fieldPlan.objectType,
         property,
-        addPath(path, responseName, parentType.name),
+        childPath,
         subExecutions,
       );
       if (nested === undefined) {
@@ -6206,11 +6229,30 @@ function tryExecutePlannedSyncObjectFieldsFast(
       if (rawSub == null) {
         return thinObjectMiss(results, recordedGetterError, pendingLeaves);
       }
-      const nestedSubExecutions =
-        plan.skipIncludePredicates === true
-          ? filterPlannedExecutions(rawSub, exeContext.variableValues)
-          : rawSub;
       const childPath = addPath(path, responseName, parentType.name);
+      let nestedSubExecutions = rawSub;
+      if (plan.skipIncludePredicates === true) {
+        try {
+          nestedSubExecutions = filterPlannedExecutions(rawSub, exeContext.variableValues);
+        } catch (bubbled) {
+          if (fieldPlan.nonNull) {
+            throw bubbled;
+          }
+          const error = locatedError(
+            coerceError(bubbled),
+            fieldNodes,
+            pathToArray(childPath),
+            exeContext.schemaCoordinateInErrors &&
+              schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+          );
+          results[responseName] = handleFieldError(
+            error,
+            fieldPlan.returnType,
+            exeContext.errors,
+          );
+          continue;
+        }
+      }
       const nested = tryExecutePlannedSyncObjectFieldsFast(
         exeContext,
         fieldPlan.objectType,
@@ -6618,24 +6660,33 @@ function executePlannedSyncObjectFieldsFrom(
         return thinObjectMiss(results, recordedGetterError, pendingLeaves);
       }
       const childPath = addPath(path, responseName, parentType.name);
-      const nestedSubExecutions = filterPlannedExecutions(rawSub, exeContext.variableValues);
       const nullNestedField = (bubbled: unknown): void => {
         exeContext.signal?.throwIfAborted();
         if (fieldPlan.nonNull) {
           throw bubbled;
         }
-        const error =
-          bubbled instanceof GraphQLError
-            ? bubbled
-            : locatedError(
-                coerceError(bubbled),
-                fieldNodes,
-                pathToArray(childPath),
-                exeContext.schemaCoordinateInErrors &&
-                  schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
-              );
+        const error = locatedError(
+          coerceError(bubbled),
+          fieldNodes,
+          pathToArray(childPath),
+          exeContext.schemaCoordinateInErrors &&
+            schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+        );
         results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
       };
+      // Filter inside the nested field boundary so directive throws null only
+      // this nullable field (siblings like `label` survive).
+      let nestedSubExecutions = rawSub;
+      try {
+        if (exeContext.plan?.skipIncludePredicates === true) {
+          nestedSubExecutions = filterPlannedExecutions(rawSub, exeContext.variableValues);
+        }
+      } catch (bubbled) {
+        nullNestedField(bubbled);
+        recordedGetterError = true;
+        exeContext.signal?.throwIfAborted();
+        continue;
+      }
       const applyNested = (
         nested: Record<string, unknown> | ThinObjectPartial | undefined,
       ): Record<string, unknown> | ThinObjectPartial | undefined => {
