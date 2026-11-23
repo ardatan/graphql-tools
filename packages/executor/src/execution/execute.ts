@@ -1463,23 +1463,33 @@ function executeFieldsClassic(
         results[responseName] = result;
         if (isPromise(result)) {
           containsPromise = true;
-          // Classic: promiseForObject (or the catch path below) always attaches
-          // handlers — do not pay observeFieldLocalPromise per async field
-          // (asyncRoot / mixedSyncAsync kill-switch tax).
+          // Hot path: do not observe every async field (asyncRoot KS tax).
+          // Abort + pending promises are handled in the catch below.
         }
       }
     }
   } catch (error) {
-    if (error !== exeContext.signal?.reason && containsPromise) {
-      return handleMaybePromise(
-        () => promiseForObject(results, exeContext.signal),
-        () => {
-          throw error;
-        },
-        () => {
-          throw error;
-        },
-      );
+    if (containsPromise) {
+      if (error !== exeContext.signal?.reason) {
+        return handleMaybePromise(
+          () => promiseForObject(results, exeContext.signal),
+          () => {
+            throw error;
+          },
+          () => {
+            throw error;
+          },
+        );
+      }
+      // Abort skips the normal promise join (signal.reason path). Still observe
+      // nested field-local thenables so a late list rejection is not UHR —
+      // without paying observe on the non-abort asyncRoot hot path.
+      for (const key of Object.keys(results)) {
+        const value = results[key];
+        if (isPromise(value)) {
+          observeFieldLocalPromise(value);
+        }
+      }
     }
     throw error;
   }
