@@ -2342,7 +2342,8 @@ function tryCompletePlannedObjectListPlain(
 ): ReadonlyArray<unknown> | PlainObjectListHandoff {
   // Live length: a getter may truncate the source array between slots.
   const completedResults: Array<unknown> = new Array(result.length);
-  for (let index = 0; index < result.length; index++) {
+  let index = 0;
+  for (; index < result.length; index++) {
     const item = result[index];
     if (item == null) {
       if (itemNonNull) {
@@ -2405,7 +2406,9 @@ function tryCompletePlannedObjectListPlain(
     }
     completedResults[index] = nested;
   }
-  completedResults.length = result.length;
+  // Size by visited slots — a getter may truncate the source to 0 after a
+  // successful read; classic retains that item (do not use result.length).
+  completedResults.length = index;
   return completedResults;
 }
 
@@ -2582,28 +2585,30 @@ function completePlannedObjectListValue(
     }
     completedResults[index] = nested;
   }
-  if (index >= result.length) {
-    completedResults.length = result.length;
-    return completedResults;
+  // A truncating getter can shrink length below the current index while a
+  // failure or decline is stashed — always finish via Phase B in that case.
+  if (hasStashedItem || pendingBubbled !== undefined || hasStash) {
+    return completePlannedObjectListValuePhaseB(
+      exeContext,
+      fieldPlan,
+      fieldNodes,
+      path,
+      result,
+      itemObjectType,
+      itemNonNull,
+      subExecutions,
+      completedResults,
+      index,
+      stashedNested,
+      hasStash,
+      pendingBubbled,
+      hasStashedItem ? stashedItem : undefined,
+      hasStashedItem,
+    );
   }
-
-  return completePlannedObjectListValuePhaseB(
-    exeContext,
-    fieldPlan,
-    fieldNodes,
-    path,
-    result,
-    itemObjectType,
-    itemNonNull,
-    subExecutions,
-    completedResults,
-    index,
-    stashedNested,
-    hasStash,
-    pendingBubbled,
-    hasStashedItem ? stashedItem : undefined,
-    hasStashedItem,
-  );
+  // Full success through live length — size by visited slots, not final length.
+  completedResults.length = index;
+  return completedResults;
 }
 
 function completePlannedObjectListValuePhaseB(

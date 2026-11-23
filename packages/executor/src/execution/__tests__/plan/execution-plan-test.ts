@@ -2345,4 +2345,108 @@ describe('plain object-list single-pass (no speculative replay)', () => {
       data: { users: [{ id: 'u1' }] },
     });
   });
+
+  it('keeps a completed item when its getter truncates the list to empty', () => {
+    const userType = new GraphQLObjectType({
+      name: 'PlainTruncateToEmptyUser',
+      fields: {
+        id: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(userType) },
+        },
+      }),
+    });
+    const users: Array<{ id: string } | undefined> = [
+      {
+        get id() {
+          users.length = 0;
+          return 'u1';
+        },
+      },
+      { id: 'u2-should-not-read' },
+    ];
+    const result = executeSync({
+      schema,
+      document: parse('{ users { id } }'),
+      rootValue: { users },
+    });
+    expect(result).toEqual({
+      data: { users: [{ id: 'u1' }] },
+    });
+  });
+
+  it('keeps a nullable item error when a getter truncates after throwing', () => {
+    const userType = new GraphQLObjectType({
+      name: 'PlainTruncateNullableFailUser',
+      fields: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(userType) },
+        },
+      }),
+    });
+    const users: Array<{ id: string } | undefined> = [
+      {
+        get id() {
+          users.length = 0;
+          throw new Error('id failed');
+        },
+      },
+      { id: 'u2' },
+    ];
+    const result = executeSync({
+      schema,
+      document: parse('{ users { id } }'),
+      rootValue: { users },
+    });
+    expect(result).toEqual({
+      data: { users: [null] },
+      errors: [expect.objectContaining({ message: 'id failed' })],
+    });
+  });
+
+  it('nulls a NonNull-item list when a getter truncates after throwing', () => {
+    const userType = new GraphQLObjectType({
+      name: 'PlainTruncateNonNullItemFailUser',
+      fields: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(userType))) },
+        },
+      }),
+    });
+    const users: Array<{ id: string } | undefined> = [
+      {
+        get id() {
+          users.length = 0;
+          throw new Error('id failed');
+        },
+      },
+      { id: 'u2' },
+    ];
+    const result = executeSync({
+      schema,
+      document: parse('{ users { id } }'),
+      rootValue: { users },
+    });
+    expect(result).toEqual({
+      data: null,
+      errors: [expect.objectContaining({ message: 'id failed' })],
+    });
+  });
 });
