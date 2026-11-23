@@ -5,9 +5,12 @@ import {
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
+  GraphQLScalarType,
   GraphQLSchema,
   GraphQLString,
+  Kind,
   parse,
+  type ValueNode,
 } from 'graphql';
 import { buildExecutionContext, executeSync, type ExecutionContext } from '../../execute.js';
 import {
@@ -545,6 +548,51 @@ describe('execution plan', () => {
         variableValues: { name: 'Bob' },
       }),
     ).toEqual({ data: { hello: 'hello Bob' } });
+  });
+
+  it('misses to classic coerce when a custom scalar rejects a plan-held AST default', () => {
+    let accept = true;
+    const Expiring = new GraphQLScalarType({
+      name: 'Expiring',
+      serialize: value => value,
+      parseValue(value) {
+        return accept ? value : undefined;
+      },
+      parseLiteral(ast: ValueNode) {
+        if (ast.kind !== Kind.STRING) {
+          return undefined;
+        }
+        return accept ? ast.value : undefined;
+      },
+    });
+    const expiringSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          echo: {
+            type: GraphQLString,
+            args: { ts: { type: new GraphQLNonNull(Expiring) } },
+            resolve: (_src, args: { ts: string }) => String(args.ts),
+          },
+        },
+      }),
+    });
+    const document = parse('query ($ts: Expiring! = "ok") { echo(ts: $ts) }');
+    const plan = compileExecutionPlan({ schema: expiringSchema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    expect(executeSync({ schema: expiringSchema, document, plan })).toEqual({
+      data: { echo: 'ok' },
+    });
+
+    accept = false;
+    const rejected = plan.coerceVariables({});
+    expect('errors' in rejected).toBe(true);
+    const result = executeSync({ schema: expiringSchema, document, plan });
+    expect(result.data).toBeUndefined();
+    expect(result.errors?.length).toBeGreaterThan(0);
   });
 
   it('coerces @oneOf input variables on the warm path (happy path)', () => {

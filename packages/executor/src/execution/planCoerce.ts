@@ -209,11 +209,16 @@ function tryCoerceHoistedVariables(
     if (read.kind === 'missing') {
       sources[binding.name] = { signature };
       if (binding.hasDefault) {
-        coerced[binding.name] = materializePlanDefaultValue(
+        const materialized = materializePlanDefaultValue(
           binding.defaultValue,
           binding.defaultLiteral,
           binding.variableType,
         );
+        if (materialized === undefined) {
+          // Fresh AST default coercion failed; classic getVariableValues.
+          return undefined;
+        }
+        coerced[binding.name] = materialized;
         continue;
       }
       if (binding.nonNull) {
@@ -522,15 +527,21 @@ function getInputFieldDefaultValue(field: {
  * Apply a plan-held variable default for one execution. AST defaults are
  * re-coerced from the literal so custom scalars (Date, etc.) return a fresh
  * instance instead of sharing a mutable plan-held value.
+ *
+ * Returns `undefined` when current coercion rejects the literal so callers
+ * miss to getVariableValues instead of reusing the plan-held accepted value.
  */
 function materializePlanDefaultValue(
   defaultValue: unknown,
   defaultLiteral: ValueNode | undefined,
   variableType: GraphQLInputType,
-): unknown {
+): unknown | undefined {
   if (defaultLiteral != null) {
     const fresh = coerceDefaultLiteral(defaultLiteral, variableType);
-    return fresh === undefined ? clonePlanDefaultValue(defaultValue) : fresh;
+    if (fresh === undefined) {
+      return undefined;
+    }
+    return fresh;
   }
   return clonePlanDefaultValue(defaultValue);
 }
@@ -668,11 +679,16 @@ function tryCoerceBuiltinLeafVariables(
     if (read.kind === 'missing') {
       sources[binding.name] = { signature };
       if (binding.hasDefault) {
-        coerced[binding.name] = materializePlanDefaultValue(
+        const materialized = materializePlanDefaultValue(
           binding.defaultValue,
           binding.defaultLiteral,
           binding.variableType,
         );
+        if (materialized === undefined) {
+          // Fresh AST default coercion failed; classic getVariableValues.
+          return undefined;
+        }
+        coerced[binding.name] = materialized;
         continue;
       }
       if (binding.nonNull) {
