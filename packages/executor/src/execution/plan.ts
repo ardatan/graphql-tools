@@ -145,6 +145,9 @@ export function compileExecutionPlan(
     setCachedPlanEntry(args.schema, args.document, args.operationName, entry);
   }
   if (entry.kind === 'plan') {
+    // Public boundary: callers must not mutate cached plan fields (e.g.
+    // `rootExecutions`); shallow freeze keeps the shared WeakMap entry stable.
+    Object.freeze(entry.plan);
     return entry.plan;
   }
   if (entry.kind === 'errors') {
@@ -317,7 +320,9 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
   // classic collect / deferred groups at runtime).
   const skipIncludePredicates = collectionDependsOnVariables && !hasIncremental;
 
-  const plan: ExecutionPlan = {
+  // Mutable while compiling; shallow-frozen before the public cache return.
+  type MutablePlan = { -readonly [K in keyof ExecutionPlan]: ExecutionPlan[K] };
+  const plan: MutablePlan = {
     schema: schema,
     document: document,
     operation: operation,
@@ -357,9 +362,13 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
           operation.selectionSet,
           plan.rootFields,
         );
-        if (rootExecutions == null) {
+        if (rootExecutions === null) {
           // Mixed-extreme / defer-shaped selection; disable predicate path.
           plan.skipIncludePredicates = false;
+        } else if (rootExecutions === undefined) {
+          // Duplicate response names: classic root collect for first-active
+          // occurrence order; keep predicates for planned subfields.
+          plan.rootExecutions = undefined;
         } else {
           plan.rootExecutions = rootExecutions;
         }

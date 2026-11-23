@@ -1,4 +1,5 @@
 import {
+  coerceInputValue,
   getVariableValues,
   GraphQLError,
   GraphQLLeafType,
@@ -275,8 +276,19 @@ function compileInputValueCoercer(
       if (raw == null) {
         return null;
       }
-      // graphql-js: arrays as-is; other iterables expand; else singleton wrap.
-      const list = Array.isArray(raw) ? raw : isIterableObject(raw) ? Array.from(raw) : [raw];
+      // Arrays stay on the indexed fast path. Other iterables (generators) are
+      // one-shot: Array.from would exhaust them before a failed item coerce, so
+      // diagnose/getVariableValues would see `[]`. Decline and let classic
+      // coercion consume the iterable once.
+      if (!Array.isArray(raw)) {
+        if (isIterableObject(raw)) {
+          return undefined;
+        }
+        // graphql-js: non-iterable non-null → singleton wrap.
+        const item = itemCoercer(raw);
+        return item === undefined ? undefined : [item];
+      }
+      const list = raw;
       const out: unknown[] = [];
       for (let i = 0; i < list.length; i++) {
         const item = itemCoercer(list[i]);
@@ -337,6 +349,15 @@ function compileInputValueCoercer(
         return null;
       }
       const defaultValue = getInputFieldDefaultValue(field);
+      // Value-form defaults that fail coercion must not silently omit the field.
+      if (
+        defaultValue === undefined &&
+        field.default != null &&
+        Object.prototype.hasOwnProperty.call(field.default, 'value')
+      ) {
+        cache.delete(type);
+        return null;
+      }
       fieldEntries.push({
         name: fieldName,
         nonNull: isNonNullType(field.type),
@@ -445,14 +466,16 @@ function getInputFieldDefaultValue(field: {
   default?: { literal?: ValueNode; value?: unknown };
 }): unknown | undefined {
   if (field.defaultValue !== undefined) {
+    // GraphQL 16 (and legacy) schema defaults are already coerced values.
     return field.defaultValue;
   }
   if (field.default == null) {
     return undefined;
   }
-  // GraphQL 17 value-form defaults (`default: { value }`).
+  // GraphQL 17 value-form defaults (`default: { value }`) must be coerced
+  // against the field type (e.g. `5` for `[Int]` → `[5]`).
   if (Object.prototype.hasOwnProperty.call(field.default, 'value')) {
-    return field.default.value;
+    return coerceInputValue(field.default.value, field.type);
   }
   if (field.default.literal != null) {
     const compiled = coerceDefaultLiteral(field.default.literal, field.type);
@@ -474,6 +497,12 @@ function clonePlanDefaultValue(value: unknown): unknown {
       out[i] = clonePlanDefaultValue(value[i]);
     }
     return out;
+  }
+  // Preserve custom scalar instances (Date, etc.). Only deep-clone plain
+  // objects / null-prototype maps from valueFromAST.
+  const proto = Object.getPrototypeOf(value);
+  if (proto !== Object.prototype && proto !== null) {
+    return value;
   }
   const src = value as Record<string, unknown>;
   const out = Object.create(null) as Record<string, unknown>;

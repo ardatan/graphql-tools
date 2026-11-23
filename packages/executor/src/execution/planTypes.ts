@@ -216,8 +216,9 @@ export interface ExecutionPlan {
    * walk these instead of Map entries + WeakMap field-plan lookups.
    * When `collectionDependsOnVariables` and `skipIncludePredicates` is set,
    * this is the union list; runtime filters via per-entry `include`.
+   * Returned plans are shallow-frozen; do not reassign this field.
    */
-  rootExecutions: ReadonlyArray<PlannedFieldExecution> | undefined;
+  readonly rootExecutions: ReadonlyArray<PlannedFieldExecution> | undefined;
   /**
    * True when `collectionDependsOnVariables` and the doc is non-incremental.
    * Runtime filters `rootExecutions` / subfield executions with path-aware

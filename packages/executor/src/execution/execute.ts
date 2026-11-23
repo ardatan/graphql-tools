@@ -1434,10 +1434,9 @@ function executeFields(
         let rootLeafHandled = false;
         if (
           rootAsync &&
-          exeContext.fieldResolver === defaultFieldResolver &&
+          isLiveDefaultPropertyResolve(fieldPlan, exeContext) &&
           fieldPlan.kind === 'leaf' &&
           fieldPlan.leafType != null &&
-          fieldPlan.resolveKind === 'defaultProperty' &&
           !fieldPlan.hasArgs &&
           (isObjectLike(sourceValue) || typeof sourceValue === 'function')
         ) {
@@ -1757,11 +1756,7 @@ function executeObjectListFieldThin(
   fieldPlan: ListFieldPlan,
 ): MaybePromise<ReadonlyArray<unknown> | null> | undefined {
   const objectType = fieldPlan.objectType;
-  if (
-    objectType == null ||
-    fieldPlan.resolveKind !== 'defaultProperty' ||
-    exeContext.fieldResolver !== defaultFieldResolver
-  ) {
+  if (objectType == null || !isLiveDefaultPropertyResolve(fieldPlan, exeContext)) {
     return undefined;
   }
   const plan = exeContext.plan;
@@ -1783,6 +1778,32 @@ function executeObjectListFieldThin(
       pathToArray(path),
       exeContext.schemaCoordinateInErrors && schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
     );
+  const completeResolved = (resolved: unknown): MaybePromise<ReadonlyArray<unknown> | null> => {
+    try {
+      const thin = completePlannedObjectListValue(
+        exeContext,
+        fieldPlan,
+        path,
+        resolved,
+        objectType,
+        fieldPlan.itemNonNull === true,
+        subExecutions,
+      );
+      if (thin !== undefined) {
+        return thin;
+      }
+      // Already invoked user code / held a thenable; finish via classic list
+      // completion without re-resolving the field.
+      const info = buildPlannedResolveInfo(exeContext, fieldPlan, path);
+      const returnType = fieldPlan.returnType;
+      const listType = (
+        isNonNullType(returnType) ? returnType.ofType : returnType
+      ) as GraphQLList<GraphQLOutputType>;
+      return completeListValue(exeContext, listType, fieldNodes, info, path, resolved);
+    } catch (rawError) {
+      return handleFieldError(locate(rawError), fieldPlan.returnType, exeContext.errors);
+    }
+  };
   let result: unknown;
   try {
     exeContext.signal?.throwIfAborted();
@@ -1821,23 +1842,16 @@ function executeObjectListFieldThin(
       ).call(source, methodArgs, exeContext.contextValue, info);
     } else if (property instanceof Error) {
       throw property;
-    } else if (isPromise(property)) {
-      return undefined;
     } else {
       result = property;
     }
     if (isPromise(result)) {
-      return undefined;
+      return result.then(
+        resolved => completeResolved(resolved),
+        rawError => handleFieldError(locate(rawError), fieldPlan.returnType, exeContext.errors),
+      );
     }
-    return completePlannedObjectListValue(
-      exeContext,
-      fieldPlan,
-      path,
-      result,
-      objectType,
-      fieldPlan.itemNonNull === true,
-      subExecutions,
-    );
+    return completeResolved(result);
   } catch (rawError) {
     return handleFieldError(locate(rawError), fieldPlan.returnType, exeContext.errors);
   }
@@ -1860,22 +1874,30 @@ function completePlannedObjectListValue(
     }
     return null;
   }
-  if (!Array.isArray(result)) {
-    // Non-array iterables / unexpected shapes → classic path.
+  if (!usesDefaultArrayIterator(result)) {
+    // Custom iterators / non-arrays → classic path (for-of / completeListValue).
     return undefined;
   }
-  const completedResults: Array<unknown> = new Array(result.length);
+  // Decline before touching items when any slot needs the classic path, so we
+  // do not run getters/serializers and then fall back.
   for (let index = 0; index < result.length; index++) {
     const item = result[index];
     if (item == null) {
       if (itemNonNull) {
         return undefined;
       }
-      completedResults[index] = null;
       continue;
     }
     if (!isObjectLike(item) || isPromise(item) || item instanceof Error) {
       return undefined;
+    }
+  }
+  const completedResults: Array<unknown> = new Array(result.length);
+  for (let index = 0; index < result.length; index++) {
+    const item = result[index];
+    if (item == null) {
+      completedResults[index] = null;
+      continue;
     }
     const itemPath = addPath(path, index, undefined);
     const nested = executePlannedSyncObjectFields(
@@ -2042,10 +2064,8 @@ function executePlannedLeafListField(
   let result: unknown;
   try {
     exeContext.signal?.throwIfAborted();
-    const resolveKind = fieldPlan.resolveKind;
     if (
-      resolveKind === 'defaultProperty' &&
-      exeContext.fieldResolver === defaultFieldResolver &&
+      isLiveDefaultPropertyResolve(fieldPlan, exeContext) &&
       (isObjectLike(source) || typeof source === 'function')
     ) {
       let args: { [argument: string]: unknown } | undefined;
@@ -2178,16 +2198,30 @@ function completePlannedLeafListValue(
   const itemNonNull = fieldPlan.itemNonNull;
   const parentFieldName = fieldPlan.fieldDef.name;
   const parentTypeName = fieldPlan.parentType.name;
+  const coordinateInfo =
+    exeContext.schemaCoordinateInErrors &&
+    schemaCoordinateInfo(fieldPlan.fieldDef, fieldPlan.parentType);
   // GraphQLString + primitive: skip full scalar coerce (matches compile bench).
+  // GraphQL 16 String.serialize rejects bigint; keep that behavior.
   const stringLeafFast = leafType.name === 'String';
+  const stringFastAllowsBigint = isGraphQL17;
   // Fast sync array of primitives: serialize in place, no runner, no isPromise
   // reads (thenable getters must stay on the general path's 2-read contract).
-  if (Array.isArray(result)) {
+  // Seed for a mid-list thenable serialize so the general path does not
+  // re-invoke the serializer on that index.
+  let pendingSerialize:
+    { index: number; promise: PromiseLike<unknown>; completedResults: Array<unknown> } | undefined;
+  if (usesDefaultArrayIterator(result)) {
     let allPrimitive = true;
     for (let i = 0; i < result.length; i++) {
       const item = result[i];
       const t = typeof item;
       if (item == null || (t !== 'number' && t !== 'string' && t !== 'boolean' && t !== 'bigint')) {
+        allPrimitive = false;
+        break;
+      }
+      // GraphQL 16 String.serialize rejects bigint; skip the String() fast path.
+      if (t === 'bigint' && stringLeafFast && !stringFastAllowsBigint) {
         allPrimitive = false;
         break;
       }
@@ -2211,9 +2245,11 @@ function completePlannedLeafListValue(
             completedResults[i] = v;
           } else if (t === 'boolean') {
             completedResults[i] = v ? 'true' : 'false';
-          } else {
-            // bigint
+          } else if (t === 'bigint' && stringFastAllowsBigint) {
             completedResults[i] = String(v);
+          } else {
+            fastOk = false;
+            break;
           }
         }
         if (fastOk) {
@@ -2225,7 +2261,13 @@ function completePlannedLeafListValue(
       for (let i = 0; i < result.length; i++) {
         try {
           const serialized = leafType.serialize(result[i]);
-          if (serialized == null || isPromise(serialized)) {
+          if (serialized == null) {
+            ok = false;
+            break;
+          }
+          if (isPromise(serialized)) {
+            // Keep the first thenable; general path settles it (no re-serialize).
+            pendingSerialize = { index: i, promise: serialized, completedResults };
             ok = false;
             break;
           }
@@ -2233,7 +2275,12 @@ function completePlannedLeafListValue(
         } catch (rawError) {
           // Nullable list: null the slot and keep going; NonNull: bubble field.
           const itemPath = addPath(path, i, undefined);
-          const error = locatedError(coerceError(rawError), fieldNodes, pathToArray(itemPath));
+          const error = locatedError(
+            coerceError(rawError),
+            fieldNodes,
+            pathToArray(itemPath),
+            coordinateInfo,
+          );
           filterSubsequentPayloads(exeContext, itemPath, undefined);
           try {
             completedResults[i] = handleFieldError(error, itemType, errors);
@@ -2246,11 +2293,15 @@ function completePlannedLeafListValue(
       if (ok) {
         return completedResults;
       }
-      // Thenable serialize mid-list — fall through (rare; may re-serialize).
+      // Thenable serialize mid-list — continue below with pendingSerialize seed.
     }
   }
 
-  const completedResults: Array<unknown> = Array.isArray(result) ? new Array(result.length) : [];
+  const completedResults: Array<unknown> = pendingSerialize
+    ? pendingSerialize.completedResults
+    : usesDefaultArrayIterator(result)
+      ? new Array(result.length)
+      : [];
   let listBubbled: unknown;
   // Track the field-local runner actually allocated for item thenables so a
   // NonNull bubble can forceSettle without waiting on never-settling siblings.
@@ -2264,7 +2315,12 @@ function completePlannedLeafListValue(
       return;
     }
     const itemPath = addPath(path, index, undefined);
-    const error = locatedError(coerceError(rawError), fieldNodes, pathToArray(itemPath));
+    const error = locatedError(
+      coerceError(rawError),
+      fieldNodes,
+      pathToArray(itemPath),
+      coordinateInfo,
+    );
     filterSubsequentPayloads(exeContext, itemPath, undefined);
     // Non-null item failure nulls the whole list field (field return type).
     listBubbled = handleFieldError(error, returnType, errors);
@@ -2290,6 +2346,7 @@ function completePlannedLeafListValue(
         exeContext,
         parentFieldName,
         parentTypeName,
+        coordinateInfo,
       );
       // serialize() may return a thenable (async scalars).
       if (isPromise(completed)) {
@@ -2310,6 +2367,7 @@ function completePlannedLeafListValue(
                 index,
                 errors,
                 exeContext,
+                coordinateInfo,
               );
             } catch (bubble) {
               bubbleListField(bubble, index);
@@ -2322,6 +2380,52 @@ function completePlannedLeafListValue(
     } catch (rawError) {
       bubbleListField(rawError, index);
     }
+  };
+  const settleSerializedPromise = (index: number, serialized: PromiseLike<unknown>): void => {
+    getListRunner().awaitValue(
+      serialized,
+      resolved => {
+        if (listBubbled !== undefined) {
+          return;
+        }
+        if (resolved == null) {
+          try {
+            completedResults[index] = handlePlannedLeafListItemError(
+              new Error(
+                `Expected \`${inspect(leafType)}.serialize(...)\` to return non-nullable value, returned: ${inspect(resolved)}`,
+              ),
+              itemType,
+              fieldNodes,
+              path,
+              index,
+              errors,
+              exeContext,
+              coordinateInfo,
+            );
+          } catch (bubble) {
+            bubbleListField(bubble, index);
+          }
+          return;
+        }
+        completedResults[index] = resolved;
+      },
+      rawError => {
+        try {
+          completedResults[index] = handlePlannedLeafListItemError(
+            rawError,
+            itemType,
+            fieldNodes,
+            path,
+            index,
+            errors,
+            exeContext,
+            coordinateInfo,
+          );
+        } catch (bubble) {
+          bubbleListField(bubble, index);
+        }
+      },
+    );
   };
   const consumeItem = (index: number, item: unknown): boolean => {
     if (listBubbled !== undefined) {
@@ -2339,7 +2443,13 @@ function completePlannedLeafListValue(
             const rt = typeof resolved;
             if (rt !== 'object' && rt !== 'function') {
               try {
-                if (stringLeafFast && (rt !== 'number' || Number.isFinite(resolved as number))) {
+                const canStringFast =
+                  stringLeafFast &&
+                  (rt === 'string' ||
+                    rt === 'boolean' ||
+                    (rt === 'number' && Number.isFinite(resolved as number)) ||
+                    (rt === 'bigint' && stringFastAllowsBigint));
+                if (canStringFast) {
                   completedResults[index] =
                     rt === 'string'
                       ? resolved
@@ -2355,6 +2465,10 @@ function completePlannedLeafListValue(
                   completedResults[index] = serialized;
                   return;
                 }
+                if (isPromise(serialized)) {
+                  settleSerializedPromise(index, serialized);
+                  return;
+                }
               } catch (rawError) {
                 try {
                   completedResults[index] = handlePlannedLeafListItemError(
@@ -2365,6 +2479,7 @@ function completePlannedLeafListValue(
                     index,
                     errors,
                     exeContext,
+                    coordinateInfo,
                   );
                 } catch (bubble) {
                   bubbleListField(bubble, index);
@@ -2385,6 +2500,7 @@ function completePlannedLeafListValue(
               index,
               errors,
               exeContext,
+              coordinateInfo,
             );
           } catch (bubble) {
             bubbleListField(bubble, index);
@@ -2396,10 +2512,15 @@ function completePlannedLeafListValue(
     writeItem(index, item);
     return listBubbled === undefined;
   };
-  // Prefer indexed arrays; for other iterables use for-of so a NonNull bubble
-  // can stop without eagerly consuming the rest (generators' `finally`).
-  if (Array.isArray(result)) {
-    for (let index = 0; index < result.length; index++) {
+  // Prefer indexed arrays with the default iterator; custom iterators and other
+  // iterables use for-of so yielded values win and NonNull bubbles can stop
+  // without eagerly consuming the rest (generators' `finally`).
+  if (pendingSerialize) {
+    settleSerializedPromise(pendingSerialize.index, pendingSerialize.promise);
+  }
+  if (usesDefaultArrayIterator(result)) {
+    const startIndex = pendingSerialize ? pendingSerialize.index + 1 : 0;
+    for (let index = startIndex; index < result.length; index++) {
       if (!consumeItem(index, result[index])) {
         break;
       }
@@ -2431,6 +2552,7 @@ function completePlannedLeafListItemAtIndex(
   exeContext: ExecutionContext,
   parentFieldName: string,
   parentTypeName: string,
+  coordinateInfo?: { fieldName: string; parentType: GraphQLObjectType } | false | null,
 ): unknown {
   try {
     if (result instanceof Error) {
@@ -2454,6 +2576,7 @@ function completePlannedLeafListItemAtIndex(
       index,
       errors,
       exeContext,
+      coordinateInfo,
     );
   }
 }
@@ -2466,9 +2589,15 @@ function handlePlannedLeafListItemError(
   index: number,
   errors: Array<GraphQLError>,
   exeContext: ExecutionContext,
+  coordinateInfo?: { fieldName: string; parentType: GraphQLObjectType } | false | null,
 ): unknown {
   const itemPath = addPath(path, index, undefined);
-  const error = locatedError(coerceError(rawError), fieldNodes, pathToArray(itemPath));
+  const error = locatedError(
+    coerceError(rawError),
+    fieldNodes,
+    pathToArray(itemPath),
+    coordinateInfo,
+  );
   // NonNull item types throw here — caller catches and nulls the list field.
   const handled = handleFieldError(error, itemType, errors);
   filterSubsequentPayloads(exeContext, itemPath, undefined);
@@ -2535,6 +2664,32 @@ function schemaCoordinateInfo(
 }
 
 /**
+ * True when the compiled plan still expects default-property resolve and the
+ * live `fieldDef.resolve` / `fieldResolver` have not been swapped since compile.
+ */
+function isLiveDefaultPropertyResolve(
+  fieldPlan: { resolveKind: string; fieldDef: GraphQLField<unknown, unknown> },
+  exeContext: ExecutionContext,
+): boolean {
+  if (fieldPlan.resolveKind !== 'defaultProperty') {
+    return false;
+  }
+  if (exeContext.fieldResolver !== defaultFieldResolver) {
+    return false;
+  }
+  const live = fieldPlan.fieldDef.resolve;
+  return live == null || live === defaultFieldResolver;
+}
+
+/**
+ * Indexed array completion is only valid for the default array iterator.
+ * Custom `Symbol.iterator` on an array must use for-of (yielded values).
+ */
+function usesDefaultArrayIterator(value: unknown): value is unknown[] {
+  return Array.isArray(value) && value[Symbol.iterator] === Array.prototype[Symbol.iterator];
+}
+
+/**
  * Implements the "Executing fields" section of the spec
  * In particular, this function figures out the value that the field returns by
  * calling its resolve function, then calls completeValue to complete promises,
@@ -2592,8 +2747,9 @@ function executeField(
     let resultAlreadySerialized = false;
 
     // Planned schemaResolve fields skip the default-property leaf/list probes.
+    // Live fieldDef.resolve wins over a stale defaultProperty compile kind.
     const mayUseDefaultPropertyPath =
-      fieldPlan == null || fieldPlan.resolveKind === 'defaultProperty';
+      fieldPlan == null || isLiveDefaultPropertyResolve(fieldPlan, exeContext);
     if (
       mayUseDefaultPropertyPath &&
       resolveFn === defaultFieldResolver &&
@@ -3307,10 +3463,10 @@ function completeListValue(
     plannedLeafList?.leafType ??
     (!stream && isLeafType(nullableItemType) ? nullableItemType : undefined);
 
-  // Dense arrays: indexed loop avoids iterator protocol. Planned listItemLeaf
-  // skips repeated isLeafType classification; object/abstract lists still get
-  // indexed iteration with proper item paths.
-  if (Array.isArray(result) && !stream) {
+  // Dense arrays with the default iterator: indexed loop avoids iterator
+  // protocol. Custom array iterators must use for-of (yielded values).
+  // Planned listItemLeaf skips repeated isLeafType classification.
+  if (usesDefaultArrayIterator(result) && !stream) {
     for (let index = 0; index < result.length; index++) {
       if (leafItemType) {
         if (
@@ -3786,7 +3942,7 @@ function executePlannedSyncObjectFields(
   const results: Record<string, unknown> = Object.create(null);
   for (const execution of plannedExecutions) {
     const { responseName, fieldNodes, fieldPlan } = execution;
-    if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
+    if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
       return undefined;
     }
     let property: unknown;

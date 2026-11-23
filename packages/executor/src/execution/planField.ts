@@ -1,4 +1,5 @@
 import {
+  coerceInputValue,
   defaultFieldResolver,
   FieldNode,
   getArgumentValues,
@@ -114,12 +115,18 @@ export function buildFieldExecutions(
  * Returns `undefined` if the walk hits `@defer`/`@stream` (should not happen
  * for plan-eligible docs) so runtime can fall back to classic collect.
  */
+/**
+ * `null` = selection cannot use predicates (defer/mixed); disable the path.
+ * `undefined` = duplicate response names; leave executions unset so classic
+ * collect preserves first-active-occurrence order, but keep predicates for
+ * other selections (same idea as conditional mutations).
+ */
 export function buildExecutionsFromSelectionSet(
   plan: ExecutionPlan,
   runtimeType: GraphQLObjectType,
   selectionSet: import('graphql').SelectionSetNode,
   preferredFieldMap?: Map<string, Array<FieldNode>>,
-): PlannedFieldExecution[] | undefined {
+): PlannedFieldExecution[] | null | undefined {
   const entries: ConditionalFieldEntry[] = [];
   if (
     !compileConditionalSelectionSet(
@@ -132,7 +139,7 @@ export function buildExecutionsFromSelectionSet(
       ALWAYS_INCLUDE,
     )
   ) {
-    return undefined;
+    return null;
   }
   return buildExecutionsFromConditionalEntries(plan, runtimeType, entries, preferredFieldMap);
 }
@@ -142,7 +149,7 @@ function buildExecutionsFromParentFieldNodes(
   returnType: GraphQLObjectType,
   parentFieldNodes: ReadonlyArray<FieldNode>,
   preferredFieldMap?: Map<string, Array<FieldNode>>,
-): PlannedFieldExecution[] | undefined {
+): PlannedFieldExecution[] | null | undefined {
   const entries: ConditionalFieldEntry[] = [];
   const visitedFragmentNames = new Set<string>();
   const conditionalVisits = new Set<string>();
@@ -165,7 +172,7 @@ function buildExecutionsFromParentFieldNodes(
         conditionalVisits,
       )
     ) {
-      return undefined;
+      return null;
     }
   }
   return buildExecutionsFromConditionalEntries(plan, returnType, entries, preferredFieldMap);
@@ -181,6 +188,16 @@ function buildExecutionsFromConditionalEntries(
    */
   preferredFieldMap?: Map<string, Array<FieldNode>>,
 ): PlannedFieldExecution[] | undefined {
+  // Repeated response names with @skip/@include need classic collect so the
+  // first *active* occurrence sets response order (grouped OR predicates keep
+  // the first-slot position even when that occurrence is skipped).
+  const seenResponseNames = new Set<string>();
+  for (const entry of entries) {
+    if (seenResponseNames.has(entry.responseName)) {
+      return undefined;
+    }
+    seenResponseNames.add(entry.responseName);
+  }
   const grouped = groupConditionalEntriesByResponseName(entries);
   const executions: PlannedFieldExecution[] = [];
   for (const [responseName, group] of grouped) {
@@ -682,10 +699,11 @@ function tryBareVariableBindings(
 
 /**
  * Resolve a field-argument schema default across GraphQL 16 (`defaultValue`)
- * and GraphQL 17 (`default.literal` + valueFromAST).
+ * and GraphQL 17 (`default.literal` / `default.value` with input coercion).
  */
 function getFieldArgDefaultValue(argDef: GraphQLArgument): unknown | undefined {
   if (argDef.defaultValue !== undefined) {
+    // GraphQL 16 (and legacy) schema defaults are already coerced values.
     return argDef.defaultValue;
   }
   const gql17Default = (
@@ -694,9 +712,10 @@ function getFieldArgDefaultValue(argDef: GraphQLArgument): unknown | undefined {
   if (gql17Default == null) {
     return undefined;
   }
-  // GraphQL 17 value-form defaults (`default: { value }`).
+  // GraphQL 17 value-form defaults (`default: { value }`) must be coerced
+  // against the argument type (e.g. `5` for `[Int]` → `[5]`).
   if (Object.prototype.hasOwnProperty.call(gql17Default, 'value')) {
-    return gql17Default.value;
+    return coerceInputValue(gql17Default.value, argDef.type);
   }
   if (gql17Default.literal != null) {
     const compiled = valueFromAST(gql17Default.literal, argDef.type);
@@ -799,11 +818,18 @@ function storeSubfieldExecutions(
   if (!plan.collectionDependsOnVariables) {
     executions = buildFieldExecutions(plan, returnType, subfields);
   } else if (plan.skipIncludePredicates) {
-    executions = buildExecutionsFromParentFieldNodes(plan, returnType, parentFieldNodes, subfields);
-    if (executions == null) {
-      // Defer/stream inside a sub-selection , leave unset so runtime collects.
+    const built = buildExecutionsFromParentFieldNodes(
+      plan,
+      returnType,
+      parentFieldNodes,
+      subfields,
+    );
+    // null = unsupported (defer/mixed); undefined = duplicate response names.
+    // Either way leave unset so classic collect preserves order / shape.
+    if (built == null) {
       return;
     }
+    executions = built;
   } else {
     return;
   }
