@@ -6,11 +6,11 @@
  *   benchmarks/results/bench-matrix.json
  *   benchmarks/results/bench-matrix.md
  *
- * Sticky deltas (process-isolated; upserted each commit), in column order:
- *   (1) tip planned vs tip classic
+ * Sticky: one unified table (Path | Bench | hz… | deltas). Delta column order:
+ *   (1) tip planned vs tip classic (positive = planned faster)
  *   (2) tip planned vs master planned when baseline exports planning, else vs master classic
  *   (3) tip classic vs master classic
- * for execute scenarios, executeSync key rows, Yoga authors, and Hive federation-example.
+ * Rows cover execute, executeSync, Yoga authors, and Hive federation-example.
  *
  * Env:
  *   BENCH_MATRIX_BASE_REF     — baseline ref (default master; always fetched from origin)
@@ -400,8 +400,8 @@ try {
     return Math.round(n).toLocaleString('en-US');
   }
 
-  function threeWayTableRow(label, row, extraCols = '') {
-    return `| ${label} | ${fmtHz(row.masterClassicHz ?? row.masterHz)} | ${fmtHz(row.tipClassicHz)} | ${fmtHz(row.tipPlannedHz)} | ${pct(row.deltaPlannedVsClassicPct)} | ${pct(row.deltaPlannedVsMasterPct)} | ${pct(row.deltaClassicVsMasterPct)}${extraCols} |`;
+  function threeWayTableRow(path, label, row) {
+    return `| ${path} | ${label} | ${fmtHz(row.masterClassicHz ?? row.masterHz)} | ${fmtHz(row.tipClassicHz)} | ${fmtHz(row.tipPlannedHz)} | ${pct(row.deltaPlannedVsClassicPct)} | ${pct(row.deltaPlannedVsMasterPct)} | ${pct(row.deltaClassicVsMasterPct)} |`;
   }
 
   try {
@@ -412,10 +412,11 @@ try {
         label: meta.label,
         kind: 'execute',
         api: 'execute',
+        path: 'execute',
         ...row,
       });
       console.log(
-        `${meta.label}: mc=${Math.round(row.masterClassicHz)} tc=${Math.round(row.tipClassicHz)} tp=${Math.round(row.tipPlannedHz)} Δp/c=${pct(row.deltaPlannedVsClassicPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)}(${row.masterPlannedBaseline}) Δc/m=${pct(row.deltaClassicVsMasterPct)}`,
+        `execute ${meta.label}: mc=${Math.round(row.masterClassicHz)} tc=${Math.round(row.tipClassicHz)} tp=${Math.round(row.tipPlannedHz)} Δp/c=${pct(row.deltaPlannedVsClassicPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)}(${row.masterPlannedBaseline}) Δc/m=${pct(row.deltaClassicVsMasterPct)}`,
       );
     }
 
@@ -423,13 +424,15 @@ try {
       const row = measureThreeWay({ bench: syncCase.bench, api: 'executeSync' });
       syncApiRows.push({
         id: syncCase.id,
-        label: syncCase.label,
+        // Short bench name for the unified Path|Bench table (Path carries executeSync).
+        label: syncCase.bench,
         kind: 'syncApi',
         api: 'executeSync',
+        path: 'executeSync',
         ...row,
       });
       console.log(
-        `${syncCase.label}: mc=${Math.round(row.masterClassicHz)} tc=${Math.round(row.tipClassicHz)} tp=${Math.round(row.tipPlannedHz)} Δp/c=${pct(row.deltaPlannedVsClassicPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)}(${row.masterPlannedBaseline}) Δc/m=${pct(row.deltaClassicVsMasterPct)}`,
+        `executeSync ${syncCase.bench}: mc=${Math.round(row.masterClassicHz)} tc=${Math.round(row.tipClassicHz)} tp=${Math.round(row.tipPlannedHz)} Δp/c=${pct(row.deltaPlannedVsClassicPct)} Δp/m=${pct(row.deltaPlannedVsMasterPct)}(${row.masterPlannedBaseline}) Δc/m=${pct(row.deltaClassicVsMasterPct)}`,
       );
     }
 
@@ -495,13 +498,29 @@ try {
   writeFileSync(RESULTS_JSON, `${JSON.stringify(payload, null, 2)}\n`);
 
   const threeWayHeader = [
-    '| Bench | Master classic hz | Tip classic hz | Tip planned hz | Δ planned vs classic | Δ planned vs master | Δ classic vs master |',
-    '| --- | ---: | ---: | ---: | ---: | ---: | ---: |',
+    '| Path | Bench | Master classic hz | Tip classic hz | Tip planned hz | Δ planned vs classic | Δ planned vs master | Δ classic vs master |',
+    '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |',
   ];
 
   const masterPlannedNote = masterHasPlanning
     ? 'Baseline exports planning: **Δ planned vs master** is tip planned vs **master planned**.'
     : 'Baseline has no planning API: **Δ planned vs master** is tip planned vs **master classic**.';
+
+  /** @type {Array<{ path: string, label: string, row: Record<string, unknown> }>} */
+  const unifiedRows = [
+    ...claimRows.map(row => ({ path: 'execute', label: row.label, row })),
+    ...syncApiRows.map(row => ({ path: 'executeSync', label: row.label, row })),
+  ];
+
+  const yoga = httpPayload?.yoga;
+  const hive = httpPayload?.hive;
+  const hiveNote = httpPayload?.hiveNote;
+  if (yoga) {
+    unifiedRows.push({ path: 'Yoga HTTP', label: 'authors', row: yoga });
+  }
+  if (hive) {
+    unifiedRows.push({ path: 'Hive federation', label: 'TestQuery', row: hive });
+  }
 
   const md = [
     MARKER,
@@ -509,42 +528,17 @@ try {
     '',
     `HEAD \`${headSha.slice(0, 9)}\` vs \`${baseRemoteRef}\` (\`${baseSha.slice(0, 9)}\` fetched this run), Node ${process.version}, compiled dist.`,
     '',
-    'Deltas (in order): **(1) tip planned vs tip classic**, **(2) tip planned vs master** (master planned when the baseline exports planning, else master classic), **(3) tip classic vs master classic**.',
+    'Deltas (in order): **(1) tip planned vs tip classic** (positive = planned faster), **(2) tip planned vs master** (master planned when the baseline exports planning, else master classic), **(3) tip classic vs master classic**.',
     '',
     masterPlannedNote,
     '',
-    '### execute',
-    '',
     ...threeWayHeader,
-    ...claimRows.map(row => threeWayTableRow(row.label, row)),
-    '',
-    '### executeSync',
-    '',
-    ...threeWayHeader,
-    ...syncApiRows.map(row => threeWayTableRow(row.label, row)),
+    ...unifiedRows.map(({ path, label, row }) => threeWayTableRow(path, label, row)),
     '',
   ];
 
-  if (!skipHttp) {
-    const yoga = httpPayload?.yoga;
-    const hive = httpPayload?.hive;
-    const hiveNote = httpPayload?.hiveNote;
-    md.push(
-      '### Yoga authors HTTP',
-      '',
-      'Yoga benchmark schema + `authors` query (`graphql-yoga/benchmark`), `setExecuteFn` → tip/master `@graphql-tools/executor` dist.',
-      '',
-      ...threeWayHeader,
-      ...(yoga ? [threeWayTableRow('Yoga authors', yoga)] : []),
-      '',
-    );
-    md.push('### Hive Gateway federation-example', '');
-    if (hiveNote) {
-      md.push(`_${hiveNote}_`, '');
-    }
-    if (hive) {
-      md.push(...threeWayHeader, threeWayTableRow('federation-example TestQuery', hive), '');
-    }
+  if (hiveNote) {
+    md.push(`_${hiveNote}_`, '');
   }
 
   writeFileSync(RESULTS_MD, `${md.join('\n')}\n`);
