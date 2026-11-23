@@ -1,0 +1,5 @@
+---
+"@ardatan/relay-compiler": patch
+---
+dependencies updates:
+  - Updated dependency [`@babel/runtime@^8.1.3` ↗︎](https://www.npmjs.com/package/@babel/runtime/v/8.1.3) (from `^8.1.0`, in `dependencies`)
