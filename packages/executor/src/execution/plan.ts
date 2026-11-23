@@ -84,13 +84,13 @@ export function getPlannedFieldPlan(
 ): FieldPlan | undefined {
   // Exact array hit still requires parentType match: the same fieldNodes array
   // must not be reused under a different concrete parent (unions / interfaces).
-  const byNodes = plan.__fieldPlanByNodes.get(fieldNodes);
+  const byNodes = plan.fieldPlanByNodes.get(fieldNodes);
   if (byNodes != null && (parentType == null || byNodes.parentType === parentType)) {
     return byNodes;
   }
   // Same AST FieldNode can appear under multiple concrete parents (unions /
   // interfaces); only reuse when parentType matches the compiled plan.
-  const byNode = plan.__fieldPlanByFieldNode.get(fieldNodes[0]!);
+  const byNode = plan.fieldPlanByFieldNode.get(fieldNodes[0]!);
   if (byNode != null && (parentType == null || byNode.parentType === parentType)) {
     return byNode;
   }
@@ -106,8 +106,8 @@ export function getPlannedSubfields(
   returnType: GraphQLObjectType,
 ): Map<string, Array<FieldNode>> | undefined {
   return (
-    plan.__subfieldsByNodes.get(fieldNodes)?.get(returnType) ??
-    plan.__subfieldsByFieldNode.get(fieldNodes[0]!)?.get(returnType)
+    plan.subfieldsByNodes.get(fieldNodes)?.get(returnType) ??
+    plan.subfieldsByFieldNode.get(fieldNodes[0]!)?.get(returnType)
   );
 }
 
@@ -119,8 +119,7 @@ export function getPlannedSubfields(
  * interpreter while still using per-field plan facts. Returns a GraphQL error
  * list when the operation cannot be resolved.
  *
- * `execute` compiles/caches via {@link resolvePlanForExecute}. WeakMap /
- * FieldPlan indexes on the returned {@link ExecutionPlan} use a `__` prefix.
+ * `execute` compiles/caches via {@link resolvePlanForExecute}.
  */
 export function compileExecutionPlan(
   args: CompileExecutionPlanArgs,
@@ -319,11 +318,11 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
     collectionDependsOnVariables: collectionDependsOnVariables,
     hasIncremental: hasIncremental,
     rootFields: rootFields,
-    __fieldPlanByNodes: fieldPlanByNodes,
-    __fieldPlanByFieldNode: fieldPlanByFieldNode,
-    __subfieldsByNodes: subfieldsByNodes,
-    __subfieldsByFieldNode: subfieldsByFieldNode,
-    __subfieldExecutionsByNodes: subfieldExecutionsByNodes,
+    fieldPlanByNodes: fieldPlanByNodes,
+    fieldPlanByFieldNode: fieldPlanByFieldNode,
+    subfieldsByNodes: subfieldsByNodes,
+    subfieldsByFieldNode: subfieldsByFieldNode,
+    subfieldExecutionsByNodes: subfieldExecutionsByNodes,
     collectVariablesFalse: collectVariablesFalse,
     collectVariablesTrue: collectVariablesTrue,
     hasVariables: variableDefinitions.length > 0,

@@ -74,7 +74,7 @@ describe('execution plan', () => {
       return;
     }
     expect([...plan.rootFields.keys()]).toEqual(['items', 'a']);
-    expect(plan.__fieldPlanByNodes.get(plan.rootFields.get('items')!)).toMatchObject({
+    expect(plan.fieldPlanByNodes.get(plan.rootFields.get('items')!)).toMatchObject({
       responseName: 'items',
       hasArgs: false,
     });
@@ -201,7 +201,7 @@ describe('execution plan', () => {
     }
     expect(plan.hasIncremental).toBe(true);
     expect(plan.rootExecutions).toBeUndefined();
-    expect(plan.__fieldPlanByFieldNode.get(plan.rootFields.get('a')![0]!)).toBeDefined();
+    expect(plan.fieldPlanByFieldNode.get(plan.rootFields.get('a')![0]!)).toBeDefined();
   });
 
   it('compiles static @stream facts on incremental plans', () => {
@@ -220,7 +220,7 @@ describe('execution plan', () => {
       return;
     }
     expect(plan.hasIncremental).toBe(true);
-    const valuesPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('values')!);
+    const valuesPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('values')!);
     expect(valuesPlan?.stream).toEqual({
       kind: 'static',
       initialCount: 1,
@@ -236,7 +236,7 @@ describe('execution plan', () => {
       return;
     }
     expect(plan.hasIncremental).toBe(false);
-    const aPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('a')!);
+    const aPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('a')!);
     expect(aPlan).toBeDefined();
     expect(Object.prototype.hasOwnProperty.call(aPlan, 'stream')).toBe(false);
   });
@@ -292,7 +292,7 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    const fieldPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('hello')!);
+    const fieldPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('hello')!);
     expect(fieldPlan?.staticArgs).toEqual({ name: 'Ada' });
     expect(fieldPlan?.argumentReader).toEqual({
       kind: 'static',
@@ -307,7 +307,7 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    const fieldPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('hello')!);
+    const fieldPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('hello')!);
     expect(fieldPlan?.hasArgs).toBe(true);
     expect(fieldPlan?.staticArgs).toBeUndefined();
     expect(fieldPlan?.argumentReader?.kind).toBe('coercer');
@@ -599,7 +599,7 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    const fieldPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('hello')!);
+    const fieldPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('hello')!);
     expect(fieldPlan?.resolveInfoStatic).toMatchObject({
       fieldName: 'hello',
       returnType: fieldPlan?.returnType,
@@ -615,17 +615,17 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    const itemsPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('items')!);
+    const itemsPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('items')!);
     expect(itemsPlan?.kind).toBe('list');
     if (itemsPlan?.kind === 'list') {
       expect(itemsPlan.objectType).toBe(itemType);
       expect(itemsPlan.itemNonNull).toBe(false);
     }
-    const itemFields = plan.__subfieldsByNodes.get(plan.rootFields.get('items')!)?.get(itemType);
+    const itemFields = plan.subfieldsByNodes.get(plan.rootFields.get('items')!)?.get(itemType);
     expect(itemFields).toBeDefined();
-    const namePlan = plan.__fieldPlanByNodes.get(itemFields!.get('name')!);
+    const namePlan = plan.fieldPlanByNodes.get(itemFields!.get('name')!);
     expect(namePlan?.kind).toBe('leaf');
-    const friendPlan = plan.__fieldPlanByNodes.get(itemFields!.get('friend')!);
+    const friendPlan = plan.fieldPlanByNodes.get(itemFields!.get('friend')!);
     expect(friendPlan?.kind).toBe('object');
     expect(friendPlan?.skipIsTypeOf).toBe(true);
   });
@@ -645,7 +645,7 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    const fieldPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('values')!);
+    const fieldPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('values')!);
     expect(fieldPlan?.kind).toBe('leafList');
     if (fieldPlan?.kind === 'leafList') {
       expect(fieldPlan.itemNonNull).toBe(false);
@@ -763,7 +763,7 @@ describe('execution plan', () => {
     if (!isExecutionPlan(plan)) {
       return;
     }
-    const fieldPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('hello')!);
+    const fieldPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('hello')!);
     expect(fieldPlan).toBeDefined();
     const coerced = plan.coerceVariables({});
     expect('variableValues' in coerced).toBe(true);

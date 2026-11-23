@@ -144,8 +144,7 @@ export { flattenIncrementalResults, isIncrementalResults, subscribe } from './ex
  * Variable `@skip` / `@include` use union collection + FieldNode keys.
  * `@defer` / `@stream` set `hasIncremental`; runtime keeps the incremental
  * interpreter while still using per-field plan facts. Pass the result to
- * `execute({ plan })` for warm reuse. WeakMap / FieldPlan indexes use a
- * `__` prefix.
+ * `execute({ plan })` for warm reuse.
  */
 export function compileExecutionPlan(
   args: CompileExecutionPlanArgs,
@@ -3021,7 +3020,7 @@ function getStreamValues(
   // Incremental plan: use compiled stream facts when present.
   if (plan != null) {
     const planned =
-      plan.__fieldPlanByNodes.get(fieldNodes) ?? plan.__fieldPlanByFieldNode.get(fieldNodes[0]!);
+      plan.fieldPlanByNodes.get(fieldNodes) ?? plan.fieldPlanByFieldNode.get(fieldNodes[0]!);
     const stream = planned?.stream;
     // Only trust an explicit `none`. Missing stream metadata can happen when
     // mixed @skip/@include extremes omitted the field at compile time; fall

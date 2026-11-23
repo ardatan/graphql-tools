@@ -72,11 +72,11 @@ function resolveFieldPlanForParent(
   fieldNodes: ReadonlyArray<FieldNode>,
 ): FieldPlan | undefined {
   // Exact array hit still requires parentType match (unions / interfaces).
-  const byNodes = plan.__fieldPlanByNodes.get(fieldNodes);
+  const byNodes = plan.fieldPlanByNodes.get(fieldNodes);
   if (byNodes != null && byNodes.parentType === parentType) {
     return byNodes;
   }
-  const byNode = plan.__fieldPlanByFieldNode.get(fieldNodes[0]!);
+  const byNode = plan.fieldPlanByFieldNode.get(fieldNodes[0]!);
   if (byNode != null && byNode.parentType === parentType) {
     return byNode;
   }
@@ -206,9 +206,9 @@ function buildExecutionsFromConditionalEntries(
       if (compiled == null) {
         return undefined;
       }
-      plan.__fieldPlanByNodes.set(fieldNodes as Array<FieldNode>, compiled);
+      plan.fieldPlanByNodes.set(fieldNodes as Array<FieldNode>, compiled);
       for (const fieldNode of fieldNodes) {
-        plan.__fieldPlanByFieldNode.set(fieldNode, compiled);
+        plan.fieldPlanByFieldNode.set(fieldNode, compiled);
       }
       compileReturnTypeSubfields(plan, compiled);
       resolvedPlan = compiled;
@@ -231,9 +231,9 @@ export function compileFieldMap(
   for (const [responseName, fieldNodes] of fields) {
     const fieldPlan = compileFieldPlan(plan, parentType, responseName, fieldNodes);
     if (fieldPlan) {
-      plan.__fieldPlanByNodes.set(fieldNodes, fieldPlan);
+      plan.fieldPlanByNodes.set(fieldNodes, fieldPlan);
       for (const fieldNode of fieldNodes) {
-        plan.__fieldPlanByFieldNode.set(fieldNode, fieldPlan);
+        plan.fieldPlanByFieldNode.set(fieldNode, fieldPlan);
       }
       compileReturnTypeSubfields(plan, fieldPlan);
     }
@@ -807,10 +807,10 @@ function storeSubfieldExecutions(
   } else {
     return;
   }
-  let byType = plan.__subfieldExecutionsByNodes.get(parentFieldNodes);
+  let byType = plan.subfieldExecutionsByNodes.get(parentFieldNodes);
   if (!byType) {
     byType = new WeakMap();
-    plan.__subfieldExecutionsByNodes.set(parentFieldNodes, byType);
+    plan.subfieldExecutionsByNodes.set(parentFieldNodes, byType);
   }
   byType.set(returnType, executions);
 }
@@ -870,19 +870,19 @@ function collectAndStoreSubfields(
     patches = collected.patches;
   }
 
-  let byType = plan.__subfieldsByNodes.get(fieldNodes);
+  let byType = plan.subfieldsByNodes.get(fieldNodes);
   if (!byType) {
     byType = new WeakMap();
-    plan.__subfieldsByNodes.set(fieldNodes, byType);
+    plan.subfieldsByNodes.set(fieldNodes, byType);
   }
   byType.set(returnType, fields);
 
   const primary = fieldNodes[0];
   if (primary) {
-    let byTypeForNode = plan.__subfieldsByFieldNode.get(primary);
+    let byTypeForNode = plan.subfieldsByFieldNode.get(primary);
     if (!byTypeForNode) {
       byTypeForNode = new WeakMap();
-      plan.__subfieldsByFieldNode.set(primary, byTypeForNode);
+      plan.subfieldsByFieldNode.set(primary, byTypeForNode);
     }
     byTypeForNode.set(returnType, fields);
   }
@@ -903,7 +903,7 @@ export function getPlannedSubfieldExecutions(
   fieldNodes: ReadonlyArray<FieldNode>,
   returnType: GraphQLObjectType,
 ): ReadonlyArray<PlannedFieldExecution> | undefined {
-  return plan.__subfieldExecutionsByNodes.get(fieldNodes)?.get(returnType);
+  return plan.subfieldExecutionsByNodes.get(fieldNodes)?.get(returnType);
 }
 
 export function unionFieldMaps(

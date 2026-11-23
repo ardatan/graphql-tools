@@ -148,10 +148,6 @@ export type FieldPlan =
 
 /**
  * Compiled execution plan for `compileExecutionPlan` / `execute({ plan })`.
- *
- * WeakMap / FieldPlan indexes use a `__` prefix so their shape is clearly not
- * a stable app-facing surface. Other fields are ordinary plan metadata used by
- * the warm path.
  */
 export interface ExecutionPlan {
   schema: GraphQLSchema;
@@ -176,29 +172,29 @@ export interface ExecutionPlan {
   /** Pre-collected root field map (stable docs) or union over bool extremes. */
   rootFields: Map<string, Array<FieldNode>>;
   /** Field plan keyed by the exact `fieldNodes` array identity from this plan. */
-  __fieldPlanByNodes: WeakMap<ReadonlyArray<FieldNode>, FieldPlan>;
+  fieldPlanByNodes: WeakMap<ReadonlyArray<FieldNode>, FieldPlan>;
   /**
    * Field plan keyed by the primary AST `FieldNode` so runtime-collected
    * fieldNodes arrays (variable skip/include) still hit the warm plan.
    */
-  __fieldPlanByFieldNode: WeakMap<FieldNode, FieldPlan>;
+  fieldPlanByFieldNode: WeakMap<FieldNode, FieldPlan>;
   /**
    * Subfield maps keyed by parent fieldNodes array then concrete return type.
    * List items of the same type reuse the same map identity.
    */
-  __subfieldsByNodes: WeakMap<
+  subfieldsByNodes: WeakMap<
     ReadonlyArray<FieldNode>,
     WeakMap<GraphQLObjectType, Map<string, Array<FieldNode>>>
   >;
   /** Subfield maps keyed by parent field's primary AST node (variable collect). */
-  __subfieldsByFieldNode: WeakMap<
+  subfieldsByFieldNode: WeakMap<
     FieldNode,
     WeakMap<GraphQLObjectType, Map<string, Array<FieldNode>>>
   >;
   /**
-   * Subfield execution lists keyed like `__subfieldsByNodes` for stable warm path.
+   * Subfield execution lists keyed like `subfieldsByNodes` for stable warm path.
    */
-  __subfieldExecutionsByNodes: WeakMap<
+  subfieldExecutionsByNodes: WeakMap<
     ReadonlyArray<FieldNode>,
     WeakMap<GraphQLObjectType, ReadonlyArray<PlannedFieldExecution>>
   >;

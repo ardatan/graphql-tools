@@ -106,8 +106,8 @@ describe('execution plan warm-path edges', () => {
         return;
       }
       const petsNodes = plan.rootFields.get('pets')!;
-      const dogFields = plan.__subfieldsByNodes.get(petsNodes)?.get(Dog);
-      const catFields = plan.__subfieldsByNodes.get(petsNodes)?.get(Cat);
+      const dogFields = plan.subfieldsByNodes.get(petsNodes)?.get(Dog);
+      const catFields = plan.subfieldsByNodes.get(petsNodes)?.get(Cat);
       expect(dogFields).toBeDefined();
       expect(catFields).toBeDefined();
       const dogNameNodes = dogFields!.get('name')!;
@@ -318,7 +318,7 @@ describe('execution plan warm-path edges', () => {
       const plan = compileExecutionPlan({ schema, document });
       expect(isExecutionPlan(plan)).toBe(true);
       if (isExecutionPlan(plan)) {
-        const itemsPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('items')!);
+        const itemsPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('items')!);
         expect(itemsPlan?.kind).toBe('list');
         if (itemsPlan?.kind === 'list') {
           expect(itemsPlan.objectType?.name).toBe('Item');
@@ -568,7 +568,7 @@ describe('execution plan warm-path edges', () => {
       const plan = compileExecutionPlan({ schema, document });
       expect(isExecutionPlan(plan)).toBe(true);
       if (isExecutionPlan(plan)) {
-        const fieldPlan = plan.__fieldPlanByNodes.get(plan.rootFields.get('thing')!);
+        const fieldPlan = plan.fieldPlanByNodes.get(plan.rootFields.get('thing')!);
         expect(fieldPlan?.skipIsTypeOf).toBe(false);
       }
       expect(executeSync({ schema, document })).toEqual({

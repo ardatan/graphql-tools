@@ -18,8 +18,8 @@ safe argument reads are already prepared, so each request does less AST work.
 ## What is compiled
 
 For an eligible `(schema, document, operationName)`, public `execute` get-or-compiles an
-`ExecutionPlan` (or uses `args.plan` when you pass one from `compileExecutionPlan`). WeakMap /
-FieldPlan indexes use a `__` prefix (`__fieldPlanByNodes`, …). The warm interpreter holds:
+`ExecutionPlan` (or uses `args.plan` when you pass one from `compileExecutionPlan`). The warm
+interpreter holds:
 
 | Piece                | Role                                                                                                                                                |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
