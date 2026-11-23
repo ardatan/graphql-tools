@@ -78,7 +78,9 @@ let planCache = new WeakMap<DocumentNode, WeakMap<GraphQLSchema, Map<string, Pla
  * concurrent requests would race. Prefer the env var for process-wide
  * classic mode, or isolate processes / workers when comparing modes.
  */
-let executionPlanningEnabled = process.env['GRAPHQL_TOOLS_EXECUTOR_PLANNING'] !== '0';
+// `globalThis.process?.env` so browser UMD bundles (url-loader → wrap →
+// delegate → executor) do not throw ReferenceError on bare `process`.
+let executionPlanningEnabled = globalThis.process?.env?.['GRAPHQL_TOOLS_EXECUTOR_PLANNING'] !== '0';
 
 /**
  * Enable or disable plan compile for subsequent `execute` / `executeSync`
