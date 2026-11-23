@@ -17,6 +17,7 @@ import {
   GraphQLSchema,
   GraphQLString,
   isAbstractType,
+  isEnumType,
   isInputObjectType,
   isInputType,
   isLeafType,
@@ -33,6 +34,7 @@ import {
   versionInfo,
   type ArgumentNode,
   type DocumentNode,
+  type GraphQLArgument,
   type GraphQLInputType,
   type ValueNode,
   type VariableDefinitionNode,
@@ -803,6 +805,7 @@ type HoistedVariableBinding = {
   defaultValue: unknown;
   /** AST default node for GQL17 `sources.signature.default.literal`. */
   defaultLiteral: ValueNode | undefined;
+  variableDef: VariableDefinitionNode;
   /** Plan-held missing/null messages when `nonNull` (#11). */
   nonNullErrors: VariableNonNullErrorParts | undefined;
 };
@@ -848,6 +851,7 @@ function tryCompileHoistedVariableBindings(
       hasDefault,
       defaultValue,
       defaultLiteral,
+      variableDef: def,
       nonNullErrors: nonNull ? compileVariableNonNullErrorParts(def, String(inputType)) : undefined,
     });
   }
@@ -891,11 +895,90 @@ function tryCoerceHoistedVariables(
     }
     const coercedValue = binding.coerce(value);
     if (coercedValue === undefined) {
+      const diagnosed = diagnoseHoistedCoerceMiss(binding, value);
+      if (diagnosed != null) {
+        return { errors: diagnosed };
+      }
       return undefined;
     }
     coerced[binding.name] = coercedValue;
   }
   return { coerced, sources };
+}
+
+function unwrapInputType(type: GraphQLInputType): GraphQLInputType {
+  return isNonNullType(type) ? type.ofType : type;
+}
+
+/**
+ * graphql-js `inspect` quote style (JSON strings) for GraphQLError message parity.
+ * Avoids `@graphql-tools/utils` inspect, which uses Node util single quotes.
+ */
+function inspectValue(value: unknown): string {
+  if (typeof value === 'string') {
+    return JSON.stringify(value);
+  }
+  if (value === null) {
+    return 'null';
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map(inspectValue).join(', ')}]`;
+  }
+  if (typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>);
+    if (entries.length === 0) {
+      return '{}';
+    }
+    return `{ ${entries.map(([k, v]) => `${k}: ${inspectValue(v)}`).join(', ')} }`;
+  }
+  return String(value);
+}
+
+/**
+ * Plan-held GraphQLError factories for common hoisted coerce misses (#11 edges).
+ * Returns `undefined` when the failure needs classic getVariableValues (enum
+ * suggestions, unknown keys, nested paths, multi-error aggregation).
+ */
+function diagnoseHoistedCoerceMiss(
+  binding: HoistedVariableBinding,
+  value: unknown,
+): ReadonlyArray<GraphQLError> | undefined {
+  const named = unwrapInputType(binding.variableType);
+  const varName = binding.name;
+  const nodes = binding.variableDef;
+
+  if (isLeafType(named)) {
+    // Enums: classic adds Did-you-mean / hideSuggestions — fall back.
+    if (isEnumType(named)) {
+      return undefined;
+    }
+    try {
+      named.parseValue(value);
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : String(err);
+      const message = isGraphQL17
+        ? `Variable "$${varName}" has invalid value: ${detail}`
+        : `Variable "$${varName}" got invalid value ${inspectValue(value)}; ${detail}`;
+      return [new GraphQLError(message, { nodes })];
+    }
+    return undefined;
+  }
+
+  if (!isInputObjectType(named)) {
+    return undefined;
+  }
+
+  // Only top-level non-object shapes. Unknown keys / missing required / nested
+  // field errors stay classic for suggestion + multi-error + path parity.
+  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    return undefined;
+  }
+
+  const typeName = named.name;
+  const message = isGraphQL17
+    ? `Variable "$${varName}" has invalid value: Expected value of type "${typeName}" to be an object, found: ${inspectValue(value)}.`
+    : `Variable "$${varName}" got invalid value ${inspectValue(value)}; Expected type "${typeName}" to be an object.`;
+  return [new GraphQLError(message, { nodes })];
 }
 
 /**
@@ -936,13 +1019,11 @@ function compileInputValueCoercer(
       if (raw == null) {
         return null;
       }
-      if (!Array.isArray(raw)) {
-        // graphql-js wraps singular values; fall back for identical behavior.
-        return undefined;
-      }
+      // graphql-js wraps singular values as a single-element list.
+      const list = Array.isArray(raw) ? raw : [raw];
       const out: unknown[] = [];
-      for (let i = 0; i < raw.length; i++) {
-        const item = itemCoercer(raw[i]);
+      for (let i = 0; i < list.length; i++) {
+        const item = itemCoercer(list[i]);
         if (item === undefined) {
           return undefined;
         }
@@ -1094,6 +1175,8 @@ type BuiltinLeafVariableBinding = {
   defaultValue: unknown;
   hasDefault: boolean;
   defaultLiteral: ValueNode | undefined;
+  /** Variable AST node for GraphQLError locations. */
+  variableDef: VariableDefinitionNode;
   /** Plan-held missing/null messages when `nonNull` (#11). */
   nonNullErrors: VariableNonNullErrorParts | undefined;
 };
@@ -1136,6 +1219,7 @@ function tryCompileBuiltinLeafVariableBindings(
       defaultValue,
       hasDefault,
       defaultLiteral,
+      variableDef: def,
       nonNullErrors: nonNull ? compileVariableNonNullErrorParts(def, String(inputType)) : undefined,
     });
   }
@@ -1184,8 +1268,18 @@ function tryCoerceBuiltinLeafVariables(
     let parsed: unknown;
     try {
       parsed = binding.leafType.parseValue(value);
-    } catch {
-      return undefined;
+    } catch (err) {
+      // Enums: classic getVariableValues owns Did-you-mean / hideSuggestions.
+      if (isEnumType(binding.leafType)) {
+        return undefined;
+      }
+      const detail = err instanceof Error ? err.message : String(err);
+      const message = isGraphQL17
+        ? `Variable "$${binding.name}" has invalid value: ${detail}`
+        : `Variable "$${binding.name}" got invalid value ${inspectValue(value)}; ${detail}`;
+      return {
+        errors: [new GraphQLError(message, { nodes: binding.variableDef })],
+      };
     }
     if (parsed == null && binding.nonNull) {
       // parseValue returned null for NonNull — classic getVariableValues parity.
@@ -1500,6 +1594,7 @@ type BareVariableArgBinding = {
   variableName: string;
   nodes: ArgumentNode['value'];
   nonNull: boolean;
+  missingMessage: string;
   nullMessage: string;
 };
 
@@ -1530,6 +1625,9 @@ function tryBareVariableBindings(
     const typeName = String(argDef.type);
     const nonNull = isNonNullType(argDef.type);
     const coord = `${parentType.name}.${fieldDef.name}(${arg.name.value}:)`;
+    const missingMessage = isGraphQL17
+      ? `Argument "${coord}" has invalid value: Expected variable "$${variableName}" provided to type "${typeName}" to provide a runtime value.`
+      : `Argument "${arg.name.value}" of required type "${typeName}" was provided the variable "$${variableName}" which was not provided a runtime value.`;
     const nullMessage = isGraphQL17
       ? `Argument "${coord}" has invalid value: Expected variable "$${variableName}" provided to non-null type "${typeName}" not to be null.`
       : `Argument "${arg.name.value}" of non-null type "${typeName}" must not be null.`;
@@ -1539,6 +1637,7 @@ function tryBareVariableBindings(
       // graphql-js locates these errors on the Variable node, not the Argument.
       nodes: arg.value,
       nonNull,
+      missingMessage,
       nullMessage,
     });
   }
@@ -1546,9 +1645,27 @@ function tryBareVariableBindings(
 }
 
 /**
+ * Resolve a field-argument schema default across GraphQL 16 (`defaultValue`)
+ * and GraphQL 17 (`default.literal` + valueFromAST).
+ */
+function getFieldArgDefaultValue(argDef: GraphQLArgument): unknown | undefined {
+  if (argDef.defaultValue !== undefined) {
+    return argDef.defaultValue;
+  }
+  const gql17Default = (argDef as GraphQLArgument & { default?: { literal?: ValueNode } }).default;
+  if (gql17Default?.literal != null) {
+    const compiled = valueFromAST(gql17Default.literal, argDef.type);
+    if (compiled !== undefined) {
+      return compiled;
+    }
+  }
+  return undefined;
+}
+
+/**
  * Fast path for bare-variable args. Throws plan-held GraphQLError for
- * null-for-non-null (#12). Missing variables fall back to getArgumentValues so
- * schema argument defaults (GQL17 lazy `default`) stay identical.
+ * null-for-non-null (#12). Missing variables apply schema defaults when present;
+ * otherwise omit (nullable) or throw missing (non-null).
  */
 function tryReadBareVariableArguments(
   fieldDef: GraphQLField<unknown, unknown>,
@@ -1565,8 +1682,16 @@ function tryReadBareVariableArguments(
     const binding = byArg.get(argDef.name);
     if (binding !== undefined) {
       if (!Object.prototype.hasOwnProperty.call(coerced, binding.variableName)) {
-        // Missing runtime variable — defaults / omit need classic parity.
-        return undefined;
+        const defaultValue = getFieldArgDefaultValue(argDef);
+        if (defaultValue !== undefined) {
+          args[argDef.name] = defaultValue;
+          continue;
+        }
+        if (binding.nonNull) {
+          throw new GraphQLError(binding.missingMessage, { nodes: binding.nodes });
+        }
+        // Nullable + no default: omit (classic getArgumentValues).
+        continue;
       }
       const value = coerced[binding.variableName];
       if (value == null && binding.nonNull) {
@@ -1575,8 +1700,9 @@ function tryReadBareVariableArguments(
       args[argDef.name] = value;
       continue;
     }
-    if (argDef.defaultValue !== undefined) {
-      args[argDef.name] = argDef.defaultValue;
+    const defaultValue = getFieldArgDefaultValue(argDef);
+    if (defaultValue !== undefined) {
+      args[argDef.name] = defaultValue;
     } else if (isNonNullType(argDef.type)) {
       return undefined;
     }
