@@ -149,12 +149,12 @@ master, not cold-start cost.
 
 Planned execution is an **optimization layer** on top of classic completion — not a replacement.
 
-| Layer | Module(s) | Responsibility |
-| ----- | --------- | -------------- |
-| Plan IR / cache | `plan.ts` | Compile eligibility, `FieldPlan` kinds, WeakMap lifecycle, kill switch |
-| Orchestration | `execute.ts` | Field walk, runners, thin leaf-list / object-list paths, classic fallback |
-| Shared semantics | `completeShared.ts` | Leaf serialize (`completeLeafValue`) and list-item error localization only |
-| Classic list/object | `execute.ts` (`completeListValue`, …) | Full classic interpreter; independent of plan cache |
+| Layer               | Module(s)                             | Responsibility                                                             |
+| ------------------- | ------------------------------------- | -------------------------------------------------------------------------- |
+| Plan IR / cache     | `plan.ts`                             | Compile eligibility, `FieldPlan` kinds, WeakMap lifecycle, kill switch     |
+| Orchestration       | `execute.ts`                          | Field walk, runners, thin leaf-list / object-list paths, classic fallback  |
+| Shared semantics    | `completeShared.ts`                   | Leaf serialize (`completeLeafValue`) and list-item error localization only |
+| Classic list/object | `execute.ts` (`completeListValue`, …) | Full classic interpreter; independent of plan cache                        |
 
 **Invariants**
 
