@@ -2233,6 +2233,36 @@ describe('object-list thin path: r8 differential matrix', () => {
     expect(planned).toEqual(classic);
   });
 
+  it('trims GraphQLString leaf-list when a getter truncates after the read', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(GraphQLString),
+            resolve() {
+              const values: Array<unknown> = ['a', 'b'];
+              Object.defineProperty(values, '0', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  values.length = 1;
+                  return 'a';
+                },
+              });
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    const planned = executeSync({ schema, document });
+    const classic = executeClassicSync({ schema, document });
+    expect(planned).toEqual({ data: { values: ['a'] } });
+    expect(planned).toEqual(classic);
+  });
+
   it('keeps indexed traversal when serialize installs a custom iterator', async () => {
     const document = parse('{ values }');
     const makeSchema = () => {

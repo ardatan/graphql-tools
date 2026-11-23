@@ -1548,6 +1548,7 @@ function executeFields(
               // promiseForObject awaits it. Avoid a second root-runner hop.
               if (isPromise(leafResult)) {
                 containsPromise = true;
+                observeFieldLocalPromise(leafResult);
               }
               continue;
             }
@@ -1581,6 +1582,7 @@ function executeFields(
                   );
                 } else {
                   containsPromise = true;
+                  observeFieldLocalPromise(objectListResult);
                 }
               }
               continue;
@@ -2642,8 +2644,11 @@ function completePlannedLeafListValue(
       let fastOk = true;
       let failIndex = -1;
       let failItem: unknown;
+      let visited = 0;
       for (let i = 0; i < result.length; i++) {
         const v = result[i];
+        // Count after the read so a truncating getter cannot drop a returned value.
+        visited = i + 1;
         const t = typeof v;
         if (v == null || (t !== 'number' && t !== 'string' && t !== 'boolean' && t !== 'bigint')) {
           fastOk = false;
@@ -2675,6 +2680,9 @@ function completePlannedLeafListValue(
         }
       }
       if (fastOk) {
+        if (visited < completedResults.length) {
+          completedResults.length = visited;
+        }
         return completedResults;
       }
       retainedResume = {
