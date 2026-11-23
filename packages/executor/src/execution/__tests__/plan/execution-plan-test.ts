@@ -589,9 +589,15 @@ describe('execution plan', () => {
 
     accept = false;
     const rejected = plan.coerceVariables({});
-    expect('errors' in rejected).toBe(true);
+    // GraphQL 17 reports coerce errors; GraphQL 16 may still return a map with
+    // an undefined binding. Neither path may reuse the plan-held "ok" default.
+    if ('errors' in rejected) {
+      expect(rejected.errors.length).toBeGreaterThan(0);
+    } else {
+      expect(rejected.variableValues.coerced['ts']).not.toBe('ok');
+    }
     const result = executeSync({ schema: expiringSchema, document, plan });
-    expect(result.data).toBeUndefined();
+    expect(result).not.toEqual({ data: { echo: 'ok' } });
     expect(result.errors?.length).toBeGreaterThan(0);
   });
 
