@@ -98,9 +98,10 @@ sequenceDiagram
    resolvers or scalars on the same schema instance while reusing a cached plan is unsupported (no
    per-request schema fingerprint). Use a new schema object (or a new `DocumentNode`) after such
    changes.
-4. **Treat plans as opaque**: `compileExecutionPlan` returns a shallow-frozen handle shared across
-   requests. Nested Maps, arrays, and FieldPlans are **not** deep-frozen. Do not mutate a plan;
-   prefer `execute({ schema, document })` unless you need plan-only warm reuse.
+4. **Treat plans as opaque**: `compileExecutionPlan` returns an opaque `ExecutionPlan` handle
+   (TypeScript brand — no public Maps/arrays). The runtime shell is shallow-frozen; nested
+   structures are **not** deep-frozen. Do not mutate a plan; prefer `execute({ schema, document })`
+   unless you need plan-only warm reuse.
 
 ```ts
 import { compileExecutionPlan, execute, isExecutionPlan } from '@graphql-tools/executor'

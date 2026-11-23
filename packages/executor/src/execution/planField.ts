@@ -35,9 +35,9 @@ import {
 import { EMPTY_ARGS, EMPTY_VARIABLE_VALUES, isGraphQL17 } from './planShared.js';
 import type {
   ArgumentReader,
-  ExecutionPlan,
   FieldPlan,
   FieldPlanKind,
+  InternalExecutionPlan,
   PlannedFieldExecution,
   ResolveKind,
   StreamPlan,
@@ -57,17 +57,17 @@ export class PlanCompileBudgetExceeded extends Error {
   }
 }
 
-const compileWorkByPlan = new WeakMap<ExecutionPlan, number>();
+const compileWorkByPlan = new WeakMap<InternalExecutionPlan, number>();
 
-export function beginPlanCompile(plan: ExecutionPlan): void {
+export function beginPlanCompile(plan: InternalExecutionPlan): void {
   compileWorkByPlan.set(plan, 0);
 }
 
-export function endPlanCompile(plan: ExecutionPlan): void {
+export function endPlanCompile(plan: InternalExecutionPlan): void {
   compileWorkByPlan.delete(plan);
 }
 
-function chargeCompileWork(plan: ExecutionPlan, amount = 1): void {
+function chargeCompileWork(plan: InternalExecutionPlan, amount = 1): void {
   const used = compileWorkByPlan.get(plan) ?? 0;
   const next = used + amount;
   if (next > PLAN_COMPILE_WORK_BUDGET) {
@@ -82,7 +82,7 @@ type CompiledLeafListItem = { leafType: GraphQLLeafType; itemNonNull: boolean };
 type CompiledObjectListItem = { objectType: GraphQLObjectType; itemNonNull: boolean };
 
 export function compilePatchFieldMaps(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   parentType: GraphQLObjectType,
   patches: ReadonlyArray<{
     fields: Map<string, Array<FieldNode>>;
@@ -98,7 +98,7 @@ export function compilePatchFieldMaps(
 }
 
 function resolveFieldPlanForParent(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   parentType: GraphQLObjectType,
   fieldNodes: ReadonlyArray<FieldNode>,
 ): FieldPlan | undefined {
@@ -112,7 +112,7 @@ function resolveFieldPlanForParent(
 }
 
 export function buildFieldExecutions(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   parentType: GraphQLObjectType,
   fields: Map<string, Array<FieldNode>>,
   includeByResponseName?: Map<string, IncludePredicate>,
@@ -149,7 +149,7 @@ export function buildFieldExecutions(
  * other selections (same idea as conditional mutations).
  */
 export function buildExecutionsFromSelectionSet(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   runtimeType: GraphQLObjectType,
   selectionSet: import('graphql').SelectionSetNode,
   preferredFieldMap?: Map<string, Array<FieldNode>>,
@@ -172,7 +172,7 @@ export function buildExecutionsFromSelectionSet(
 }
 
 function buildExecutionsFromParentFieldNodes(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   returnType: GraphQLObjectType,
   parentFieldNodes: ReadonlyArray<FieldNode>,
   preferredFieldMap?: Map<string, Array<FieldNode>>,
@@ -206,7 +206,7 @@ function buildExecutionsFromParentFieldNodes(
 }
 
 function buildExecutionsFromConditionalEntries(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   parentType: GraphQLObjectType,
   entries: ReadonlyArray<ConditionalFieldEntry>,
   /**
@@ -272,7 +272,7 @@ function buildExecutionsFromConditionalEntries(
 }
 
 export function compileFieldMap(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   parentType: GraphQLObjectType,
   fields: Map<string, Array<FieldNode>>,
 ): void {
@@ -298,7 +298,7 @@ export function compileFieldMap(
 }
 
 function compileFieldPlan(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   parentType: GraphQLObjectType,
   responseName: string,
   fieldNodes: Array<FieldNode>,
@@ -847,7 +847,7 @@ function tryReadBareVariableArguments(
   return args;
 }
 
-function compileReturnTypeSubfields(plan: ExecutionPlan, fieldPlan: FieldPlan): void {
+function compileReturnTypeSubfields(plan: InternalExecutionPlan, fieldPlan: FieldPlan): void {
   const namedType = unwrapToNamedOutputType(fieldPlan.fieldDef.type);
 
   if (isObjectType(namedType)) {
@@ -881,7 +881,7 @@ function compileReturnTypeSubfields(plan: ExecutionPlan, fieldPlan: FieldPlan): 
 }
 
 function storeSubfieldExecutions(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   parentFieldNodes: Array<FieldNode>,
   returnType: GraphQLObjectType,
   subfields: Map<string, Array<FieldNode>>,
@@ -934,7 +934,7 @@ export function filterPlannedExecutions(
 }
 
 function collectAndStoreSubfields(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   fieldNodes: Array<FieldNode>,
   returnType: GraphQLObjectType,
 ): Map<string, Array<FieldNode>> | undefined {
@@ -1003,7 +1003,7 @@ function collectAndStoreSubfields(
  * Planned subfield execution list for a stable parent field + concrete type.
  */
 export function getPlannedSubfieldExecutions(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   fieldNodes: ReadonlyArray<FieldNode>,
   returnType: GraphQLObjectType,
 ): ReadonlyArray<PlannedFieldExecution> | undefined {

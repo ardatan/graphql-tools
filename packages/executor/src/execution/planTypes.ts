@@ -147,16 +147,28 @@ export type FieldPlan =
   LeafFieldPlan | LeafListFieldPlan | ObjectFieldPlan | AbstractFieldPlan | ListFieldPlan;
 
 /**
- * Compiled execution plan for `compileExecutionPlan` / `execute({ plan })`.
+ * Brand for {@link ExecutionPlan}. Not part of the public API surface —
+ * consumers should not read or forge this property.
+ */
+declare const executionPlanBrand: unique symbol;
+
+/**
+ * Opaque handle from `compileExecutionPlan` / `execute({ plan })`.
  *
- * Treat as an **opaque, read-only** handle shared across requests via the plan
- * WeakMap cache. `compileExecutionPlan` only shallow-freezes the plan object
- * (not nested Maps, arrays, or FieldPlans). Do not mutate any field or nested
- * structure: changes would affect every concurrent execute that reuses the
- * same cached plan. Prefer `execute({ schema, document })` unless you need
- * plan-only warm reuse.
+ * The public type deliberately exposes no Maps, arrays, or FieldPlans so
+ * TypeScript consumers cannot treat the plan as a mutable bag of internals.
+ * Runtime still shallow-freezes the plan shell (not nested structures).
+ * Prefer `execute({ schema, document })` unless you need plan-only warm reuse.
  */
 export interface ExecutionPlan {
+  readonly [executionPlanBrand]: true;
+}
+
+/**
+ * @internal Runtime plan shape used by the executor and package tests.
+ * Not a supported public contract — use {@link ExecutionPlan} externally.
+ */
+export interface InternalExecutionPlan extends ExecutionPlan {
   schema: GraphQLSchema;
   document: DocumentNode;
   operation: OperationDefinitionNode;

@@ -94,6 +94,7 @@ import {
 } from './incrementalCollect.js';
 import { invariant } from './invariant.js';
 import {
+  asInternalExecutionPlan,
   compileExecutionPlan as compileInternalExecutionPlan,
   filterPlannedExecutions,
   getPlannedFieldPlan,
@@ -104,6 +105,7 @@ import {
   type ArgumentReader,
   type CompileExecutionPlanArgs,
   type FieldPlan,
+  type InternalExecutionPlan,
   type LeafListFieldPlan,
   type ListFieldPlan,
   type PlannedFieldExecution,
@@ -127,6 +129,7 @@ export type {
   ExecutionArgsWithPlan,
   ExecutionContext,
   ExecutionPlan,
+  InternalExecutionPlan,
   FormattedExecutionResult,
   FormattedIncrementalDeferResult,
   FormattedIncrementalResult,
@@ -545,7 +548,7 @@ type ResolvedExecutionRequest<TVariables = any, TContext = any> = ExecutionArgsS
   schema: GraphQLSchema;
   document: DocumentNode;
   operationName?: string | null;
-  knownPlan: ExecutionPlan | undefined;
+  knownPlan: InternalExecutionPlan | undefined;
 };
 
 function resolveExecutionRequest<TData = any, TVariables = any, TContext = any>(
@@ -578,7 +581,8 @@ function resolveExecutionRequest<TData = any, TVariables = any, TContext = any>(
   } satisfies ExecutionArgsShared<TData, TVariables, TContext>;
 
   if ('plan' in args && args.plan != null) {
-    const plan = args.plan;
+    // Opaque public handle → runtime shape (schema/document/operation).
+    const plan = asInternalExecutionPlan(args.plan);
     // Validate before trusting a caller-supplied plan's schema identity.
     assertValidSchema(plan.schema);
     return {
@@ -766,7 +770,7 @@ function getCollectFieldsDependsOnVariables(document: DocumentNode): boolean {
  */
 export function buildExecutionContext<TData = any, TVariables = any, TContext = any>(
   args: ExecuteArgs<TData, TVariables, TContext>,
-  knownPlan?: ExecutionPlan | null,
+  knownPlan?: InternalExecutionPlan | null,
 ): ReadonlyArray<GraphQLError> | ExecutionContext {
   const resolved = resolveExecutionRequest(args);
   const {
@@ -4096,6 +4100,23 @@ function isThinObjectPartial(value: unknown): value is ThinObjectPartial {
   );
 }
 
+/**
+ * Test-only counter: thin-walk declines that already completed at least one
+ * sibling field (partial → classic finish). Reset via
+ * {@link resetThinObjectPartialFallbackCount}.
+ */
+let thinObjectPartialFallbackCount = 0;
+
+/** @internal Count of partial thin-walk → classic fallbacks since last reset. */
+export function getThinObjectPartialFallbackCount(): number {
+  return thinObjectPartialFallbackCount;
+}
+
+/** @internal */
+export function resetThinObjectPartialFallbackCount(): void {
+  thinObjectPartialFallbackCount = 0;
+}
+
 function thinObjectMiss(
   results: Record<string, unknown>,
   recordedGetterError: boolean,
@@ -4106,8 +4127,11 @@ function thinObjectMiss(
   // sibling after a successful getter). Returning undefined here forced a full
   // classic item replay that re-read those getters.
   const hasCompleted = Object.keys(results).length > 0;
-  if (!recordedGetterError && !hasPending && !hasCompleted) {
+  if (!hasCompleted && !recordedGetterError && !hasPending) {
     return undefined;
+  }
+  if (hasCompleted) {
+    thinObjectPartialFallbackCount += 1;
   }
   const partial: ThinObjectPartial = {
     [THIN_OBJECT_PARTIAL]: true,

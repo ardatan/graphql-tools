@@ -13,6 +13,7 @@ import {
   isIncrementalResults,
   subscribe,
 } from './execute.js';
+import { asInternalExecutionPlan } from './plan.js';
 
 export function normalizedExecutor<TData = any, TVariables = any, TContext = any>(
   args: ExecuteArgs<TData, TVariables, TContext>,
@@ -20,8 +21,9 @@ export function normalizedExecutor<TData = any, TVariables = any, TContext = any
   let document: DocumentNode;
   let operationName: string | undefined;
   if ('plan' in args && args.plan != null) {
-    document = args.plan.document;
-    operationName = args.plan.operationName ?? undefined;
+    const plan = asInternalExecutionPlan(args.plan);
+    document = plan.document;
+    operationName = plan.operationName ?? undefined;
   } else {
     document = args.document;
     operationName = args.operationName ?? undefined;

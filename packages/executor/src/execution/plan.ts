@@ -30,6 +30,7 @@ import type {
   CompileExecutionPlanArgs,
   ExecutionPlan,
   FieldPlan,
+  InternalExecutionPlan,
   PlannedFieldExecution,
 } from './planTypes.js';
 
@@ -40,6 +41,7 @@ export type {
   CompileExecutionPlanArgs,
   FieldPlanKind,
   ExecutionPlan,
+  InternalExecutionPlan,
   FieldPlan,
   LeafFieldPlan,
   LeafListFieldPlan,
@@ -54,7 +56,7 @@ export type {
 export { filterPlannedExecutions, getPlannedSubfieldExecutions } from './planField.js';
 
 type PlanCacheEntry =
-  | { kind: 'plan'; plan: ExecutionPlan }
+  | { kind: 'plan'; plan: InternalExecutionPlan }
   | { kind: 'errors'; errors: ReadonlyArray<GraphQLError> }
   | { kind: 'ineligible' };
 
@@ -65,25 +67,36 @@ type PlanCacheEntry =
 const planCache = new WeakMap<DocumentNode, WeakMap<GraphQLSchema, Map<string, PlanCacheEntry>>>();
 
 /**
+ * Runtime registry of plans returned by {@link compileExecutionPlan}.
+ * Used by {@link isExecutionPlan} so the public type stays opaque (no duck
+ * typing on internal Maps / schema fields).
+ */
+const compiledPlans = new WeakSet<object>();
+
+/**
  * True when `compileExecutionPlan` returned a usable plan (not errors / skip).
+ * Narrows to {@link InternalExecutionPlan} for in-package callers; the public
+ * `execute` wrapper re-exports a predicate that narrows only to {@link ExecutionPlan}.
  */
 export function isExecutionPlan(
   value: ExecutionPlan | ReadonlyArray<GraphQLError> | undefined | null,
-): value is ExecutionPlan {
-  return (
-    value != null &&
-    !Array.isArray(value) &&
-    typeof value === 'object' &&
-    'rootFields' in value &&
-    'schema' in value
-  );
+): value is InternalExecutionPlan {
+  return value != null && typeof value === 'object' && compiledPlans.has(value);
+}
+
+/**
+ * @internal Cast a public {@link ExecutionPlan} handle to the runtime shape.
+ * Only valid for plans from {@link compileExecutionPlan} / the plan cache.
+ */
+export function asInternalExecutionPlan(plan: ExecutionPlan): InternalExecutionPlan {
+  return plan as InternalExecutionPlan;
 }
 
 /**
  * Resolve a field plan for runtime fieldNodes (exact array or primary AST node).
  */
 export function getPlannedFieldPlan(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   fieldNodes: ReadonlyArray<FieldNode>,
   parentType?: GraphQLObjectType,
 ): FieldPlan | undefined {
@@ -100,7 +113,7 @@ export function getPlannedFieldPlan(
  * Resolve planned subfields for a parent fieldNodes array.
  */
 export function getPlannedSubfields(
-  plan: ExecutionPlan,
+  plan: InternalExecutionPlan,
   fieldNodes: ReadonlyArray<FieldNode>,
   returnType: GraphQLObjectType,
 ): Map<string, Array<FieldNode>> | undefined {
@@ -147,7 +160,9 @@ export function compileExecutionPlan(
   if (entry.kind === 'plan') {
     // Public boundary: the plan object is shared via WeakMap. Shallow-freeze
     // the plan shell only (nested Maps/arrays/FieldPlans stay mutable by
-    // design; do not deep-freeze). Treat as opaque/read-only and do not mutate.
+    // design; do not deep-freeze). TS opacity is via ExecutionPlan brand;
+    // WeakSet membership is the runtime isExecutionPlan check.
+    compiledPlans.add(entry.plan);
     Object.freeze(entry.plan);
     return entry.plan;
   }
@@ -168,7 +183,7 @@ export function getExecutionPlan(
   schema: GraphQLSchema,
   document: DocumentNode,
   operationName?: string | null,
-): ExecutionPlan | undefined {
+): InternalExecutionPlan | undefined {
   const cached = getCachedPlanEntry(schema, document, operationName);
   return cached?.kind === 'plan' ? cached.plan : undefined;
 }
@@ -177,7 +192,9 @@ export function getExecutionPlan(
  * Resolve the plan for one `execute` / `buildExecutionContext` call.
  * Uses the WeakMap cache; compiles synchronously on a cache miss.
  */
-export function resolvePlanForExecute(args: CompileExecutionPlanArgs): ExecutionPlan | undefined {
+export function resolvePlanForExecute(
+  args: CompileExecutionPlanArgs,
+): InternalExecutionPlan | undefined {
   const cached = getCachedPlanEntry(args.schema, args.document, args.operationName);
   if (cached?.kind === 'plan') {
     return cached.plan;
@@ -325,8 +342,9 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
   const skipIncludePredicates = collectionDependsOnVariables && !hasIncremental;
 
   // Mutable while compiling; shallow-frozen before the public cache return.
-  type MutablePlan = { -readonly [K in keyof ExecutionPlan]: ExecutionPlan[K] };
-  const plan: MutablePlan = {
+  // Brand is attached via cast (unique symbol field on InternalExecutionPlan).
+  type MutablePlan = { -readonly [K in keyof InternalExecutionPlan]: InternalExecutionPlan[K] };
+  const plan = {
     schema: schema,
     document: document,
     operation: operation,
@@ -347,7 +365,7 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
     coerceVariables: coerceVariables,
     rootExecutions: undefined,
     skipIncludePredicates: skipIncludePredicates,
-  };
+  } as MutablePlan;
 
   try {
     beginPlanCompile(plan);
@@ -381,7 +399,7 @@ function compileExecutionPlanUncached(args: CompileExecutionPlanArgs): PlanCache
         }
       }
     }
-    return { kind: 'plan', plan };
+    return { kind: 'plan', plan: plan as InternalExecutionPlan };
   } catch (error) {
     if (error instanceof PlanCompileBudgetExceeded) {
       return { kind: 'ineligible' };

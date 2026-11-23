@@ -27,9 +27,9 @@ import {
   type DeferUsage,
   type DeferUsageSet,
 } from './incrementalCollect.js';
-import type { ExecutionPlan } from './planTypes.js';
+import type { ExecutionPlan, InternalExecutionPlan } from './planTypes.js';
 
-export type { ExecutionPlan } from './planTypes.js';
+export type { ExecutionPlan, InternalExecutionPlan } from './planTypes.js';
 
 export interface SingularExecutionResult<TData = any, TExtensions = any> {
   errors?: ReadonlyArray<GraphQLError>;
@@ -105,8 +105,10 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
    * Execution plan when compile succeeded for this operation.
    * Stable docs reuse planned field maps; incremental / variable-collect docs
    * still attach the plan for per-field facts via FieldNode keys.
+   * Typed as the internal runtime shape; the public compile API returns the
+   * opaque {@link ExecutionPlan} handle.
    */
-  plan?: ExecutionPlan;
+  plan?: InternalExecutionPlan;
 }
 
 export interface FormattedExecutionResult<
@@ -279,8 +281,8 @@ export type ExecutionArgsWithDocument<
 > = ExecutionArgs<TData, TVariables, TContext>;
 
 /**
- * Plan-only execution args. Trusts `plan.schema` / `plan.document` /
- * `plan.operation` (and optional `plan.operationName`).
+ * Plan-only execution args. The opaque {@link ExecutionPlan} handle carries
+ * schema / document / operation internally for warm reuse.
  */
 export interface ExecutionArgsWithPlan<
   TVariables = any,

@@ -24,6 +24,8 @@ import {
   execute,
   executeImpl,
   executeSync,
+  getThinObjectPartialFallbackCount,
+  resetThinObjectPartialFallbackCount,
   type SingularExecutionResult,
 } from '../../execute.js';
 import {
@@ -1005,8 +1007,30 @@ describe('plan compile budget', () => {
   });
 });
 
+describe('opaque ExecutionPlan handle', () => {
+  it('isExecutionPlan rejects duck-typed objects with plan-shaped fields', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: { ok: { type: GraphQLString, resolve: () => 'ok' } },
+      }),
+    });
+    const document = parse('{ ok }');
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    // Public opacity: duck typing on schema/rootFields must not pass.
+    expect(
+      isExecutionPlan({
+        schema,
+        document,
+        rootFields: new Map(),
+      } as never),
+    ).toBe(false);
+  });
+});
+
 describe('merged sibling fields with @include (external review)', () => {
-  it('does not leak name into user when the name sibling is skipped', () => {
+  it('does not leak name into user across include true/false orderings', () => {
     // Same primary FieldNode shape as `user { id }` vs `user @include { name }`.
     let idResolves = 0;
     let nameResolves = 0;
@@ -1050,50 +1074,60 @@ describe('merged sibling fields with @include (external review)', () => {
     const plan = compileExecutionPlan({ schema, document });
     expect(isExecutionPlan(plan)).toBe(true);
 
-    idResolves = 0;
-    nameResolves = 0;
-    const skipped = executeSync({
-      schema,
-      document,
-      variableValues: { includeExtra: false },
-    });
-    expect(skipped).toEqual({ data: { user: { id: '1' } } });
+    const run = (includeExtra: boolean) => {
+      idResolves = 0;
+      nameResolves = 0;
+      return executeSync({
+        schema,
+        document,
+        variableValues: { includeExtra },
+      });
+    };
+
+    // false → true (cache warm from skip, then include)
+    expect(run(false)).toEqual({ data: { user: { id: '1' } } });
+    expect(idResolves).toBe(1);
+    expect(nameResolves).toBe(0);
+    expect(run(true)).toEqual({ data: { user: { id: '1', name: 'Ada' } } });
+    expect(idResolves).toBe(1);
+    expect(nameResolves).toBe(1);
+
+    // true → false (opposite order)
+    expect(run(true)).toEqual({ data: { user: { id: '1', name: 'Ada' } } });
+    expect(idResolves).toBe(1);
+    expect(nameResolves).toBe(1);
+    expect(run(false)).toEqual({ data: { user: { id: '1' } } });
     expect(idResolves).toBe(1);
     expect(nameResolves).toBe(0);
 
-    idResolves = 0;
-    nameResolves = 0;
-    const included = executeSync({
-      schema,
-      document,
-      variableValues: { includeExtra: true },
-    });
-    expect(included).toEqual({ data: { user: { id: '1', name: 'Ada' } } });
-    expect(idResolves).toBe(1);
+    // false → true → false
+    expect(run(false)).toEqual({ data: { user: { id: '1' } } });
+    expect(nameResolves).toBe(0);
+    expect(run(true)).toEqual({ data: { user: { id: '1', name: 'Ada' } } });
     expect(nameResolves).toBe(1);
+    expect(run(false)).toEqual({ data: { user: { id: '1' } } });
+    expect(idResolves).toBe(1);
+    expect(nameResolves).toBe(0);
   });
 });
 
 describe('thin-walk fallback invocation counts', () => {
-  it('does not re-invoke a completed leaf resolver when a sibling forces classic', () => {
-    let idResolves = 0;
-    let nameResolves = 0;
+  it('partial thin-walk then classic: one-shot id getter is not re-read', () => {
+    // `id` uses default property resolve (thin completes it); `name(lang:)` has
+    // args so thin declines mid-walk. A classic-from-start planner would still
+    // read id once, so we also assert the thin→classic partial counter and a
+    // one-shot getter that throws on re-read (re-invoke-on-fallback bug).
+    let idReads = 0;
+    let nameReads = 0;
     const User = new GraphQLObjectType({
       name: 'ThinCountUser',
       fields: {
-        id: {
-          type: GraphQLString,
-          resolve: (obj: { id: string; name: string }) => {
-            idResolves += 1;
-            return obj.id;
-          },
-        },
-        // Args decline the thin default-property path after `id` may complete.
+        id: { type: GraphQLString },
         name: {
           type: GraphQLString,
           args: { lang: { type: GraphQLString } },
-          resolve: (obj: { id: string; name: string }, args: { lang?: string | null }) => {
-            nameResolves += 1;
+          resolve: (obj: { name: string }, args: { lang?: string | null }) => {
+            nameReads += 1;
             return args.lang ? `${obj.name}:${args.lang}` : obj.name;
           },
         },
@@ -1105,18 +1139,39 @@ describe('thin-walk fallback invocation counts', () => {
         fields: {
           user: {
             type: User,
-            resolve: () => ({ id: '1', name: 'Ada' }),
+            resolve: () => ({
+              get id() {
+                idReads += 1;
+                if (idReads > 1) {
+                  throw new Error('id re-read after thin completion');
+                }
+                return '1';
+              },
+              name: 'Ada',
+            }),
           },
         },
       }),
     });
     const document = parse('{ user { id name(lang: "en") } }');
+    resetThinObjectPartialFallbackCount();
     const result = executeSync({ schema, document });
     expect(result).toEqual({
       data: { user: { id: '1', name: 'Ada:en' } },
     });
-    expect(idResolves).toBe(1);
-    expect(nameResolves).toBe(1);
+    expect(idReads).toBe(1);
+    expect(nameReads).toBe(1);
+    expect(getThinObjectPartialFallbackCount()).toBe(1);
+
+    // Classic-only path must not increment the thin partial counter.
+    resetThinObjectPartialFallbackCount();
+    idReads = 0;
+    nameReads = 0;
+    const classic = executeClassicSync({ schema, document });
+    expect(classic).toEqual(result);
+    expect(idReads).toBe(1);
+    expect(nameReads).toBe(1);
+    expect(getThinObjectPartialFallbackCount()).toBe(0);
   });
 
   it('does not re-read a completed getter when a sibling forces classic', () => {
@@ -1146,6 +1201,7 @@ describe('thin-walk fallback invocation counts', () => {
       }),
     });
     const document = parse('{ user { id name(lang: "en") } }');
+    resetThinObjectPartialFallbackCount();
     const result = executeSync({
       schema,
       document,
@@ -1153,6 +1209,9 @@ describe('thin-walk fallback invocation counts', () => {
         user: {
           get id() {
             idReads += 1;
+            if (idReads > 1) {
+              throw new Error('id re-read after thin completion');
+            }
             return '1';
           },
           name: 'Ada',
@@ -1164,11 +1223,12 @@ describe('thin-walk fallback invocation counts', () => {
     });
     expect(idReads).toBe(1);
     expect(nameReads).toBe(1);
+    expect(getThinObjectPartialFallbackCount()).toBe(1);
   });
 });
 
 describe('classic vs planned differential', () => {
-  it('matches classic results, errors, and null bubbling on a focused schema', () => {
+  it('matches classic results, errors, and null bubbling on a focused schema', async () => {
     const User = new GraphQLObjectType({
       name: 'DiffUser',
       fields: {
@@ -1199,6 +1259,31 @@ describe('classic vs planned differential', () => {
               },
             }),
           },
+          // Non-null child null → parent null + path brokenUser.id
+          brokenUser: {
+            type: User,
+            resolve: () => ({
+              id: null,
+              name: 'Ada',
+            }),
+          },
+          // Async variant of the same NonNull bubble.
+          brokenUserAsync: {
+            type: User,
+            resolve: async () => ({
+              id: null,
+              name: 'Ada',
+            }),
+          },
+          // Non-null list item: one element has id: null.
+          users: {
+            type: new GraphQLList(new GraphQLNonNull(User)),
+            resolve: () => [
+              { id: '1', name: 'Ada' },
+              { id: null, name: 'Bad' },
+              { id: '3', name: 'Grace' },
+            ],
+          },
         },
       }),
     });
@@ -1206,10 +1291,14 @@ describe('classic vs planned differential', () => {
     const cases: Array<{
       document: string;
       variableValues?: Record<string, unknown>;
+      async?: boolean;
     }> = [
       { document: '{ user { id name } }' },
       { document: '{ user(boom: true) { id name } }' },
       { document: '{ nullableUser { id name } }' },
+      { document: '{ brokenUser { id name } }' },
+      { document: '{ brokenUserAsync { id name } }', async: true },
+      { document: '{ users { id name } }' },
       {
         document: 'query ($extra: Boolean!) { user { id } user @include(if: $extra) { name } }',
         variableValues: { extra: false },
@@ -1220,12 +1309,39 @@ describe('classic vs planned differential', () => {
       },
     ];
 
-    for (const { document: source, variableValues } of cases) {
+    for (const { document: source, variableValues, async: isAsync } of cases) {
       const document = parse(source);
       const args = { schema, document, variableValues };
-      const planned = executeSync(args);
-      const classic = executeClassicSync(args);
-      expect(planned).toEqual(classic);
+      if (isAsync) {
+        const planned = await execute(args);
+        const classicCtx = buildExecutionContext(args, null);
+        expect('schema' in classicCtx).toBe(true);
+        if (!('schema' in classicCtx)) {
+          throw new Error('expected classic execution context');
+        }
+        const classic = await executeImpl(classicCtx);
+        expect(planned).toEqual(classic);
+        expect(planned).toMatchObject({
+          data: { brokenUserAsync: null },
+          errors: [{ path: ['brokenUserAsync', 'id'] }],
+        });
+      } else {
+        const planned = executeSync(args);
+        const classic = executeClassicSync(args);
+        expect(planned).toEqual(classic);
+      }
     }
+
+    // Explicit NonNull bubbling shape (planned).
+    const broken = executeSync({ schema, document: parse('{ brokenUser { id name } }') });
+    expect(broken).toMatchObject({
+      data: { brokenUser: null },
+      errors: [{ path: ['brokenUser', 'id'] }],
+    });
+    const users = executeSync({ schema, document: parse('{ users { id name } }') });
+    expect(users).toMatchObject({
+      data: { users: null },
+      errors: [{ path: ['users', 1, 'id'] }],
+    });
   });
 });
