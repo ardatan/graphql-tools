@@ -800,6 +800,126 @@ describe('root runner + field-local leaf list settle', () => {
       data: { count: 7, scores: [1, 2] },
     });
   });
+
+  // R11 P2: field-local observe when a sibling NonNull fails sync after the list starts.
+  (process.env['LEAK_TEST'] ? it.skip : it)(
+    'observes async leaf-list when a sibling NonNull fails sync (planned == classic, no UHR)',
+    async () => {
+      const document = parse('{ scores stop }');
+      const makeSchema = () =>
+        new GraphQLSchema({
+          query: new GraphQLObjectType({
+            name: 'Query',
+            fields: {
+              scores: {
+                type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLInt))),
+                resolve: () => [
+                  Promise.reject(
+                    Object.assign(new Error('score pending'), { name: 'ScorePending' }),
+                  ),
+                ],
+              },
+              stop: {
+                type: new GraphQLNonNull(GraphQLString),
+                resolve: () => {
+                  throw new Error('stop sync');
+                },
+              },
+            },
+          }),
+        });
+      const plan = compileExecutionPlan({ schema: makeSchema(), document });
+      expect(isExecutionPlan(plan)).toBe(true);
+
+      let unhandled = 0;
+      const onUnhandled = (): void => {
+        unhandled += 1;
+      };
+      process.on('unhandledRejection', onUnhandled);
+      try {
+        const planned = await execute({ schema: makeSchema(), document });
+        const classic = await executeClassic({ schema: makeSchema(), document });
+        await new Promise<void>(resolve => {
+          setImmediate(resolve);
+        });
+        expect(unhandled).toBe(0);
+        expect(planned).toEqual(classic);
+        expect(planned).toMatchObject({
+          data: null,
+          errors: [{ message: 'stop sync', path: ['stop'] }],
+        });
+      } finally {
+        process.off('unhandledRejection', onUnhandled);
+      }
+    },
+  );
+
+  (process.env['LEAK_TEST'] ? it.skip : it)(
+    'observes nested async object-list when a sibling NonNull fails sync (planned == classic, no UHR)',
+    async () => {
+      const User = new GraphQLObjectType({
+        name: 'ObserveUser',
+        fields: {
+          id: { type: new GraphQLNonNull(GraphQLString) },
+        },
+      });
+      const document = parse('{ users { id } stop }');
+      const makeSchema = () =>
+        new GraphQLSchema({
+          query: new GraphQLObjectType({
+            name: 'Query',
+            fields: {
+              // Default property resolve → thin object-list path.
+              users: {
+                type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(User))),
+              },
+              stop: {
+                type: new GraphQLNonNull(GraphQLString),
+                resolve: () => {
+                  throw new Error('stop sync');
+                },
+              },
+            },
+          }),
+        });
+      const makeRoot = () => ({
+        users: [
+          Promise.reject(Object.assign(new Error('user pending'), { name: 'UserPending' })),
+        ],
+      });
+      const plan = compileExecutionPlan({ schema: makeSchema(), document });
+      expect(isExecutionPlan(plan)).toBe(true);
+
+      let unhandled = 0;
+      const onUnhandled = (): void => {
+        unhandled += 1;
+      };
+      process.on('unhandledRejection', onUnhandled);
+      try {
+        const planned = await execute({
+          schema: makeSchema(),
+          document,
+          rootValue: makeRoot(),
+        });
+        const classic = await executeClassic({
+          schema: makeSchema(),
+          document,
+          rootValue: makeRoot(),
+        });
+        await new Promise<void>(resolve => {
+          setImmediate(resolve);
+        });
+        expect(unhandled).toBe(0);
+        expect(planned).toEqual(classic);
+        expect(planned).toMatchObject({
+          data: null,
+          errors: [{ message: 'stop sync', path: ['stop'] }],
+        });
+      } finally {
+        process.off('unhandledRejection', onUnhandled);
+      }
+    },
+  );
 });
 
 describe('plan compile budget', () => {
@@ -2261,6 +2381,154 @@ describe('object-list thin path: r8 differential matrix', () => {
     const classic = executeClassicSync({ schema, document });
     expect(planned).toEqual({ data: { values: ['a'] } });
     expect(planned).toEqual(classic);
+  });
+
+  // R11 P3: array mutation edges not covered by truncate-to-one alone.
+  it('trims GraphQLString leaf-list when a getter truncates to empty after the first read', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(GraphQLString),
+            resolve() {
+              const values: Array<unknown> = ['a', 'b'];
+              Object.defineProperty(values, '0', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  values.length = 0;
+                  return 'a';
+                },
+              });
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    const planned = executeSync({ schema, document });
+    const classic = executeClassicSync({ schema, document });
+    // Visited slot kept; unread holes trimmed (not length-0 wipe of the returned value).
+    expect(planned).toEqual({ data: { values: ['a'] } });
+    expect(planned).toEqual(classic);
+  });
+
+  it('sees later slots grown during GraphQLString leaf-list traversal (planned == classic)', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(GraphQLString),
+            resolve() {
+              const values: Array<unknown> = ['a'];
+              Object.defineProperty(values, '0', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  values.push('b');
+                  return 'a';
+                },
+              });
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    const planned = executeSync({ schema, document });
+    const classic = executeClassicSync({ schema, document });
+    expect(planned).toEqual(classic);
+    expect(planned).toEqual({ data: { values: ['a', 'b'] } });
+  });
+
+  it('falls back after GraphQLString truncate mid-list then a null slot', () => {
+    // First slot truncates then grows a null; String fast retains at the null
+    // and the general path completes without re-reading index 0.
+    let reads0 = 0;
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(GraphQLString),
+            resolve() {
+              const values: Array<unknown> = ['a', 'b'];
+              Object.defineProperty(values, '0', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  reads0 += 1;
+                  values.length = 1;
+                  values.push(null);
+                  return 'a';
+                },
+              });
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    reads0 = 0;
+    const planned = executeSync({ schema, document });
+    const plannedReads = reads0;
+    reads0 = 0;
+    const classic = executeClassicSync({ schema, document });
+    expect(planned).toEqual(classic);
+    expect(planned).toEqual({ data: { values: ['a', null] } });
+    expect(plannedReads).toBe(1);
+    expect(reads0).toBe(1);
+  });
+
+  it('does not re-read earlier slots when a later GraphQLString getter throws', () => {
+    let reads0 = 0;
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(GraphQLString),
+            resolve() {
+              const values: Array<unknown> = ['a', 'b'];
+              Object.defineProperty(values, '0', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  reads0 += 1;
+                  return 'a';
+                },
+              });
+              Object.defineProperty(values, '1', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  throw new Error('tail throw');
+                },
+              });
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    reads0 = 0;
+    const planned = executeSync({ schema, document });
+    const plannedReads = reads0;
+    reads0 = 0;
+    const classic = executeClassicSync({ schema, document });
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { values: null },
+      errors: [{ message: 'tail throw', path: ['values'] }],
+    });
+    expect(plannedReads).toBe(1);
+    expect(reads0).toBe(1);
   });
 
   it('keeps indexed traversal when serialize installs a custom iterator', async () => {
