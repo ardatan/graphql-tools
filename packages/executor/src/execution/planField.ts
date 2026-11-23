@@ -46,6 +46,7 @@ import type {
   InternalExecutionPlan,
   PlannedFieldExecution,
   ResolveKind,
+  StampedPlannedExecutions,
   StreamPlan,
 } from './planTypes.js';
 import {
@@ -122,7 +123,7 @@ export function buildFieldExecutions(
   parentType: GraphQLObjectType,
   fields: Map<string, Array<FieldNode>>,
   includeByResponseName?: Map<string, IncludePredicate>,
-): PlannedFieldExecution[] {
+): StampedPlannedExecutions {
   const executions: PlannedFieldExecution[] = [];
   for (const [responseName, fieldNodes] of fields) {
     const fieldPlan = resolveFieldPlanForParent(plan, parentType, fieldNodes);
@@ -139,7 +140,7 @@ export function buildFieldExecutions(
       executions.push(execution);
     }
   }
-  return executions;
+  return stampPlannedExecutions(executions);
 }
 
 /**
@@ -159,7 +160,7 @@ export function buildExecutionsFromSelectionSet(
   runtimeType: GraphQLObjectType,
   selectionSet: import('graphql').SelectionSetNode,
   preferredFieldMap?: Map<string, Array<FieldNode>>,
-): PlannedFieldExecution[] | null | undefined {
+): StampedPlannedExecutions | null | undefined {
   const entries: ConditionalFieldEntry[] = [];
   if (
     !compileConditionalSelectionSet(
@@ -182,7 +183,7 @@ function buildExecutionsFromParentFieldNodes(
   returnType: GraphQLObjectType,
   parentFieldNodes: ReadonlyArray<FieldNode>,
   preferredFieldMap?: Map<string, Array<FieldNode>>,
-): PlannedFieldExecution[] | null | undefined {
+): StampedPlannedExecutions | null | undefined {
   const entries: ConditionalFieldEntry[] = [];
   const visitedFragmentNames = new Set<string>();
   const conditionalVisits = new Set<string>();
@@ -220,7 +221,7 @@ function buildExecutionsFromConditionalEntries(
    * `fieldPlanByNodes` WeakMap hits stay exact on the warm path.
    */
   preferredFieldMap?: Map<string, Array<FieldNode>>,
-): PlannedFieldExecution[] | undefined {
+): StampedPlannedExecutions | undefined {
   // Repeated response names with @skip/@include need classic collect so the
   // first *active* occurrence sets response order (grouped OR predicates keep
   // the first-slot position even when that occurrence is skipped).
@@ -274,7 +275,40 @@ function buildExecutionsFromConditionalEntries(
       include: group.include,
     });
   }
-  return executions;
+  return stampPlannedExecutions(executions);
+}
+
+/**
+ * Schema-static walker selection for a planned execution list (Plain / Fast /
+ * nested NonNull bubble). Stamped as own-properties on the array so warm
+ * runtime skips FieldPlan rescans on nestedDefault.
+ */
+export function stampPlannedExecutions(
+  executions: PlannedFieldExecution[],
+): StampedPlannedExecutions {
+  let plainDefaultSchemaEligible = executions.length > 0;
+  let mayBubbleNonNull = false;
+  let syncObjectFastSchemaEligible = executions.length > 0;
+  for (let i = 0; i < executions.length; i++) {
+    const fieldPlan = executions[i].fieldPlan;
+    if (fieldPlan.nonNull) {
+      mayBubbleNonNull = true;
+      plainDefaultSchemaEligible = false;
+    }
+    const leafOrSkipObject =
+      (fieldPlan.kind === 'leaf' && fieldPlan.leafType != null) ||
+      (fieldPlan.kind === 'object' && fieldPlan.skipIsTypeOf && fieldPlan.objectType != null);
+    if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs || !leafOrSkipObject) {
+      plainDefaultSchemaEligible = false;
+      // Fast also requires defaultProperty + no args + leaf/object shape.
+      syncObjectFastSchemaEligible = false;
+    }
+  }
+  const stamped = executions as StampedPlannedExecutions;
+  stamped.plainDefaultSchemaEligible = plainDefaultSchemaEligible;
+  stamped.mayBubbleNonNull = mayBubbleNonNull;
+  stamped.syncObjectFastSchemaEligible = syncObjectFastSchemaEligible;
+  return stamped;
 }
 
 export function compileFieldMap(
@@ -927,7 +961,7 @@ function storeSubfieldExecutions(
   if (plan.hasIncremental) {
     return;
   }
-  let executions: PlannedFieldExecution[] | undefined;
+  let executions: StampedPlannedExecutions;
   if (!plan.collectionDependsOnVariables) {
     executions = buildFieldExecutions(plan, returnType, subfields);
   } else if (plan.skipIncludePredicates) {
@@ -956,18 +990,41 @@ function storeSubfieldExecutions(
 
 /**
  * Filter planned executions by compiled `@skip`/`@include` predicates.
+ * Reuses compile stamps when the active subset cannot change walker eligibility
+ * (DenseSkip: all-leaf nullable defaultProperty lists).
  */
 export function filterPlannedExecutions(
   executions: ReadonlyArray<PlannedFieldExecution>,
   variableValues: VariableValues,
-): PlannedFieldExecution[] {
+): StampedPlannedExecutions {
+  const parent = executions as StampedPlannedExecutions;
+  let filtered = false;
   const out: PlannedFieldExecution[] = [];
   for (const execution of executions) {
     if (execution.include == null || execution.include(variableValues)) {
       out.push(execution);
+    } else {
+      filtered = true;
     }
   }
-  return out;
+  if (!filtered) {
+    // Same identity — preserve compile stamps (no DenseSkip tax).
+    return parent.length === out.length ? parent : stampPlannedExecutions(out);
+  }
+  // Subset of a fully Plain/Fast-eligible, non-bubbling list stays eligible.
+  if (
+    parent.plainDefaultSchemaEligible === true &&
+    parent.mayBubbleNonNull === false &&
+    parent.syncObjectFastSchemaEligible === true
+  ) {
+    const stamped = out as StampedPlannedExecutions;
+    const any = out.length > 0;
+    stamped.plainDefaultSchemaEligible = any;
+    stamped.mayBubbleNonNull = false;
+    stamped.syncObjectFastSchemaEligible = any;
+    return stamped;
+  }
+  return stampPlannedExecutions(out);
 }
 
 function collectAndStoreSubfields(

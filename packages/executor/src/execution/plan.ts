@@ -50,11 +50,17 @@ export type {
   ObjectFieldPlan,
   AbstractFieldPlan,
   PlannedFieldExecution,
+  PlannedExecutionsWalkerMeta,
   ResolveKind,
+  StampedPlannedExecutions,
   StreamPlan,
 } from './planTypes.js';
 
-export { filterPlannedExecutions, getPlannedSubfieldExecutions } from './planField.js';
+export {
+  filterPlannedExecutions,
+  getPlannedSubfieldExecutions,
+  stampPlannedExecutions,
+} from './planField.js';
 
 type PlanCacheEntry =
   | { kind: 'plan'; plan: InternalExecutionPlan }

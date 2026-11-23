@@ -240,7 +240,7 @@ export interface InternalExecutionPlan extends ExecutionPlan {
    * this is the union list; runtime filters via per-entry `include`.
    * Returned plans are shallow-frozen; do not reassign this field.
    */
-  readonly rootExecutions: ReadonlyArray<PlannedFieldExecution> | undefined;
+  readonly rootExecutions: StampedPlannedExecutions | undefined;
   /**
    * True when `collectionDependsOnVariables` and the doc is non-incremental.
    * Runtime filters `rootExecutions` / subfield executions with path-aware
@@ -268,6 +268,36 @@ export interface PlannedFieldExecution {
    */
   include?: (variableValues: VariableValues) => boolean;
 }
+
+/**
+ * Schema-static walker facts stamped onto compiled / filtered execution lists
+ * (array own-properties). Runtime trusts these instead of re-scanning FieldPlans
+ * on nestedDefault / NonNull-bubble gates.
+ */
+export interface PlannedExecutionsWalkerMeta {
+  /**
+   * True when every entry is a nullable defaultProperty leaf/object without
+   * args (Plain object-list lane / nestedDefault). Live resolve pristine is
+   * still checked once per execute; this flag ignores monkey-patches.
+   */
+  plainDefaultSchemaEligible: boolean;
+  /** True when any entry has `fieldPlan.nonNull` (nested try/catch gate). */
+  mayBubbleNonNull: boolean;
+  /**
+   * True when every entry is a leaf or skipIsTypeOf object — Fast sync-object
+   * walker is schema-eligible (no list/abstract/leafList in the selection).
+   * Runtime still tries Fast first when true; when false Fast may still run
+   * for a leaf prefix before declining.
+   */
+  syncObjectFastSchemaEligible: boolean;
+}
+
+/**
+ * Compiled subfield / root execution list with optional walker meta stamps.
+ * Mutable array at compile; runtime treats it as readonly.
+ */
+export type StampedPlannedExecutions = PlannedFieldExecution[] &
+  Partial<PlannedExecutionsWalkerMeta>;
 
 export interface CompileExecutionPlanArgs {
   schema: GraphQLSchema;

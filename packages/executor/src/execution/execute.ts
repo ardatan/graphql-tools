@@ -114,6 +114,7 @@ import {
   type ListFieldPlan,
   type ObjectFieldPlan,
   type PlannedFieldExecution,
+  type StampedPlannedExecutions,
 } from './plan.js';
 import { PlannedWorkRunner } from './plannedWorkRunner.js';
 import { EMPTY_ARGS, EMPTY_VARIABLE_VALUES, isGraphQL17 } from './planShared.js';
@@ -2225,18 +2226,24 @@ function executePlannedSyncObjectFieldsPlain(
   const results: Record<string, unknown> = Object.create(null);
   let pendingLeaves: Map<string, PendingLeafEntry> | undefined;
   const signal = exeContext.signal;
+  // Compile stamp + pristine: schema-static Plain selection already verified.
+  const plainSchemaOk =
+    (plannedExecutions as StampedPlannedExecutions).plainDefaultSchemaEligible === true &&
+    exeContext.defaultPropertyResolvesPristine === true;
   for (const execution of plannedExecutions) {
     if (signal != null) {
       signal.throwIfAborted();
     }
     const { responseName, fieldNodes, fieldPlan } = execution;
-    // Pristine plans: trust compile-time resolveKind (pre-triage3 nestedDefault shape).
-    if (exeContext.defaultPropertyResolvesPristine === true) {
-      if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
+    if (!plainSchemaOk) {
+      // Pristine plans: trust compile-time resolveKind (pre-triage3 nestedDefault shape).
+      if (exeContext.defaultPropertyResolvesPristine === true) {
+        if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
+          return thinObjectMiss(results, false, pendingLeaves);
+        }
+      } else if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
         return thinObjectMiss(results, false, pendingLeaves);
       }
-    } else if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
-      return thinObjectMiss(results, false, pendingLeaves);
     }
     let property: unknown;
     try {
@@ -2706,6 +2713,24 @@ function subExecutionsArePlainDefault(
   exeContext: ExecutionContext,
   subExecutions: ReadonlyArray<PlannedFieldExecution>,
 ): boolean {
+  const stamped = subExecutions as StampedPlannedExecutions;
+  // Compile-time stamp: schema-static Plain eligibility (nestedDefault).
+  if (stamped.plainDefaultSchemaEligible === false) {
+    return false;
+  }
+  if (stamped.plainDefaultSchemaEligible === true) {
+    if (exeContext.defaultPropertyResolvesPristine === true) {
+      return true;
+    }
+    // Live resolve may have been patched after compile — recheck only.
+    for (let i = 0; i < subExecutions.length; i++) {
+      if (!isLiveDefaultPropertyResolve(subExecutions[i].fieldPlan, exeContext)) {
+        return false;
+      }
+    }
+    return subExecutions.length > 0;
+  }
+  // Unstamped arrays (tests / ad-hoc): full schema+live scan.
   const pristine = exeContext.defaultPropertyResolvesPristine === true;
   for (const execution of subExecutions) {
     const { fieldPlan } = execution;
@@ -2716,8 +2741,6 @@ function subExecutionsArePlainDefault(
     } else if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
       return false;
     }
-    // NonNull fields: getter throws need the remainder path for item-local nulling.
-    // nestedDefault benches use nullable fields and stay on the plain fast lane.
     if (fieldPlan.nonNull) {
       return false;
     }
@@ -4242,9 +4265,7 @@ function isLiveDefaultPropertyResolve(
 /**
  * True when a nested thin walk can throw past the child (NonNull bubble).
  * When false, callers skip try/catch around nested recursion (nestedDefault).
- * Cached on the stable plan execution array identity.
- * finishThinObjectPartial is still caught at the nested field (CR 8468);
- * coerceError is throw-safe for Object.create(null) (CR 8456).
+ * Prefer compile stamp on the execution list; WeakMap fallback for unstamped.
  */
 const plannedSubExecutionsMayBubbleNonNullCache = new WeakMap<
   ReadonlyArray<PlannedFieldExecution>,
@@ -4254,6 +4275,10 @@ const plannedSubExecutionsMayBubbleNonNullCache = new WeakMap<
 function plannedSubExecutionsMayBubbleNonNull(
   executions: ReadonlyArray<PlannedFieldExecution>,
 ): boolean {
+  const stamped = executions as StampedPlannedExecutions;
+  if (typeof stamped.mayBubbleNonNull === 'boolean') {
+    return stamped.mayBubbleNonNull;
+  }
   const cached = plannedSubExecutionsMayBubbleNonNullCache.get(executions);
   if (cached !== undefined) {
     return cached;
@@ -6080,11 +6105,18 @@ function executePlannedSyncObjectFieldsPreCR(
   );
   let n = 0;
   let recordedGetterError = false;
+  // Compile stamp + pristine: skip per-field live/hasArgs gate.
+  const precrSchemaOk =
+    (plannedExecutions as StampedPlannedExecutions).syncObjectFastSchemaEligible === true &&
+    exeContext.defaultPropertyResolvesPristine === true;
   for (const execution of plannedExecutions) {
     // Match classic: stop before the next field read once the request aborted.
     exeContext.signal?.throwIfAborted();
     const { responseName, fieldNodes, fieldPlan } = execution;
-    if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
+    if (
+      !precrSchemaOk &&
+      (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs)
+    ) {
       return n > 0 || recordedGetterError
         ? thinObjectMiss(results, recordedGetterError, undefined)
         : undefined;
@@ -6503,13 +6535,21 @@ function tryExecutePlannedSyncObjectFieldsFast(
   let pendingLeaves: Map<string, PendingLeafEntry> | undefined;
   const signal = exeContext.signal;
 
+  // Compile stamp + pristine: skip per-field live/hasArgs gate (schema-static).
+  const fastSchemaOk =
+    (plannedExecutions as StampedPlannedExecutions).syncObjectFastSchemaEligible === true &&
+    exeContext.defaultPropertyResolvesPristine === true;
+
   for (let index = 0; index < plannedExecutions.length; index++) {
     if (signal != null) {
       signal.throwIfAborted();
     }
     const { responseName, fieldNodes, fieldPlan } = plannedExecutions[index];
     // Live resolveKind: a resolver installed after compile must decline thin.
-    if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
+    if (
+      !fastSchemaOk &&
+      (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs)
+    ) {
       return thinObjectMiss(results, recordedGetterError, pendingLeaves);
     }
 
