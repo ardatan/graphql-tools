@@ -1952,16 +1952,16 @@ function completePlannedObjectListValue(
       completedResults[itemIndex] = handleFieldError(error, itemObjectType, exeContext.errors);
     };
     const settleItemAsync = (work: MaybePromise<void>): void => {
-      // Per-item catch: async NonNull field / finish rejections must not reject
-      // Promise.all and null the whole nullable list field.
-      asyncUpdates.push(
-        Promise.resolve(work).then(
-          () => undefined,
-          (bubbled: unknown) => {
-            nullNullableItem(bubbled);
-          },
-        ),
+      // Observe immediately so an early loop exit cannot leave an unhandled
+      // rejection; keep the same promise in the aggregate for NonNull bubbles.
+      const tracked = Promise.resolve(work).then(
+        () => undefined,
+        (bubbled: unknown) => {
+          nullNullableItem(bubbled);
+        },
       );
+      tracked.then(undefined, () => undefined);
+      asyncUpdates.push(tracked);
     };
     try {
       const nested = executePlannedSyncObjectFields(
@@ -4063,19 +4063,20 @@ function invalidReturnTypeError(
  */
 const THIN_OBJECT_PARTIAL: unique symbol = Symbol('thinObjectPartial');
 
+type PendingLeafEntry = {
+  promise: Promise<unknown>;
+  fieldNodes: ReadonlyArray<FieldNode>;
+  returnType: GraphQLOutputType;
+  fieldDef: GraphQLField<unknown, unknown>;
+  parentType: GraphQLObjectType;
+};
+
 type ThinObjectPartial = {
   readonly [THIN_OBJECT_PARTIAL]: true;
   readonly results: Record<string, unknown>;
   readonly completed: ReadonlySet<string>;
   /** Leaf serialize() promises already started; settle instead of re-serializing. */
-  readonly pendingLeaves?: ReadonlyMap<
-    string,
-    {
-      promise: Promise<unknown>;
-      fieldNodes: ReadonlyArray<FieldNode>;
-      returnType: GraphQLOutputType;
-    }
-  >;
+  readonly pendingLeaves?: ReadonlyMap<string, PendingLeafEntry>;
 };
 
 function isThinObjectPartial(value: unknown): value is ThinObjectPartial {
@@ -4109,8 +4110,9 @@ function thinObjectMiss(
 }
 
 /**
- * Finish a thin-walk partial: settle any carried leaf promises, then run only
- * remaining children via classic executeFields. Preserves the promise (never discards).
+ * Finish a thin-walk partial: start remaining children and settle carried leaf
+ * promises together (never wait for leaves before starting siblings — that
+ * deadlocks release()-style cross-deps). Preserves every started promise.
  */
 function finishThinObjectPartial(
   exeContext: ExecutionContext,
@@ -4120,14 +4122,14 @@ function finishThinObjectPartial(
   plannedExecutions: ReadonlyArray<PlannedFieldExecution>,
   partial: ThinObjectPartial,
 ): MaybePromise<Record<string, unknown>> {
+  const pending = partial.pendingLeaves;
   const settlePendingLeaves = (): MaybePromise<void> => {
-    const pending = partial.pendingLeaves;
     if (pending == null || pending.size === 0) {
       return;
     }
     const tasks: Promise<void>[] = [];
     for (const [responseName, leaf] of pending) {
-      const fieldPath = addPath(path, responseName, parentType.name);
+      const fieldPath = addPath(path, responseName, leaf.parentType.name);
       tasks.push(
         leaf.promise.then(
           value => {
@@ -4138,6 +4140,8 @@ function finishThinObjectPartial(
               coerceError(rawError),
               leaf.fieldNodes as Array<FieldNode>,
               pathToArray(fieldPath),
+              exeContext.schemaCoordinateInErrors &&
+                schemaCoordinateInfo(leaf.fieldDef, leaf.parentType),
             );
             partial.results[responseName] = handleFieldError(
               error,
@@ -4151,33 +4155,49 @@ function finishThinObjectPartial(
     return Promise.all(tasks).then(() => undefined);
   };
 
-  return handleMaybePromise(settlePendingLeaves, () => {
-    const remaining = plannedExecutions.filter(e => !partial.completed.has(e.responseName));
-    // Fields settled via pendingLeaves are already in results but not in completed.
-    const stillRemaining = remaining.filter(
-      e => !Object.prototype.hasOwnProperty.call(partial.results, e.responseName),
-    );
-    if (stillRemaining.length === 0) {
-      return partial.results;
+  // Exclude pending-leaf keys (and reserved result slots) from classic finish.
+  const stillRemaining = plannedExecutions.filter(e => {
+    if (partial.completed.has(e.responseName)) {
+      return false;
     }
+    if (pending != null && pending.has(e.responseName)) {
+      return false;
+    }
+    return !Object.prototype.hasOwnProperty.call(partial.results, e.responseName);
+  });
+
+  // Start remaining fields before awaiting leaves so cross-field release() works.
+  let restWork: MaybePromise<Record<string, unknown>> | undefined;
+  if (stillRemaining.length > 0) {
     const restFields = new Map<string, Array<FieldNode>>();
     for (const execution of stillRemaining) {
       restFields.set(execution.responseName, execution.fieldNodes as Array<FieldNode>);
     }
-    return handleMaybePromise(
-      () =>
-        executeFields(
-          exeContext,
-          parentType,
-          sourceValue,
-          path,
-          restFields,
-          undefined,
-          stillRemaining,
-        ),
-      rest => Object.assign(partial.results, rest),
+    restWork = executeFields(
+      exeContext,
+      parentType,
+      sourceValue,
+      path,
+      restFields,
+      undefined,
+      stillRemaining,
     );
-  });
+  }
+  const leafWork = settlePendingLeaves();
+
+  const join = (rest: Record<string, unknown> | undefined): Record<string, unknown> => {
+    if (rest != null) {
+      Object.assign(partial.results, rest);
+    }
+    return partial.results;
+  };
+
+  if (isPromise(leafWork) || isPromise(restWork)) {
+    return Promise.all([Promise.resolve(leafWork), Promise.resolve(restWork ?? null)]).then(
+      ([, rest]) => join(rest ?? undefined),
+    );
+  }
+  return join(restWork);
 }
 
 function executeObjectItemViaFields(
@@ -4215,16 +4235,28 @@ function executePlannedSyncObjectFields(
   if (!isObjectLike(sourceValue) && typeof sourceValue !== 'function') {
     return undefined;
   }
-  return executePlannedSyncObjectFieldsFrom(
-    exeContext,
-    parentType,
-    sourceValue as Record<string, unknown>,
-    path,
-    plannedExecutions,
-    0,
-    Object.create(null) as Record<string, unknown>,
-    false,
-    undefined,
+  const pendingFieldWork: Promise<void>[] = [];
+  return handleMaybePromise(
+    () =>
+      executePlannedSyncObjectFieldsFrom(
+        exeContext,
+        parentType,
+        sourceValue as Record<string, unknown>,
+        path,
+        plannedExecutions,
+        0,
+        Object.create(null) as Record<string, unknown>,
+        false,
+        undefined,
+        pendingFieldWork,
+      ),
+    outcome => {
+      if (pendingFieldWork.length === 0) {
+        return outcome;
+      }
+      // Join nested/async field work started while continuing parent siblings.
+      return Promise.all(pendingFieldWork).then(() => outcome);
+    },
   );
 }
 
@@ -4237,18 +4269,35 @@ function executePlannedSyncObjectFieldsFrom(
   startIndex: number,
   results: Record<string, unknown>,
   recordedGetterError: boolean,
-  pendingLeaves:
-    | Map<
-        string,
-        {
-          promise: Promise<unknown>;
-          fieldNodes: ReadonlyArray<FieldNode>;
-          returnType: GraphQLOutputType;
-        }
-      >
-    | undefined,
+  pendingLeaves: Map<string, PendingLeafEntry> | undefined,
+  pendingFieldWork: Promise<void>[],
 ): MaybePromise<Record<string, unknown> | ThinObjectPartial | undefined> {
+  const registerPendingLeaf = (
+    responseName: string,
+    promise: Promise<unknown>,
+    fieldNodes: ReadonlyArray<FieldNode>,
+    fieldPlan: FieldPlan,
+  ): void => {
+    // Reserve the key so selection order stays stable when later sync fields finish first.
+    if (!Object.prototype.hasOwnProperty.call(results, responseName)) {
+      results[responseName] = undefined;
+    }
+    // Sink so a rejection is not unhandled if finish never runs.
+    promise.then(undefined, () => undefined);
+    const leaves = pendingLeaves ?? new Map<string, PendingLeafEntry>();
+    leaves.set(responseName, {
+      promise,
+      fieldNodes,
+      returnType: fieldPlan.returnType,
+      fieldDef: fieldPlan.fieldDef,
+      parentType,
+    });
+    pendingLeaves = leaves;
+  };
+
   for (let index = startIndex; index < plannedExecutions.length; index++) {
+    // Honor abort before each sibling read (including resume after nested async).
+    exeContext.signal?.throwIfAborted();
     const execution = plannedExecutions[index];
     const { responseName, fieldNodes, fieldPlan } = execution;
     if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
@@ -4306,8 +4355,12 @@ function executePlannedSyncObjectFieldsFrom(
       continue;
     }
     if (typeof property === 'function') {
-      // Property was already read (e.g. one-shot getter returning a method).
-      // Invoke here so classic fallback does not re-read the getter.
+      // One-shot getters may return a method; only invoke for leaves so classic
+      // fallback does not re-read the getter. Object/list methods decline so
+      // nested completion (and error ordering) stay on the classic path.
+      if (fieldPlan.kind !== 'leaf' || fieldPlan.leafType == null) {
+        return thinObjectMiss(results, recordedGetterError, pendingLeaves);
+      }
       const fieldPath = addPath(path, responseName, parentType.name);
       try {
         const info = buildPlannedResolveInfo(exeContext, fieldPlan, fieldPath, fieldNodes);
@@ -4332,14 +4385,13 @@ function executePlannedSyncObjectFieldsFrom(
         exeContext.signal?.throwIfAborted();
         continue;
       }
-      // Fall through to leaf/object/promise handling with the method result.
+      // Fall through to leaf/promise handling with the method result.
     }
     // Avoid isPromise on plain data (nested bench); only gate real thenables.
     if (property != null && typeof property === 'object' && isPromise(property)) {
       if (fieldPlan.kind === 'leaf' && fieldPlan.leafType != null) {
         // Method/property already produced a thenable — serialize through
-        // pendingLeaves so classic fallback does not re-invoke the method and
-        // a rejection is settled (with a sink if finish never runs).
+        // pendingLeaves so classic fallback does not re-invoke the method.
         const leafType = fieldPlan.leafType;
         const nonNull = fieldPlan.nonNull === true;
         const settled = property.then((value: unknown) => {
@@ -4353,14 +4405,7 @@ function executePlannedSyncObjectFieldsFrom(
           }
           return leafType.serialize(value);
         });
-        settled.then(undefined, () => undefined);
-        const leaves = pendingLeaves ?? new Map();
-        leaves.set(responseName, {
-          promise: settled,
-          fieldNodes,
-          returnType: fieldPlan.returnType,
-        });
-        pendingLeaves = leaves;
+        registerPendingLeaf(responseName, settled, fieldNodes, fieldPlan);
         recordedGetterError = true;
         continue;
       }
@@ -4379,26 +4424,49 @@ function executePlannedSyncObjectFieldsFrom(
       try {
         const serialized = fieldPlan.leafType.serialize(property);
         if (serialized == null) {
-          return thinObjectMiss(results, recordedGetterError, pendingLeaves);
+          // First serialize failure completes this field — do not re-serialize.
+          if (fieldPlan.nonNull) {
+            const fieldPath = addPath(path, responseName, parentType.name);
+            const error = locatedError(
+              new Error(
+                `Cannot return null for non-nullable field ${parentType.name}.${fieldPlan.fieldDef.name}.`,
+              ),
+              fieldNodes,
+              pathToArray(fieldPath),
+              exeContext.schemaCoordinateInErrors &&
+                schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+            );
+            results[responseName] = handleFieldError(
+              error,
+              fieldPlan.returnType,
+              exeContext.errors,
+            );
+          } else {
+            results[responseName] = null;
+          }
+          recordedGetterError = true;
+          exeContext.signal?.throwIfAborted();
+          continue;
         }
         if (isPromise(serialized)) {
-          // Carry the already-started promise; do not re-invoke serialize on fallback.
-          // Attach a sink so a rejection is not unhandled if a later NonNull
-          // sibling bubbles before finishThinObjectPartial settles pendingLeaves.
-          serialized.then(undefined, () => undefined);
-          const leaves = pendingLeaves ?? new Map();
-          leaves.set(responseName, {
-            promise: serialized,
-            fieldNodes,
-            returnType: fieldPlan.returnType,
-          });
-          pendingLeaves = leaves;
+          registerPendingLeaf(responseName, serialized, fieldNodes, fieldPlan);
           recordedGetterError = true;
           continue;
         }
         results[responseName] = serialized;
-      } catch {
-        return thinObjectMiss(results, recordedGetterError, pendingLeaves);
+      } catch (rawError) {
+        // First serialize throw completes this field — do not re-serialize.
+        const fieldPath = addPath(path, responseName, parentType.name);
+        const error = locatedError(
+          coerceError(rawError),
+          fieldNodes,
+          pathToArray(fieldPath),
+          exeContext.schemaCoordinateInErrors &&
+            schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+        );
+        results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+        recordedGetterError = true;
+        exeContext.signal?.throwIfAborted();
       }
       continue;
     }
@@ -4423,9 +4491,26 @@ function executePlannedSyncObjectFieldsFrom(
       }
       const childPath = addPath(path, responseName, parentType.name);
       const nestedSubExecutions = filterPlannedExecutions(rawSub, exeContext.variableValues);
+      const nullNestedField = (bubbled: unknown): void => {
+        exeContext.signal?.throwIfAborted();
+        if (fieldPlan.nonNull) {
+          throw bubbled;
+        }
+        const error =
+          bubbled instanceof GraphQLError
+            ? bubbled
+            : locatedError(
+                coerceError(bubbled),
+                fieldNodes,
+                pathToArray(childPath),
+                exeContext.schemaCoordinateInErrors &&
+                  schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+              );
+        results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+      };
       const applyNested = (
         nested: Record<string, unknown> | ThinObjectPartial | undefined,
-      ): MaybePromise<Record<string, unknown> | ThinObjectPartial | undefined> => {
+      ): Record<string, unknown> | ThinObjectPartial | undefined => {
         if (isThinObjectPartial(nested)) {
           const finished = finishThinObjectPartial(
             exeContext,
@@ -4436,20 +4521,23 @@ function executePlannedSyncObjectFieldsFrom(
             nested,
           );
           if (isPromise(finished)) {
-            return finished.then(nestedResult => {
-              results[responseName] = nestedResult;
-              return executePlannedSyncObjectFieldsFrom(
-                exeContext,
-                parentType,
-                source,
-                path,
-                plannedExecutions,
-                index + 1,
-                results,
-                true,
-                pendingLeaves,
-              );
-            });
+            // Do not block parent siblings on nested finish (deadlocks
+            // release()-style cross-deps). Observe at this field boundary.
+            if (!Object.prototype.hasOwnProperty.call(results, responseName)) {
+              results[responseName] = undefined;
+            }
+            pendingFieldWork.push(
+              finished.then(
+                nestedResult => {
+                  results[responseName] = nestedResult;
+                },
+                (bubbled: unknown) => {
+                  nullNestedField(bubbled);
+                },
+              ),
+            );
+            recordedGetterError = true;
+            return undefined; // continue parent sync loop
           }
           results[responseName] = finished;
           recordedGetterError = true;
@@ -4475,23 +4563,61 @@ function executePlannedSyncObjectFieldsFrom(
           nestedSubExecutions,
         );
         if (isPromise(nested)) {
-          return nested.then(value => {
-            const applied = applyNested(value);
-            if (applied !== undefined) {
-              return applied;
-            }
-            return executePlannedSyncObjectFieldsFrom(
-              exeContext,
-              parentType,
-              source,
-              path,
-              plannedExecutions,
-              index + 1,
-              results,
-              recordedGetterError,
-              pendingLeaves,
-            );
-          });
+          // Continue parent siblings while nested completes; join at boundary.
+          // Parent has already moved on, so decline must classic-complete this
+          // field in place (cannot return a parent-level thinObjectMiss).
+          if (!Object.prototype.hasOwnProperty.call(results, responseName)) {
+            results[responseName] = undefined;
+          }
+          pendingFieldWork.push(
+            nested.then(
+              value => {
+                if (isThinObjectPartial(value)) {
+                  return Promise.resolve(
+                    finishThinObjectPartial(
+                      exeContext,
+                      fieldPlan.objectType!,
+                      property,
+                      childPath,
+                      nestedSubExecutions,
+                      value,
+                    ),
+                  ).then(
+                    nestedResult => {
+                      results[responseName] = nestedResult;
+                    },
+                    (bubbled: unknown) => {
+                      nullNestedField(bubbled);
+                    },
+                  );
+                }
+                if (value === undefined) {
+                  return Promise.resolve(
+                    executeObjectItemViaFields(
+                      exeContext,
+                      fieldPlan.objectType!,
+                      property,
+                      childPath,
+                      nestedSubExecutions,
+                    ),
+                  ).then(
+                    nestedResult => {
+                      results[responseName] = nestedResult;
+                    },
+                    (bubbled: unknown) => {
+                      nullNestedField(bubbled);
+                    },
+                  );
+                }
+                results[responseName] = value;
+              },
+              (bubbled: unknown) => {
+                nullNestedField(bubbled);
+              },
+            ),
+          );
+          recordedGetterError = true;
+          continue;
         }
         const applied = applyNested(nested);
         if (applied !== undefined) {
@@ -4500,21 +4626,7 @@ function executePlannedSyncObjectFieldsFrom(
         continue;
       } catch (bubbled) {
         // NonNull child bubbled — stop at this nullable object field.
-        exeContext.signal?.throwIfAborted();
-        if (fieldPlan.nonNull) {
-          throw bubbled;
-        }
-        const error =
-          bubbled instanceof GraphQLError
-            ? bubbled
-            : locatedError(
-                coerceError(bubbled),
-                fieldNodes,
-                pathToArray(childPath),
-                exeContext.schemaCoordinateInErrors &&
-                  schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
-              );
-        results[responseName] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
+        nullNestedField(bubbled);
         recordedGetterError = true;
         exeContext.signal?.throwIfAborted();
       }

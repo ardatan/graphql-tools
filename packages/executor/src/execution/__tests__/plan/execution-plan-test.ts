@@ -952,33 +952,37 @@ describe('execution plan', () => {
       query: new GraphQLObjectType({
         name: 'Query',
         fields: {
-          users: {
-            type: new GraphQLList(userType),
-            resolve: () => [
-              {
-                get id() {
-                  firstIdReads += 1;
-                  if (firstIdReads === 1) {
-                    throw new Error('first id once');
-                  }
-                  return 'should-not-win';
-                },
-                name: 'Ada',
-              },
-              {
-                // Method forces thin miss for this item only.
-                id() {
-                  return 'u2';
-                },
-                name: 'Grace',
-              },
-            ],
-          },
+          // Default property resolve so executeObjectListFieldThin runs.
+          users: { type: new GraphQLList(userType) },
         },
       }),
     });
     const document = parse('{ users { id name } }');
-    const result = executeSync({ schema: listPartialSchema, document });
+    const result = executeSync({
+      schema: listPartialSchema,
+      document,
+      rootValue: {
+        users: [
+          {
+            get id() {
+              firstIdReads += 1;
+              if (firstIdReads === 1) {
+                throw new Error('first id once');
+              }
+              return 'should-not-win';
+            },
+            name: 'Ada',
+          },
+          {
+            // Method forces thin miss for this item only.
+            id() {
+              return 'u2';
+            },
+            name: 'Grace',
+          },
+        ],
+      },
+    });
     expect(result).toEqual({
       data: {
         users: [null, { id: 'u2', name: 'Grace' }],
@@ -1004,27 +1008,27 @@ describe('execution plan', () => {
       query: new GraphQLObjectType({
         name: 'Query',
         fields: {
-          users: {
-            type: new GraphQLList(userType),
-            resolve: () => [
-              {
-                get id() {
-                  idReads += 1;
-                  return 'u1';
-                },
-                name() {
-                  nameCalls += 1;
-                  return 'Ada';
-                },
-              },
-            ],
-          },
+          users: { type: new GraphQLList(userType) },
         },
       }),
     });
     const result = executeSync({
       schema,
       document: parse('{ users { id name } }'),
+      rootValue: {
+        users: [
+          {
+            get id() {
+              idReads += 1;
+              return 'u1';
+            },
+            name() {
+              nameCalls += 1;
+              return 'Ada';
+            },
+          },
+        ],
+      },
     });
     expect(result).toEqual({
       data: { users: [{ id: 'u1', name: 'Ada' }] },
@@ -1089,23 +1093,23 @@ describe('execution plan', () => {
       query: new GraphQLObjectType({
         name: 'Query',
         fields: {
-          users: {
-            type: new GraphQLList(userType),
-            resolve: () => [
-              {
-                id() {
-                  return Promise.reject(new Error('id rejected'));
-                },
-              },
-              { id: 'u2' },
-            ],
-          },
+          users: { type: new GraphQLList(userType) },
         },
       }),
     });
     const result = await execute({
       schema,
       document: parse('{ users { id } }'),
+      rootValue: {
+        users: [
+          {
+            id() {
+              return Promise.reject(new Error('id rejected'));
+            },
+          },
+          { id: 'u2' },
+        ],
+      },
     });
     expect(result).toEqual({
       data: {
@@ -1127,26 +1131,24 @@ describe('execution plan', () => {
       query: new GraphQLObjectType({
         name: 'Query',
         fields: {
-          users: {
-            type: new GraphQLList(new GraphQLNonNull(userType)),
-            resolve: () => [
-              {
-                id() {
-                  return Promise.reject(new Error('nn item id'));
-                },
-              },
-            ],
-          },
-          other: {
-            type: GraphQLString,
-            resolve: () => 'ok',
-          },
+          users: { type: new GraphQLList(new GraphQLNonNull(userType)) },
+          other: { type: GraphQLString },
         },
       }),
     });
     const result = await execute({
       schema,
       document: parse('{ users { id } other }'),
+      rootValue: {
+        users: [
+          {
+            id() {
+              return Promise.reject(new Error('nn item id'));
+            },
+          },
+        ],
+        other: 'ok',
+      },
     });
     expect(result).toEqual({
       data: { users: null, other: 'ok' },
@@ -1309,13 +1311,15 @@ describe('execution plan', () => {
     });
     const result = executeSync({
       schema,
-      document: parse('{ article { title author { id pic(width: 64) { url } } } }'),
+      // Select `pic` before `id` so the nested thin walk declines with
+      // `undefined` (no completed children) rather than a partial.
+      document: parse('{ article { title author { pic(width: 64) { url } id } } }'),
     });
     expect(result).toEqual({
       data: {
         article: {
           title: 'Hello',
-          author: { id: 'a1', pic: { url: 'cdn://64' } },
+          author: { pic: { url: 'cdn://64' }, id: 'a1' },
         },
       },
     });
@@ -1388,34 +1392,34 @@ describe('execution plan', () => {
       query: new GraphQLObjectType({
         name: 'Query',
         fields: {
-          users: {
-            type: new GraphQLList(userType),
-            resolve: () => [
-              {
-                get id() {
-                  firstIdReads += 1;
-                  if (firstIdReads === 1) {
-                    throw new Error('first id once');
-                  }
-                  return 'should-not-win';
-                },
-                name: 'Ada',
-              },
-              {
-                id() {
-                  secondIdCalls += 1;
-                  return Promise.resolve('u2');
-                },
-                name: 'Grace',
-              },
-            ],
-          },
+          users: { type: new GraphQLList(userType) },
         },
       }),
     });
     const result = await execute({
       schema,
       document: parse('{ users { id name } }'),
+      rootValue: {
+        users: [
+          {
+            get id() {
+              firstIdReads += 1;
+              if (firstIdReads === 1) {
+                throw new Error('first id once');
+              }
+              return 'should-not-win';
+            },
+            name: 'Ada',
+          },
+          {
+            id() {
+              secondIdCalls += 1;
+              return Promise.resolve('u2');
+            },
+            name: 'Grace',
+          },
+        ],
+      },
     });
     expect(result).toEqual({
       data: {
