@@ -4816,5 +4816,80 @@ describe('differential parity: classic vs planned (R9)', () => {
       expect(classic.data).toEqual({ items: [null] });
       expect(classic.errors?.[0]?.path).toEqual(['items', 0]);
     });
+
+    // R33: thin decline must complete the already-resolved list — never fall
+    // through to executeField (that re-invokes one-shot getters / methods).
+    it('one-shot list method on predicate decline: calls===1, rejection kept', async () => {
+      let calls = 0;
+      const rootValue = {
+        items() {
+          calls += 1;
+          if (calls === 1) {
+            return [Promise.reject(new Error('rej'))];
+          }
+          // Replay would hide the rejection.
+          return [null];
+        },
+        ok: 'yes',
+      };
+      calls = 0;
+      const planned = assertSingular(
+        await execute({ schema, document, rootValue, variableValues: vars }),
+      );
+      expect(calls).toBe(1);
+      calls = 0;
+      const classic = await executeClassic({
+        schema,
+        document,
+        rootValue,
+        variableValues: vars,
+      });
+      expect(calls).toBe(1);
+      expect(planned).toEqual(classic);
+      expect(planned).toMatchObject({
+        data: { items: [null], ok: 'yes' },
+        errors: [expect.objectContaining({ message: 'rej', path: ['items', 0] })],
+      });
+    });
+
+    it('one-shot list getter on live isTypeOf decline: calls===1', async () => {
+      const Item = new GraphQLObjectType({
+        name: 'R33OneShotIsTypeOfItem',
+        fields: { id: { type: GraphQLString } },
+      });
+      const liveSchema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: { items: { type: new GraphQLList(Item) } },
+        }),
+      });
+      const liveDocument = parse('{ items { id } }');
+      const plan = compileExecutionPlan({ schema: liveSchema, document: liveDocument });
+      if (!isExecutionPlan(plan)) {
+        throw new Error('expected execution plan');
+      }
+      Item.isTypeOf = () => false;
+      let calls = 0;
+      const list = [{ id: 'a' }];
+      const rootValue = {
+        get items() {
+          calls += 1;
+          return list;
+        },
+      };
+      calls = 0;
+      const planned = assertSingular(await execute({ plan, rootValue }));
+      expect(calls).toBe(1);
+      calls = 0;
+      const classic = await executeClassic({
+        schema: liveSchema,
+        document: liveDocument,
+        rootValue,
+      });
+      expect(calls).toBe(1);
+      expect(planned).toEqual(classic);
+      expect(planned.data).toEqual({ items: [null] });
+      expect(planned.errors?.[0]?.path).toEqual(['items', 0]);
+    });
   });
 });

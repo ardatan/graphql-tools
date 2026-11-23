@@ -2106,28 +2106,20 @@ function executeObjectListFieldThin(
     if (result instanceof Error) {
       throw result;
     }
-    // Sync hot path (nestedDefault): call list complete directly.
-    // Promise results still go through handleFieldError like thinResolved.
-    const thin = completePlannedObjectListValue(
+    // Sync hot path: same handoff as promised lists. On thin decline (live
+    // isTypeOf, skip/include predicate throw, …) complete the already-resolved
+    // value via completeListValue — never return undefined here (that would
+    // fall through to executeField and re-invoke a one-shot list getter/method).
+    return completeObjectListThinResolved(
       exeContext,
       fieldPlan,
       fieldNodes,
       path,
       result,
       objectType,
-      fieldPlan.itemNonNull === true,
       rawSubExecutions,
+      locate,
     );
-    if (thin !== undefined && isPromise(thin)) {
-      return thin.then(
-        value => value,
-        rawError => {
-          exeContext.signal?.throwIfAborted();
-          return handleFieldError(locate(rawError), fieldPlan.returnType, exeContext.errors);
-        },
-      );
-    }
-    return thin;
   } catch (rawError) {
     exeContext.signal?.throwIfAborted();
     return handleFieldError(locate(rawError), fieldPlan.returnType, exeContext.errors);
