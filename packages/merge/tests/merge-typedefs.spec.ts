@@ -1199,6 +1199,34 @@ describe('Merge TypeDefs', () => {
       }
     });
 
+    it('should keep implemented interfaces when merging an extension of an interface that implements another interface', () => {
+      const merged = mergeTypeDefs([
+        parse(/* GraphQL */ `
+          interface A {
+            id: ID!
+          }
+          interface B implements A {
+            id: ID!
+          }
+          extend interface B {
+            x: Int
+          }
+        `),
+      ]);
+      expect(stripWhitespaces(print(merged))).toBe(
+        stripWhitespaces(/* GraphQL */ `
+          interface A {
+            id: ID!
+          }
+
+          interface B implements A {
+            id: ID!
+            x: Int
+          }
+        `),
+      );
+    });
+
     it('should handle extend input types', () => {
       const schema = stitchSchemas({
         typeDefs: [
