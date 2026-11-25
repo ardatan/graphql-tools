@@ -62,7 +62,7 @@
     "@graphql-tools/stitch": "^11.0.0",
     "@types/apollo-upload-client": "19.0.0",
     "@types/node-fetch": "^2",
-    "graphql-upload": "18.0.1"
+    "graphql-upload": "18.0.3"
   },
   "publishConfig": {
     "directory": "dist",

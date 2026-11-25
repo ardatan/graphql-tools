@@ -52,7 +52,7 @@
     "@graphql-tools/batch-execute": "^11.0.0"
   },
   "optionalDependencies": {
-    "bun": "1.4.4"
+    "bun": "1.4.5"
   },
   "devDependencies": {
     "@apollo/client": "4.3.8",
@@ -96,7 +96,7 @@
     "graphql-yoga": "6.1.0",
     "husky": "9.1.7",
     "jest": "30.4.2",
-    "lint-staged": "17.6.1",
+    "lint-staged": "17.6.2",
     "lru-cache": "11.5.3",
     "patch-package": "8.0.1",
     "prettier": "3.10.1",
@@ -111,7 +111,7 @@
     "typedoc-plugin-rename-defaults": "0.7.3",
     "typescript": "7.0.2",
     "vite": "8.3.8",
-    "vitest": "5.1.0",
+    "vitest": "5.1.1",
     "wonka": "6.3.6"
   },
   "overrides": {
