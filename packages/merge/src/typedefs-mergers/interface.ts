@@ -29,9 +29,7 @@ export function mergeInterface(
         loc: node.loc,
         fields: mergeFields(node, node.fields, existingNode.fields, config, directives),
         directives: mergeDirectives(node.directives, existingNode.directives, config, directives),
-        interfaces: node['interfaces']
-          ? mergeNamedTypeArray(node['interfaces'], existingNode['interfaces'], config)
-          : undefined,
+        interfaces: mergeNamedTypeArray(node['interfaces'], existingNode['interfaces'], config),
       } as any;
     } catch (e: any) {
       throw new Error(`Unable to merge GraphQL interface "${node.name.value}": ${e.message}`);
