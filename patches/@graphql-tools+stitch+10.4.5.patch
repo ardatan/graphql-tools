@@ -1,5 +1,5 @@
 diff --git a/node_modules/@graphql-tools/stitch/dist/index.cjs b/node_modules/@graphql-tools/stitch/dist/index.cjs
-index e132833..1763864 100644
+index 0fbffa9..84e4dd1 100644
 --- a/node_modules/@graphql-tools/stitch/dist/index.cjs
 +++ b/node_modules/@graphql-tools/stitch/dist/index.cjs
 @@ -6,6 +6,58 @@ var schema = require('@graphql-tools/schema');
@@ -61,7 +61,7 @@ index e132833..1763864 100644
  var batchDelegate = require('@graphql-tools/batch-delegate');
  var wrap = require('@graphql-tools/wrap');
  var executor = require('@graphql-tools/executor');
-@@ -3707,10 +3759,10 @@ function createStitchingExecutor(stitchedSchema) {
+@@ -3706,10 +3758,10 @@ function createStitchingExecutor(stitchedSchema) {
          );
          return rootType2.getFields()[fieldName] != null;
        });
@@ -75,7 +75,7 @@ index e132833..1763864 100644
        const info = {
          schema: stitchedSchema,
 diff --git a/node_modules/@graphql-tools/stitch/dist/index.js b/node_modules/@graphql-tools/stitch/dist/index.js
-index a467b4c..e6f182f 100644
+index d3e13b7..3e35216 100644
 --- a/node_modules/@graphql-tools/stitch/dist/index.js
 +++ b/node_modules/@graphql-tools/stitch/dist/index.js
 @@ -1,13 +1,63 @@
@@ -144,7 +144,7 @@ index a467b4c..e6f182f 100644
  function valueSatisfiesSelectionSet(value, selectionSet) {
    if (Array.isArray(value)) {
      return value.every(
-@@ -3708,7 +3758,7 @@ function createStitchingExecutor(stitchedSchema) {
+@@ -3707,7 +3757,7 @@ function createStitchingExecutor(stitchedSchema) {
        const args = getArgumentValues(
          fieldInstance,
          fieldNode,

@@ -1,8 +1,8 @@
 diff --git a/node_modules/@graphql-tools/delegate/dist/index.cjs b/node_modules/@graphql-tools/delegate/dist/index.cjs
-index 03eb7b6..c0bc896 100644
+index f8e014f..26993c4 100644
 --- a/node_modules/@graphql-tools/delegate/dist/index.cjs
 +++ b/node_modules/@graphql-tools/delegate/dist/index.cjs
-@@ -695,7 +695,7 @@ function finalizeGatewayDocument(targetSchema, originalDocument, fragments, oper
+@@ -727,7 +727,7 @@ function finalizeGatewayDocument(targetSchema, originalDocument, fragments, oper
      });
    }
    if (!newOperations.length || selectionCnt === 0) {
@@ -11,7 +11,7 @@ index 03eb7b6..c0bc896 100644
        "Failed to create a gateway request. The request must contain at least one operation.",
        {
          extensions: {
-@@ -4871,7 +4871,7 @@ function subtractSelectionSets(selectionSetA, selectionSetB, fragments = {}) {
+@@ -4909,7 +4909,7 @@ function subtractSelectionSets(selectionSetA, selectionSetB, fragments = {}) {
  
  Object.defineProperty(exports, "createDeferred", {
    enumerable: true,
@@ -21,7 +21,7 @@ index 03eb7b6..c0bc896 100644
  Object.defineProperty(exports, "createDefaultExecutor", {
    enumerable: true,
 diff --git a/node_modules/@graphql-tools/delegate/dist/index.js b/node_modules/@graphql-tools/delegate/dist/index.js
-index 4f98eae..0ba924f 100644
+index 39722d6..31c3bc4 100644
 --- a/node_modules/@graphql-tools/delegate/dist/index.js
 +++ b/node_modules/@graphql-tools/delegate/dist/index.js
 @@ -1,5 +1,5 @@
@@ -32,7 +32,7 @@ index 4f98eae..0ba924f 100644
  import { GraphQLError, locatedError, isAbstractType, getNullableType, isLeafType, isCompositeType, isListType, responsePathAsArray, Kind, TypeInfo, versionInfo, visit, visitWithTypeInfo, isNullableType, isUnionType, getNamedType, isObjectType, isInterfaceType, typeFromAST, isTypeSubTypeOf, isNonNullType, isInputObjectType, defaultFieldResolver, GraphQLSchema, isSchema, validate } from 'graphql';
  import { handleMaybePromise, isPromise, fakePromise, createDeferredPromise, mapAsyncIterator } from '@whatwg-node/promise-helpers';
  import { CRITICAL_ERROR, executorFromSchema } from '@graphql-tools/executor';
-@@ -695,7 +695,7 @@ function finalizeGatewayDocument(targetSchema, originalDocument, fragments, oper
+@@ -727,7 +727,7 @@ function finalizeGatewayDocument(targetSchema, originalDocument, fragments, oper
      });
    }
    if (!newOperations.length || selectionCnt === 0) {
