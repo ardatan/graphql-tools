@@ -126,7 +126,7 @@
     "graphql": "17.1.0",
     "katex": "0.18.2",
     "miniflare": {
-      "undici": "8.12.2"
+      "undici": "8.13.1"
     },
     "postcss": "8.5.23",
     "postcss-selector-parser": "7.1.6",
