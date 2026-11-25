@@ -1,5 +1,16 @@
 # @graphql-tools/executor
 
+## 4.1.9
+
+### Patch Changes
+
+- [#8673](https://github.com/ardatan/graphql-tools/pull/8673) [`9a3f94f`](https://github.com/ardatan/graphql-tools/commit/9a3f94fa82c3a4cfddc4f7506bd5af6e3249670e) Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+    - Updated dependency [`@whatwg-node/promise-helpers@^2.0.2` ↗︎](https://www.npmjs.com/package/@whatwg-node/promise-helpers/v/2.0.2) (from `^2.0.1`, in `dependencies`)
+
+- [#8681](https://github.com/ardatan/graphql-tools/pull/8681) [`d16f7db`](https://github.com/ardatan/graphql-tools/commit/d16f7db8b2f0d2f4b3d113115e1aa905159e04b0) Thanks [@ardatan](https://github.com/ardatan)! - When variable `@skip` / `@include` appear only on Field nodes, compile a selection program once and filter with cheap predicates instead of re-collecting on every execution. Fragment-level skip/include and `@defer` / `@stream` keep the classic collect path.
+- Updated dependencies [[`9a3f94f`](https://github.com/ardatan/graphql-tools/commit/9a3f94fa82c3a4cfddc4f7506bd5af6e3249670e)]:
+  - @graphql-tools/utils@13.2.3
+
 ## 4.1.8
 
 ### Patch Changes
