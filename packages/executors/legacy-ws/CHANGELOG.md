@@ -1,5 +1,14 @@
 # @graphql-tools/executor-legacy-ws
 
+## 2.0.10
+
+### Patch Changes
+
+- [#8673](https://github.com/ardatan/graphql-tools/pull/8673) [`9a3f94f`](https://github.com/ardatan/graphql-tools/commit/9a3f94fa82c3a4cfddc4f7506bd5af6e3249670e) Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+    - Updated dependency [`ws@^8.23.0` ↗︎](https://www.npmjs.com/package/ws/v/8.23.0) (from `^8.21.3`, in `dependencies`)
+- Updated dependencies [[`9a3f94f`](https://github.com/ardatan/graphql-tools/commit/9a3f94fa82c3a4cfddc4f7506bd5af6e3249670e)]:
+  - @graphql-tools/utils@13.2.3
+
 ## 2.0.9
 
 ### Patch Changes

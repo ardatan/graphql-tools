@@ -1,5 +1,13 @@
 # @graphql-tools/merge
 
+## 10.0.10
+
+### Patch Changes
+
+- [#8699](https://github.com/ardatan/graphql-tools/pull/8699) [`f0c53dd`](https://github.com/ardatan/graphql-tools/commit/f0c53ddbb6d4f6956f945dba8b9963cbc630df21) Thanks [@eddeee888](https://github.com/eddeee888)! - Fix `mergeTypeDefs` dropping an interface's `implements` clause when it is extended by an `extend interface` block that doesn't redeclare `implements`.
+- Updated dependencies [[`9a3f94f`](https://github.com/ardatan/graphql-tools/commit/9a3f94fa82c3a4cfddc4f7506bd5af6e3249670e)]:
+  - @graphql-tools/utils@13.2.3
+
 ## 10.0.9
 
 ### Patch Changes

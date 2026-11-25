@@ -1,5 +1,14 @@
 # @graphql-tools/git-loader
 
+## 9.0.11
+
+### Patch Changes
+
+- [#8677](https://github.com/ardatan/graphql-tools/pull/8677) [`780ff9f`](https://github.com/ardatan/graphql-tools/commit/780ff9f04b02019aa40ab98cc2694e1bb299f345) Thanks [@ardatan](https://github.com/ardatan)! - `git-loader` now passes `git show` / `git ls-tree` revision and path operands after `--`, and rejects `git:<ref>:<path>` pointer segments that start with `-` or contain unexpected extra `:` separators.
+- Updated dependencies [[`9a3f94f`](https://github.com/ardatan/graphql-tools/commit/9a3f94fa82c3a4cfddc4f7506bd5af6e3249670e)]:
+  - @graphql-tools/utils@13.2.3
+  - @graphql-tools/graphql-tag-pluck@9.0.11
+
 ## 9.0.10
 
 ### Patch Changes

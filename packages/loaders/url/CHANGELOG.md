@@ -1,5 +1,29 @@
 # @graphql-tools/url-loader
 
+## 10.0.10
+
+### Patch Changes
+
+- [#8662](https://github.com/ardatan/graphql-tools/pull/8662) [`c42bef9`](https://github.com/ardatan/graphql-tools/commit/c42bef9d8c9495f0dcd36e6764e9d8ac6c2f9978) Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+    - Updated dependency [`@graphql-tools/executor-graphql-ws@^3.2.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-graphql-ws/v/3.2.1) (from `^3.2.0`, in `dependencies`)
+    - Updated dependency [`@graphql-tools/executor-http@^3.6.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-http/v/3.6.1) (from `^3.6.0`, in `dependencies`)
+
+- [#8673](https://github.com/ardatan/graphql-tools/pull/8673) [`9a3f94f`](https://github.com/ardatan/graphql-tools/commit/9a3f94fa82c3a4cfddc4f7506bd5af6e3249670e) Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+    - Updated dependency [`@graphql-tools/executor-http@^3.6.2` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-http/v/3.6.2) (from `^3.6.1`, in `dependencies`)
+    - Updated dependency [`@whatwg-node/promise-helpers@^2.0.2` ↗︎](https://www.npmjs.com/package/@whatwg-node/promise-helpers/v/2.0.2) (from `^2.0.1`, in `dependencies`)
+    - Updated dependency [`ws@^8.23.0` ↗︎](https://www.npmjs.com/package/ws/v/8.23.0) (from `^8.21.3`, in `dependencies`)
+
+- [#8676](https://github.com/ardatan/graphql-tools/pull/8676) [`e6ac860`](https://github.com/ardatan/graphql-tools/commit/e6ac86049a9b178f50030dc42eb4c94298e92590) Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+    - Updated dependency [`@graphql-tools/executor-graphql-ws@^3.2.2` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-graphql-ws/v/3.2.2) (from `^3.2.1`, in `dependencies`)
+
+- [#8691](https://github.com/ardatan/graphql-tools/pull/8691) [`e2fed2e`](https://github.com/ardatan/graphql-tools/commit/e2fed2e2a768f7f95de25f39e807d9b14f657488) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+    - Updated dependency [`@graphql-tools/executor-graphql-ws@^4.0.0` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-graphql-ws/v/4.0.0) (from `^3.2.2`, in `dependencies`)
+    - Updated dependency [`@graphql-tools/executor-http@^4.0.0` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-http/v/4.0.0) (from `^3.6.2`, in `dependencies`)
+    - Updated dependency [`@graphql-tools/wrap@^12.0.0` ↗︎](https://www.npmjs.com/package/@graphql-tools/wrap/v/12.0.0) (from `^11.1.1`, in `dependencies`)
+- Updated dependencies [[`9a3f94f`](https://github.com/ardatan/graphql-tools/commit/9a3f94fa82c3a4cfddc4f7506bd5af6e3249670e), [`9a3f94f`](https://github.com/ardatan/graphql-tools/commit/9a3f94fa82c3a4cfddc4f7506bd5af6e3249670e)]:
+  - @graphql-tools/executor-legacy-ws@2.0.10
+  - @graphql-tools/utils@13.2.3
+
 ## 10.0.9
 
 ### Patch Changes

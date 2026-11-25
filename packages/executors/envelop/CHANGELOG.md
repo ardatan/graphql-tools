@@ -1,5 +1,17 @@
 # @graphql-tools/executor-envelop
 
+## 5.0.11
+
+### Patch Changes
+
+- [#8673](https://github.com/ardatan/graphql-tools/pull/8673) [`9a3f94f`](https://github.com/ardatan/graphql-tools/commit/9a3f94fa82c3a4cfddc4f7506bd5af6e3249670e) Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+    - Updated dependency [`@whatwg-node/promise-helpers@^2.0.2` ↗︎](https://www.npmjs.com/package/@whatwg-node/promise-helpers/v/2.0.2) (from `^2.0.1`, in `dependencies`)
+
+- [#8691](https://github.com/ardatan/graphql-tools/pull/8691) [`e2fed2e`](https://github.com/ardatan/graphql-tools/commit/e2fed2e2a768f7f95de25f39e807d9b14f657488) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+    - Updated dependency [`@graphql-tools/wrap@^12.0.0` ↗︎](https://www.npmjs.com/package/@graphql-tools/wrap/v/12.0.0) (from `^11.0.0`, in `dependencies`)
+- Updated dependencies [[`9a3f94f`](https://github.com/ardatan/graphql-tools/commit/9a3f94fa82c3a4cfddc4f7506bd5af6e3249670e)]:
+  - @graphql-tools/utils@13.2.3
+
 ## 5.0.10
 
 ### Patch Changes

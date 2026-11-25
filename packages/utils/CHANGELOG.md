@@ -1,5 +1,12 @@
 # @graphql-tools/utils
 
+## 13.2.3
+
+### Patch Changes
+
+- [#8673](https://github.com/ardatan/graphql-tools/pull/8673) [`9a3f94f`](https://github.com/ardatan/graphql-tools/commit/9a3f94fa82c3a4cfddc4f7506bd5af6e3249670e) Thanks [@dependabot](https://github.com/apps/dependabot)! - dependencies updates:
+    - Updated dependency [`@whatwg-node/promise-helpers@^2.0.2` ↗︎](https://www.npmjs.com/package/@whatwg-node/promise-helpers/v/2.0.2) (from `^2.0.1`, in `dependencies`)
+
 ## 13.2.2
 
 ### Patch Changes
