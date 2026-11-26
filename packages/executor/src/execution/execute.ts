@@ -2183,12 +2183,13 @@ function executeObjectListFieldThin(
           },
         ) as Promise<readonly unknown[] | null>;
       }
-      if (property instanceof Error) {
-        throw property;
-      }
       // Sync property already classified non-thenable above — do not call
       // `isPromise` again (a second `then` read can throw after the first
       // succeeded and would null a value classic still completes).
+      // Also skip a property-side `instanceof Error` here: that probes
+      // getPrototypeOf, and `completeObjectListThinResolved` probes again —
+      // a proxy that returns Array.prototype once then throws would null a
+      // list classic still completes (single prototype check).
       return completeObjectListThinResolved(
         exeContext,
         fieldPlan,
@@ -3599,14 +3600,19 @@ function completePlannedObjectListValuePhaseB(
           // schedules a new microtask and can let a later sibling's sync
           // `then` throw land in `errors` before this item's rejection
           // (classic keeps per-item order via the item thenable itself).
-          heavy.trackAsync(
-            (completedOrPromise as PromiseLike<void>).then(
-              () => undefined,
-              (bubbled: unknown) => {
-                heavy.nullNullableItem(bubbled, itemPath, itemIndex);
-              },
-            ) as Promise<void>,
+          // The chain's `then` may call onFulfilled sync and return a
+          // non-thenable (e.g. undefined); only trackAsync when the
+          // attachment itself is thenable — casting a sync return as
+          // Promise makes trackAsync call `.then` on undefined.
+          const tracked = (completedOrPromise as PromiseLike<void>).then(
+            () => undefined,
+            (bubbled: unknown) => {
+              heavy.nullNullableItem(bubbled, itemPath, itemIndex);
+            },
           );
+          if (isPromise(tracked)) {
+            heavy.trackAsync(tracked as Promise<void>);
+          }
         }
       } catch (bubbled) {
         heavy.nullNullableItem(bubbled, itemPath, itemIndex);

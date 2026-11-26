@@ -2665,8 +2665,97 @@ describe('CR majors classic parity (4707945006–5059)', () => {
     expect(classic.data).toEqual({ users: null });
     expect(classic.errors?.[0]?.message).toBe('chain-then-throw');
     expect(classic.errors?.[0]?.path).toEqual(['users', 0]);
+    // Assert planned path directly — GraphQLError toEqual is message-only,
+    // so a wrong planned path could hide behind planned === classic.
+    expect(planned.errors?.[0]?.path).toEqual(['users', 0]);
     expect(c.getSlot1Reads()).toBe(0);
     expect(p.getSlot1Reads()).toBe(0);
+  });
+
+  it('4712587204 thin object-list property: array proxy getPrototypeOf once', async () => {
+    const User = new GraphQLObjectType({
+      name: 'User',
+      fields: { id: { type: GraphQLString } },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: { users: { type: new GraphQLList(User) } },
+      }),
+    });
+    const document = parse('{ users { id } }');
+
+    function makeRoot() {
+      let protoReads = 0;
+      const arr = [{ id: 'a' }];
+      const users = new Proxy(arr, {
+        getPrototypeOf() {
+          protoReads += 1;
+          if (protoReads === 1) {
+            return Array.prototype;
+          }
+          throw new Error('second getPrototypeOf');
+        },
+        get(target, prop, receiver) {
+          if (prop === 'then') {
+            return undefined;
+          }
+          return Reflect.get(target, prop, receiver);
+        },
+      });
+      return { rootValue: { users }, getProtoReads: () => protoReads };
+    }
+
+    const c = makeRoot();
+    const classic = singular(await executeClassic({ schema, document, rootValue: c.rootValue }));
+    const p = makeRoot();
+    const planned = singular(await executePlanned({ schema, document, rootValue: p.rootValue }));
+    expect(planned).toEqual(classic);
+    expect(planned.errors).toBeUndefined();
+    expect(planned.data).toEqual({ users: [{ id: 'a' }] });
+    expect(p.getProtoReads()).toBe(1);
+    expect(c.getProtoReads()).toBe(1);
+  });
+
+  it('4712587211 Phase B: sync chain then return must not trackAsync-cast', async () => {
+    const User = new GraphQLObjectType({
+      name: 'User',
+      fields: { id: { type: GraphQLString } },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(new GraphQLNonNull(User)) },
+        },
+      }),
+    });
+    const document = parse('{ users { id } }');
+
+    function makeItem() {
+      return {
+        then(onFulfilled?: (v: unknown) => unknown) {
+          onFulfilled?.({ id: 'a' });
+          return {
+            then(onFulfilled2?: (v: unknown) => unknown) {
+              return onFulfilled2?.(undefined);
+            },
+          };
+        },
+      };
+    }
+
+    const planned = singular(
+      await executePlanned({
+        schema,
+        document,
+        rootValue: { users: [makeItem()] },
+      }),
+    );
+    // Custom thenable whose `.then` returns undefined sync must not TypeError
+    // inside trackAsync (cast-as-Promise). finishResolved already wrote the item.
+    expect(planned.errors).toBeUndefined();
+    expect(planned.data).toEqual({ users: [{ id: 'a' }] });
   });
 
   it('4709647621 Phase A stash: pending leaf must not reclassify as Error', async () => {
