@@ -1127,6 +1127,49 @@ describe('R39 classic parity (CR 8433/8456/8468)', () => {
     }
   });
 
+  it('CR Additional 4523: mid-execute resolve install wins over pristine snapshot', async () => {
+    // Warm plan records defaultPropertyResolvesPristine; setup installs
+    // Query.score.resolve while root property score is still 1. Classic calls
+    // the installed resolver (2); planned must not keep reading the property.
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          setup: {
+            type: GraphQLString,
+            resolve(_s, _a, _c, info) {
+              info.schema.getQueryType()!.getFields()['score'].resolve = () => 2;
+              return 'done';
+            },
+          },
+          score: { type: GraphQLInt },
+        },
+      }),
+    });
+    const document = parse('{ setup score }');
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+
+    schema.getQueryType()!.getFields()['score'].resolve = undefined;
+    const classic = await executeClassic({
+      schema,
+      document,
+      rootValue: { score: 1 },
+    });
+
+    schema.getQueryType()!.getFields()['score'].resolve = undefined;
+    const planned = singular(
+      await execute({
+        plan: plan as never,
+        rootValue: { score: 1 },
+      }),
+    );
+
+    expect(classic.data).toEqual({ setup: 'done', score: 2 });
+    expect(planned.data).toEqual(classic.data);
+    expect(planned.errors).toEqual(classic.errors);
+  });
+
   it('4705778456 Object.create(null) getter nulls nearest nullable profile', async () => {
     const Profile = new GraphQLObjectType({
       name: 'Profile',
