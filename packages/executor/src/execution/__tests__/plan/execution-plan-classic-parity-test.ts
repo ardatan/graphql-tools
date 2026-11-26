@@ -1341,6 +1341,175 @@ describe('R39 classic parity (CR 8433/8456/8468)', () => {
     expect(planned.data).toEqual(classic.data);
   });
 
+  it('4712216283 thenable return then-getter throw stays at item index', async () => {
+    const User = new GraphQLObjectType({
+      name: 'User',
+      fields: { id: { type: GraphQLString } },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: { users: { type: new GraphQLList(User) } },
+      }),
+    });
+    const document = parse('{ users { id } }');
+    function makeItem() {
+      return {
+        then(onFulfilled?: (v: unknown) => unknown) {
+          onFulfilled?.({ id: 'a' });
+          return {
+            get then() {
+              throw new Error('return-then-boom');
+            },
+          };
+        },
+      };
+    }
+    const classic = singular(
+      await executeClassic({
+        schema,
+        document,
+        rootValue: { users: [makeItem(), { id: 'b' }] },
+      }),
+    );
+    const planned = singular(
+      await executePlanned({
+        schema,
+        document,
+        rootValue: { users: [makeItem(), { id: 'b' }] },
+      }),
+    );
+    expect(classic.data).toEqual({ users: [null, { id: 'b' }] });
+    expect(planned).toEqual(classic);
+    expect(planned.errors?.[0]?.path).toEqual(['users', 0]);
+    expect(planned.errors?.[0]?.message).toBe('return-then-boom');
+  });
+
+  it('4712216275 classification throw Error-with-then is not awaited', async () => {
+    const User = new GraphQLObjectType({
+      name: 'User',
+      fields: { id: { type: GraphQLString } },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: { users: { type: new GraphQLList(User) } },
+      }),
+    });
+    const document = parse('{ users { id } }');
+    function makeItem() {
+      const boom = new Error('then-boom') as Error & {
+        then?: (onFulfilled?: (v: unknown) => unknown) => unknown;
+      };
+      boom.then = onFulfilled => onFulfilled?.({ id: 'a' });
+      const item: Record<string, unknown> = {};
+      Object.defineProperty(item, 'then', {
+        enumerable: false,
+        configurable: true,
+        get() {
+          throw boom;
+        },
+      });
+      return item;
+    }
+    const classic = singular(
+      await executeClassic({
+        schema,
+        document,
+        rootValue: { users: [makeItem(), { id: 'b' }] },
+      }),
+    );
+    const planned = singular(
+      await executePlanned({
+        schema,
+        document,
+        rootValue: { users: [makeItem(), { id: 'b' }] },
+      }),
+    );
+    expect(classic.data).toEqual({ users: [null, { id: 'b' }] });
+    expect(planned).toEqual(classic);
+    expect(planned.errors?.[0]?.message).toBe('then-boom');
+    expect(planned.errors?.[0]?.path).toEqual(['users', 0]);
+  });
+
+  it('4712216283b thenable-resolved proxy: no second getPrototypeOf in completeListItemValue', async () => {
+    const User = new GraphQLObjectType({
+      name: 'User',
+      fields: { id: { type: GraphQLString } },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: { users: { type: new GraphQLList(User) } },
+      }),
+    });
+    const document = parse('{ users { id } }');
+    function makeThenable() {
+      let calls = 0;
+      const resolved: any = { __typename: 'User', id: 'a' };
+      const proxy = new Proxy(resolved, {
+        getPrototypeOf(target) {
+          calls++;
+          if (calls === 1) {
+            User.isTypeOf = (v: unknown) => (v as any)?.__typename === 'User';
+            return Object.getPrototypeOf(target);
+          }
+          throw new Error('proto trap throw');
+        },
+      });
+      return {
+        then(onFulfilled?: (v: unknown) => unknown) {
+          return onFulfilled ? onFulfilled(proxy) : proxy;
+        },
+      };
+    }
+    User.isTypeOf = undefined;
+    const classic = singular(
+      await executeClassic({
+        schema,
+        document,
+        rootValue: { users: [makeThenable()] },
+      }),
+    );
+    User.isTypeOf = undefined;
+    const planned = singular(
+      await executePlanned({
+        schema,
+        document,
+        rootValue: { users: [makeThenable()] },
+      }),
+    );
+    expect(classic.data).toEqual({ users: [{ id: 'a' }] });
+    expect(planned.data).toEqual(classic.data);
+    expect(planned.errors).toEqual(classic.errors);
+  });
+
+  it('4712216268 Error-with-then users property is awaited (thin object-list)', async () => {
+    const User = new GraphQLObjectType({
+      name: 'User',
+      fields: { id: { type: GraphQLString } },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: { users: { type: new GraphQLList(User) } },
+      }),
+    });
+    const document = parse('{ users { id } }');
+    function makeRoot() {
+      const err = new Error('should-await') as Error & {
+        then?: (onFulfilled?: (v: unknown) => unknown) => unknown;
+      };
+      err.then = onFulfilled => onFulfilled?.([{ id: 'a' }]);
+      return { users: err };
+    }
+    const classic = singular(await executeClassic({ schema, document, rootValue: makeRoot() }));
+    const planned = singular(await executePlanned({ schema, document, rootValue: makeRoot() }));
+    expect(classic.data).toEqual({ users: [{ id: 'a' }] });
+    expect(planned).toEqual(classic);
+    expect(planned.errors).toBeUndefined();
+  });
+
   it('4705778456 Object.create(null) getter nulls nearest nullable profile', async () => {
     const Profile = new GraphQLObjectType({
       name: 'Profile',

@@ -2145,33 +2145,44 @@ function executeObjectListFieldThin(
           resolveInfo: GraphQLResolveInfo,
         ) => unknown
       ).call(source, methodArgs, exeContext.contextValue, info);
-    } else if (property instanceof Error) {
-      throw property;
-    } else if (property != null && typeof property === 'object' && isPromise(property)) {
-      // Pre-CR declined promised list roots from the thin path; CR completes them.
-      return property.then(
-        resolved =>
-          completeObjectListThinResolved(
-            exeContext,
-            fieldPlan,
-            fieldNodes,
-            path,
-            resolved,
-            objectType,
-            rawSubExecutions,
-            locate,
-          ),
-        rawError => {
-          exeContext.signal?.throwIfAborted();
-          return handleThinObjectListResolverError(
-            rawError,
-            locate,
-            fieldPlan.returnType,
-            exeContext.errors,
-          );
-        },
-      );
     } else {
+      // Thenable before Error: an Error with callable `then` must be awaited
+      // (classic completeValue), not thrown as a field error.
+      let propertyIsPromise = false;
+      try {
+        propertyIsPromise = property != null && typeof property === 'object' && isPromise(property);
+      } catch (rawError) {
+        exeContext.signal?.throwIfAborted();
+        throw coerceError(rawError);
+      }
+      if (propertyIsPromise) {
+        // Pre-CR declined promised list roots from the thin path; CR completes them.
+        return (property as PromiseLike<unknown>).then(
+          resolved =>
+            completeObjectListThinResolved(
+              exeContext,
+              fieldPlan,
+              fieldNodes,
+              path,
+              resolved,
+              objectType,
+              rawSubExecutions,
+              locate,
+            ),
+          rawError => {
+            exeContext.signal?.throwIfAborted();
+            return handleThinObjectListResolverError(
+              rawError,
+              locate,
+              fieldPlan.returnType,
+              exeContext.errors,
+            );
+          },
+        );
+      }
+      if (property instanceof Error) {
+        throw property;
+      }
       result = property;
     }
     // Await thenables including callable thenables (typeof === 'function').
@@ -2771,15 +2782,17 @@ function tryCompletePlannedObjectListPlain(
     try {
       itemIsPromise = isPromise(item);
     } catch (rawError) {
+      // Classification failure is not a retained item — do not stash a coerced
+      // Error that may itself be thenable (Phase B would await it).
       return {
         kind: 'handoff',
         completedResults,
         index,
         stashedNested: undefined,
         hasStash: false,
-        pendingBubbled: undefined,
-        stashedItem: coerceError(rawError),
-        hasStashedItem: true,
+        pendingBubbled: coerceError(rawError),
+        stashedItem: undefined,
+        hasStashedItem: false,
         stashedItemClassified: false,
         stashedItemIsPromise: false,
         stashedItemIsError: false,
@@ -2810,9 +2823,9 @@ function tryCompletePlannedObjectListPlain(
         index,
         stashedNested: undefined,
         hasStash: false,
-        pendingBubbled: undefined,
-        stashedItem: coerceError(rawError),
-        hasStashedItem: true,
+        pendingBubbled: coerceError(rawError),
+        stashedItem: undefined,
+        hasStashedItem: false,
         stashedItemClassified: false,
         stashedItemIsPromise: false,
         stashedItemIsError: false,
@@ -3076,8 +3089,8 @@ function completePlannedObjectListValue(
     try {
       itemIsPromise = isPromise(item);
     } catch (rawError) {
-      stashedItem = coerceError(rawError);
-      hasStashedItem = true;
+      // Classification throw → pendingBubbled (not a stashed thenable Error).
+      pendingBubbled = coerceError(rawError);
       break;
     }
     // Hand off thenables before probing `instanceof Error` (proxy traps).
@@ -3091,8 +3104,7 @@ function completePlannedObjectListValue(
     try {
       itemIsError = item instanceof Error;
     } catch (rawError) {
-      stashedItem = coerceError(rawError);
-      hasStashedItem = true;
+      pendingBubbled = coerceError(rawError);
       break;
     }
     if (!isObjectLike(item) || itemIsError) {
@@ -3491,6 +3503,8 @@ function completePlannedObjectListValuePhaseB(
         // object completion so a false predicate nulls the item (classic).
         if (!isObjectLike(resolved) || itemObjectType.isTypeOf != null) {
           const one: Array<unknown> = [];
+          // Reuse the Error probe above — a second getPrototypeOf can throw
+          // after a mid-probe isTypeOf install (classic completes the item).
           const asyncItem = completeListItemValue(
             resolved,
             one,
@@ -3500,6 +3514,11 @@ function completePlannedObjectListValuePhaseB(
             fieldNodes,
             getInfo(),
             itemPath,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            false,
           );
           if (asyncItem) {
             return Promise.resolve(one[0]).then(value => {
@@ -3548,27 +3567,27 @@ function completePlannedObjectListValuePhaseB(
           );
         }
       };
-      let completedOrPromise: MaybePromise<void>;
       try {
-        completedOrPromise = (item as PromiseLike<unknown>).then(
+        // Keep return-value thenable inspection inside this item boundary so a
+        // throwing `then` getter on the return value nulls this slot only.
+        const completedOrPromise = (item as PromiseLike<unknown>).then(
           finishResolved,
           (rawError: unknown) => {
             throw rawError;
           },
         ) as MaybePromise<void>;
+        if (isPromise(completedOrPromise)) {
+          heavy.trackAsync(
+            Promise.resolve(completedOrPromise).then(
+              () => undefined,
+              (bubbled: unknown) => {
+                heavy.nullNullableItem(bubbled, itemPath, itemIndex);
+              },
+            ),
+          );
+        }
       } catch (bubbled) {
         heavy.nullNullableItem(bubbled, itemPath, itemIndex);
-        continue;
-      }
-      if (isPromise(completedOrPromise)) {
-        heavy.trackAsync(
-          Promise.resolve(completedOrPromise).then(
-            () => undefined,
-            (bubbled: unknown) => {
-              heavy.nullNullableItem(bubbled, itemPath, itemIndex);
-            },
-          ),
-        );
       }
       continue;
     }
