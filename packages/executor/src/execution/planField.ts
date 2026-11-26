@@ -312,7 +312,11 @@ function buildExecutionsFromConditionalEntries(
   if (fragmentDirectiveChecks.length > 0) {
     stamped.fragmentDirectiveChecks = fragmentDirectiveChecks;
   }
-  if (skipIncludeSteps.length > 0) {
+  // Selection-order steps are only required when directive-only checks interleave
+  // with fields (classic collectFields error order). Field-only @skip/@include
+  // (DenseSkip) keeps the legacy filter loop — attaching field-only steps forced
+  // a Map+lookup path every request and erased the planned DenseSkip win.
+  if (skipIncludeSteps.some(step => step.kind === 'directive')) {
     stamped.skipIncludeSteps = skipIncludeSteps;
   }
   return stamped;
