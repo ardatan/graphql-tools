@@ -2160,9 +2160,7 @@ function executeObjectListFieldThin(
         // Call `.then` on the property directly — `Promise.resolve(thenable).then`
         // defers the first microtask and can reorder sibling list slots
         // (classic attaches handlers to the property thenable itself).
-        return (
-          property as PromiseLike<unknown>
-        ).then(
+        return (property as PromiseLike<unknown>).then(
           resolved =>
             completeObjectListThinResolved(
               exeContext,

@@ -2487,13 +2487,9 @@ describe('CR majors classic parity (4707945006–5059)', () => {
     }
 
     const c = makeRoot();
-    const classic = singular(
-      await executeClassic({ schema, document, rootValue: c.rootValue }),
-    );
+    const classic = singular(await executeClassic({ schema, document, rootValue: c.rootValue }));
     const p = makeRoot();
-    const planned = singular(
-      await executePlanned({ schema, document, rootValue: p.rootValue }),
-    );
+    const planned = singular(await executePlanned({ schema, document, rootValue: p.rootValue }));
     expect(planned).toEqual(classic);
     expect(planned.errors).toBeUndefined();
     expect(planned.data).toEqual({ users: [{ id: 'a' }] });
@@ -2547,12 +2543,8 @@ describe('CR majors classic parity (4707945006–5059)', () => {
       return { users: thenable, sibling: 'x', stampBox };
     }
 
-    const classic = singular(
-      await executeClassic({ schema, document, rootValue: makeRoot() }),
-    );
-    const planned = singular(
-      await executePlanned({ schema, document, rootValue: makeRoot() }),
-    );
+    const classic = singular(await executeClassic({ schema, document, rootValue: makeRoot() }));
+    const planned = singular(await executePlanned({ schema, document, rootValue: makeRoot() }));
     expect(planned).toEqual(classic);
     expect(planned.data).toEqual({ users: [{ id: 'early' }], sibling: 'sib' });
   });
