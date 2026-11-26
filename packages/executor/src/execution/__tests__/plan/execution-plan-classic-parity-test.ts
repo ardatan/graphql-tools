@@ -1170,6 +1170,177 @@ describe('R39 classic parity (CR 8433/8456/8468)', () => {
     expect(planned.errors).toEqual(classic.errors);
   });
 
+  it('4710038647 abort before resolve: subscribe aborted + no query root', async () => {
+    const schema = new GraphQLSchema({
+      // @ts-expect-error intentional invalid: no query root
+      query: undefined,
+      subscription: new GraphQLObjectType({
+        name: 'Subscription',
+        fields: {
+          n: {
+            type: GraphQLInt,
+            subscribe: async function* () {
+              yield { n: 1 };
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('subscription { n }');
+    const acP = new AbortController();
+    const acC = new AbortController();
+    acP.abort(new DOMException('aborted', 'AbortError'));
+    acC.abort(new DOMException('aborted', 'AbortError'));
+
+    let plannedThrown: unknown;
+    let classicThrown: unknown;
+    try {
+      await subscribe({ schema, document, signal: acP.signal });
+    } catch (e) {
+      plannedThrown = e;
+    }
+    try {
+      buildExecutionContext({ schema, document, signal: acC.signal }, null);
+    } catch (e) {
+      classicThrown = e;
+    }
+    expect((plannedThrown as Error)?.name).toBe('AbortError');
+    expect((classicThrown as Error)?.name).toBe('AbortError');
+  });
+
+  it('4710038661 root-leaf throwing then getter keeps sibling ok', async () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          ok: { type: GraphQLString },
+          score: { type: GraphQLInt },
+        },
+      }),
+    });
+    const document = parse('{ ok score }');
+    const rootValue = {
+      ok: 'yes',
+      score: {
+        get then() {
+          throw new Error('then boom');
+        },
+      },
+    };
+    const args = { schema, document, rootValue };
+    const planned = singular(await execute(args));
+    const classic = await executeClassic(args);
+    expect(classic.data).toEqual({ ok: 'yes', score: null });
+    expect(classic.errors?.[0]?.path).toEqual(['score']);
+    expect(planned.data).toEqual(classic.data);
+    expect(planned.errors?.[0]?.path).toEqual(classic.errors?.[0]?.path);
+  });
+
+  it('4710038673 Phase B reuses Phase A Error classification (proxy getPrototypeOf)', async () => {
+    const User = new GraphQLObjectType({
+      name: 'User',
+      fields: { id: { type: GraphQLString } },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(User) },
+        },
+      }),
+    });
+    const document = parse('{ users { id } }');
+
+    function makeProxy() {
+      let calls = 0;
+      const item: any = { __typename: 'User', id: 'a' };
+      return new Proxy(item, {
+        getPrototypeOf(target) {
+          calls++;
+          if (calls === 1) {
+            User.isTypeOf = (v: unknown) => (v as any)?.__typename === 'User';
+            return Object.getPrototypeOf(target);
+          }
+          throw new Error('proto trap throw');
+        },
+      });
+    }
+
+    User.isTypeOf = undefined;
+    const classic = await executeClassic({
+      schema,
+      document,
+      rootValue: { users: [makeProxy()] },
+    });
+    User.isTypeOf = undefined;
+    const planned = singular(
+      await execute({
+        schema,
+        document,
+        rootValue: { users: [makeProxy()] },
+      }),
+    );
+    expect(classic.data).toEqual({ users: [{ id: 'a' }] });
+    expect(planned.data).toEqual(classic.data);
+    expect(planned.errors).toEqual(classic.errors);
+  });
+
+  it('4710038686 non-native thenable then starts sync during list traversal', async () => {
+    const User = new GraphQLObjectType({
+      name: 'User',
+      fields: { id: { type: GraphQLString } },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(User) },
+        },
+      }),
+    });
+    const document = parse('{ users { id } }');
+
+    function makeRoot() {
+      let label = 'a';
+      const thenable = {
+        then(onFulfilled?: (v: unknown) => unknown) {
+          const resolved = {
+            get id() {
+              return label;
+            },
+          };
+          return onFulfilled ? onFulfilled(resolved) : resolved;
+        },
+      };
+      return {
+        users: [
+          thenable,
+          {
+            get id() {
+              label = 'b';
+              return 'x';
+            },
+          },
+        ],
+      };
+    }
+
+    const classic = await executeClassic({
+      schema,
+      document,
+      rootValue: makeRoot(),
+    });
+    const planned = singular(
+      await execute({
+        schema,
+        document,
+        rootValue: makeRoot(),
+      }),
+    );
+    expect(classic.data).toEqual({ users: [{ id: 'a' }, { id: 'x' }] });
+    expect(planned.data).toEqual(classic.data);
+  });
+
   it('4705778456 Object.create(null) getter nulls nearest nullable profile', async () => {
     const Profile = new GraphQLObjectType({
       name: 'Profile',

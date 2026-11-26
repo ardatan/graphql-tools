@@ -840,6 +840,10 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
   let incrementalSpec: 'v0.1' | 'v0.2';
   let trustedPlan: InternalExecutionPlan | undefined;
 
+  // Subscribe/build go through here without execute()'s early abort — honor
+  // an already-aborted signal before schema validation / plan lookup.
+  args.signal?.throwIfAborted();
+
   if (useClassicThinPath) {
     schema = args.schema as GraphQLSchema;
     document = args.document as DocumentNode;
@@ -1741,11 +1745,23 @@ function executeFields(
               );
               return;
             }
-            if (isPromise(serialized)) {
+            let serializedIsPromise = false;
+            try {
+              serializedIsPromise = isPromise(serialized);
+            } catch (rawError) {
+              // Throwing `then` getter: keep at this field (classic leaf boundary).
+              results[slot] = handleFieldError(
+                locateRootLeafError(rawError),
+                fieldPlan.returnType,
+                exeContext.errors,
+              );
+              return;
+            }
+            if (serializedIsPromise) {
               rootRunner ??= new PlannedWorkRunner();
               results[slot] = undefined;
               rootRunner.awaitValue(
-                serialized,
+                serialized as PromiseLike<unknown>,
                 resolved => {
                   results[slot] = resolved;
                 },
@@ -1806,12 +1822,82 @@ function executeFields(
               raw = undefined;
             }
             if (!rootLeafHandled) {
-              if (isPromise(raw)) {
+              let rawIsPromise = false;
+              try {
+                rawIsPromise = isPromise(raw);
+              } catch (rawError) {
+                const error = locatedError(
+                  coerceError(rawError),
+                  fieldNodes,
+                  pathToArray(fieldPath),
+                  exeContext.schemaCoordinateInErrors &&
+                    schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+                );
+                results[responseName] = handleFieldError(
+                  error,
+                  fieldPlan.returnType,
+                  exeContext.errors,
+                );
+                rootLeafHandled = true;
+              }
+              if (!rootLeafHandled) {
+                if (rawIsPromise) {
+                  rootRunner ??= new PlannedWorkRunner();
+                  const slot = responseName;
+                  results[slot] = undefined;
+                  rootRunner.awaitValue(
+                    raw as PromiseLike<unknown>,
+                    value => {
+                      completeRootLeafValue(value, slot);
+                    },
+                    reason => {
+                      const error = locatedError(
+                        coerceError(reason),
+                        fieldNodes,
+                        pathToArray(fieldPath),
+                        exeContext.schemaCoordinateInErrors &&
+                          schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+                      );
+                      results[slot] = handleFieldError(
+                        error,
+                        fieldPlan.returnType,
+                        exeContext.errors,
+                      );
+                    },
+                  );
+                  rootLeafHandled = true;
+                } else {
+                  completeRootLeafValue(raw, responseName);
+                  rootLeafHandled = true;
+                }
+              }
+            }
+          } else {
+            let propertyIsPromise = false;
+            try {
+              propertyIsPromise = isPromise(property);
+            } catch (rawError) {
+              const error = locatedError(
+                coerceError(rawError),
+                fieldNodes,
+                pathToArray(fieldPath),
+                exeContext.schemaCoordinateInErrors &&
+                  schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
+              );
+              results[responseName] = handleFieldError(
+                error,
+                fieldPlan.returnType,
+                exeContext.errors,
+              );
+              rootLeafHandled = true;
+            }
+            if (!rootLeafHandled) {
+              if (propertyIsPromise) {
                 rootRunner ??= new PlannedWorkRunner();
                 const slot = responseName;
                 results[slot] = undefined;
                 rootRunner.awaitValue(
-                  raw,
+                  property as PromiseLike<unknown>,
                   value => {
                     completeRootLeafValue(value, slot);
                   },
@@ -1832,34 +1918,10 @@ function executeFields(
                 );
                 rootLeafHandled = true;
               } else {
-                completeRootLeafValue(raw, responseName);
+                completeRootLeafValue(property, responseName);
                 rootLeafHandled = true;
               }
             }
-          } else if (isPromise(property)) {
-            rootRunner ??= new PlannedWorkRunner();
-            const slot = responseName;
-            results[slot] = undefined;
-            rootRunner.awaitValue(
-              property,
-              value => {
-                completeRootLeafValue(value, slot);
-              },
-              reason => {
-                const error = locatedError(
-                  coerceError(reason),
-                  fieldNodes,
-                  pathToArray(fieldPath),
-                  exeContext.schemaCoordinateInErrors &&
-                    schemaCoordinateInfo(fieldPlan.fieldDef, parentType),
-                );
-                results[slot] = handleFieldError(error, fieldPlan.returnType, exeContext.errors);
-              },
-            );
-            rootLeafHandled = true;
-          } else {
-            completeRootLeafValue(property, responseName);
-            rootLeafHandled = true;
           }
         }
         if (rootLeafHandled) {
@@ -2657,6 +2719,8 @@ type PlainObjectListHandoff = {
   /** Phase A already ran `isPromise` on the stashed item (reuse in Phase B). */
   readonly stashedItemClassified: boolean;
   readonly stashedItemIsPromise: boolean;
+  /** Phase A `instanceof Error` result (reuse — do not re-probe getPrototypeOf). */
+  readonly stashedItemIsError: boolean;
 };
 
 /**
@@ -2717,6 +2781,7 @@ function tryCompletePlannedObjectListPlain(
         hasStashedItem: true,
         stashedItemClassified: false,
         stashedItemIsPromise: false,
+        stashedItemIsError: false,
       };
     }
     if (itemIsPromise) {
@@ -2731,6 +2796,7 @@ function tryCompletePlannedObjectListPlain(
         hasStashedItem: true,
         stashedItemClassified: true,
         stashedItemIsPromise: true,
+        stashedItemIsError: false,
       };
     }
     let itemIsError = false;
@@ -2748,10 +2814,10 @@ function tryCompletePlannedObjectListPlain(
         hasStashedItem: true,
         stashedItemClassified: false,
         stashedItemIsPromise: false,
+        stashedItemIsError: false,
       };
     }
     if (!isObjectLike(item) || itemIsError) {
-      // eslint-disable-next-line no-console
       return {
         kind: 'handoff',
         completedResults,
@@ -2763,6 +2829,7 @@ function tryCompletePlannedObjectListPlain(
         hasStashedItem: true,
         stashedItemClassified: true,
         stashedItemIsPromise: false,
+        stashedItemIsError: itemIsError,
       };
     }
     // Live isTypeOf may appear mid-list — hand off this already-read item.
@@ -2778,6 +2845,7 @@ function tryCompletePlannedObjectListPlain(
         hasStashedItem: true,
         stashedItemClassified: true,
         stashedItemIsPromise: false,
+        stashedItemIsError: false,
       };
     }
     const nested = executePlannedSyncObjectFieldsPlain(
@@ -2799,6 +2867,7 @@ function tryCompletePlannedObjectListPlain(
         hasStashedItem: true,
         stashedItemClassified: true,
         stashedItemIsPromise: false,
+        stashedItemIsError: false,
       };
     }
     if (isThinObjectPartial(nested)) {
@@ -2813,6 +2882,7 @@ function tryCompletePlannedObjectListPlain(
         hasStashedItem: true,
         stashedItemClassified: true,
         stashedItemIsPromise: false,
+        stashedItemIsError: false,
       };
     }
     completedResults[index] = nested;
@@ -2951,6 +3021,7 @@ function completePlannedObjectListValue(
         handoff.hasStashedItem,
         handoff.stashedItemClassified,
         handoff.stashedItemIsPromise,
+        handoff.stashedItemIsError,
       );
     }
     return fast as ReadonlyArray<unknown>;
@@ -2980,6 +3051,7 @@ function completePlannedObjectListValue(
   let hasStashedItem = false;
   let stashedItemClassified = false;
   let stashedItemIsPromise = false;
+  let stashedItemIsError = false;
   for (; index < result.length; index++) {
     const item = result[index];
     if (item == null) {
@@ -3027,6 +3099,7 @@ function completePlannedObjectListValue(
       hasStashedItem = true;
       stashedItemClassified = true;
       stashedItemIsPromise = false;
+      stashedItemIsError = itemIsError;
       break;
     }
     // Live isTypeOf may appear mid-list — hand off this already-read item.
@@ -3099,6 +3172,7 @@ function completePlannedObjectListValue(
       hasStashedItem,
       stashedItemClassified,
       stashedItemIsPromise,
+      stashedItemIsError,
     );
   }
   // Full success through live length — size by visited slots, not final length.
@@ -3129,6 +3203,7 @@ function completePlannedObjectListValuePhaseB(
   hasStashedItem: boolean,
   stashedItemClassified: boolean = false,
   stashedItemIsPromise: boolean = false,
+  stashedItemIsError: boolean = false,
 ): MaybePromise<ReadonlyArray<unknown> | null> {
   // Phase B — remaining items (and stashed Phase A item).
   let visitedCount = index;
@@ -3255,6 +3330,11 @@ function completePlannedObjectListValuePhaseB(
     const phaseAObjectStarted = hasStash;
     let alreadyClassified = false;
     let itemIsPromise = false;
+    let itemIsErrorFromPhaseA = false;
+    // Only reuse Phase A's Error result when Phase A actually classified.
+    // `alreadyClassified` alone is also set after Phase B's own isPromise probe
+    // (then-throw handoffs stash a coerced Error with classified=false).
+    let phaseAProvidedErrorClass = false;
     if (hasStashedItem) {
       item = stashedItem;
       hasStashedItem = false;
@@ -3262,9 +3342,12 @@ function completePlannedObjectListValuePhaseB(
       if (stashedItemClassified) {
         itemIsPromise = stashedItemIsPromise;
         alreadyClassified = true;
+        itemIsErrorFromPhaseA = stashedItemIsError;
+        phaseAProvidedErrorClass = true;
       }
       stashedItemClassified = false;
       stashedItemIsPromise = false;
+      stashedItemIsError = false;
     } else if (pendingBubbled !== undefined) {
       // Failure at this index with no retained item (e.g. truncated list).
       item = undefined;
@@ -3330,28 +3413,34 @@ function completePlannedObjectListValuePhaseB(
     // Skip Error reclassification when Phase A already started this item's
     // subfields (`hasStash`): a pending-leaf object may later set its prototype
     // to Error.prototype without being an item-level Error handoff.
+    // When Phase A already classified Error, reuse that result — a second
+    // getPrototypeOf can throw after a mid-classify isTypeOf install.
     if (!itemIsPromise && !phaseAObjectStarted) {
       let itemIsError = false;
-      try {
-        itemIsError = item instanceof Error;
-      } catch (rawError) {
-        exeContext.signal?.throwIfAborted();
-        const heavy = ensureHeavy();
+      if (phaseAProvidedErrorClass) {
+        itemIsError = itemIsErrorFromPhaseA;
+      } else {
         try {
-          completedResults[index] = handleFieldError(
-            locatedError(
-              coerceError(rawError),
-              fieldNodes,
-              pathToArray(itemPath),
-              exeContext.schemaCoordinateInErrors && getInfo(),
-            ),
-            heavy.itemType,
-            exeContext.errors,
-          );
-        } catch (bubbled) {
-          heavy.nullNullableItem(bubbled, itemPath, index);
+          itemIsError = item instanceof Error;
+        } catch (rawError) {
+          exeContext.signal?.throwIfAborted();
+          const heavy = ensureHeavy();
+          try {
+            completedResults[index] = handleFieldError(
+              locatedError(
+                coerceError(rawError),
+                fieldNodes,
+                pathToArray(itemPath),
+                exeContext.schemaCoordinateInErrors && getInfo(),
+              ),
+              heavy.itemType,
+              exeContext.errors,
+            );
+          } catch (bubbled) {
+            heavy.nullNullableItem(bubbled, itemPath, index);
+          }
+          continue;
         }
-        continue;
       }
       if (itemIsError) {
         const heavy = ensureHeavy();
@@ -3375,94 +3464,111 @@ function completePlannedObjectListValuePhaseB(
     if (itemIsPromise) {
       const heavy = ensureHeavy();
       const itemIndex = index;
-      heavy.trackAsync(
-        Promise.resolve(item)
-          .then((resolved: unknown) => {
-            if (resolved instanceof Error) {
-              throw resolved;
-            }
-            if (resolved == null) {
-              if (itemNonNull) {
-                throw locatedError(
-                  new Error(
-                    `Cannot return null for non-nullable field ${fieldPlan.parentType.name}.${fieldPlan.fieldDef.name}.`,
-                  ),
-                  fieldNodes,
-                  pathToArray(itemPath),
-                  exeContext.schemaCoordinateInErrors && getInfo(),
-                );
-              }
-              completedResults[itemIndex] = null;
-              return;
-            }
-            // Live isTypeOf may appear after the item was pending — use generic
-            // object completion so a false predicate nulls the item (classic).
-            if (!isObjectLike(resolved) || itemObjectType.isTypeOf != null) {
-              const one: Array<unknown> = [];
-              const asyncItem = completeListItemValue(
-                resolved,
-                one,
-                exeContext.errors,
-                exeContext,
-                heavy.itemType,
-                fieldNodes,
-                getInfo(),
+      // Match classic completeListItemValue: call `then` directly so a
+      // sync-fulfilling thenable completes before the next list item.
+      // Wrapping non-native thenables in `new Promise` would defer completion
+      // to a microtask even when `then` settles inline.
+      const finishResolved = (resolved: unknown): MaybePromise<void> => {
+        if (resolved instanceof Error) {
+          throw resolved;
+        }
+        if (resolved == null) {
+          if (itemNonNull) {
+            throw locatedError(
+              new Error(
+                `Cannot return null for non-nullable field ${fieldPlan.parentType.name}.${fieldPlan.fieldDef.name}.`,
+              ),
+              fieldNodes,
+              pathToArray(itemPath),
+              exeContext.schemaCoordinateInErrors && getInfo(),
+            );
+          }
+          completedResults[itemIndex] = null;
+          return;
+        }
+        // Live isTypeOf may appear after the item was pending — use generic
+        // object completion so a false predicate nulls the item (classic).
+        if (!isObjectLike(resolved) || itemObjectType.isTypeOf != null) {
+          const one: Array<unknown> = [];
+          const asyncItem = completeListItemValue(
+            resolved,
+            one,
+            exeContext.errors,
+            exeContext,
+            heavy.itemType,
+            fieldNodes,
+            getInfo(),
+            itemPath,
+          );
+          if (asyncItem) {
+            return Promise.resolve(one[0]).then(value => {
+              completedResults[itemIndex] = value;
+            });
+          }
+          completedResults[itemIndex] = one[0];
+          return;
+        }
+        const nested = executePlannedSyncObjectFields(
+          exeContext,
+          itemObjectType,
+          resolved,
+          itemPath,
+          subExecutions,
+        );
+        if (isPromise(nested)) {
+          return nested
+            .then(value =>
+              heavy.assignObjectItem(
+                resolved as Record<string, unknown>,
                 itemPath,
-              );
-              if (asyncItem) {
-                return Promise.resolve(one[0]).then(value => {
-                  completedResults[itemIndex] = value;
-                });
-              }
-              completedResults[itemIndex] = one[0];
-              return;
-            }
-            const nested = executePlannedSyncObjectFields(
-              exeContext,
-              itemObjectType,
-              resolved,
-              itemPath,
-              subExecutions,
+                itemIndex,
+                value as Record<string, unknown> | ThinObjectPartial | undefined,
+              ),
+            )
+            .then(
+              () => undefined,
+              (bubbled: unknown) => {
+                heavy.nullNullableItem(bubbled, itemPath, itemIndex);
+              },
             );
-            if (isPromise(nested)) {
-              return nested
-                .then(value =>
-                  heavy.assignObjectItem(
-                    resolved as Record<string, unknown>,
-                    itemPath,
-                    itemIndex,
-                    value as Record<string, unknown> | ThinObjectPartial | undefined,
-                  ),
-                )
-                .then(
-                  () => undefined,
-                  (bubbled: unknown) => {
-                    heavy.nullNullableItem(bubbled, itemPath, itemIndex);
-                  },
-                );
-            }
-            const assigned = heavy.assignObjectItem(
-              resolved as Record<string, unknown>,
-              itemPath,
-              itemIndex,
-              nested,
-            );
-            if (isPromise(assigned)) {
-              return assigned.then(
-                () => undefined,
-                (bubbled: unknown) => {
-                  heavy.nullNullableItem(bubbled, itemPath, itemIndex);
-                },
-              );
-            }
-          })
-          .then(
+        }
+        const assigned = heavy.assignObjectItem(
+          resolved as Record<string, unknown>,
+          itemPath,
+          itemIndex,
+          nested,
+        );
+        if (isPromise(assigned)) {
+          return assigned.then(
+            () => undefined,
+            (bubbled: unknown) => {
+              heavy.nullNullableItem(bubbled, itemPath, itemIndex);
+            },
+          );
+        }
+      };
+      let completedOrPromise: MaybePromise<void>;
+      try {
+        completedOrPromise = (item as PromiseLike<unknown>).then(
+          finishResolved,
+          (rawError: unknown) => {
+            throw rawError;
+          },
+        ) as MaybePromise<void>;
+      } catch (bubbled) {
+        heavy.nullNullableItem(bubbled, itemPath, itemIndex);
+        continue;
+      }
+      if (isPromise(completedOrPromise)) {
+        heavy.trackAsync(
+          Promise.resolve(completedOrPromise).then(
             () => undefined,
             (bubbled: unknown) => {
               heavy.nullNullableItem(bubbled, itemPath, itemIndex);
             },
           ),
-      );
+        );
+      }
       continue;
     }
     if (!isObjectLike(item)) {
@@ -3482,6 +3588,7 @@ function completePlannedObjectListValuePhaseB(
           undefined,
           undefined,
           alreadyClassified ? itemIsPromise : undefined,
+          alreadyClassified ? itemIsErrorFromPhaseA : undefined,
         );
         if (asyncItem) {
           const itemIndex = index;
@@ -3529,6 +3636,7 @@ function completePlannedObjectListValuePhaseB(
           undefined,
           undefined,
           alreadyClassified ? itemIsPromise : undefined,
+          alreadyClassified ? itemIsErrorFromPhaseA : undefined,
         );
         if (asyncItem) {
           const itemIndex = index;
@@ -5277,10 +5385,15 @@ function completeValue(
   path: Path,
   result: unknown,
   asyncPayloadRecord?: AsyncPayloadRecord,
+  /**
+   * When Phase A already classified Error, reuse that result so a second
+   * `instanceof` / getPrototypeOf cannot throw (proxy traps).
+   */
+  knownIsError?: boolean,
 ): MaybePromise<unknown> {
   // If result is an Error, throw a located error.
-  if (result instanceof Error) {
-    throw result;
+  if (knownIsError === true || (knownIsError !== false && result instanceof Error)) {
+    throw result instanceof Error ? result : result;
   }
 
   // If field type is NonNull, complete for inner type, and throw field error
@@ -5774,6 +5887,8 @@ function completeListItemValue(
    * `then` read cannot throw before live `isTypeOf` runs.
    */
   knownIsPromise?: boolean,
+  /** Reuse Phase A `instanceof Error` — do not re-probe getPrototypeOf. */
+  knownIsError?: boolean,
 ): boolean {
   // Scalar serialization receives no indexed resolve info. Keep one completion
   // and error pipeline, materializing its path only when the result needs one.
@@ -5781,7 +5896,11 @@ function completeListItemValue(
   try {
     let completedItem;
     const itemIsPromise = knownIsPromise !== undefined ? knownIsPromise : isPromise(item);
-    if (leafItemType && item != null && !(item instanceof Error) && !itemIsPromise) {
+    const itemIsError =
+      knownIsError !== undefined
+        ? knownIsError
+        : item != null && !itemIsPromise && item instanceof Error;
+    if (leafItemType && item != null && !itemIsError && !itemIsPromise) {
       completedItem = completeLeafValue(leafItemType, item);
     } else if (leafItemType && itemIsPromise) {
       // Promised leaf items: serialize in the then-callback without completeValue
@@ -5822,6 +5941,8 @@ function completeListItemValue(
           ),
         );
       } else {
+        // Pass the classification from this function (param or local probe) so
+        // completeValue does not re-run `instanceof Error` / getPrototypeOf.
         completedItem = completeValue(
           exeContext,
           itemType,
@@ -5830,6 +5951,7 @@ function completeListItemValue(
           itemPath,
           item,
           asyncPayloadRecord,
+          itemIsError,
         );
       }
     }
