@@ -220,6 +220,34 @@ describe('mergeDeep', () => {
     expect(mergeDeep([[1], [2, 3], 'last', { a: 1 }])).toEqual({ a: 1 });
   });
 
+  it.each([
+    { label: 'a scalar', previous: 'last' },
+    { label: 'an array', previous: [[1], [2, 3]] },
+  ])('preserves an isolated prototype when an object replaces $label output', ({ previous }) => {
+    const methodName = 'mergeDeepPrototypeTest';
+    class Example {
+      [methodName]() {
+        return 'example';
+      }
+    }
+    const prototype = Array.isArray(previous) ? Array.prototype : Object.prototype;
+    const constructorDescriptor = Object.getOwnPropertyDescriptor(prototype, 'constructor')!;
+
+    try {
+      const merged = mergeDeep([previous, new Example()], { respectPrototype: true });
+
+      expect(merged).toBeInstanceOf(Example);
+      expect(merged[methodName]()).toBe('example');
+      expect(prototype).not.toHaveProperty(methodName);
+      expect(Object.getOwnPropertyDescriptor(prototype, 'constructor')).toEqual(
+        constructorDescriptor,
+      );
+    } finally {
+      delete (prototype as any)[methodName];
+      Object.defineProperty(prototype, 'constructor', constructorDescriptor);
+    }
+  });
+
   it('overrides property value with null from later source', () => {
     expect(mergeDeep([{ a: 'foo' }, { a: null }])).toEqual({ a: null });
   });

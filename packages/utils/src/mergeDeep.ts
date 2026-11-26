@@ -180,9 +180,16 @@ function mergeDeepWithOptions<S extends any[]>(
       continue;
     }
     if (isObject(source)) {
-      // A later object replaces a scalar output instead of assigning onto a primitive
-      if (output == null || (typeof output !== 'object' && typeof output !== 'function')) {
+      // A later object replaces a scalar or array output instead of modifying it
+      if (
+        output == null ||
+        Array.isArray(output) ||
+        (typeof output !== 'object' && typeof output !== 'function')
+      ) {
         output = {};
+        if (firstObjectSource) {
+          Object.setPrototypeOf(output, Object.create(Object.getPrototypeOf(firstObjectSource)));
+        }
       }
       if (firstObjectSource) {
         const outputPrototype = Object.getPrototypeOf(output);
