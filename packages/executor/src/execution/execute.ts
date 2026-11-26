@@ -2157,7 +2157,7 @@ function executeObjectListFieldThin(
       }
       if (propertyIsPromise) {
         // Pre-CR declined promised list roots from the thin path; CR completes them.
-        return (property as PromiseLike<unknown>).then(
+        return Promise.resolve(property as PromiseLike<unknown>).then(
           resolved =>
             completeObjectListThinResolved(
               exeContext,
