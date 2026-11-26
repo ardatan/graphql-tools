@@ -57,6 +57,39 @@ describe('Resolvers composition', () => {
     expect((await composedResolvers.Subscription.foo.subscribe().next()).value).toBe(1);
   });
 
+  it('should preserve wrappers across fields sharing resolver containers', async () => {
+    const queryResolver = () => 'foo';
+    const resolve = () => 'bar';
+    const subscribe = () => 'baz';
+    const resolvers = {
+      Query: {
+        foo: queryResolver,
+        bar: { resolve, subscribe },
+      },
+    };
+    const resolversComposition = {
+      'Query.*': [
+        (next: any) =>
+          (...args: any[]) =>
+            `[${next(...args)}]`,
+        (next: any) =>
+          (...args: any[]) =>
+            `(${next(...args)})`,
+      ],
+    };
+
+    const composedResolvers = composeResolvers(resolvers, resolversComposition);
+
+    expect(composedResolvers.Query).not.toBe(resolvers.Query);
+    expect(composedResolvers.Query.bar).not.toBe(resolvers.Query.bar);
+    expect(await composedResolvers.Query.foo()).toBe('[(foo)]');
+    expect(await composedResolvers.Query.bar.resolve()).toBe('[(bar)]');
+    expect(await composedResolvers.Query.bar.subscribe()).toBe('[(baz)]');
+    expect(resolvers.Query.foo).toBe(queryResolver);
+    expect(resolvers.Query.bar.resolve).toBe(resolve);
+    expect(resolvers.Query.bar.subscribe).toBe(subscribe);
+  });
+
   it('should compose regular resolvers', async () => {
     const getFoo = () => 'FOO';
     const typeDefs = gql`

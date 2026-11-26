@@ -124,13 +124,18 @@ export function composeResolvers<Resolvers extends Record<string, any>>(
   }
 
   const composedResolvers: Record<string, any> = { ...resolvers };
+  const ownedContainers = new WeakSet<object>();
   for (const path in mappingResult) {
     const fns = chainFunctions([...asArray(mappingResult[path]), () => _.get(resolvers, path)]);
     const pathParts = path.split('.');
     let target = composedResolvers;
 
     for (const part of pathParts.slice(0, -1)) {
-      target[part] = { ...target[part] };
+      const container = target[part];
+      if (!ownedContainers.has(container)) {
+        target[part] = { ...container };
+        ownedContainers.add(target[part]);
+      }
       target = target[part];
     }
 
