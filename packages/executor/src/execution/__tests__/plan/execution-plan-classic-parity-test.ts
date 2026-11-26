@@ -2456,6 +2456,227 @@ describe('CR majors classic parity (4707945006–5059)', () => {
     expect(planned.data).toEqual({ users: [{ id: '1' }] });
   });
 
+  it('4712362733 thin object-list property: then read once after negative classify', async () => {
+    const User = new GraphQLObjectType({
+      name: 'User',
+      fields: { id: { type: GraphQLString } },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: { users: { type: new GraphQLList(User) } },
+      }),
+    });
+    const document = parse('{ users { id } }');
+
+    function makeRoot() {
+      let thenReads = 0;
+      const users = [{ id: 'a' }];
+      Object.defineProperty(users, 'then', {
+        configurable: true,
+        enumerable: false,
+        get() {
+          thenReads += 1;
+          if (thenReads === 1) {
+            return undefined;
+          }
+          throw new Error('second then read');
+        },
+      });
+      return { rootValue: { users }, getThenReads: () => thenReads };
+    }
+
+    const c = makeRoot();
+    const classic = singular(
+      await executeClassic({ schema, document, rootValue: c.rootValue }),
+    );
+    const p = makeRoot();
+    const planned = singular(
+      await executePlanned({ schema, document, rootValue: p.rootValue }),
+    );
+    expect(planned).toEqual(classic);
+    expect(planned.errors).toBeUndefined();
+    expect(planned.data).toEqual({ users: [{ id: 'a' }] });
+    expect(p.getThenReads()).toBe(1);
+    expect(c.getThenReads()).toBe(1);
+  });
+
+  it('4712362739 thin object-list property thenable: sync + sibling order', async () => {
+    const User = new GraphQLObjectType({
+      name: 'User',
+      fields: {
+        id: {
+          type: GraphQLString,
+          resolve(parent: { id: string; stamp?: string }) {
+            return parent.stamp ?? parent.id;
+          },
+        },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(User) },
+          sibling: {
+            type: GraphQLString,
+            resolve(root: { stampBox: { v: string } }) {
+              root.stampBox.v = 'late';
+              return 'sib';
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ users { id } sibling }');
+
+    function makeRoot() {
+      const stampBox = { v: 'early' };
+      const thenable = {
+        then(onFulfilled?: (v: unknown) => unknown) {
+          return onFulfilled?.([
+            {
+              id: 'a',
+              get stamp() {
+                return stampBox.v;
+              },
+            },
+          ]);
+        },
+      };
+      return { users: thenable, sibling: 'x', stampBox };
+    }
+
+    const classic = singular(
+      await executeClassic({ schema, document, rootValue: makeRoot() }),
+    );
+    const planned = singular(
+      await executePlanned({ schema, document, rootValue: makeRoot() }),
+    );
+    expect(planned).toEqual(classic);
+    expect(planned.data).toEqual({ users: [{ id: 'early' }], sibling: 'sib' });
+  });
+
+  it('4712362748 finishResolved: knownIsPromise false skips user then getter', async () => {
+    const User = new GraphQLObjectType({
+      name: 'User',
+      fields: { id: { type: GraphQLString } },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: { users: { type: new GraphQLList(User) } },
+      }),
+    });
+    const document = parse('{ users { id } }');
+
+    function makeItem() {
+      let isTypeOfInstalled = false;
+      return {
+        then(onFulfilled?: (v: unknown) => unknown) {
+          const user: Record<string, unknown> = { id: 'a' };
+          Object.defineProperty(user, 'then', {
+            configurable: true,
+            enumerable: false,
+            get() {
+              throw new Error('user-then-boom');
+            },
+          });
+          if (!isTypeOfInstalled) {
+            User.isTypeOf = () => true;
+            isTypeOfInstalled = true;
+          }
+          return onFulfilled?.(user);
+        },
+      };
+    }
+
+    const classic = singular(
+      await executeClassic({
+        schema,
+        document,
+        rootValue: { users: [makeItem()] },
+      }),
+    );
+    delete (User as { isTypeOf?: unknown }).isTypeOf;
+
+    const planned = singular(
+      await executePlanned({
+        schema,
+        document,
+        rootValue: { users: [makeItem()] },
+      }),
+    );
+    delete (User as { isTypeOf?: unknown }).isTypeOf;
+
+    expect(planned).toEqual(classic);
+    expect(planned.errors).toBeUndefined();
+    expect(planned.data).toEqual({ users: [{ id: 'a' }] });
+  });
+
+  it('4712362757 Phase B: chain then() throw before later slot accessor (User!)', async () => {
+    const User = new GraphQLObjectType({
+      name: 'User',
+      fields: { id: { type: GraphQLString } },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(new GraphQLNonNull(User)) },
+        },
+      }),
+    });
+    const document = parse('{ users { id } }');
+
+    function makeList() {
+      let slot1Reads = 0;
+      const slot0 = {
+        then(onFulfilled?: (v: unknown) => unknown) {
+          onFulfilled?.({ id: 'a' });
+          return {
+            then() {
+              throw new Error('chain-then-throw');
+            },
+          };
+        },
+      };
+      const list: unknown[] = [slot0, undefined];
+      Object.defineProperty(list, '1', {
+        configurable: true,
+        enumerable: true,
+        get() {
+          slot1Reads += 1;
+          throw new Error('slot1-boom');
+        },
+      });
+      return { list, getSlot1Reads: () => slot1Reads };
+    }
+
+    const c = makeList();
+    const classic = singular(
+      await executeClassic({
+        schema,
+        document,
+        rootValue: { users: c.list },
+      }),
+    );
+    const p = makeList();
+    const planned = singular(
+      await executePlanned({
+        schema,
+        document,
+        rootValue: { users: p.list },
+      }),
+    );
+    expect(planned).toEqual(classic);
+    expect(classic.data).toEqual({ users: null });
+    expect(classic.errors?.[0]?.message).toBe('chain-then-throw');
+    expect(classic.errors?.[0]?.path).toEqual(['users', 0]);
+    expect(c.getSlot1Reads()).toBe(0);
+    expect(p.getSlot1Reads()).toBe(0);
+  });
+
   it('4709647621 Phase A stash: pending leaf must not reclassify as Error', async () => {
     const User = new GraphQLObjectType({
       name: 'User',

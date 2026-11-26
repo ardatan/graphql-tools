@@ -2157,7 +2157,12 @@ function executeObjectListFieldThin(
       }
       if (propertyIsPromise) {
         // Pre-CR declined promised list roots from the thin path; CR completes them.
-        return Promise.resolve(property as PromiseLike<unknown>).then(
+        // Call `.then` on the property directly — `Promise.resolve(thenable).then`
+        // defers the first microtask and can reorder sibling list slots
+        // (classic attaches handlers to the property thenable itself).
+        return (
+          property as PromiseLike<unknown>
+        ).then(
           resolved =>
             completeObjectListThinResolved(
               exeContext,
@@ -2178,12 +2183,24 @@ function executeObjectListFieldThin(
               exeContext.errors,
             );
           },
-        );
+        ) as Promise<readonly unknown[] | null>;
       }
       if (property instanceof Error) {
         throw property;
       }
-      result = property;
+      // Sync property already classified non-thenable above — do not call
+      // `isPromise` again (a second `then` read can throw after the first
+      // succeeded and would null a value classic still completes).
+      return completeObjectListThinResolved(
+        exeContext,
+        fieldPlan,
+        fieldNodes,
+        path,
+        property,
+        objectType,
+        rawSubExecutions,
+        locate,
+      );
     }
     // Await thenables including callable thenables (typeof === 'function').
     // Object-only guards skip those and feed the function into list completion.
@@ -3505,6 +3522,9 @@ function completePlannedObjectListValuePhaseB(
           const one: Array<unknown> = [];
           // Reuse the Error probe above — a second getPrototypeOf can throw
           // after a mid-probe isTypeOf install (classic completes the item).
+          // knownIsPromise: false — `resolved` is the thenable fulfillment
+          // value; re-probing `isPromise(resolved)` can throw on a `then`
+          // getter and null an item classic still completes (F3520).
           const asyncItem = completeListItemValue(
             resolved,
             one,
@@ -3517,7 +3537,7 @@ function completePlannedObjectListValuePhaseB(
             undefined,
             undefined,
             undefined,
-            undefined,
+            false,
             false,
           );
           if (asyncItem) {
@@ -3577,13 +3597,17 @@ function completePlannedObjectListValuePhaseB(
           },
         ) as MaybePromise<void>;
         if (isPromise(completedOrPromise)) {
+          // Attach rejection handlers directly — `Promise.resolve(x).then`
+          // schedules a new microtask and can let a later sibling's sync
+          // `then` throw land in `errors` before this item's rejection
+          // (classic keeps per-item order via the item thenable itself).
           heavy.trackAsync(
-            Promise.resolve(completedOrPromise).then(
+            (completedOrPromise as PromiseLike<void>).then(
               () => undefined,
               (bubbled: unknown) => {
                 heavy.nullNullableItem(bubbled, itemPath, itemIndex);
               },
-            ),
+            ) as Promise<void>,
           );
         }
       } catch (bubbled) {
