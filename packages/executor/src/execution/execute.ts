@@ -2756,6 +2756,7 @@ function tryCompletePlannedObjectListPlain(
           hasStashedItem: true,
           stashedItemClassified: false,
           stashedItemIsPromise: false,
+          stashedItemIsError: false,
         };
       }
       completedResults[index] = null;

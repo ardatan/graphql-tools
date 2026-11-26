@@ -1172,7 +1172,7 @@ describe('R39 classic parity (CR 8433/8456/8468)', () => {
 
   it('4710038647 abort before resolve: subscribe aborted + no query root', async () => {
     const schema = new GraphQLSchema({
-      // @ts-expect-error intentional invalid: no query root
+      // No query root — subscribe-only schema (valid at the GraphQLSchema type).
       query: undefined,
       subscription: new GraphQLObjectType({
         name: 'Subscription',
