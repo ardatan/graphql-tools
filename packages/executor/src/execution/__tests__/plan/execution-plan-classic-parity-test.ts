@@ -2672,6 +2672,58 @@ describe('CR majors classic parity (4707945006–5059)', () => {
     expect(p.getSlot1Reads()).toBe(0);
   });
 
+  it('4712721903 thin object-list method: array proxy getPrototypeOf once', async () => {
+    const User = new GraphQLObjectType({
+      name: 'User',
+      fields: { id: { type: GraphQLString } },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: { users: { type: new GraphQLList(User) } },
+      }),
+    });
+    const document = parse('{ users { id } }');
+
+    function makeRoot() {
+      let protoReads = 0;
+      const arr = [{ id: 'a' }];
+      const list = new Proxy(arr, {
+        getPrototypeOf() {
+          protoReads += 1;
+          if (protoReads === 1) {
+            return Array.prototype;
+          }
+          throw new Error('second getPrototypeOf');
+        },
+        get(target, prop, receiver) {
+          if (prop === 'then') {
+            return undefined;
+          }
+          return Reflect.get(target, prop, receiver);
+        },
+      });
+      return {
+        rootValue: {
+          users() {
+            return list;
+          },
+        },
+        getProtoReads: () => protoReads,
+      };
+    }
+
+    const c = makeRoot();
+    const classic = singular(await executeClassic({ schema, document, rootValue: c.rootValue }));
+    const p = makeRoot();
+    const planned = singular(await executePlanned({ schema, document, rootValue: p.rootValue }));
+    expect(planned).toEqual(classic);
+    expect(planned.errors).toBeUndefined();
+    expect(planned.data).toEqual({ users: [{ id: 'a' }] });
+    expect(p.getProtoReads()).toBe(1);
+    expect(c.getProtoReads()).toBe(1);
+  });
+
   it('4712587204 thin object-list property: array proxy getPrototypeOf once', async () => {
     const User = new GraphQLObjectType({
       name: 'User',

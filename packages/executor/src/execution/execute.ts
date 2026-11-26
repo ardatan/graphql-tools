@@ -2227,15 +2227,14 @@ function executeObjectListFieldThin(
         },
       );
     }
-    // Method / property returned an Error — throw so handleFieldError applies
-    // nullability (do not pass Error into list completion as a fake iterable).
-    if (result instanceof Error) {
-      throw result;
-    }
     // Sync hot path: same handoff as promised lists. On thin decline (live
     // isTypeOf, skip/include predicate throw, …) complete the already-resolved
     // value via completeListValue — never return undefined here (that would
     // fall through to executeField and re-invoke a one-shot list getter/method).
+    // Skip a method-side `instanceof Error` here — that probes getPrototypeOf,
+    // and `completeObjectListThinResolved` probes again. A proxy that returns
+    // Array.prototype once then throws would null a list classic still
+    // completes (single prototype check); Errors are still thrown there.
     return completeObjectListThinResolved(
       exeContext,
       fieldPlan,
