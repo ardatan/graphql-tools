@@ -1095,7 +1095,8 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     detachSignalListener,
     schemaCoordinateInErrors,
     plan,
-    // Pin live defaultProperty resolve checks once per execute (nestedDefault).
+    // Context-start snapshot only (diagnostics / future invalidation). Dispatch
+    // always rechecks live `fieldDef.resolve` via isLiveDefaultPropertyResolve.
     defaultPropertyResolvesPristine: areDefaultPropertyResolvesPristine(
       plan,
       resolvedFieldResolver,
@@ -2281,24 +2282,15 @@ function executePlannedSyncObjectFieldsPlain(
   const results: Record<string, unknown> = Object.create(null);
   let pendingLeaves: Map<string, PendingLeafEntry> | undefined;
   const signal = exeContext.signal;
-  // Compile stamp + pristine: schema-static Plain selection already verified.
-  const plainSchemaOk =
-    (plannedExecutions as StampedPlannedExecutions).plainDefaultSchemaEligible === true &&
-    exeContext.defaultPropertyResolvesPristine === true;
+  // Stamp can certify schema-static Plain shape; live resolve is always
+  // rechecked so a mid-execution install is not skipped.
   for (const execution of plannedExecutions) {
     if (signal != null) {
       signal.throwIfAborted();
     }
     const { responseName, fieldNodes, fieldPlan } = execution;
-    if (!plainSchemaOk) {
-      // Pristine plans: trust compile-time resolveKind (pre-triage3 nestedDefault shape).
-      if (exeContext.defaultPropertyResolvesPristine === true) {
-        if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
-          return thinObjectMiss(results, false, pendingLeaves);
-        }
-      } else if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
-        return thinObjectMiss(results, false, pendingLeaves);
-      }
+    if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
+      return thinObjectMiss(results, false, pendingLeaves);
     }
     let property: unknown;
     try {
@@ -2841,10 +2833,7 @@ function subExecutionsArePlainDefault(
     return false;
   }
   if (stamped.plainDefaultSchemaEligible === true) {
-    if (exeContext.defaultPropertyResolvesPristine === true) {
-      return true;
-    }
-    // Live resolve may have been patched after compile — recheck only.
+    // Always recheck live resolve — do not trust context-start pristine alone.
     for (let i = 0; i < subExecutions.length; i++) {
       if (!isLiveDefaultPropertyResolve(subExecutions[i].fieldPlan, exeContext)) {
         return false;
@@ -2853,14 +2842,9 @@ function subExecutionsArePlainDefault(
     return subExecutions.length > 0;
   }
   // Unstamped arrays (tests / ad-hoc): full schema+live scan.
-  const pristine = exeContext.defaultPropertyResolvesPristine === true;
   for (const execution of subExecutions) {
     const { fieldPlan } = execution;
-    if (pristine) {
-      if (fieldPlan.resolveKind !== 'defaultProperty' || fieldPlan.hasArgs) {
-        return false;
-      }
-    } else if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
+    if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
       return false;
     }
     if (fieldPlan.nonNull) {
@@ -4507,8 +4491,12 @@ function areDefaultPropertyResolvesPristine(
 
 /**
  * True when the compiled plan still expects default-property resolve and the
- * live `fieldDef.resolve` / `fieldResolver` have not been swapped since compile.
- * When `defaultPropertyResolvesPristine` is set, skip per-field live reads.
+ * live `fieldDef.resolve` / `fieldResolver` remain the default.
+ *
+ * Always recheck `fieldDef.resolve`: a sibling (or prior event) may install a
+ * custom resolver after the context-start `defaultPropertyResolvesPristine`
+ * snapshot. Trusting that snapshot alone returns property values and skips the
+ * installed resolver (classic always reads the live resolve).
  */
 function isLiveDefaultPropertyResolve(
   fieldPlan: { resolveKind: string; fieldDef: GraphQLField<unknown, unknown> },
@@ -4519,9 +4507,6 @@ function isLiveDefaultPropertyResolve(
   }
   if (exeContext.fieldResolver !== defaultFieldResolver) {
     return false;
-  }
-  if (exeContext.defaultPropertyResolvesPristine === true) {
-    return true;
   }
   const live = fieldPlan.fieldDef.resolve;
   return live == null || live === defaultFieldResolver;
@@ -6379,18 +6364,12 @@ function executePlannedSyncObjectFieldsPreCR(
   const results: Record<string, unknown> = Object.create(null);
   let n = 0;
   let recordedGetterError = false;
-  // Compile stamp + pristine: skip per-field live/hasArgs gate.
-  const precrSchemaOk =
-    (plannedExecutions as StampedPlannedExecutions).syncObjectFastSchemaEligible === true &&
-    exeContext.defaultPropertyResolvesPristine === true;
+  // Live resolve always rechecked (context-start pristine is not sufficient).
   for (const execution of plannedExecutions) {
     // Match classic: stop before the next field read once the request aborted.
     exeContext.signal?.throwIfAborted();
     const { responseName, fieldNodes, fieldPlan } = execution;
-    if (
-      !precrSchemaOk &&
-      (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs)
-    ) {
+    if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
       return n > 0 || recordedGetterError
         ? thinObjectMiss(results, recordedGetterError, undefined)
         : undefined;
@@ -6806,21 +6785,14 @@ function tryExecutePlannedSyncObjectFieldsFast(
   let pendingLeaves: Map<string, PendingLeafEntry> | undefined;
   const signal = exeContext.signal;
 
-  // Compile stamp + pristine: skip per-field live/hasArgs gate (schema-static).
-  const fastSchemaOk =
-    (plannedExecutions as StampedPlannedExecutions).syncObjectFastSchemaEligible === true &&
-    exeContext.defaultPropertyResolvesPristine === true;
-
   for (let index = 0; index < plannedExecutions.length; index++) {
     if (signal != null) {
       signal.throwIfAborted();
     }
     const { responseName, fieldNodes, fieldPlan } = plannedExecutions[index];
-    // Live resolveKind: a resolver installed after compile must decline thin.
-    if (
-      !fastSchemaOk &&
-      (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs)
-    ) {
+    // Live resolve: a resolver installed after compile / mid-execution must
+    // decline the thin default-property path (classic parity).
+    if (!isLiveDefaultPropertyResolve(fieldPlan, exeContext) || fieldPlan.hasArgs) {
       return thinObjectMiss(results, recordedGetterError, pendingLeaves);
     }
 
