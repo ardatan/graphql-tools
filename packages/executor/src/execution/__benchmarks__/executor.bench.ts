@@ -272,8 +272,104 @@ test('default resolver property fast path benchmarks', async ({ bench }) => {
   ).run();
 });
 
-// Dense field-level @skip/@include — same shape as the plan-checkpoint C2 keep
-// bench, for measuring a master-only predicate collect path (no FieldPlan).
+/**
+ * Execution plan warm vs cold: cold clears the plan cache every iteration so
+ * compile + execute are measured; warm executes once then repeatedly hits the
+ * cached plan path.
+ *
+ * Skips when the package under BENCH_PACKAGE_ROOT has no plan cache helper
+ * (e.g. master baseline in CI) so interleaved compare still runs other benches.
+ */
+test('execution plan warm path benchmarks', async ({ bench }) => {
+  const executor = await import('@graphql-tools/executor');
+  const clearExecutionPlanCache = executor.clearExecutionPlanCache as
+    ((document?: object) => void) | undefined;
+
+  if (typeof clearExecutionPlanCache !== 'function') {
+    console.warn('execution plan cache unavailable in this build; skipping plan warm/cold benches');
+    return;
+  }
+
+  await bench(
+    'Plan cold: compile+execute nested objects each iter',
+    { ...writeOpts('executor-plan-cold-nested') },
+    () => {
+      clearExecutionPlanCache(nestedDefaultDocument);
+      const result = execute({
+        schema: nestedSchema,
+        document: nestedDefaultDocument,
+        rootValue: nestedRootValue,
+      });
+      if (result instanceof Promise) {
+        throw new Error('expected sync result');
+      }
+      return 'data' in result ? result.data : result;
+    },
+  ).run();
+
+  // Warm the cache via execute (no public compile API).
+  execute({
+    schema: nestedSchema,
+    document: nestedDefaultDocument,
+    rootValue: nestedRootValue,
+  });
+  await bench(
+    'Plan warm: execute nested objects (cached plan)',
+    { ...writeOpts('executor-plan-warm-nested') },
+    () => {
+      const result = execute({
+        schema: nestedSchema,
+        document: nestedDefaultDocument,
+        rootValue: nestedRootValue,
+      });
+      if (result instanceof Promise) {
+        throw new Error('expected sync result');
+      }
+      return 'data' in result ? result.data : result;
+    },
+  ).run();
+
+  await bench(
+    'Plan cold: compile+execute property-bag each iter',
+    { ...writeOpts('executor-plan-cold-property-bag') },
+    () => {
+      clearExecutionPlanCache(propertyBagDocument);
+      const result = execute({
+        schema: propertyBagSchema,
+        document: propertyBagDocument,
+        rootValue: propertyBagRootValue,
+      });
+      if (result instanceof Promise) {
+        throw new Error('expected sync result');
+      }
+      return 'data' in result ? result.data : result;
+    },
+  ).run();
+
+  execute({
+    schema: propertyBagSchema,
+    document: propertyBagDocument,
+    rootValue: propertyBagRootValue,
+  });
+  await bench(
+    'Plan warm: execute property-bag (cached plan)',
+    { ...writeOpts('executor-plan-warm-property-bag') },
+    () => {
+      const result = execute({
+        schema: propertyBagSchema,
+        document: propertyBagDocument,
+        rootValue: propertyBagRootValue,
+      });
+      if (result instanceof Promise) {
+        throw new Error('expected sync result');
+      }
+      return 'data' in result ? result.data : result;
+    },
+  ).run();
+});
+
+// Dense field-level @skip/@include — plan-path filter (and master collect-layer
+// #8681 when FieldPlan is absent). Same shape as the C2 keep bench.
 const denseSkipSchema = buildSchema(
   /* GraphQL */ `
     type Query {
@@ -329,6 +425,58 @@ const denseSkipDocument = parse(/* GraphQL */ `
 const denseSkipRootValue = Object.fromEntries(Array.from({ length: 40 }, (_, i) => [`f${i}`, i]));
 let denseSkipToggle = false;
 
+// Dense fragment-level @skip — was classic re-collect on checkpoint; plan-path
+// path-aware predicates should filter without re-collectFields.
+const denseFragSkipDocument = parse(/* GraphQL */ `
+  query ($s: Boolean!) {
+    f0
+    f1
+    ... @skip(if: $s) {
+      f2
+      f3
+      f4
+      f5
+      f6
+      f7
+      f8
+      f9
+      f10
+      f11
+      f12
+      f13
+      f14
+      f15
+      f16
+      f17
+      f18
+      f19
+    }
+    f20
+    f21
+    ... @skip(if: $s) {
+      f22
+      f23
+      f24
+      f25
+      f26
+      f27
+      f28
+      f29
+      f30
+      f31
+      f32
+      f33
+      f34
+      f35
+      f36
+      f37
+      f38
+      f39
+    }
+  }
+`);
+let denseFragSkipToggle = false;
+
 test('skip/include predicate candidate benchmarks', async ({ bench }) => {
   await bench(
     'Dense @skip/@include variable fields',
@@ -341,6 +489,25 @@ test('skip/include predicate candidate benchmarks', async ({ bench }) => {
           document: denseSkipDocument,
           rootValue: denseSkipRootValue,
           variableValues: { s: denseSkipToggle, i: !denseSkipToggle },
+        });
+        if (result instanceof Promise) {
+          throw new Error('expected sync result');
+        }
+      }
+    },
+  ).run();
+
+  await bench(
+    'Dense fragment @skip variable fields',
+    { ...writeOpts('executor-dense-fragment-skip') },
+    () => {
+      for (let index = 0; index < 25; index++) {
+        denseFragSkipToggle = !denseFragSkipToggle;
+        const result = execute({
+          schema: denseSkipSchema,
+          document: denseFragSkipDocument,
+          rootValue: denseSkipRootValue,
+          variableValues: { s: denseFragSkipToggle },
         });
         if (result instanceof Promise) {
           throw new Error('expected sync result');

@@ -1,7 +1,8 @@
 /**
  * Shared empty constructor for per-field execution result maps.
  *
- * `executeFields` and `promiseForObject` both allocate null-prototype result
+ * Classic (`executeFields` / `promiseForObject`) and planned sync object
+ * walkers (Plain / PreCR / Fast / From) allocate null-prototype result
  * objects. Using the same constructor keeps a single V8 hidden class after
  * `Object.setPrototypeOf(..., null)`, including when sync field collection
  * hands off to async completion.

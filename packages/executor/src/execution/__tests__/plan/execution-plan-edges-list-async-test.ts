@@ -1,0 +1,2777 @@
+/**
+ * List/async settle, thin-walk fallback, retain/observe differentials.
+ */
+import {
+  GraphQLError,
+  GraphQLInputObjectType,
+  GraphQLInt,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLScalarType,
+  GraphQLSchema,
+  GraphQLString,
+  parse,
+  valueFromASTUntyped,
+} from 'graphql';
+import {
+  buildExecutionContext,
+  clearExecutionPlanCache,
+  execute,
+  executeImpl,
+  executeSync,
+  type SingularExecutionResult,
+} from '../../execute.js';
+import {
+  compileExecutionPlan,
+  getExecutionPlan,
+  getPlannedSubfieldExecutions,
+  isExecutionPlan,
+  type InternalExecutionPlan,
+} from '../../plan.js';
+
+/** Classic interpreter only (skip plan attachment). */
+function executeClassicSync(args: Parameters<typeof executeSync>[0]): SingularExecutionResult {
+  const ctx = buildExecutionContext(args, null);
+  if (!('schema' in ctx)) {
+    return { errors: [...ctx] };
+  }
+  const result = executeImpl(ctx);
+  if (result != null && typeof result === 'object' && 'then' in result) {
+    throw new Error('expected synchronous classic result');
+  }
+  if (result != null && typeof result === 'object' && 'initialResult' in result) {
+    throw new Error('expected singular classic result');
+  }
+  return result as SingularExecutionResult;
+}
+
+async function executeClassic(
+  args: Parameters<typeof execute>[0],
+): Promise<SingularExecutionResult> {
+  const ctx = buildExecutionContext(args, null);
+  if (!('schema' in ctx)) {
+    return { errors: [...ctx] };
+  }
+  const result = await executeImpl(ctx);
+  if (result != null && typeof result === 'object' && 'initialResult' in result) {
+    throw new Error('expected singular classic result');
+  }
+  return result as SingularExecutionResult;
+}
+
+function assertSingular(result: unknown): SingularExecutionResult {
+  if (result != null && typeof result === 'object' && 'initialResult' in (result as object)) {
+    throw new Error('expected singular result');
+  }
+  return result as SingularExecutionResult;
+}
+
+describe('root runner + field-local leaf list settle', () => {
+  it('keeps async classic object list when a sibling leaf list is async', async () => {
+    const rowType = new GraphQLObjectType({
+      name: 'Row',
+      fields: {
+        label: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          rows: {
+            type: new GraphQLList(rowType),
+            resolve: () => [Promise.resolve({ label: 'r1' }), { label: 'r2' }],
+          },
+          scores: {
+            type: new GraphQLList(GraphQLInt),
+            resolve: () => [Promise.resolve(1), Promise.resolve(2)],
+          },
+        },
+      }),
+    });
+    const document = parse('{ rows { label } scores }');
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    await expect(execute({ schema, document, plan: plan as any })).resolves.toEqual({
+      data: { rows: [{ label: 'r1' }, { label: 'r2' }], scores: [1, 2] },
+    });
+  });
+
+  it('keeps async root leaf values when a sibling leaf list is also async', async () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          count: {
+            type: GraphQLInt,
+            resolve: () => Promise.resolve(7),
+          },
+          scores: {
+            type: new GraphQLList(GraphQLInt),
+            resolve: () => [Promise.resolve(1), Promise.resolve(2)],
+          },
+        },
+      }),
+    });
+    const document = parse('{ count scores }');
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    await expect(execute({ schema, document, plan: plan as any })).resolves.toEqual({
+      data: { count: 7, scores: [1, 2] },
+    });
+  });
+
+  // R11/R12 P2: nested `container { list stop }` so rootAsync=false and the
+  // thin leaf/object-list stores use observeFieldLocalPromise. Abort on `stop`
+  // so executeFields skips the normal promise join (signal.reason path); a
+  // deferred list rejection after exit must not become an unhandledRejection.
+  (process.env['LEAK_TEST'] ? it.skip : it)(
+    'observes nested async leaf-list when abort skips the promise join (no UHR)',
+    async () => {
+      const document = parse('{ container { scores stop } }');
+
+      const makeSchema = (controller: AbortController, reason: Error) => {
+        const Container = new GraphQLObjectType({
+          name: 'LeafObserveContainer',
+          fields: {
+            scores: {
+              type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLInt))),
+            },
+            stop: {
+              type: new GraphQLNonNull(GraphQLString),
+              resolve: () => {
+                controller.abort(reason);
+                throw reason;
+              },
+            },
+          },
+        });
+        return new GraphQLSchema({
+          query: new GraphQLObjectType({
+            name: 'Query',
+            fields: {
+              container: { type: Container },
+            },
+          }),
+        });
+      };
+      const makeRoot = (pending: PromiseLike<number>) => ({
+        container: {
+          scores: [pending],
+        },
+      });
+
+      // Unique abort reason — `.rejects.toBe(reason)` fails if execute fulfills
+      // (both undefined) or if stop never runs.
+      const abortReasonP = Object.assign(new Error('leaf observe abort'), {
+        name: 'LeafObserveAbort',
+      });
+      const controllerP = new AbortController();
+      const schemaP = makeSchema(controllerP, abortReasonP);
+      const plan = compileExecutionPlan({ schema: schemaP, document });
+      expect(isExecutionPlan(plan)).toBe(true);
+      if (!isExecutionPlan(plan)) {
+        return;
+      }
+      const internal = plan as InternalExecutionPlan;
+      const containerEx = (internal.rootExecutions ?? []).find(
+        ex => ex.responseName === 'container',
+      );
+      expect(containerEx).toBeDefined();
+      const containerType = schemaP.getType('LeafObserveContainer');
+      const nested = getPlannedSubfieldExecutions(
+        internal,
+        containerEx!.fieldNodes,
+        containerType as GraphQLObjectType,
+      );
+      expect(nested?.some(ex => ex.fieldPlan.kind === 'leafList')).toBe(true);
+
+      let rejectScore!: (reason: Error) => void;
+      const pendingScore = new Promise<number>((_resolve, reject) => {
+        rejectScore = reject;
+      });
+
+      let unhandled = 0;
+      const onUnhandled = (): void => {
+        unhandled += 1;
+      };
+      process.on('unhandledRejection', onUnhandled);
+      try {
+        // Abort may throw sync from executeFields (signal.reason path) or reject.
+        await expect(
+          Promise.resolve().then(() =>
+            execute({
+              plan,
+              rootValue: makeRoot(pendingScore),
+              signal: controllerP.signal,
+            }),
+          ),
+        ).rejects.toBe(abortReasonP);
+
+        const abortReasonC = Object.assign(new Error('leaf observe abort classic'), {
+          name: 'LeafObserveAbortC',
+        });
+        const controllerC = new AbortController();
+        let rejectClassic!: (reason: Error) => void;
+        const pendingClassic = new Promise<number>((_resolve, reject) => {
+          rejectClassic = reject;
+        });
+        await expect(
+          Promise.resolve().then(() =>
+            executeClassic({
+              schema: makeSchema(controllerC, abortReasonC),
+              document,
+              rootValue: makeRoot(pendingClassic),
+              signal: controllerC.signal,
+            }),
+          ),
+        ).rejects.toBe(abortReasonC);
+
+        rejectScore(Object.assign(new Error('score late'), { name: 'ScoreLate' }));
+        rejectClassic(Object.assign(new Error('score late classic'), { name: 'ScoreLateC' }));
+        await new Promise<void>(resolve => {
+          setImmediate(resolve);
+        });
+        expect(unhandled).toBe(0);
+      } finally {
+        process.off('unhandledRejection', onUnhandled);
+      }
+    },
+  );
+
+  (process.env['LEAK_TEST'] ? it.skip : it)(
+    'observes nested async object-list when abort skips the promise join (no UHR)',
+    async () => {
+      const User = new GraphQLObjectType({
+        name: 'ObserveUser',
+        fields: {
+          id: { type: new GraphQLNonNull(GraphQLString) },
+        },
+      });
+      const document = parse('{ container { users { id } stop } }');
+
+      const makeSchema = (controller: AbortController, reason: Error) => {
+        const Container = new GraphQLObjectType({
+          name: 'ObjectObserveContainer',
+          fields: {
+            // Default property resolve → thin object-list path (nested, not root).
+            users: {
+              type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(User))),
+            },
+            stop: {
+              type: new GraphQLNonNull(GraphQLString),
+              resolve: () => {
+                controller.abort(reason);
+                throw reason;
+              },
+            },
+          },
+        });
+        return new GraphQLSchema({
+          query: new GraphQLObjectType({
+            name: 'Query',
+            fields: {
+              container: { type: Container },
+            },
+          }),
+        });
+      };
+      const makeRoot = (pending: PromiseLike<unknown>) => ({
+        container: {
+          users: [pending],
+        },
+      });
+
+      const abortReasonP = Object.assign(new Error('object-list observe abort'), {
+        name: 'ObjectObserveAbort',
+      });
+      const controllerP = new AbortController();
+      const schemaP = makeSchema(controllerP, abortReasonP);
+      const plan = compileExecutionPlan({ schema: schemaP, document });
+      expect(isExecutionPlan(plan)).toBe(true);
+      if (!isExecutionPlan(plan)) {
+        return;
+      }
+      const internal = plan as InternalExecutionPlan;
+      const containerEx = (internal.rootExecutions ?? []).find(
+        ex => ex.responseName === 'container',
+      );
+      expect(containerEx).toBeDefined();
+      const containerType = schemaP.getType('ObjectObserveContainer');
+      const nested = getPlannedSubfieldExecutions(
+        internal,
+        containerEx!.fieldNodes,
+        containerType as GraphQLObjectType,
+      );
+      expect(nested?.some(ex => ex.fieldPlan.kind === 'list')).toBe(true);
+
+      let rejectUser!: (reason: Error) => void;
+      const pendingUser = new Promise<unknown>((_resolve, reject) => {
+        rejectUser = reject;
+      });
+
+      let unhandled = 0;
+      const onUnhandled = (): void => {
+        unhandled += 1;
+      };
+      process.on('unhandledRejection', onUnhandled);
+      try {
+        await expect(
+          Promise.resolve().then(() =>
+            execute({
+              plan,
+              rootValue: makeRoot(pendingUser),
+              signal: controllerP.signal,
+            }),
+          ),
+        ).rejects.toBe(abortReasonP);
+
+        const abortReasonC = Object.assign(new Error('object-list observe abort classic'), {
+          name: 'ObjectObserveAbortC',
+        });
+        const controllerC = new AbortController();
+        let rejectClassic!: (reason: Error) => void;
+        const pendingClassic = new Promise<unknown>((_resolve, reject) => {
+          rejectClassic = reject;
+        });
+        await expect(
+          Promise.resolve().then(() =>
+            executeClassic({
+              schema: makeSchema(controllerC, abortReasonC),
+              document,
+              rootValue: makeRoot(pendingClassic),
+              signal: controllerC.signal,
+            }),
+          ),
+        ).rejects.toBe(abortReasonC);
+
+        rejectUser(Object.assign(new Error('user late'), { name: 'UserLate' }));
+        rejectClassic(Object.assign(new Error('user late classic'), { name: 'UserLateC' }));
+        await new Promise<void>(resolve => {
+          setImmediate(resolve);
+        });
+        expect(unhandled).toBe(0);
+      } finally {
+        process.off('unhandledRejection', onUnhandled);
+      }
+    },
+  );
+
+  // Retain NonNull sync-fail parity (join path); abort tests above cover observe.
+  it('nested NonNull sibling sync fail still nulls container (parity)', async () => {
+    const document = parse('{ container { scores stop } }');
+    const makeSchema = (getScores: () => unknown[], onStop: () => void) => {
+      const Container = new GraphQLObjectType({
+        name: 'ParityLeafContainer',
+        fields: {
+          scores: {
+            type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLInt))),
+            resolve: () => getScores(),
+          },
+          stop: {
+            type: new GraphQLNonNull(GraphQLString),
+            resolve: () => {
+              onStop();
+              throw new Error('stop sync');
+            },
+          },
+        },
+      });
+      return new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: { container: { type: Container } },
+        }),
+      });
+    };
+    const rootValue = { container: {} };
+
+    let resolvePlanned!: (value: number) => void;
+    const pendingPlanned = new Promise<number>(resolve => {
+      resolvePlanned = resolve;
+    });
+    let stopPlanned = false;
+    const schemaP = makeSchema(
+      () => [pendingPlanned],
+      () => {
+        stopPlanned = true;
+      },
+    );
+    const plan = compileExecutionPlan({ schema: schemaP, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    // Promise.resolve normalizes MaybePromise so .then is always available.
+    const plannedPromise = Promise.resolve(execute({ plan, rootValue }));
+    // Attach settlement probe before first yield (no-void; avoid UHR if sync reject).
+    let plannedSettled = false;
+    plannedPromise.then(
+      () => {
+        plannedSettled = true;
+      },
+      () => {
+        plannedSettled = true;
+      },
+    );
+    // stop runs sync after scores starts; execution must stay pending until item settles.
+    await new Promise<void>(resolve => {
+      setImmediate(resolve);
+    });
+    expect(stopPlanned).toBe(true);
+    expect(plannedSettled).toBe(false);
+    resolvePlanned(1);
+    const planned = await plannedPromise;
+
+    let resolveClassic!: (value: number) => void;
+    const pendingClassic = new Promise<number>(resolve => {
+      resolveClassic = resolve;
+    });
+    let stopClassic = false;
+    const schemaC = makeSchema(
+      () => [pendingClassic],
+      () => {
+        stopClassic = true;
+      },
+    );
+    const classicPromise = executeClassic({ schema: schemaC, document, rootValue });
+    let classicSettled = false;
+    classicPromise.then(
+      () => {
+        classicSettled = true;
+      },
+      () => {
+        classicSettled = true;
+      },
+    );
+    await new Promise<void>(resolve => {
+      setImmediate(resolve);
+    });
+    expect(stopClassic).toBe(true);
+    expect(classicSettled).toBe(false);
+    resolveClassic(1);
+    const classic = await classicPromise;
+
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { container: null },
+      errors: [{ message: 'stop sync', path: ['container', 'stop'] }],
+    });
+  });
+});
+
+describe('thin-walk fallback invocation counts', () => {
+  // R26 P1-01: field-level value must not be re-read / re-resolved after thinObjectMiss.
+  it('P1-01: partial thin-walk then classic: one-shot id getter is not re-read', () => {
+    // `id` uses default property resolve (thin completes it); `name(lang:)` has
+    // args so thin declines mid-walk. One-shot getter throws on re-read so a
+    // re-invoke-on-fallback bug fails. Path assertion: planned result matches
+    // classic, and id was read exactly once on the planned path.
+    let idReads = 0;
+    let nameReads = 0;
+    let nameSawIdAlready = false;
+    const User = new GraphQLObjectType({
+      name: 'ThinCountUser',
+      fields: {
+        id: { type: GraphQLString },
+        name: {
+          type: GraphQLString,
+          args: { lang: { type: GraphQLString } },
+          resolve: (obj: { name: string }, args: { lang?: string | null }) => {
+            // Thin walk completes `id` before declining on this arg-bearing
+            // sibling; classic-from-start would also read id first, so we only
+            // treat this as supporting evidence alongside the one-shot getter.
+            nameSawIdAlready = idReads >= 1;
+            nameReads += 1;
+            return args.lang ? `${obj.name}:${args.lang}` : obj.name;
+          },
+        },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          user: {
+            type: User,
+            resolve: () => ({
+              get id() {
+                idReads += 1;
+                if (idReads > 1) {
+                  throw new Error('id re-read after thin completion');
+                }
+                return '1';
+              },
+              name: 'Ada',
+            }),
+          },
+        },
+      }),
+    });
+    const document = parse('{ user { id name(lang: "en") } }');
+    const result = executeSync({ schema, document });
+    expect(result).toEqual({
+      data: { user: { id: '1', name: 'Ada:en' } },
+    });
+    expect(idReads).toBe(1);
+    expect(nameReads).toBe(1);
+    expect(nameSawIdAlready).toBe(true);
+
+    // Classic path also reads once; results must match (no double-invoke).
+    idReads = 0;
+    nameReads = 0;
+    nameSawIdAlready = false;
+    const classic = executeClassicSync({ schema, document });
+    expect(classic).toEqual(result);
+    expect(idReads).toBe(1);
+    expect(nameReads).toBe(1);
+    expect(nameSawIdAlready).toBe(true);
+  });
+
+  it('does not re-read a completed getter when a sibling forces classic', () => {
+    let idReads = 0;
+    let nameReads = 0;
+    let nameSawIdAlready = false;
+    const User = new GraphQLObjectType({
+      name: 'ThinGetterUser',
+      fields: {
+        id: { type: GraphQLString },
+        name: {
+          type: GraphQLString,
+          args: { lang: { type: GraphQLString } },
+          resolve: (obj: { name: string }, args: { lang?: string | null }) => {
+            nameSawIdAlready = idReads >= 1;
+            nameReads += 1;
+            return args.lang ? `${obj.name}:${args.lang}` : obj.name;
+          },
+        },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        // Default property resolve so the thin object walk runs on `user`.
+        fields: {
+          user: { type: User },
+        },
+      }),
+    });
+    const document = parse('{ user { id name(lang: "en") } }');
+    const result = executeSync({
+      schema,
+      document,
+      rootValue: {
+        user: {
+          get id() {
+            idReads += 1;
+            if (idReads > 1) {
+              throw new Error('id re-read after thin completion');
+            }
+            return '1';
+          },
+          name: 'Ada',
+        },
+      },
+    });
+    expect(result).toEqual({
+      data: { user: { id: '1', name: 'Ada:en' } },
+    });
+    expect(idReads).toBe(1);
+    expect(nameReads).toBe(1);
+    expect(nameSawIdAlready).toBe(true);
+  });
+
+  // R26 P1-02 / R22 C1: after thinObjectMiss, completed leaf serialize must not re-run.
+  it('P1-02: does not re-serialize a completed leaf after thinObjectMiss', () => {
+    let serializeCalls = 0;
+    const CountSer = new GraphQLScalarType({
+      name: 'C1CountSer',
+      serialize(value) {
+        serializeCalls += 1;
+        return String(value);
+      },
+    });
+    const Item = new GraphQLObjectType({
+      name: 'C1Item',
+      fields: {
+        id: { type: CountSer },
+        name: {
+          type: GraphQLString,
+          args: { lang: { type: GraphQLString } },
+          resolve: (obj: { name: string }, args: { lang?: string | null }) =>
+            args.lang ? `${obj.name}:${args.lang}` : obj.name,
+        },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+        },
+      }),
+    });
+    const document = parse('{ items { id name(lang: "en") } }');
+    const rootValue = { items: [{ id: 1, name: 'Ada' }] };
+    const result = executeSync({ schema, document, rootValue });
+    expect(result).toEqual({
+      data: { items: [{ id: '1', name: 'Ada:en' }] },
+    });
+    expect(serializeCalls).toBe(1);
+    serializeCalls = 0;
+    const classic = executeClassicSync({ schema, document, rootValue });
+    expect(classic).toEqual(result);
+    expect(serializeCalls).toBe(1);
+  });
+
+  // R26 P1-03 / R22 C2: pending leaf must serialize raw async values (not stash raw).
+  it('P1-03: serializes pending async leaf raw values (not raw string for Int-like scalar)', async () => {
+    const Tagged = new GraphQLScalarType({
+      name: 'C2Tagged',
+      serialize(value) {
+        if (value === 'RAW') {
+          return 'SERIALIZED';
+        }
+        throw new Error(`unexpected serialize input: ${String(value)}`);
+      },
+    });
+    const Item = new GraphQLObjectType({
+      name: 'C2Item',
+      fields: {
+        tag: { type: Tagged },
+        label: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+        },
+      }),
+    });
+    const document = parse('{ items { tag label } }');
+    const rootValue = {
+      items: [{ tag: Promise.resolve('RAW'), label: 'ok' }],
+    };
+    const result = assertSingular(await execute({ schema, document, rootValue }));
+    expect(result).toEqual({
+      data: { items: [{ tag: 'SERIALIZED', label: 'ok' }] },
+    });
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(classic).toEqual(result);
+  });
+
+  // R22/R23 C4: nested async NonNull null must bubble like classic.
+  it('C4: nested async NonNull null bubbles with classic path', async () => {
+    const Nested = new GraphQLObjectType({
+      name: 'C4Nested',
+      fields: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+      },
+    });
+    const Item = new GraphQLObjectType({
+      name: 'C4Item',
+      fields: {
+        nested: { type: Nested },
+        label: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+        },
+      }),
+    });
+    const document = parse('{ items { nested { id } label } }');
+    const rootValue = {
+      items: [
+        {
+          nested: Promise.resolve({ id: null }),
+          label: 'keep',
+        },
+      ],
+    };
+    const result = assertSingular(await execute({ schema, document, rootValue }));
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(result).toEqual(classic);
+    expect(result).toMatchObject({
+      data: { items: [{ nested: null, label: 'keep' }] },
+      errors: [expect.objectContaining({ path: ['items', 0, 'nested', 'id'] })],
+    });
+  });
+
+  // R22/R23 C5: callable thenable (function with .then) — planned matches classic.
+  // defaultFieldResolver invokes typeof==='function' before thenable check, so
+  // both planned and classic invoke (no planned-only bug).
+  it('C5: callable thenable matches classic (invoked, not awaited as thenable)', async () => {
+    const Item = new GraphQLObjectType({
+      name: 'C5Item',
+      fields: {
+        value: { type: GraphQLInt },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+        },
+      }),
+    });
+    const document = parse('{ items { value } }');
+    let invokeCount = 0;
+    const callableThenable = Object.assign(
+      function callable() {
+        invokeCount += 1;
+        return 999;
+      },
+      { then: Promise.resolve(7).then.bind(Promise.resolve(7)) },
+    );
+    const rootValue = { items: [{ value: callableThenable }] };
+    const result = assertSingular(await execute({ schema, document, rootValue }));
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(result).toEqual(classic);
+    expect(result).toEqual({ data: { items: [{ value: 999 }] } });
+    expect(invokeCount).toBeGreaterThan(0);
+  });
+
+  // R22/R23 C7: plan coerce must not double-call custom scalar parseValue.
+  it('C7: coerce does not double-call custom scalar parseValue vs classic', () => {
+    let parseCalls = 0;
+    const Counted = new GraphQLScalarType({
+      name: 'C7Counted',
+      parseValue(value) {
+        parseCalls += 1;
+        return Number(value);
+      },
+      parseLiteral(ast) {
+        if (ast.kind === 'IntValue') {
+          return Number(ast.value);
+        }
+        return null;
+      },
+      serialize: Number,
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          echo: {
+            type: GraphQLInt,
+            args: { n: { type: Counted } },
+            resolve: (_s, args: { n: number }) => args.n,
+          },
+        },
+      }),
+    });
+    const document = parse('query ($n: C7Counted!) { echo(n: $n) }');
+    parseCalls = 0;
+    const result = executeSync({
+      schema,
+      document,
+      variableValues: { n: 3 },
+    });
+    const plannedCalls = parseCalls;
+    parseCalls = 0;
+    const classic = executeClassicSync({
+      schema,
+      document,
+      variableValues: { n: 3 },
+    });
+    expect(result).toEqual(classic);
+    expect(result).toEqual({ data: { echo: 3 } });
+    // Planned must not call parseValue more times than classic.
+    expect(plannedCalls).toBeLessThanOrEqual(parseCalls);
+    expect(plannedCalls).toBeGreaterThan(0);
+  });
+
+  // R26 P1-04 / R22 C3: plain walker must localize getter throws to the field path.
+  it('P1-04: localizes plain-walker getter throws to the child field path', () => {
+    const Item = new GraphQLObjectType({
+      name: 'C3Item',
+      fields: {
+        ok: { type: GraphQLString },
+        bad: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+        },
+      }),
+    });
+    const document = parse('{ items { ok bad } }');
+    const rootValue = {
+      items: [
+        {
+          ok: 'fine',
+          get bad() {
+            throw new Error('getter boom');
+          },
+        },
+      ],
+    };
+    const result = executeSync({ schema, document, rootValue });
+    expect(result).toMatchObject({
+      data: { items: [{ ok: 'fine', bad: null }] },
+      errors: [expect.objectContaining({ message: 'getter boom', path: ['items', 0, 'bad'] })],
+    });
+    const classic = executeClassicSync({ schema, document, rootValue });
+    expect(classic).toMatchObject({
+      data: { items: [{ ok: 'fine', bad: null }] },
+      errors: [expect.objectContaining({ message: 'getter boom', path: ['items', 0, 'bad'] })],
+    });
+  });
+
+  // R27 P1-01: failed resolver/method must not be replayed after thin decline.
+  it('R27 P1-01: one-shot method throw is not re-invoked (calls===1, path items.0.name)', () => {
+    let calls = 0;
+    const Item = new GraphQLObjectType({
+      name: 'R27FailMethodItem',
+      fields: {
+        ok: { type: GraphQLString },
+        name: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+        },
+      }),
+    });
+    const document = parse('{ items { ok name } }');
+    const rootValue = {
+      items: [
+        {
+          ok: 'fine',
+          name() {
+            calls += 1;
+            if (calls === 1) {
+              throw new Error('name boom');
+            }
+            return 'recovered';
+          },
+        },
+      ],
+    };
+    calls = 0;
+    const planned = executeSync({ schema, document, rootValue });
+    expect(calls).toBe(1);
+    expect(planned).toMatchObject({
+      data: { items: [{ ok: 'fine', name: null }] },
+      errors: [expect.objectContaining({ message: 'name boom', path: ['items', 0, 'name'] })],
+    });
+    calls = 0;
+    const classic = executeClassicSync({ schema, document, rootValue });
+    expect(calls).toBe(1);
+    expect(classic).toEqual(planned);
+  });
+
+  // R27 P1-02: failed serializer must not succeed on a second serialize attempt.
+  it('R27 P1-02: one-shot serialize throw is not re-run (planned ser===classic)', () => {
+    let ser = 0;
+    const FailSer = new GraphQLScalarType({
+      name: 'R27FailSer',
+      serialize(value) {
+        ser += 1;
+        if (ser === 1) {
+          throw new Error('ser boom');
+        }
+        return String(value);
+      },
+    });
+    const Item = new GraphQLObjectType({
+      name: 'R27FailSerItem',
+      fields: {
+        id: { type: FailSer },
+        name: {
+          type: GraphQLString,
+          args: { lang: { type: GraphQLString } },
+          resolve: (obj: { name: string }, args: { lang?: string | null }) =>
+            args.lang ? `${obj.name}:${args.lang}` : obj.name,
+        },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+        },
+      }),
+    });
+    const document = parse('{ items { id name(lang: "en") } }');
+    const rootValue = { items: [{ id: 1, name: 'Ada' }] };
+    ser = 0;
+    const planned = executeSync({ schema, document, rootValue });
+    const plannedSer = ser;
+    expect(plannedSer).toBe(1);
+    expect(planned).toMatchObject({
+      data: { items: [{ id: null, name: 'Ada:en' }] },
+      errors: [expect.objectContaining({ message: 'ser boom', path: ['items', 0, 'id'] })],
+    });
+    ser = 0;
+    const classic = executeClassicSync({ schema, document, rootValue });
+    expect(ser).toBe(1);
+    expect(classic).toEqual(planned);
+  });
+
+  it('R27 P1-02: null serialize return is not re-run (plain + PreCR)', () => {
+    for (const withArgs of [false, true] as const) {
+      let ser = 0;
+      const NullSer = new GraphQLScalarType({
+        name: withArgs ? 'R27NullSerArgs' : 'R27NullSerPlain',
+        serialize() {
+          ser += 1;
+          return null;
+        },
+      });
+      const Item = new GraphQLObjectType({
+        name: withArgs ? 'R27NullSerArgsItem' : 'R27NullSerPlainItem',
+        fields: {
+          id: { type: NullSer },
+          label: withArgs
+            ? {
+                type: GraphQLString,
+                args: { lang: { type: GraphQLString } },
+                resolve: () => 'x',
+              }
+            : { type: GraphQLString },
+        },
+      });
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            items: { type: new GraphQLList(Item) },
+          },
+        }),
+      });
+      const document = parse(
+        withArgs ? '{ items { id label(lang: "en") } }' : '{ items { id label } }',
+      );
+      const rootValue = { items: [{ id: 1, label: 'x' }] };
+      ser = 0;
+      const planned = executeSync({ schema, document, rootValue });
+      const plannedSer = ser;
+      ser = 0;
+      const classic = executeClassicSync({ schema, document, rootValue });
+      expect(plannedSer).toBe(1);
+      expect(ser).toBe(1);
+      expect(planned).toEqual(classic);
+      expect(planned).toMatchObject({
+        data: { items: [{ id: null, label: 'x' }] },
+        errors: [expect.objectContaining({ path: ['items', 0, 'id'] })],
+      });
+    }
+  });
+
+  it('R27 P1-02: undefined serialize return matches classic without replay', () => {
+    let ser = 0;
+    const UndefSer = new GraphQLScalarType({
+      name: 'R27UndefSer',
+      serialize() {
+        ser += 1;
+        return undefined;
+      },
+    });
+    const Item = new GraphQLObjectType({
+      name: 'R27UndefSerItem',
+      fields: {
+        id: { type: UndefSer },
+        label: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+        },
+      }),
+    });
+    const document = parse('{ items { id label } }');
+    const rootValue = { items: [{ id: 1, label: 'x' }] };
+    ser = 0;
+    const planned = executeSync({ schema, document, rootValue });
+    const plannedSer = ser;
+    ser = 0;
+    const classic = executeClassicSync({ schema, document, rootValue });
+    expect(plannedSer).toBe(1);
+    expect(ser).toBe(1);
+    expect(planned).toEqual(classic);
+    expect(planned.data).toEqual({ items: [{ id: null, label: 'x' }] });
+    expect(planned.errors?.length).toBe(1);
+  });
+
+  // R27 P1-03: pending leaf null / Error / reject on the optimized plain path.
+  it('R27 P1-03: pending leaf Promise.resolve(null) matches classic', async () => {
+    const Item = new GraphQLObjectType({
+      name: 'R27PendingNullItem',
+      fields: {
+        tag: { type: GraphQLString },
+        label: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+        },
+      }),
+    });
+    const document = parse('{ items { tag label } }');
+    const rootValue = {
+      items: [{ tag: Promise.resolve(null), label: 'ok' }],
+    };
+    const planned = assertSingular(await execute({ schema, document, rootValue }));
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toEqual({ data: { items: [{ tag: null, label: 'ok' }] } });
+  });
+
+  it('R27 P1-03: pending leaf Promise.resolve(Error) matches classic', async () => {
+    const Item = new GraphQLObjectType({
+      name: 'R27PendingErrItem',
+      fields: {
+        tag: { type: GraphQLString },
+        label: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+        },
+      }),
+    });
+    const document = parse('{ items { tag label } }');
+    const rootValue = {
+      items: [{ tag: Promise.resolve(new Error('leaf err')), label: 'ok' }],
+    };
+    const planned = assertSingular(await execute({ schema, document, rootValue }));
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { items: [{ tag: null, label: 'ok' }] },
+      errors: [expect.objectContaining({ message: 'leaf err', path: ['items', 0, 'tag'] })],
+    });
+  });
+
+  it('R27 P1-03: pending leaf Promise.reject matches classic', async () => {
+    const Item = new GraphQLObjectType({
+      name: 'R27PendingRejItem',
+      fields: {
+        tag: { type: GraphQLString },
+        label: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+        },
+      }),
+    });
+    const document = parse('{ items { tag label } }');
+    const rootValue = {
+      items: [{ tag: Promise.reject(new Error('leaf rej')), label: 'ok' }],
+    };
+    const planned = assertSingular(await execute({ schema, document, rootValue }));
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { items: [{ tag: null, label: 'ok' }] },
+      errors: [expect.objectContaining({ message: 'leaf rej', path: ['items', 0, 'tag'] })],
+    });
+  });
+
+  // R27 P1-04: prove Plain walker (nullable defaultProperty list) localizes without
+  // re-reading — throw-then-success would succeed only if the walker missed/replayed.
+  it('R27 P1-04: Plain-walker one-shot getter throw stays localized (no replay success)', () => {
+    let reads = 0;
+    const Item = new GraphQLObjectType({
+      name: 'R27PlainProofItem',
+      fields: {
+        ok: { type: GraphQLString },
+        bad: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+        },
+      }),
+    });
+    const document = parse('{ items { ok bad } }');
+    const rootValue = {
+      items: [
+        {
+          ok: 'fine',
+          get bad() {
+            reads += 1;
+            if (reads === 1) {
+              throw new Error('getter boom');
+            }
+            return 'recovered';
+          },
+        },
+      ],
+    };
+    reads = 0;
+    const planned = executeSync({ schema, document, rootValue });
+    expect(reads).toBe(1);
+    expect(planned).toMatchObject({
+      data: { items: [{ ok: 'fine', bad: null }] },
+      errors: [expect.objectContaining({ message: 'getter boom', path: ['items', 0, 'bad'] })],
+    });
+    reads = 0;
+    const classic = executeClassicSync({ schema, document, rootValue });
+    expect(reads).toBe(1);
+    expect(classic).toEqual(planned);
+  });
+
+  // R28 P1: serialize GraphQLError must strip extensions like completeLeafValue
+  // (CRITICAL_ERROR must not wipe the root / sibling fields).
+  it('R28 P1: strips GraphQLError extensions on Plain serialize (sibling ok survives)', () => {
+    const Ser = new GraphQLScalarType({
+      name: 'R28PlainGqlSer',
+      serialize() {
+        throw new GraphQLError('ser gql', {
+          extensions: { code: 'SER_BOOM', CRITICAL_ERROR: true },
+        });
+      },
+    });
+    const Item = new GraphQLObjectType({
+      name: 'R28PlainGqlItem',
+      fields: {
+        id: { type: Ser },
+        label: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+          ok: { type: GraphQLString, resolve: () => 'yes' },
+        },
+      }),
+    });
+    const document = parse('{ items { id label } ok }');
+    const rootValue = { items: [{ id: 1, label: 'x' }] };
+    const planned = executeSync({ schema, document, rootValue });
+    const classic = executeClassicSync({ schema, document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { items: [{ id: null, label: 'x' }], ok: 'yes' },
+      errors: [expect.objectContaining({ message: 'ser gql', path: ['items', 0, 'id'] })],
+    });
+    expect(planned.errors?.[0]?.extensions?.['CRITICAL_ERROR']).toBeUndefined();
+    expect(planned.errors?.[0]?.extensions?.['code']).toBeUndefined();
+  });
+
+  it('R28 P1: strips GraphQLError extensions on PreCR serialize (hasArgs sibling)', () => {
+    const Ser = new GraphQLScalarType({
+      name: 'R28PreCRGqlSer',
+      serialize() {
+        throw new GraphQLError('ser gql', {
+          extensions: { code: 'SER_BOOM', CRITICAL_ERROR: true },
+        });
+      },
+    });
+    const Item = new GraphQLObjectType({
+      name: 'R28PreCRGqlItem',
+      fields: {
+        id: { type: Ser },
+        label: {
+          type: GraphQLString,
+          args: { lang: { type: GraphQLString } },
+          resolve: () => 'x',
+        },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+          ok: { type: GraphQLString, resolve: () => 'yes' },
+        },
+      }),
+    });
+    const document = parse('{ items { id label(lang: "en") } ok }');
+    const rootValue = { items: [{ id: 1, label: 'x' }] };
+    const planned = executeSync({ schema, document, rootValue });
+    const classic = executeClassicSync({ schema, document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { items: [{ id: null, label: 'x' }], ok: 'yes' },
+      errors: [expect.objectContaining({ message: 'ser gql', path: ['items', 0, 'id'] })],
+    });
+    expect(planned.errors?.[0]?.extensions?.['CRITICAL_ERROR']).toBeUndefined();
+  });
+
+  // R29: PreCR async serialize then-nullish must match classic (hasArgs forces PreCR).
+  it('R29: PreCR async serialize null / undefined / reject match classic', async () => {
+    for (const mode of ['null', 'undefined', 'reject', 'ok'] as const) {
+      const Ser = new GraphQLScalarType({
+        name: `R29PreCRAsync_${mode}`,
+        serialize(value) {
+          if (mode === 'ok') {
+            return Promise.resolve(`S:${String(value)}`);
+          }
+          if (mode === 'null') {
+            return Promise.resolve(null);
+          }
+          if (mode === 'undefined') {
+            return Promise.resolve(undefined);
+          }
+          return Promise.reject(new Error('precr async rej'));
+        },
+      });
+      const Item = new GraphQLObjectType({
+        name: `R29PreCRAsyncItem_${mode}`,
+        fields: {
+          id: { type: Ser },
+          label: {
+            type: GraphQLString,
+            args: { lang: { type: GraphQLString } },
+            resolve: () => 'x',
+          },
+        },
+      });
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            items: { type: new GraphQLList(Item) },
+            ok: { type: GraphQLString, resolve: () => 'yes' },
+          },
+        }),
+      });
+      const document = parse('{ items { id label(lang: "en") } ok }');
+      const rootValue = { items: [{ id: 1, label: 'x' }] };
+      const planned = assertSingular(await execute({ schema, document, rootValue }));
+      const classic = await executeClassic({ schema, document, rootValue });
+      expect(planned).toEqual(classic);
+      if (mode === 'ok') {
+        expect(planned).toEqual({
+          data: { items: [{ id: 'S:1', label: 'x' }], ok: 'yes' },
+        });
+      } else if (mode === 'reject') {
+        expect(planned).toMatchObject({
+          data: { items: [{ id: null, label: 'x' }], ok: 'yes' },
+          errors: [
+            expect.objectContaining({ message: 'precr async rej', path: ['items', 0, 'id'] }),
+          ],
+        });
+      } else if (mode === 'null') {
+        expect(planned).toEqual({
+          data: { items: [{ id: null, label: 'x' }], ok: 'yes' },
+        });
+      } else {
+        expect(planned.errors).toBeUndefined();
+        expect(planned.data?.ok).toBe('yes');
+      }
+    }
+  });
+
+  // R28 P2: async serializer (not resolver promise) — planned matches classic
+  // (do not invent nullish-serialize errors classic does not emit).
+  it('R28 P2: async serialize resolve / null / undefined / reject match classic', async () => {
+    for (const mode of ['ok', 'null', 'undefined', 'reject'] as const) {
+      const Ser = new GraphQLScalarType({
+        name: `R28AsyncSer_${mode}`,
+        serialize(value) {
+          if (mode === 'ok') {
+            return Promise.resolve(`S:${String(value)}`);
+          }
+          if (mode === 'null') {
+            return Promise.resolve(null);
+          }
+          if (mode === 'undefined') {
+            return Promise.resolve(undefined);
+          }
+          return Promise.reject(new Error('async ser rej'));
+        },
+      });
+      const Item = new GraphQLObjectType({
+        name: `R28AsyncItem_${mode}`,
+        fields: {
+          id: { type: Ser },
+          label: { type: GraphQLString },
+        },
+      });
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            items: { type: new GraphQLList(Item) },
+            ok: { type: GraphQLString, resolve: () => 'yes' },
+          },
+        }),
+      });
+      const document = parse('{ items { id label } ok }');
+      const rootValue = { items: [{ id: 1, label: 'x' }] };
+      const planned = assertSingular(await execute({ schema, document, rootValue }));
+      const classic = await executeClassic({ schema, document, rootValue });
+      expect(planned).toEqual(classic);
+      if (mode === 'ok') {
+        expect(planned).toEqual({
+          data: { items: [{ id: 'S:1', label: 'x' }], ok: 'yes' },
+        });
+      } else if (mode === 'reject') {
+        expect(planned).toMatchObject({
+          data: { items: [{ id: null, label: 'x' }], ok: 'yes' },
+          errors: [expect.objectContaining({ message: 'async ser rej', path: ['items', 0, 'id'] })],
+        });
+      } else if (mode === 'null') {
+        // Classic lands null without a field error for async nullish serialize.
+        expect(planned).toEqual({
+          data: { items: [{ id: null, label: 'x' }], ok: 'yes' },
+        });
+      } else {
+        // Classic omits undefined field values (no error).
+        expect(planned.errors).toBeUndefined();
+        expect(planned.data?.ok).toBe('yes');
+        expect((planned.data as { items: Array<{ label: string }> }).items[0].label).toBe('x');
+      }
+    }
+  });
+
+  // R28 P2: NonNull pending leaf null on optimized plain path.
+  it('R28 P2: NonNull pending leaf Promise.resolve(null) nulls item at path items.0.tag', async () => {
+    const Item = new GraphQLObjectType({
+      name: 'R28NNPendingItem',
+      fields: {
+        tag: { type: new GraphQLNonNull(GraphQLString) },
+        label: { type: GraphQLString },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          items: { type: new GraphQLList(Item) },
+          ok: { type: GraphQLString, resolve: () => 'yes' },
+        },
+      }),
+    });
+    const document = parse('{ items { tag label } ok }');
+    const rootValue = {
+      items: [{ tag: Promise.resolve(null), label: 'x' }],
+    };
+    const planned = assertSingular(await execute({ schema, document, rootValue }));
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { items: [null], ok: 'yes' },
+      errors: [
+        expect.objectContaining({
+          path: ['items', 0, 'tag'],
+          message: expect.stringContaining('non-nullable'),
+        }),
+      ],
+    });
+  });
+
+  // R24 P1-07: compile must not run custom scalar parseLiteral for skipped fields;
+  // holdArgumentError must not sticky-fail when the field is skipped.
+  it('P1-07: no compile-time custom parseLiteral on skipped fields; skip hides bad literal', () => {
+    let parseLiteralCalls = 0;
+    const Boom = new GraphQLScalarType({
+      name: 'BoomSkip',
+      serialize: v => v,
+      parseValue: v => v,
+      parseLiteral(ast) {
+        parseLiteralCalls += 1;
+        if (ast.kind === 'StringValue' && ast.value === 'bad') {
+          throw new GraphQLError('boom literal');
+        }
+        return valueFromASTUntyped(ast);
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          ok: { type: GraphQLString, resolve: () => 'ok' },
+          echo: {
+            type: Boom,
+            args: { msg: { type: Boom } },
+            resolve: (_s, args: { msg: unknown }) => args.msg,
+          },
+        },
+      }),
+    });
+    const document = parse('query ($s: Boolean!) { ok echo(msg: "hi") @skip(if: $s) }');
+    clearExecutionPlanCache(document);
+    parseLiteralCalls = 0;
+    const plan = compileExecutionPlan({ schema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    // Compile must not coerce skipped-field custom literals.
+    expect(parseLiteralCalls).toBe(0);
+
+    parseLiteralCalls = 0;
+    const skipped = executeSync({
+      schema,
+      document,
+      variableValues: { s: true },
+    });
+    expect(skipped).toEqual({ data: { ok: 'ok' } });
+    expect(parseLiteralCalls).toBe(0);
+
+    const badDoc = parse('query ($s: Boolean!) { ok echo(msg: "bad") @skip(if: $s) }');
+    clearExecutionPlanCache(badDoc);
+    const badPlan = compileExecutionPlan({ schema, document: badDoc });
+    expect(isExecutionPlan(badPlan)).toBe(true);
+    // Skipped: holdArgumentError must not surface.
+    expect(executeSync({ schema, document: badDoc, variableValues: { s: true } })).toEqual({
+      data: { ok: 'ok' },
+    });
+    // Included: bad literal errors like classic.
+    const included = executeSync({ schema, document: badDoc, variableValues: { s: false } });
+    const classic = executeClassicSync({
+      schema,
+      document: badDoc,
+      variableValues: { s: false },
+    });
+    expect(included.errors?.length).toBeGreaterThan(0);
+    expect(included).toEqual(classic);
+  });
+
+  // R24/R25 V03: @oneOf — planned read count matches classic (no planned-only double-read).
+  it('V03: @oneOf coerce read count matches classic', () => {
+    const oneOfInput = new GraphQLInputObjectType({
+      name: 'V03OneOf',
+      isOneOf: true,
+      fields: {
+        a: { type: GraphQLString },
+        b: { type: GraphQLInt },
+      },
+    });
+    const oneOfSchema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          test: {
+            type: GraphQLString,
+            args: { input: { type: new GraphQLNonNull(oneOfInput) } },
+            resolve: (_src, args: { input: { a?: string } }) => args.input.a ?? null,
+          },
+        },
+      }),
+    });
+    const document = parse('query ($input: V03OneOf!) { test(input: $input) }');
+    const plan = compileExecutionPlan({ schema: oneOfSchema, document });
+    expect(isExecutionPlan(plan)).toBe(true);
+    if (!isExecutionPlan(plan)) {
+      return;
+    }
+    const makeRaw = (counter: { n: number }) => ({
+      input: {
+        get a() {
+          counter.n += 1;
+          return 'only';
+        },
+      },
+    });
+    const plannedCount = { n: 0 };
+    const planned = plan.coerceVariables(makeRaw(plannedCount));
+    expect('variableValues' in planned).toBe(true);
+    // Classic via knownPlan=null path.
+    const classicCount = { n: 0 };
+    const classicCtx = buildExecutionContext(
+      { schema: oneOfSchema, document, variableValues: makeRaw(classicCount) },
+      null,
+    );
+    expect('schema' in classicCtx).toBe(true);
+    expect(plannedCount.n).toBe(classicCount.n);
+  });
+
+  // R25 V04: resolver args mutation contract — planned matches classic (not merely isFrozen).
+  it('V04: resolver args mutation matches classic (empty + static)', () => {
+    const makeSchema = (tag: string) =>
+      new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            id: {
+              type: GraphQLString,
+              resolve(_s, args: Record<string, unknown>) {
+                args['__probe'] = 1;
+                return args['__probe'] === 1 ? `${tag}-mut` : `${tag}-frozen`;
+              },
+            },
+            hello: {
+              type: GraphQLString,
+              args: { name: { type: GraphQLString } },
+              resolve(_s, args: { name?: string }) {
+                const before = args.name;
+                args.name = 'MUT';
+                return `${tag}:${before}->${args.name}`;
+              },
+            },
+          },
+        }),
+      });
+    const idDoc = parse('{ id }');
+    const helloDoc = parse('{ hello(name: "Ada") }');
+    expect(executeSync({ schema: makeSchema('P'), document: idDoc })).toEqual(
+      executeClassicSync({ schema: makeSchema('C'), document: idDoc }),
+    );
+    expect(executeSync({ schema: makeSchema('P'), document: helloDoc }).data).toEqual({
+      hello: 'P:Ada->MUT',
+    });
+    expect(executeClassicSync({ schema: makeSchema('C'), document: helloDoc }).data).toEqual({
+      hello: 'C:Ada->MUT',
+    });
+  });
+
+  // R25 V05: exact `@skip(if:$skip) @include(if:false)` with `{skip:null}`.
+  it('V05: skip(null) + include(false) matches classic', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          value: { type: GraphQLString, resolve: () => 'V' },
+          other: { type: GraphQLString, resolve: () => 'O' },
+        },
+      }),
+    });
+    const document = parse(`
+      query Test($skip: Boolean = false) {
+        value @skip(if: $skip) @include(if: false)
+        other
+      }
+    `);
+    const vars = { skip: null };
+    const planned = executeSync({ schema, document, variableValues: vars });
+    const classic = executeClassicSync({ schema, document, variableValues: vars });
+    expect(planned).toEqual(classic);
+    expect(planned).toEqual({ data: { other: 'O' } });
+  });
+});
+
+describe('list completion: retain preflight item reads', () => {
+  it('does not reread accessor array slots after object-list preflight', () => {
+    const Item = new GraphQLObjectType({
+      name: 'AccessorItem',
+      fields: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+      },
+    });
+    let reads = 0;
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(new GraphQLNonNull(Item)) },
+        },
+      }),
+    });
+    const document = parse('{ users { id } }');
+    const rootValue = {
+      users() {
+        const base: Array<{ id: string } | null> = [{ id: '1' }];
+        return new Proxy(base, {
+          get(target, prop, receiver) {
+            if (prop === '0') {
+              reads += 1;
+              return reads === 1 ? { id: '1' } : null;
+            }
+            return Reflect.get(target, prop, receiver);
+          },
+        });
+      },
+    };
+    reads = 0;
+    const planned = executeSync({ schema, document, rootValue });
+    const plannedReads = reads;
+    reads = 0;
+    const classic = executeClassicSync({ schema, document, rootValue });
+    // Classic reads once; planned must match (not store null from a second read).
+    expect(planned).toEqual(classic);
+    expect(planned).toEqual({ data: { users: [{ id: '1' }] } });
+    // Single-pass must not double-hit the accessor (one retained read).
+    expect(plannedReads).toBe(1);
+  });
+
+  it('does not reread accessors when object-list preflight fails (NonNull null item)', () => {
+    const Item = new GraphQLObjectType({
+      name: 'FailPreflightItem',
+      fields: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+      },
+    });
+    let reads0 = 0;
+    let reads1 = 0;
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          // Nullable list of NonNull items: null item → list field null + error.
+          users: { type: new GraphQLList(new GraphQLNonNull(Item)) },
+        },
+      }),
+    });
+    const document = parse('{ users { id } }');
+    const rootValue = {
+      users() {
+        const base: Array<{ id: string } | null> = [{ id: '1' }, null];
+        return new Proxy(base, {
+          get(target, prop, receiver) {
+            if (prop === '0') {
+              reads0 += 1;
+              // Second read would flip the value — must not happen.
+              return reads0 === 1 ? { id: '1' } : { id: 'CHANGED' };
+            }
+            if (prop === '1') {
+              reads1 += 1;
+              return null;
+            }
+            return Reflect.get(target, prop, receiver);
+          },
+        });
+      },
+    };
+    reads0 = 0;
+    reads1 = 0;
+    const planned = executeSync({ schema, document, rootValue });
+    expect(planned).toMatchObject({
+      data: { users: null },
+      errors: [{ path: ['users', 1] }],
+    });
+    // Index 0 observed once; index 1 once — no double-read of retained slots.
+    expect(reads0).toBe(1);
+    expect(reads1).toBe(1);
+  });
+
+  it('does not reread String-list accessors when mid-list null forces fast-path fallback', () => {
+    let reads = 0;
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(GraphQLString),
+            resolve: () => {
+              const values: Array<string | null> = ['first', null];
+              Object.defineProperty(values, '0', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  reads += 1;
+                  // Re-read would yield "changed" — must not happen after mid-null fallback.
+                  return reads === 1 ? 'first' : 'changed';
+                },
+              });
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    reads = 0;
+    const planned = executeSync({ schema, document });
+    // Retained first read + null second item; re-read would have produced "changed".
+    expect(planned).toEqual({ data: { values: ['first', null] } });
+    expect(reads).toBe(1);
+  });
+
+  it('does not reread Int-list accessors when mid-list null forces allPrimitive fallback', () => {
+    let reads = 0;
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(GraphQLInt),
+            resolve: () => {
+              const values: Array<number | null> = [1, null];
+              Object.defineProperty(values, '0', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  reads += 1;
+                  return reads === 1 ? 1 : 2;
+                },
+              });
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    reads = 0;
+    const planned = executeSync({ schema, document });
+    expect(planned).toEqual({ data: { values: [1, null] } });
+    expect(reads).toBe(1);
+  });
+
+  it('does not read later object-list accessors after NonNull null item', () => {
+    const Item = new GraphQLObjectType({
+      name: 'StopAfterNullItem',
+      fields: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+      },
+    });
+    let plannedRead2 = 0;
+    let classicRead2 = 0;
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          // Default property resolve — thin object-list path (not schemaResolve).
+          users: { type: new GraphQLList(new GraphQLNonNull(Item)) },
+        },
+      }),
+    });
+    const document = parse('{ users { id } }');
+    const makeRoot = (onRead2: () => void) => ({
+      users() {
+        const users: Array<{ id: string } | null> = [{ id: '1' }, null, { id: '3' }];
+        Object.defineProperty(users, '2', {
+          configurable: true,
+          enumerable: true,
+          get() {
+            onRead2();
+            throw new Error('Unexpected read');
+          },
+        });
+        return users;
+      },
+    });
+    const planned = executeSync({
+      schema,
+      document,
+      rootValue: makeRoot(() => {
+        plannedRead2 += 1;
+      }),
+    });
+    expect(planned).toMatchObject({
+      data: { users: null },
+      errors: [{ path: ['users', 1] }],
+    });
+    expect(plannedRead2).toBe(0);
+    const classic = executeClassicSync({
+      schema,
+      document,
+      rootValue: makeRoot(() => {
+        classicRead2 += 1;
+      }),
+    });
+    expect(planned).toEqual(classic);
+    expect(classicRead2).toBe(0);
+  });
+
+  it('does not read later accessors when earlier item child NonNull fails', () => {
+    const Item = new GraphQLObjectType({
+      name: 'ChildNullItem',
+      fields: {
+        id: {
+          type: new GraphQLNonNull(GraphQLString),
+          resolve: () => null,
+        },
+      },
+    });
+    let plannedRead1 = 0;
+    let classicRead1 = 0;
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(new GraphQLNonNull(Item)) },
+        },
+      }),
+    });
+    const document = parse('{ users { id } }');
+    const makeRoot = (onRead1: () => void) => ({
+      users() {
+        const users: Array<Record<string, never>> = [{}, {}];
+        Object.defineProperty(users, '1', {
+          configurable: true,
+          enumerable: true,
+          get() {
+            onRead1();
+            throw new Error('Unexpected later read');
+          },
+        });
+        return users;
+      },
+    });
+    const planned = executeSync({
+      schema,
+      document,
+      rootValue: makeRoot(() => {
+        plannedRead1 += 1;
+      }),
+    });
+    expect(planned).toMatchObject({
+      data: { users: null },
+      errors: [{ path: ['users', 0, 'id'] }],
+    });
+    expect(plannedRead1).toBe(0);
+    const classic = executeClassicSync({
+      schema,
+      document,
+      rootValue: makeRoot(() => {
+        classicRead1 += 1;
+      }),
+    });
+    expect(planned).toEqual(classic);
+    expect(classicRead1).toBe(0);
+  });
+
+  // process.on('unhandledRejection') retains the Jest isolate under --detectLeaks
+  // (Node 22 + GraphQL 17 CI). Skip the observation assertion there; unit tests still cover it.
+  (process.env['LEAK_TEST'] ? it.skip : it)(
+    'observes pending item promises when a later default-resolved list accessor throws',
+    async () => {
+      const Item = new GraphQLObjectType({
+        name: 'PendingDefaultItem',
+        fields: {
+          id: { type: new GraphQLNonNull(GraphQLString) },
+        },
+      });
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            // Default property resolve — exercises thin object-list + classic list paths.
+            users: { type: new GraphQLList(new GraphQLNonNull(Item)) },
+          },
+        }),
+      });
+      const document = parse('{ users { id } }');
+      const makeRoot = (): { rootValue: { users: Array<unknown> }; getRead2: () => number } => {
+        let read2 = 0;
+        const users: Array<unknown> = [
+          Promise.reject(Object.assign(new Error('pending fail'), { name: 'PendingFail' })),
+          { id: 'ok' },
+          { id: 'tail' },
+        ];
+        Object.defineProperty(users, '2', {
+          configurable: true,
+          enumerable: true,
+          get() {
+            read2 += 1;
+            throw new Error('tail accessor');
+          },
+        });
+        return { rootValue: { users }, getRead2: () => read2 };
+      };
+      const expected = {
+        data: { users: null },
+        errors: [{ message: 'tail accessor', path: ['users'] }],
+      };
+      let unhandled = 0;
+      const onUnhandled = (): void => {
+        unhandled += 1;
+      };
+      process.on('unhandledRejection', onUnhandled);
+      try {
+        const plannedRoot = makeRoot();
+        const planned = await execute({ schema, document, rootValue: plannedRoot.rootValue });
+        const classicRoot = makeRoot();
+        const classicCtx = buildExecutionContext(
+          { schema, document, rootValue: classicRoot.rootValue },
+          null,
+        );
+        expect('schema' in classicCtx).toBe(true);
+        if (!('schema' in classicCtx)) {
+          throw new Error('expected classic execution context');
+        }
+        const classic = await executeImpl(classicCtx);
+        // Flush microtasks so a leaked derived rejection would surface.
+        await new Promise<void>(resolve => {
+          setImmediate(resolve);
+        });
+        expect(unhandled).toBe(0);
+        expect(plannedRoot.getRead2()).toBe(1);
+        expect(classicRoot.getRead2()).toBe(1);
+        expect(planned).toMatchObject(expected);
+        expect(classic).toMatchObject(expected);
+        expect(planned).toEqual(classic);
+      } finally {
+        process.off('unhandledRejection', onUnhandled);
+      }
+    },
+  );
+
+  it('strips GraphQLError extensions from retained-prefix leaf serialize (sibling fields survive)', () => {
+    const ExtScalar = new GraphQLScalarType({
+      name: 'ExtScalar',
+      serialize(value: unknown) {
+        if (value === 1) {
+          throw new GraphQLError('boom', { extensions: { CRITICAL_ERROR: true } });
+        }
+        if (value == null) {
+          return null;
+        }
+        return String(value);
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          // Mid-list null forces retained-prefix serialize of index 0.
+          values: {
+            type: new GraphQLList(ExtScalar),
+            resolve: () => [1, null],
+          },
+          ok: {
+            type: GraphQLString,
+            resolve: () => 'yes',
+          },
+        },
+      }),
+    });
+    const document = parse('{ values ok }');
+    const planned = executeSync({ schema, document });
+    const classic = executeClassicSync({ schema, document });
+    // completeLeafValue strips CRITICAL_ERROR so only the item nulls — not the root.
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { values: [null, null], ok: 'yes' },
+      errors: [{ message: 'boom', path: ['values', 0] }],
+    });
+    expect(planned.errors?.[0]?.extensions?.['CRITICAL_ERROR']).toBeUndefined();
+  });
+
+  it('does not reread snapshot slots when a prefix serialize returns a thenable', async () => {
+    let reads = 0;
+    const AsyncScalar = new GraphQLScalarType({
+      name: 'AsyncScalar',
+      serialize(value: unknown) {
+        if (value === 'first') {
+          return Promise.resolve('FIRST');
+        }
+        return String(value);
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(AsyncScalar),
+            resolve: () => {
+              const values: Array<unknown> = ['first', 'second'];
+              Object.defineProperty(values, '1', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  reads += 1;
+                  if (reads > 1) {
+                    throw new Error('second re-read');
+                  }
+                  return 'second';
+                },
+              });
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    reads = 0;
+    const planned = await execute({ schema, document });
+    const plannedReads = reads;
+    reads = 0;
+    const classicCtx = buildExecutionContext({ schema, document }, null);
+    expect('schema' in classicCtx).toBe(true);
+    if (!('schema' in classicCtx)) {
+      throw new Error('expected classic execution context');
+    }
+    const classic = await executeImpl(classicCtx);
+    expect(planned).toEqual(classic);
+    expect(planned).toEqual({ data: { values: ['FIRST', 'second'] } });
+    expect(plannedReads).toBe(1);
+  });
+
+  it('does not replay completed custom-scalar serializes when a later item returns null', () => {
+    let serializeCalls = 0;
+    const CountingScalar = new GraphQLScalarType({
+      name: 'CountingScalar',
+      serialize(value: unknown) {
+        serializeCalls += 1;
+        if (value === 'fail') {
+          return null;
+        }
+        return String(value);
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(CountingScalar),
+            resolve: () => ['ok', 'fail'],
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    serializeCalls = 0;
+    const planned = executeSync({ schema, document });
+    const plannedCalls = serializeCalls;
+    serializeCalls = 0;
+    const classic = executeClassicSync({ schema, document });
+    const classicCalls = serializeCalls;
+    // Mid-list null serialize must not re-invoke serialize on the completed prefix.
+    expect(planned).toEqual(classic);
+    expect(plannedCalls).toBe(classicCalls);
+    // One serialize per item (ok + fail) — no replay of the completed prefix.
+    expect(plannedCalls).toBe(2);
+  });
+
+  it('does not use String fast-path when GraphQLString.serialize is replaced', () => {
+    const originalSerialize = GraphQLString.serialize;
+    GraphQLString.serialize = (value: unknown) =>
+      value === 'secret' ? 'masked' : originalSerialize(value);
+    try {
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            values: {
+              type: new GraphQLList(GraphQLString),
+              resolve: () => ['secret', 'ok'],
+            },
+          },
+        }),
+      });
+      const document = parse('{ values }');
+      const planned = executeSync({ schema, document });
+      const classic = executeClassicSync({ schema, document });
+      expect(planned).toEqual(classic);
+      expect(planned).toEqual({ data: { values: ['masked', 'ok'] } });
+    } finally {
+      GraphQLString.serialize = originalSerialize;
+    }
+  });
+});
+
+describe('object-list thin path: r8 differential matrix', () => {
+  const Item = new GraphQLObjectType({
+    name: 'R8Item',
+    fields: {
+      id: {
+        type: new GraphQLNonNull(GraphQLString),
+        // Async child resolver: completeListItemValue returns a thenable that
+        // the object-list thin path must await (r8 §3).
+        async resolve(source: unknown) {
+          return String(source);
+        },
+      },
+    },
+  });
+  const ItemPlain = new GraphQLObjectType({
+    name: 'R8ItemPlain',
+    fields: {
+      id: { type: new GraphQLNonNull(GraphQLString) },
+    },
+  });
+
+  function nonNullUsersSchema(itemType: GraphQLObjectType = ItemPlain) {
+    return new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          // Default property resolve → thin object-list path.
+          users: { type: new GraphQLList(new GraphQLNonNull(itemType)) },
+          ok: { type: GraphQLString, resolve: () => 'yes' },
+        },
+      }),
+    });
+  }
+
+  function nullableUsersSchema(itemType: GraphQLObjectType = ItemPlain) {
+    return new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(itemType) },
+          ok: { type: GraphQLString, resolve: () => 'yes' },
+        },
+      }),
+    });
+  }
+
+  it('localizes sync NonNull null item at the item path', () => {
+    const schema = nonNullUsersSchema();
+    const document = parse('{ users { id } ok }');
+    const rootValue = { users: [{ id: '1' }, null] };
+    const planned = executeSync({ schema, document, rootValue });
+    const classic = executeClassicSync({ schema, document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { users: null, ok: 'yes' },
+      errors: [{ path: ['users', 1], message: expect.stringContaining('non-nullable') }],
+    });
+  });
+
+  it('localizes Promise.resolve(null) NonNull item at the item path', async () => {
+    const schema = nonNullUsersSchema();
+    const document = parse('{ users { id } ok }');
+    const rootValue = { users: [{ id: '1' }, Promise.resolve(null)] };
+    const planned = await execute({ schema, document, rootValue });
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { users: null, ok: 'yes' },
+      errors: [{ path: ['users', 1], message: expect.stringContaining('non-nullable') }],
+    });
+  });
+
+  it('localizes Promise.reject(Error) with path and locations (nullable item)', async () => {
+    const schema = nullableUsersSchema();
+    const document = parse('{ users { id } ok }');
+    const rootValue = {
+      users: [Promise.reject(new Error('reject boom'))],
+    };
+    const planned = await execute({ schema, document, rootValue });
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { users: [null], ok: 'yes' },
+      errors: [{ message: 'reject boom', path: ['users', 0], locations: [{ line: 1, column: 3 }] }],
+    });
+  });
+
+  it('localizes Promise.reject(GraphQLError) like classic', async () => {
+    const schema = nullableUsersSchema();
+    const document = parse('{ users { id } ok }');
+    const rootValue = {
+      users: [Promise.reject(new GraphQLError('gql reject'))],
+    };
+    const planned = await execute({ schema, document, rootValue });
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { users: [null], ok: 'yes' },
+      errors: [{ message: 'gql reject', path: ['users', 0] }],
+    });
+  });
+
+  it('localizes Promise.resolve(Error) with classic metadata', async () => {
+    const schema = nullableUsersSchema();
+    const document = parse('{ users { id } ok }');
+    const rootValue = {
+      users: [Promise.resolve(new Error('resolved err'))],
+    };
+    const planned = await execute({ schema, document, rootValue });
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { users: [null], ok: 'yes' },
+      errors: [
+        { message: 'resolved err', path: ['users', 0], locations: [{ line: 1, column: 3 }] },
+      ],
+    });
+  });
+
+  it('awaits async child completion for Promise.resolve(primitive) object items', async () => {
+    const schema = nonNullUsersSchema(Item);
+    const document = parse('{ users { id } }');
+    const rootValue = { users: [Promise.resolve(42)] };
+    const planned = await execute({ schema, document, rootValue });
+    const classic = await executeClassic({ schema, document, rootValue });
+    expect(planned).toEqual(classic);
+    expect(planned).toEqual({ data: { users: [{ id: '42' }] } });
+  });
+
+  it('matches classic schemaCoordinateInErrors on object-list item errors', async () => {
+    const schema = nullableUsersSchema();
+    const document = parse('{ users { id } ok }');
+    const rootValue = {
+      users: [Promise.reject(new Error('coord boom'))],
+    };
+    const args = { schema, document, rootValue, schemaCoordinateInErrors: true };
+    const planned = await execute(args);
+    const classic = await executeClassic(args);
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { users: [null], ok: 'yes' },
+      errors: [
+        {
+          message: 'coord boom',
+          path: ['users', 0],
+          coordinate: 'Query.users',
+        },
+      ],
+    });
+  });
+
+  it('trims completedResults when an item truncates the array mid-loop', () => {
+    const TruncItem = new GraphQLObjectType({
+      name: 'TruncItem',
+      fields: {
+        id: {
+          type: new GraphQLNonNull(GraphQLString),
+          resolve(source: { id: string; shrink?: () => void }) {
+            source.shrink?.();
+            return source.id;
+          },
+        },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          users: { type: new GraphQLList(new GraphQLNonNull(TruncItem)) },
+        },
+      }),
+    });
+    const document = parse('{ users { id } }');
+    const makeUsers = (): Array<{ id: string; shrink?: () => void }> => {
+      const users: Array<{ id: string; shrink?: () => void }> = [
+        {
+          id: '1',
+          shrink() {
+            users.length = 1;
+          },
+        },
+        { id: '2' },
+      ];
+      return users;
+    };
+    const planned = executeSync({ schema, document, rootValue: { users: makeUsers() } });
+    const classic = executeClassicSync({
+      schema,
+      document,
+      rootValue: { users: makeUsers() },
+    });
+    expect(planned).toEqual(classic);
+    // Preallocated output must not keep a trailing hole as null.
+    expect(planned).toEqual({ data: { users: [{ id: '1' }] } });
+    expect(planned.data?.users).toHaveLength(1);
+  });
+
+  (process.env['LEAK_TEST'] ? it.skip : it)(
+    'does not pre-read later custom-scalar slots when earlier NonNull serialize fails',
+    async () => {
+      // Classic reports path ["values", 0] without touching later getters. Planned
+      // must match: pre-reading a getter that returns a rejected promise would
+      // orphan that rejection if prefix NonNull failure returns first.
+      let plannedTailReads = 0;
+      let classicTailReads = 0;
+      const Custom = new GraphQLScalarType({
+        name: 'CustomNonNullFail',
+        serialize(value: unknown) {
+          if (value === 1) {
+            throw new Error('ser 1');
+          }
+          return String(value);
+        },
+      });
+      const document = parse('{ values }');
+      const makeSchema = () =>
+        new GraphQLSchema({
+          query: new GraphQLObjectType({
+            name: 'Query',
+            fields: {
+              values: {
+                type: new GraphQLList(new GraphQLNonNull(Custom)),
+                resolve(_src, _args, ctx: { onTail: () => void }) {
+                  const values: Array<unknown> = [1, 2];
+                  Object.defineProperty(values, '1', {
+                    configurable: true,
+                    enumerable: true,
+                    get() {
+                      ctx.onTail();
+                      return Promise.reject(new Error('tail rejected'));
+                    },
+                  });
+                  return values;
+                },
+              },
+            },
+          }),
+        });
+      let unhandled = 0;
+      const onUnhandled = (): void => {
+        unhandled += 1;
+      };
+      process.on('unhandledRejection', onUnhandled);
+      try {
+        const planned = await execute({
+          schema: makeSchema(),
+          document,
+          contextValue: {
+            onTail: () => {
+              plannedTailReads += 1;
+            },
+          },
+        });
+        await new Promise<void>(resolve => {
+          setImmediate(resolve);
+        });
+        expect(planned).toMatchObject({
+          data: { values: null },
+          errors: [{ message: 'ser 1', path: ['values', 0] }],
+        });
+        expect(plannedTailReads).toBe(0);
+        expect(unhandled).toBe(0);
+
+        const classic = await executeClassic({
+          schema: makeSchema(),
+          document,
+          contextValue: {
+            onTail: () => {
+              classicTailReads += 1;
+            },
+          },
+        });
+        await new Promise<void>(resolve => {
+          setImmediate(resolve);
+        });
+        expect(planned).toEqual(classic);
+        expect(classicTailReads).toBe(0);
+        expect(unhandled).toBe(0);
+      } finally {
+        process.off('unhandledRejection', onUnhandled);
+      }
+    },
+  );
+
+  it('sees serializer mutations of later leaf-list slots (planned == classic)', async () => {
+    // serialize(1) rewrites values[1] before returning a thenable; classic
+    // re-reads that slot when completion reaches it. Planned must not resume
+    // from a pre-serialize snapshot of unread slots.
+    const document = parse('{ values }');
+    const makeSchema = () => {
+      let values: Array<unknown> = [];
+      const Mutating = new GraphQLScalarType({
+        name: 'MutatingSer',
+        serialize(value: unknown) {
+          if (value === 1) {
+            values[1] = 3;
+            return Promise.resolve('1');
+          }
+          return String(value);
+        },
+      });
+      return new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            values: {
+              type: new GraphQLList(Mutating),
+              resolve() {
+                values = [1, 2];
+                return values;
+              },
+            },
+          },
+        }),
+      });
+    };
+    const planned = await execute({ schema: makeSchema(), document });
+    const classic = await executeClassic({ schema: makeSchema(), document });
+    expect(planned).toEqual({ data: { values: ['1', '3'] } });
+    expect(planned).toEqual(classic);
+  });
+
+  it('trims leaf-list output when serialize truncates the input array', () => {
+    let values: Array<unknown> = [];
+    const Truncating = new GraphQLScalarType({
+      name: 'TruncatingSer',
+      serialize(value: unknown) {
+        if (value === 1) {
+          values.length = 1;
+          return '1';
+        }
+        return String(value);
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(new GraphQLNonNull(Truncating)),
+            resolve() {
+              values = [1, 2];
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    const planned = executeSync({ schema, document });
+    const classic = executeClassicSync({ schema, document });
+    expect(planned).toEqual({ data: { values: ['1'] } });
+    expect(planned.data?.values).toStrictEqual(['1']);
+    expect(planned).toEqual(classic);
+  });
+
+  it('trims GraphQLString leaf-list when a getter truncates after the read', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(GraphQLString),
+            resolve() {
+              const values: Array<unknown> = ['a', 'b'];
+              Object.defineProperty(values, '0', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  values.length = 1;
+                  return 'a';
+                },
+              });
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    const planned = executeSync({ schema, document });
+    const classic = executeClassicSync({ schema, document });
+    expect(planned).toEqual(classic);
+    expect(planned.data?.values).toStrictEqual(['a']);
+    expect((planned.data?.values as unknown[]).length).toBe(1);
+  });
+
+  // R11 P3: array mutation edges not covered by truncate-to-one alone.
+  it('trims GraphQLString leaf-list when a getter truncates to empty after the first read', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(GraphQLString),
+            resolve() {
+              const values: Array<unknown> = ['a', 'b'];
+              Object.defineProperty(values, '0', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  values.length = 0;
+                  return 'a';
+                },
+              });
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    const planned = executeSync({ schema, document });
+    const classic = executeClassicSync({ schema, document });
+    // Visited slot kept; unread holes trimmed (not length-0 wipe of the returned value).
+    expect(planned).toEqual(classic);
+    expect(planned.data?.values).toStrictEqual(['a']);
+    expect((planned.data?.values as unknown[]).length).toBe(1);
+  });
+
+  it('sees later slots grown during GraphQLString leaf-list traversal (planned == classic)', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(GraphQLString),
+            resolve() {
+              const values: Array<unknown> = ['a'];
+              Object.defineProperty(values, '0', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  values.push('b');
+                  return 'a';
+                },
+              });
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    const planned = executeSync({ schema, document });
+    const classic = executeClassicSync({ schema, document });
+    expect(planned).toEqual(classic);
+    expect(planned).toEqual({ data: { values: ['a', 'b'] } });
+  });
+
+  it('falls back after GraphQLString truncate mid-list then a null slot', () => {
+    // First slot truncates then grows a null; String fast retains at the null
+    // and the general path completes without re-reading index 0.
+    let reads0 = 0;
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(GraphQLString),
+            resolve() {
+              const values: Array<unknown> = ['a', 'b'];
+              Object.defineProperty(values, '0', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  reads0 += 1;
+                  values.length = 1;
+                  values.push(null);
+                  return 'a';
+                },
+              });
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    reads0 = 0;
+    const planned = executeSync({ schema, document });
+    const plannedReads = reads0;
+    reads0 = 0;
+    const classic = executeClassicSync({ schema, document });
+    expect(planned).toEqual(classic);
+    expect(planned).toEqual({ data: { values: ['a', null] } });
+    expect(plannedReads).toBe(1);
+    expect(reads0).toBe(1);
+  });
+
+  it('does not re-read earlier slots when a later GraphQLString getter throws', () => {
+    let reads0 = 0;
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          values: {
+            type: new GraphQLList(GraphQLString),
+            resolve() {
+              const values: Array<unknown> = ['a', 'b'];
+              Object.defineProperty(values, '0', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  reads0 += 1;
+                  return 'a';
+                },
+              });
+              Object.defineProperty(values, '1', {
+                configurable: true,
+                enumerable: true,
+                get() {
+                  throw new Error('tail throw');
+                },
+              });
+              return values;
+            },
+          },
+        },
+      }),
+    });
+    const document = parse('{ values }');
+    reads0 = 0;
+    const planned = executeSync({ schema, document });
+    const plannedReads = reads0;
+    reads0 = 0;
+    const classic = executeClassicSync({ schema, document });
+    expect(planned).toEqual(classic);
+    expect(planned).toMatchObject({
+      data: { values: null },
+      errors: [{ message: 'tail throw', path: ['values'] }],
+    });
+    expect(plannedReads).toBe(1);
+    expect(reads0).toBe(1);
+  });
+
+  it('keeps indexed traversal when serialize installs a custom iterator', async () => {
+    const document = parse('{ values }');
+    const makeSchema = () => {
+      let values: Array<unknown> = [];
+      const FlipIter = new GraphQLScalarType({
+        name: 'FlipIterSer',
+        serialize(value: unknown) {
+          if (value === 1) {
+            (values as { [Symbol.iterator]: () => Iterator<unknown> })[Symbol.iterator] =
+              function* () {
+                yield 9;
+              };
+            return Promise.resolve('1');
+          }
+          return String(value);
+        },
+      });
+      return new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            values: {
+              type: new GraphQLList(FlipIter),
+              resolve() {
+                values = [1, 2];
+                return values;
+              },
+            },
+          },
+        }),
+      });
+    };
+    const planned = await execute({ schema: makeSchema(), document });
+    const classic = await executeClassic({ schema: makeSchema(), document });
+    expect(planned).toEqual({ data: { values: ['1', '2'] } });
+    expect(planned).toEqual(classic);
+  });
+
+  it('classic knownPlan=null does not compile or cache a plan', () => {
+    let parseLiteralCalls = 0;
+    const Echo = new GraphQLScalarType({
+      name: 'EchoClassicNull',
+      serialize: value => value,
+      parseValue: value => value,
+      parseLiteral(ast) {
+        parseLiteralCalls += 1;
+        return valueFromASTUntyped(ast);
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          echo: {
+            type: Echo,
+            args: { msg: { type: Echo } },
+            resolve: (_s, args: { msg: unknown }) => args.msg,
+          },
+        },
+      }),
+    });
+    const document = parse(`{ echo(msg: "hi") }`);
+    clearExecutionPlanCache(document);
+    const classic = executeClassicSync({ schema, document });
+    expect(classic).toEqual({ data: { echo: 'hi' } });
+    expect(getExecutionPlan(schema, document)).toBeUndefined();
+    // Classic coercion ran parseLiteral once; plan compile did not add another.
+    expect(parseLiteralCalls).toBe(1);
+  });
+});
+
+describe('list completion: observe pending without re-inspect', () => {
+  // process.on('unhandledRejection') retains the Jest isolate under --detectLeaks.
+  (process.env['LEAK_TEST'] ? it.skip : it)(
+    'observes recorded item promises on sync abort without re-isPromise slots',
+    async () => {
+      let thenReads = 0;
+      let flip = false;
+      const Custom = new GraphQLScalarType({
+        name: 'ObserveCustom',
+        serialize(value: unknown) {
+          if (value === 'pending') {
+            return Promise.reject(
+              Object.assign(new Error('pending fail'), { name: 'PendingFail' }),
+            );
+          }
+          if (value === 'thenable') {
+            const obj: Record<string, unknown> = { ok: true };
+            Object.defineProperty(obj, 'then', {
+              configurable: true,
+              enumerable: false,
+              get() {
+                thenReads += 1;
+                if (flip) {
+                  throw new Error('then re-read');
+                }
+                // First isPromise: undefined → sync completed value.
+                return undefined;
+              },
+            });
+            return obj;
+          }
+          return String(value);
+        },
+      });
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: 'Query',
+          fields: {
+            values: {
+              type: new GraphQLList(new GraphQLNonNull(Custom)),
+              resolve: () => {
+                const values: Array<unknown> = ['thenable', 'pending', 'tail'];
+                Object.defineProperty(values, '2', {
+                  configurable: true,
+                  enumerable: true,
+                  get() {
+                    flip = true;
+                    throw new Error('tail accessor');
+                  },
+                });
+                return values;
+              },
+            },
+          },
+        }),
+      });
+      const document = parse('{ values }');
+      let unhandled = 0;
+      const onUnhandled = (): void => {
+        unhandled += 1;
+      };
+      process.on('unhandledRejection', onUnhandled);
+      try {
+        // Classic completeListValue owns the sync-abort observe path under test.
+        thenReads = 0;
+        flip = false;
+        const classic = await executeClassic({ schema, document });
+        await new Promise<void>(resolve => {
+          setImmediate(resolve);
+        });
+        expect(unhandled).toBe(0);
+        expect(classic).toMatchObject({
+          data: { values: null },
+          errors: [{ message: 'tail accessor', path: ['values'] }],
+        });
+        // Cleanup must not re-read the sync thenable slot (would throw 'then re-read').
+        expect(thenReads).toBe(1);
+
+        unhandled = 0;
+        thenReads = 0;
+        flip = false;
+        const planned = await execute({ schema, document });
+        await new Promise<void>(resolve => {
+          setImmediate(resolve);
+        });
+        expect(unhandled).toBe(0);
+        expect(planned).toMatchObject({
+          data: { values: null },
+          errors: [{ message: 'tail accessor', path: ['values'] }],
+        });
+      } finally {
+        process.off('unhandledRejection', onUnhandled);
+      }
+    },
+  );
+});
