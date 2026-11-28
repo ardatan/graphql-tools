@@ -1,4 +1,4 @@
-import { getOperationAST, GraphQLSchema } from 'graphql';
+import { DocumentNode, getOperationAST, GraphQLSchema } from 'graphql';
 import {
   ExecutionRequest,
   ExecutionResult,
@@ -8,16 +8,27 @@ import {
 import { handleMaybePromise, type MaybePromise } from '@whatwg-node/promise-helpers';
 import {
   execute,
-  ExecutionArgs,
+  ExecuteArgs,
   flattenIncrementalResults,
   isIncrementalResults,
   subscribe,
 } from './execute.js';
+import { asInternalExecutionPlan } from './plan.js';
 
 export function normalizedExecutor<TData = any, TVariables = any, TContext = any>(
-  args: ExecutionArgs<TData, TVariables, TContext>,
+  args: ExecuteArgs<TData, TVariables, TContext>,
 ): MaybePromise<MaybeAsyncIterable<ExecutionResult<TData>>> {
-  const operationAST = getOperationAST(args.document, args.operationName);
+  let document: DocumentNode;
+  let operationName: string | undefined;
+  if ('plan' in args && args.plan != null) {
+    const plan = asInternalExecutionPlan(args.plan);
+    document = plan.document;
+    operationName = plan.operationName ?? undefined;
+  } else {
+    document = args.document;
+    operationName = args.operationName ?? undefined;
+  }
+  const operationAST = getOperationAST(document, operationName);
   if (operationAST == null) {
     throw new Error('Must provide an operation.');
   }

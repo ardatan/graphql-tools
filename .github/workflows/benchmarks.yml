@@ -10,14 +10,24 @@ concurrency:
   cancel-in-progress: true
 
 on:
-  push:
-    branches:
-      - master
+  # Vitest benches vs master: manual only (no PR / push noise on #8683).
+  workflow_dispatch:
+    inputs:
+      base_ref:
+        description: 'Base branch to compare Vitest benches against'
+        required: false
+        default: 'master'
+      rounds:
+        description: 'Interleaved HEAD/base bench rounds'
+        required: false
+        default: '3'
+  # Process-isolated sticky matrix still runs on #8683 / planned-execution PRs.
   pull_request:
 
 jobs:
   bench:
-    name: Vitest benches vs ${{ github.base_ref || 'master' }}
+    name: Vitest benches vs ${{ inputs.base_ref || 'master' }}
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,27 +41,94 @@ jobs:
           node-version-file: .node-version
 
       - name: Run benches and compare to base
-        if: github.event_name == 'pull_request'
         env:
-          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_BASE_REF: ${{ inputs.base_ref || 'master' }}
           # Warn-only by default; set to 1 to hard-fail later if desired.
           BENCH_FAIL_ON_REGRESSION: '0'
           BENCH_REGRESSION_THRESHOLD: '0.10'
           # Interleaved HEAD/base pairs; averages cut cold-start order bias.
-          BENCH_ROUNDS: '3'
+          BENCH_ROUNDS: ${{ inputs.rounds || '3' }}
         run: node scripts/bench-ci.mjs
 
-      - name: Run benches on master
-        if: github.event_name == 'push'
-        run: |
-          npm run build
-          BENCH_WRITE=1 npm run test:bench
-
-      - name: Upload bench results
+      - name: Upload Vitest bench results
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: bench-results-${{ github.event.pull_request.number || github.sha }}
+          name: bench-results-${{ github.sha }}
           path: benchmarks/results
           if-no-files-found: ignore
           retention-days: 7
+
+  # Process-isolated three-way bench matrix vs latest origin/master
+  # (execute + executeSync + Yoga authors + Hive federation-example).
+  # Sticky PR comment upsert (marker <!-- graphql-tools-bench-matrix-v1 -->).
+  bench-matrix:
+    name: Bench matrix vs master
+    # Sticky matrix for #8683 / planned-execution PRs only (pull_request).
+    if: |
+      github.event_name == 'pull_request' && (
+        github.event.pull_request.number == 8683 ||
+        github.head_ref == 'planned-execution' ||
+        github.base_ref == 'planned-execution'
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup env
+        uses: the-guild-org/shared-config/setup@v1
+        with:
+          node-version-file: .node-version
+
+      - name: Enable Corepack (Hive Gateway yarn)
+        run: corepack enable
+
+      - name: Run process-isolated bench matrix
+        env:
+          # Always tip vs latest origin/master (not PR merge-base).
+          BENCH_MATRIX_BASE_REF: master
+          BENCH_MATRIX_SAMPLES: '3'
+          BENCH_MATRIX_HTTP_SAMPLES: '2'
+          BENCH_MATRIX_WARM_MS: '300'
+          BENCH_MATRIX_MEASURE_MS: '900'
+          BENCH_MATRIX_HIVE_GATEWAY_DIR: ${{ runner.temp }}/hive-gateway
+          BENCH_MATRIX_HIVE_DURATION_MS: '5000'
+          BENCH_MATRIX_HIVE_WARMUP_MS: '1000'
+          BENCH_MATRIX_HIVE_PRODUCTS_SIZE: '1000'
+        run: node scripts/bench-matrix-ci.mjs
+
+      - name: Resolve PR number for sticky comment
+        id: pr
+        if: always()
+        run: echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+
+      - name: Upsert sticky bench-matrix PR comment
+        # Fork PRs get a read-only GITHUB_TOKEN; skip token-based publish (artifacts still upload).
+        if:
+          always() && steps.pr.outputs.number != '' && github.event.pull_request.head.repo.full_name
+          == github.repository
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          BENCH_MATRIX_PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: node scripts/upsert-pr-bench-matrix-comment.mjs
+
+      - name: Upload bench-matrix results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: bench-matrix-${{ github.event.pull_request.number || github.sha }}
+          path: |
+            benchmarks/results/bench-matrix.json
+            benchmarks/results/bench-matrix.md
+            benchmarks/results/bench-matrix-http.json
+          if-no-files-found: ignore
+          retention-days: 14

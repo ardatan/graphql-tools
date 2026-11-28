@@ -140,3 +140,29 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           command: npm run test:bun --ci
+
+  # Planned default + classic (GRAPHQL_TOOLS_EXECUTOR_PLANNING=0) on the same
+  # executor core + incremental suites. setExecutionPlanningEnabled is
+  # process-global; classic mode is process-isolated via the env var in the
+  # *:classic scripts.
+  test-executor-dual-mode:
+    name: Executor dual-mode (planned + classic)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup env
+        uses: the-guild-org/shared-config/setup@v1
+        with:
+          node-version-file: .node-version
+      - name: Build
+        run: npm run build
+      - name: Dual-mode core + incremental suites
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
+        with:
+          timeout_minutes: 25
+          max_attempts: 3
+          command: >-
+            npm run test:executor:core -- --ci && npm run test:executor:core:classic -- --ci && npm
+            run test:executor:incremental -- --ci && npm run test:executor:incremental:classic --
+            --ci
