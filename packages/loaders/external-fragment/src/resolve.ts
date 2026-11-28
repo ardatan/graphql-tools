@@ -1,6 +1,6 @@
 import { existsSync, promises as fsPromises, readFileSync } from 'fs';
 import { basename, join, resolve } from 'path';
-import { Kind, parse, print, visit, type DocumentNode } from 'graphql';
+import { Kind, parse, print, visit, type DocumentNode, type ParseOptions } from 'graphql';
 import memoizee from 'memoizee';
 import unixify from 'unixify';
 import {
@@ -59,7 +59,7 @@ interface ResolvedExternalFileWithSources extends ResolvedExternalFile {
   sources: ParsedSource[];
 }
 
-export interface ExternalFragmentResolverOptions {
+export interface ExternalFragmentResolverOptions extends Omit<ParseOptions, 'lexer'> {
   packageDir: string;
   externalPackagesDirs: string[];
   packageNameFilter?: (packageName: string) => boolean;
@@ -94,10 +94,13 @@ function isGraphQLFile(filePath: string): boolean {
   return GQL_EXTENSIONS.some(ext => filePath.endsWith(`.${ext}`));
 }
 
-function extractFragmentsAndSpreads(rawSDLs: string[], noLocation: boolean): ExtractedFileInfo {
+function extractFragmentsAndSpreads(
+  rawSDLs: string[],
+  parseOptions: ParseOptions,
+): ExtractedFileInfo {
   const sources = rawSDLs.map(rawSDL => ({
     rawSDL,
-    document: parse(rawSDL, { noLocation }),
+    document: parse(rawSDL, parseOptions),
   }));
 
   const definitions: FragmentInfo[] = [];
@@ -179,13 +182,13 @@ function registerFile({
 function parseFile({
   filePath,
   content,
-  noLocation,
+  parseOptions,
   pluckConfig,
   fileContentFilter,
 }: {
   filePath: string;
   content: string;
-  noLocation: boolean;
+  parseOptions: ParseOptions;
   pluckConfig?: GraphQLTagPluckOptions;
   fileContentFilter?: (content: string, filePath: string) => boolean;
 }): ExtractedFileInfo | undefined {
@@ -204,7 +207,7 @@ function parseFile({
     rawSDLs = pluckedSources.map(source => source.body);
   }
 
-  return extractFragmentsAndSpreads(rawSDLs, noLocation);
+  return extractFragmentsAndSpreads(rawSDLs, parseOptions);
 }
 
 // --- Memoized functions ---
@@ -258,10 +261,12 @@ function buildPackageFragmentMapRaw(
   extensions: string[],
   excludePatterns: string[],
   noLocation: boolean,
+  options: ParseOptions,
   pluckConfig?: GraphQLTagPluckOptions,
   fileContentFilter?: (content: string, filePath: string) => boolean,
 ): PackageFragmentMap {
   const builder = createPackageMapBuilder();
+  const parseOptions = { ...options, noLocation };
 
   const dirs = scanInternalDirs
     .map(folder => resolve(packageDir, folder))
@@ -283,7 +288,7 @@ function buildPackageFragmentMapRaw(
 
   for (const filePath of allFiles) {
     const content = readFileSync(filePath, 'utf8');
-    const info = parseFile({ filePath, content, noLocation, pluckConfig, fileContentFilter });
+    const info = parseFile({ filePath, content, parseOptions, pluckConfig, fileContentFilter });
     if (info) registerFile({ builder, packageDir, filePath, info });
   }
 
@@ -296,10 +301,12 @@ async function buildPackageFragmentMapAsyncRaw(
   extensions: string[],
   excludePatterns: string[],
   noLocation: boolean,
+  options: ParseOptions,
   pluckConfig?: GraphQLTagPluckOptions,
   fileContentFilter?: (content: string, filePath: string) => boolean,
 ): Promise<PackageFragmentMap> {
   const builder = createPackageMapBuilder();
+  const parseOptions = { ...options, noLocation };
 
   const dirs = scanInternalDirs
     .map(folder => resolve(packageDir, folder))
@@ -326,7 +333,7 @@ async function buildPackageFragmentMapAsyncRaw(
   await Promise.all(
     allFiles.map(async filePath => {
       const content = await readFile(filePath, 'utf8');
-      const info = parseFile({ filePath, content, noLocation, pluckConfig, fileContentFilter });
+      const info = parseFile({ filePath, content, parseOptions, pluckConfig, fileContentFilter });
       if (info) registerFile({ builder, packageDir, filePath, info });
     }),
   );
@@ -340,6 +347,7 @@ type PackageMapArgs = [
   extensions: string[],
   excludePatterns: string[],
   noLocation: boolean,
+  parseOptions: ParseOptions,
   pluckConfig?: GraphQLTagPluckOptions,
   fileContentFilter?: (content: string, filePath: string) => boolean,
 ];
@@ -351,6 +359,8 @@ type MemoizedPackageMap<Result> = ((...args: PackageMapArgs) => Result) & {
 };
 
 let readPackageJsonDeps = memoizee(readPackageJsonDepsRaw, { primitive: true });
+// Preserve separate noLocation cache entries. Clear cached fragments before
+// changing other parser settings, or let them expire via cacheTTL.
 let buildPackageFragmentMap = memoizee(buildPackageFragmentMapRaw, {
   primitive: true,
 }) as MemoizedPackageMap<PackageFragmentMap>;
@@ -691,6 +701,7 @@ interface NormalizedOptions {
   extensions: string[];
   excludePatterns: string[];
   noLocation: boolean;
+  parseOptions: ParseOptions;
   invalidateTargetPackageCache: boolean;
 }
 
@@ -704,6 +715,8 @@ function normalizeOptions(options: ExternalFragmentResolverOptions): NormalizedO
   const excludePatterns = options.excludePatterns ?? DEFAULT_EXCLUDE_PATTERNS;
   const noLocation = options.noLocation ?? true;
   const invalidateTargetPackageCache = options.invalidateTargetPackageCache ?? false;
+  // A lexer is bound to one source and cannot be reused across scanned documents.
+  const parseOptions = { ...options, lexer: undefined };
   return {
     externalPackagesDirs,
     filter,
@@ -713,6 +726,7 @@ function normalizeOptions(options: ExternalFragmentResolverOptions): NormalizedO
     extensions,
     excludePatterns,
     noLocation,
+    parseOptions,
     invalidateTargetPackageCache,
   };
 }
@@ -765,7 +779,7 @@ function toPublicResolvedFiles(
 function getPackageMapArgs(
   packageDir: string,
   options: ExternalFragmentResolverOptions,
-  { scanInternalDirs, extensions, excludePatterns, noLocation }: NormalizedOptions,
+  { scanInternalDirs, extensions, excludePatterns, noLocation, parseOptions }: NormalizedOptions,
 ): PackageMapArgs {
   return [
     packageDir,
@@ -773,6 +787,7 @@ function getPackageMapArgs(
     extensions,
     excludePatterns,
     noLocation,
+    parseOptions,
     options.pluckConfig,
     options.fileContentFilter,
   ];
