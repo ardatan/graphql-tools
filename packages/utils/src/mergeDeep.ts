@@ -124,32 +124,44 @@ function mergeDeepWithOptions<S extends any[]>(
   if (sources.length === 1) {
     return sources[0];
   }
-  let expectedLength: number | undefined;
   let allArrays = true;
-  const areArraysInTheSameLength = sources.every(source => {
-    if (Array.isArray(source)) {
-      if (expectedLength === undefined) {
-        expectedLength = source.length;
-        return true;
-      } else if (expectedLength === source.length) {
-        return true;
-      }
-    } else {
-      allArrays = false;
+  const arraySources: any[][] = [];
+  let expectedLength: number | undefined;
+  let areArraysInTheSameLength = true;
+  for (const source of sources) {
+    // `undefined` sources are skipped when merging, so they must not change the strategy
+    if (source === undefined) {
+      continue;
     }
-    return false;
-  });
+    if (!Array.isArray(source)) {
+      allArrays = false;
+      areArraysInTheSameLength = false;
+      break;
+    }
+    arraySources.push(source);
+    if (expectedLength === undefined) {
+      expectedLength = source.length;
+    } else if (expectedLength !== source.length) {
+      areArraysInTheSameLength = false;
+    }
+  }
 
-  if (respectArrayLength && areArraysInTheSameLength) {
+  if (
+    respectArrayLength &&
+    allArrays &&
+    arraySources.length > 0 &&
+    areArraysInTheSameLength &&
+    expectedLength !== undefined
+  ) {
     return new Array(expectedLength).fill(null).map((_, index) =>
       mergeDeepWithOptions(
-        sources.map(source => source[index]),
+        arraySources.map(source => source[index]),
         options,
       ),
     );
   }
-  if (allArrays) {
-    return sources.flat(1);
+  if (allArrays && arraySources.length > 0) {
+    return arraySources.flat(1);
   }
 
   let output: any;
@@ -168,8 +180,16 @@ function mergeDeepWithOptions<S extends any[]>(
       continue;
     }
     if (isObject(source)) {
-      if (output == null) {
+      // A later object replaces a scalar or array output instead of modifying it
+      if (
+        output == null ||
+        Array.isArray(output) ||
+        (typeof output !== 'object' && typeof output !== 'function')
+      ) {
         output = {};
+        if (firstObjectSource) {
+          Object.setPrototypeOf(output, Object.create(Object.getPrototypeOf(firstObjectSource)));
+        }
       }
       if (firstObjectSource) {
         const outputPrototype = Object.getPrototypeOf(output);
